@@ -15,17 +15,21 @@ This document provides the complete list of 65 Phase 1 issues organized by funct
 
 ### Recommended: Use GitHub Actions Workflow
 
-The easiest way to create all milestones and issues is using the provided GitHub Actions workflow:
+The easiest way to create all milestones, issues, and the project board is using the provided GitHub Actions workflow:
 
 1. Go to **Actions** tab in the repository
-2. Select **"Create Phase 1 Issues"** workflow
+2. Select **"Create Phase 1 Issues and Project Board"** workflow
 3. Click **"Run workflow"**
-4. Choose whether to create milestones (select "true" for first run)
+4. Options:
+   - **create_milestones**: Check to create M1, M2, M3, M4 (default: true)
+   - **create_project**: Check to create the project board (default: true)
 5. Click **"Run workflow"** button
 
 The workflow will:
+- Create GitHub Project board "Project LOGOS - Phase 1"
 - Create 4 milestones (M1, M2, M3, M4)
 - Create all 65 issues with proper labels and milestone assignments
+- Add all issues to the project board automatically
 - Organize issues by functional epoch
 - Provide a summary with links
 
