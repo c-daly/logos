@@ -41,15 +41,117 @@ for tool in gh jq python3; do
   require_cmd "$tool"
 done
 
-if ! gh label --help >/dev/null 2>&1; then
-  die "The gh-label extension is required. Install via: gh extension install heaths/gh-label"
+log "Repository target: $REPO_SLUG"
+
+AVAILABLE_STEPS=(labels milestones project issues link)
+REQUESTED_STEPS=()
+
+usage() {
+  cat <<USAGE
+Usage: $(basename "$0") [step ...]
+
+Steps:
+  labels      Sync labels from .github/labels.yml
+  milestones  Ensure milestones exist
+  project     Create or locate the Project V2 board
+  issues      Generate and create GitHub issues
+  link        Add open phase:1 issues to the project board
+
+If no steps are provided, the script runs all steps in the order above.
+USAGE
+}
+
+if [[ $# -eq 0 ]]; then
+  REQUESTED_STEPS=("${AVAILABLE_STEPS[@]}")
+else
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -h|--help)
+        usage
+        exit 0
+        ;;
+      labels|milestones|project|issues|link)
+        REQUESTED_STEPS+=("$1")
+        ;;
+      *)
+        usage
+        die "Unknown step '$1'"
+        ;;
+    esac
+    shift
+  done
 fi
 
-log "Repository target: $REPO_SLUG"
+urlencode() {
+  python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "$1"
+}
 
 sync_labels() {
   log "Syncing labels from .github/labels.yml"
-  gh label sync --repo "$REPO_SLUG" --file "$REPO_ROOT/.github/labels.yml"
+  local labels_json
+  labels_json=$(python3 - "$REPO_ROOT/.github/labels.yml" <<'PY'
+import json
+import sys
+
+path = sys.argv[1]
+labels = []
+current = None
+
+def flush():
+    global current
+    if current:
+        if 'name' in current and 'color' in current:
+            labels.append(current)
+        current = None
+
+with open(path, 'r', encoding='utf-8') as handle:
+    for raw in handle:
+        stripped = raw.strip()
+        if not stripped or stripped.startswith('#'):
+            continue
+        if stripped.startswith('- name:'):
+            flush()
+            value = stripped.split(':', 1)[1].strip().strip('"')
+            current = {'name': value}
+        elif current and stripped.startswith('color:'):
+            value = stripped.split(':', 1)[1].strip().strip('"')
+            current['color'] = value.lstrip('#')
+        elif current and stripped.startswith('description:'):
+            value = stripped.split(':', 1)[1].strip()
+            if value.startswith('"') and value.endswith('"') and len(value) >= 2:
+                value = value[1:-1]
+            current['description'] = value
+flush()
+
+print(json.dumps(labels))
+PY
+)
+
+  if [[ -z "$labels_json" || "$labels_json" == "[]" ]]; then
+    die "No labels parsed from .github/labels.yml"
+  fi
+
+  echo "$labels_json" | jq -c '.[]' | while read -r label; do
+    local name color description encoded
+    name=$(echo "$label" | jq -r '.name')
+    color=$(echo "$label" | jq -r '.color // "000000"')
+    description=$(echo "$label" | jq -r '.description // ""')
+    encoded=$(urlencode "$name")
+
+    if gh api "repos/$REPO_SLUG/labels/$encoded" >/dev/null 2>&1; then
+      gh api -X PATCH "repos/$REPO_SLUG/labels/$encoded" \
+        -f new_name="$name" \
+        -f color="$color" \
+        -f description="$description" >/dev/null
+      log "Updated label: $name"
+    else
+      gh api -X POST "repos/$REPO_SLUG/labels" \
+        -f name="$name" \
+        -f color="$color" \
+        -f description="$description" >/dev/null
+      log "Created label: $name"
+    fi
+  done
 }
 
 create_milestone() {
@@ -179,11 +281,25 @@ add_issues_to_project() {
 }
 
 main() {
-  sync_labels
-  ensure_milestones
-  create_project_board
-  create_issues
-  add_issues_to_project
+  for step in "${REQUESTED_STEPS[@]}"; do
+    case "$step" in
+      labels)
+        sync_labels
+        ;;
+      milestones)
+        ensure_milestones
+        ;;
+      project)
+        create_project_board
+        ;;
+      issues)
+        create_issues
+        ;;
+      link)
+        add_issues_to_project
+        ;;
+    esac
+  done
 
   log "Bootstrap complete!"
   cat <<SUMMARY

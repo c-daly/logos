@@ -244,7 +244,7 @@ All created files have been validated:
 
 To complete section 1.2, the repository administrator should:
 
-1. **Sync Labels** - Run `gh label sync` or manually create labels
+1. **Sync Labels** - Run `./infra/bootstrap_phase1.sh labels` (or manually create labels)
 2. **Create Milestone** - Use GitHub CLI or web UI to create the Phase 1 milestone
 3. **Create Project Board** - Set up the board via GitHub web UI
 4. **Generate Issues** - Run the `generate_issues.py` script and execute the output

@@ -23,23 +23,22 @@ REPO_SLUG=c-daly/logos ./infra/bootstrap_phase1.sh
 
 The script wraps every command from this quick start, emits references back to `docs/action_items.md` and `docs/spec/project_logos_full.md`, and mirrors the GitHub Actions workflow (`.github/workflows/create-phase1-issues.yml`). Keep reading if you prefer to run each step manually.
 
-### Step 1: Install GitHub CLI Extensions (Optional)
+### Step 1: Prep GitHub CLI
 
-```bash
-# Install the label management extension
-gh extension install heaths/gh-label
-```
+- Ensure [`gh`](https://cli.github.com/) is installed and authenticated (`gh auth login`)
+- Confirm you have `repo` scope access to the target repository
 
 ### Step 2: Sync Labels
 
-**Option A: Using GitHub CLI (Recommended)**
+Use the bootstrap helper in labels-only mode to create/update every label defined in `.github/labels.yml`:
+
 ```bash
-gh label sync --repo c-daly/logos --file .github/labels.yml
+REPO_SLUG=c-daly/logos ./infra/bootstrap_phase1.sh labels
 ```
 
 **Option B: Manual**
 - Go to https://github.com/c-daly/logos/labels
-- Create each label from `.github/labels.yml`
+- Create/update each label from `.github/labels.yml`
 
 ### Step 3: Create Milestone
 
