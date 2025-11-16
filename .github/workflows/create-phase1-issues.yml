@@ -1,0 +1,88 @@
+name: Create Phase 1 Issues
+
+on:
+  workflow_dispatch:
+    inputs:
+      create_milestones:
+        description: 'Create milestones first'
+        required: false
+        default: 'true'
+        type: boolean
+
+jobs:
+  create-issues:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      
+      - name: Create milestones
+        if: inputs.create_milestones == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Creating Phase 1 milestones..."
+          
+          # M1: Infrastructure & Knowledge Foundation
+          gh api repos/${{ github.repository }}/milestones -X POST \
+            -f title="M1: HCG Store & Retrieve" \
+            -f description="Knowledge graph operational. Neo4j + Milvus working, core ontology loaded, basic CRUD operations functional." \
+            2>&1 || echo "M1 already exists or error occurred"
+          
+          # M2: Language & Perception Services  
+          gh api repos/${{ github.repository }}/milestones -X POST \
+            -f title="M2: SHACL Validation" \
+            -f description="Validation and language services operational. SHACL validation working, Hermes endpoints functional, embeddings integrated." \
+            2>&1 || echo "M2 already exists or error occurred"
+          
+          # M3: Cognitive Core & Reasoning
+          gh api repos/${{ github.repository }}/milestones -X POST \
+            -f title="M3: Simple Planning" \
+            -f description="Cognitive capabilities demonstrated. Sophia can generate valid plans using causal reasoning over the knowledge graph." \
+            2>&1 || echo "M3 already exists or error occurred"
+          
+          # M4: Integration & Demonstration
+          gh api repos/${{ github.repository }}/milestones -X POST \
+            -f title="M4: Pick and Place" \
+            -f description="End-to-end autonomous behavior. Full pipeline working from user command to execution with knowledge graph updates." \
+            2>&1 || echo "M4 already exists or error occurred"
+          
+          echo "Milestones created successfully!"
+      
+      - name: Generate issue creation script
+        run: |
+          python3 .github/scripts/create_issues_by_epoch.py --format gh-cli > /tmp/create_issues.sh
+          chmod +x /tmp/create_issues.sh
+          echo "Generated issue creation script"
+      
+      - name: Create issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Creating 65 Phase 1 issues organized by functional epochs..."
+          bash /tmp/create_issues.sh
+          echo "Issues created successfully!"
+      
+      - name: Summary
+        run: |
+          echo "## Phase 1 Issues Created ✅" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Created issues organized by functional epochs:" >> $GITHUB_STEP_SUMMARY
+          echo "- Epoch 1: Infrastructure & Knowledge Foundation (41 issues)" >> $GITHUB_STEP_SUMMARY
+          echo "- Epoch 2: Language & Perception Services (5 issues)" >> $GITHUB_STEP_SUMMARY
+          echo "- Epoch 3: Cognitive Core & Reasoning (13 issues)" >> $GITHUB_STEP_SUMMARY
+          echo "- Epoch 4: Integration & Demonstration (6 issues)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Total:** 65 issues" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "View issues: https://github.com/${{ github.repository }}/issues" >> $GITHUB_STEP_SUMMARY
+          echo "View milestones: https://github.com/${{ github.repository }}/milestones" >> $GITHUB_STEP_SUMMARY

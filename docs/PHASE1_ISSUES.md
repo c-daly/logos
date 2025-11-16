@@ -13,58 +13,41 @@ This document provides the complete list of 65 Phase 1 issues organized by funct
 
 ## Creating Milestones and Issues
 
-### Step 1: Create Milestones
+### Recommended: Use GitHub Actions Workflow
 
-Run these commands to create the four functional milestones:
+The easiest way to create all milestones and issues is using the provided GitHub Actions workflow:
 
-```bash
-# M1: Infrastructure & Knowledge Foundation
-gh api repos/c-daly/logos/milestones -X POST \
-  -f title="M1: HCG Store & Retrieve" \
-  -f description="Knowledge graph operational. Neo4j + Milvus working, core ontology loaded, basic CRUD operations functional."
+1. Go to **Actions** tab in the repository
+2. Select **"Create Phase 1 Issues"** workflow
+3. Click **"Run workflow"**
+4. Choose whether to create milestones (select "true" for first run)
+5. Click **"Run workflow"** button
 
-# M2: Language & Perception Services  
-gh api repos/c-daly/logos/milestones -X POST \
-  -f title="M2: SHACL Validation" \
-  -f description="Validation and language services operational. SHACL validation working, Hermes endpoints functional, embeddings integrated."
+The workflow will:
+- Create 4 milestones (M1, M2, M3, M4)
+- Create all 65 issues with proper labels and milestone assignments
+- Organize issues by functional epoch
+- Provide a summary with links
 
-# M3: Cognitive Core & Reasoning
-gh api repos/c-daly/logos/milestones -X POST \
-  -f title="M3: Simple Planning" \
-  -f description="Cognitive capabilities demonstrated. Sophia can generate valid plans using causal reasoning over the knowledge graph."
+**Status:** Workflow available at `.github/workflows/create-phase1-issues.yml`
 
-# M4: Integration & Demonstration
-gh api repos/c-daly/logos/milestones -X POST \
-  -f title="M4: Pick and Place" \
-  -f description="End-to-end autonomous behavior. Full pipeline working from user command to execution with knowledge graph updates."
-```
+### Alternative: Manual Creation with GitHub CLI
 
-### Step 2: Generate Issue Creation Commands
-
-Use the Python generator to create the exact GitHub CLI commands:
+If you prefer to run locally with GitHub CLI:
 
 ```bash
+# Authenticate GitHub CLI first
+gh auth login
+
 # Generate the issue creation script
 python3 .github/scripts/create_issues_by_epoch.py --format gh-cli > /tmp/create_issues.sh
 
 # Review the script
 less /tmp/create_issues.sh
 
-# Execute it (after reviewing)
+# Execute it
 chmod +x /tmp/create_issues.sh
-GH_TOKEN=$YOUR_TOKEN /tmp/create_issues.sh
-```
-
-### Alternative: Manual Creation
-
-You can also use the Python generator to output markdown or JSON for manual review:
-
-```bash
-# Generate markdown preview
-python3 .github/scripts/create_issues_by_epoch.py --format markdown > /tmp/issues.md
-
-# Generate JSON for programmatic use
-python3 .github/scripts/create_issues_by_epoch.py --format json > /tmp/issues.json
+bash /tmp/create_issues.sh
 ```
 
 ## Functional Epoch Breakdown
