@@ -1,0 +1,44 @@
+name: Research Task
+description: Research sprint or investigation task
+title: "[Research] "
+labels: ["type:research"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Research sprint or investigation task
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: Task priority level
+      options:
+        - priority:high
+        - priority:medium
+        - priority:low
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Research Question/Goal
+      description: What research question needs to be answered?
+      placeholder: Describe the research goal
+    validations:
+      required: true
+  - type: textarea
+    id: approach
+    attributes:
+      label: Approach
+      description: Planned research approach
+      placeholder: Describe how you plan to investigate this
+    validations:
+      required: false
+  - type: textarea
+    id: deliverables
+    attributes:
+      label: Deliverables
+      description: Expected outputs (documents, prototypes, etc.)
+      placeholder: List expected deliverables
+    validations:
+      required: false

@@ -1,0 +1,49 @@
+name: Documentation Task
+description: Documentation or knowledge management task
+title: "[Docs] "
+labels: ["type:documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Documentation or knowledge management task
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: Task priority level
+      options:
+        - priority:high
+        - priority:medium
+        - priority:low
+    validations:
+      required: true
+  - type: dropdown
+    id: doc_type
+    attributes:
+      label: Documentation Type
+      description: Type of documentation
+      options:
+        - Architecture Decision Record (ADR)
+        - Developer Guide
+        - API Documentation
+        - Tutorial
+        - Other
+    validations:
+      required: false
+  - type: textarea
+    id: description
+    attributes:
+      label: Task Description
+      description: What documentation needs to be created or updated?
+      placeholder: Describe the documentation task
+    validations:
+      required: true
+  - type: textarea
+    id: target_audience
+    attributes:
+      label: Target Audience
+      description: Who is this documentation for?
+      placeholder: e.g., New developers, API users, contributors
+    validations:
+      required: false

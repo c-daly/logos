@@ -1,0 +1,237 @@
+# GitHub Project Configuration for Project LOGOS
+# This file documents the desired project board configuration
+# Reference: Section 1.2 of docs/action_items.md
+
+project:
+  name: "Project LOGOS - Phase 1"
+  description: |
+    Project board for tracking Phase 1 deliverables: HCG and Abstract Pipeline.
+    Includes Workstreams A (HCG Foundation), B (Sophia Cognitive Core), and C (Hermes and Support Services).
+  visibility: public  # or private, depending on preferences
+  
+  # Board configuration
+  board:
+    type: "projectsV2"  # New GitHub Projects (Beta)
+    
+    # Default columns for board view
+    columns:
+      - name: "📋 To Do"
+        description: "Tasks that need to be started"
+      - name: "🚧 In Progress"
+        description: "Tasks currently being worked on"
+      - name: "🚫 Blocked"
+        description: "Tasks blocked by dependencies or issues"
+      - name: "👀 Review"
+        description: "Tasks ready for review"
+      - name: "✅ Done"
+        description: "Completed tasks"
+    
+    # Custom fields
+    fields:
+      - name: "Status"
+        type: "single_select"
+        options:
+          - name: "To Do"
+            color: "gray"
+          - name: "In Progress"
+            color: "yellow"
+          - name: "Blocked"
+            color: "red"
+          - name: "Review"
+            color: "blue"
+          - name: "Done"
+            color: "green"
+      
+      - name: "Priority"
+        type: "single_select"
+        options:
+          - name: "High"
+            color: "red"
+          - name: "Medium"
+            color: "yellow"
+          - name: "Low"
+            color: "green"
+      
+      - name: "Workstream"
+        type: "single_select"
+        options:
+          - name: "Workstream A - HCG Foundation"
+            color: "blue"
+          - name: "Workstream B - Sophia Core"
+            color: "purple"
+          - name: "Workstream C - Support Services"
+            color: "orange"
+          - name: "Infrastructure"
+            color: "gray"
+          - name: "Research"
+            color: "pink"
+          - name: "Documentation"
+            color: "teal"
+      
+      - name: "Component"
+        type: "single_select"
+        options:
+          - name: "Sophia"
+            color: "purple"
+          - name: "Hermes"
+            color: "blue"
+          - name: "Talos"
+            color: "yellow"
+          - name: "Apollo"
+            color: "orange"
+          - name: "Infrastructure"
+            color: "gray"
+      
+      - name: "Estimated Effort"
+        type: "single_select"
+        options:
+          - name: "XS (< 1 day)"
+            color: "green"
+          - name: "S (1-2 days)"
+            color: "yellow"
+          - name: "M (3-5 days)"
+            color: "orange"
+          - name: "L (1-2 weeks)"
+            color: "red"
+          - name: "XL (> 2 weeks)"
+            color: "purple"
+      
+      - name: "Phase"
+        type: "single_select"
+        options:
+          - name: "Phase 1"
+            color: "blue"
+          - name: "Phase 2"
+            color: "green"
+          - name: "Future"
+            color: "gray"
+    
+    # Views
+    views:
+      - name: "Board"
+        type: "board"
+        group_by: "Status"
+        sort_by: "Priority"
+        
+      - name: "By Workstream"
+        type: "board"
+        group_by: "Workstream"
+        sort_by: "Priority"
+        
+      - name: "By Component"
+        type: "board"
+        group_by: "Component"
+        sort_by: "Status"
+        
+      - name: "All Tasks (Table)"
+        type: "table"
+        columns:
+          - "Title"
+          - "Status"
+          - "Priority"
+          - "Workstream"
+          - "Component"
+          - "Assignees"
+          - "Labels"
+          - "Milestone"
+        sort_by: "Created"
+        sort_direction: "desc"
+        
+      - name: "High Priority"
+        type: "table"
+        filter: "priority:high"
+        sort_by: "Updated"
+        sort_direction: "desc"
+        
+      - name: "In Progress"
+        type: "table"
+        filter: "status:in-progress"
+        sort_by: "Updated"
+        sort_direction: "desc"
+        
+      - name: "This Week"
+        type: "table"
+        filter: "updated:>now-7d"
+        sort_by: "Updated"
+        sort_direction: "desc"
+    
+    # Automation workflows (if using GitHub Projects automation)
+    workflows:
+      - name: "Item added to project"
+        trigger: "item_added"
+        action:
+          set_field:
+            field: "Status"
+            value: "To Do"
+      
+      - name: "Item closed"
+        trigger: "item_closed"
+        action:
+          set_field:
+            field: "Status"
+            value: "Done"
+      
+      - name: "Item reopened"
+        trigger: "item_reopened"
+        action:
+          set_field:
+            field: "Status"
+            value: "To Do"
+
+# Milestone configuration
+milestone:
+  title: "Phase 1 - HCG and Abstract Pipeline"
+  description: |
+    Phase 1 deliverables focusing on:
+    - Workstream A: HCG Foundation and Validation
+    - Workstream B: Sophia Cognitive Core Prototype
+    - Workstream C: Hermes and Support Services
+    
+    Key milestones:
+    - M1: HCG can store and retrieve entities (Week 2)
+    - M2: SHACL validation catches errors (Week 4)
+    - M3: Sophia can plan simple actions (Week 6)
+    - M4: End-to-end "pick and place" (Week 8)
+  due_date: "2026-02-15"  # Adjust as needed
+  state: "open"
+
+# Weekly progress tracking configuration
+progress_tracking:
+  schedule: "weekly"
+  day: "Monday"
+  time: "09:00 UTC"
+  
+  activities:
+    - Review all "In Progress" issues
+    - Update issue statuses
+    - Comment on blocked issues
+    - Review completed work
+    - Update action_items.md
+    - Create weekly summary
+  
+  report_format: |
+    # Weekly Progress Report - Week {week_number}
+    
+    **Date:** {date}
+    **Phase:** Phase 1 - HCG and Abstract Pipeline
+    
+    ## Summary
+    - Total Issues: {total_issues}
+    - In Progress: {in_progress_count}
+    - Completed This Week: {completed_this_week}
+    - Blocked: {blocked_count}
+    
+    ## In Progress
+    {in_progress_list}
+    
+    ## Completed This Week
+    {completed_list}
+    
+    ## Blocked
+    {blocked_list}
+    
+    ## Next Week Focus
+    {next_week_focus}
+    
+    ## Notes
+    {additional_notes}
