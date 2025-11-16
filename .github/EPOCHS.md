@@ -308,52 +308,6 @@ Issues are labeled according to their functional epoch and component:
 
 ---
 
-## Creating Issues by Functional Epoch
-
-Use the provided script to generate issues organized by functional capability:
-
-```bash
-# Generate GitHub CLI commands
-python3 .github/scripts/create_issues_by_epoch.py --format gh-cli --output create_issues.sh
-
-# Review the commands (optional)
-less create_issues.sh
-
-# Execute to create all issues
-chmod +x create_issues.sh
-./create_issues.sh
-```
-
-**Note:** Before running the script, ensure that milestones M1, M2, M3, and M4 have been created in the GitHub repository.
-
-### Creating Milestones
-
-Create the four functional milestones using GitHub CLI:
-
-```bash
-# M1: HCG Store & Retrieve (Infrastructure & Knowledge Foundation)
-gh milestone create "M1: HCG Store & Retrieve" \
-  --repo c-daly/logos \
-  --description "Knowledge graph operational. Neo4j + Milvus working, core ontology loaded, basic CRUD operations functional."
-
-# M2: SHACL Validation (Language & Perception Services)
-gh milestone create "M2: SHACL Validation" \
-  --repo c-daly/logos \
-  --description "Validation and language services operational. SHACL validation working, Hermes endpoints functional, embeddings integrated."
-
-# M3: Simple Planning (Cognitive Core & Reasoning)
-gh milestone create "M3: Simple Planning" \
-  --repo c-daly/logos \
-  --description "Cognitive capabilities demonstrated. Sophia can generate valid plans using causal reasoning over the knowledge graph."
-
-# M4: Pick and Place (Integration & Demonstration)
-gh milestone create "M4: Pick and Place" \
-  --repo c-daly/logos \
-  --description "End-to-end autonomous behavior. Full pipeline working from user command to execution with knowledge graph updates."
-```
-
----
-
 ## Progress Tracking
 
 Progress will be tracked at multiple levels:
@@ -428,7 +382,8 @@ Each functional layer has clear acceptance criteria independent of other layers.
 - **Action Items Document:** `docs/action_items.md`
 - **Full Specification:** `docs/spec/project_logos_full.md` (Section 7.1 - Phase 1 Plan)
 - **Project Board Setup:** `.github/PROJECT_BOARD_SETUP.md`
-- **Issue Generation Script:** `.github/scripts/create_issues_by_epoch.py`
+- **Issue Tracker:** https://github.com/c-daly/logos/issues
+- **Milestones:** https://github.com/c-daly/logos/milestones
 
 ---
 
