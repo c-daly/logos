@@ -13,7 +13,7 @@ This document captures the actionable tasks for initializing and executing Phase
   - [x] Create HCG dev infrastructure (`infra/docker-compose.hcg.dev.yml`)
   - [x] Add full specification (`docs/spec/project_logos_full.md`)
   - [x] Add action items tracking (`docs/action_items.md`)
-  - [ ] Set up CI/CD for validation tests
+  - [x] Set up CI/CD for validation tests
 
 - [ ] **c-daly/sophia** — Cognitive core repository
   - [ ] Initialize Python project structure
