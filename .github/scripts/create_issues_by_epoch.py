@@ -13,6 +13,9 @@ Epochs (Functionality-Based):
 
 Usage:
     python3 .github/scripts/create_issues_by_epoch.py [--dry-run] [--format json|markdown|gh-cli]
+    
+    To reset and recreate all Phase 1 issues:
+    python3 .github/scripts/create_issues_by_epoch.py --format gh-cli --include-reset-phase1 > /tmp/reset.sh
 """
 
 import re
