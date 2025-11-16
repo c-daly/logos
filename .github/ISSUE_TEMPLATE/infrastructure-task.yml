@@ -1,0 +1,55 @@
+name: Infrastructure Task
+description: Task related to infrastructure, HCG, ontology, or CI/CD
+title: "[Infra] "
+labels: ["component:infrastructure"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Task for infrastructure, HCG setup, ontology development, or CI/CD
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: Task priority level
+      options:
+        - priority:high
+        - priority:medium
+        - priority:low
+    validations:
+      required: true
+  - type: dropdown
+    id: workstream
+    attributes:
+      label: Workstream
+      description: Associated workstream
+      options:
+        - Workstream A - HCG Foundation and Validation
+        - Repository and Project Infrastructure Setup
+        - Other
+    validations:
+      required: false
+  - type: textarea
+    id: description
+    attributes:
+      label: Task Description
+      description: Detailed description of the task
+      placeholder: Describe what needs to be done
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: Tasks or components this depends on
+      placeholder: List any dependencies
+    validations:
+      required: false
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      description: What defines completion of this task?
+      placeholder: List acceptance criteria
+    validations:
+      required: false

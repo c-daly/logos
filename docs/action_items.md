@@ -48,11 +48,13 @@ This document captures the actionable tasks for initializing and executing Phase
 
 ### 1.2 Project Board and Issue Tracking
 
-- [ ] Create GitHub Project board for LOGOS
-- [ ] Set up milestone: "Phase 1 — HCG and Abstract Pipeline"
-- [ ] Create issues for all Phase 1 tasks
-- [ ] Establish labeling system: `component:sophia`, `component:hermes`, `priority:high`, etc.
-- [ ] Set up weekly progress tracking
+**Note:** Infrastructure created. See `docs/QUICK_START_PROJECT_BOARD.md` for setup instructions.
+
+- [ ] Create GitHub Project board for LOGOS (infrastructure ready in `.github/project_config.yml`)
+- [ ] Set up milestone: "Phase 1 — HCG and Abstract Pipeline" (see `.github/PROJECT_BOARD_SETUP.md`)
+- [ ] Create issues for all Phase 1 tasks (use `.github/scripts/generate_issues.py`)
+- [x] Establish labeling system: `component:sophia`, `component:hermes`, `priority:high`, etc. (see `.github/labels.yml`)
+- [x] Set up weekly progress tracking (see `.github/workflows/weekly-progress.yml`)
 
 ### 1.3 Database and Infrastructure Setup
 

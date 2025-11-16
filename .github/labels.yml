@@ -1,0 +1,126 @@
+# GitHub Labels Configuration for Project LOGOS
+# This file defines the labeling system for issue tracking
+# Reference: Section 1.2 of docs/action_items.md
+
+# Component Labels - Identify which component/repository the issue belongs to
+- name: "component:sophia"
+  color: "0e8a16"
+  description: "Related to Sophia cognitive core (Orchestrator, CWM-A, CWM-G, Planner, Executor)"
+
+- name: "component:hermes"
+  color: "1d76db"
+  description: "Related to Hermes language utility (STT, TTS, NLP, embeddings)"
+
+- name: "component:talos"
+  color: "fbca04"
+  description: "Related to Talos hardware abstraction layer (sensors, actuators)"
+
+- name: "component:apollo"
+  color: "d93f0b"
+  description: "Related to Apollo UI/client (dashboard, visualization, command interface)"
+
+- name: "component:infrastructure"
+  color: "5319e7"
+  description: "Related to infrastructure, HCG, ontology, CI/CD, or repository setup"
+
+# Priority Labels - Indicate task urgency and importance
+- name: "priority:high"
+  color: "b60205"
+  description: "High priority - critical for current phase"
+
+- name: "priority:medium"
+  color: "d93f0b"
+  description: "Medium priority - important but not blocking"
+
+- name: "priority:low"
+  color: "fbca04"
+  description: "Low priority - nice to have or future enhancement"
+
+# Type Labels - Categorize the nature of the work
+- name: "type:feature"
+  color: "0052cc"
+  description: "New feature or capability"
+
+- name: "type:bug"
+  color: "d73a4a"
+  description: "Bug fix or error correction"
+
+- name: "type:research"
+  color: "8b4789"
+  description: "Research sprint or investigation"
+
+- name: "type:documentation"
+  color: "0075ca"
+  description: "Documentation or knowledge management"
+
+- name: "type:refactor"
+  color: "fbca04"
+  description: "Code refactoring or improvement"
+
+- name: "type:testing"
+  color: "bfd4f2"
+  description: "Test creation or improvement"
+
+# Workstream Labels - Align with Phase 1 workstreams
+- name: "workstream:A"
+  color: "c5def5"
+  description: "Workstream A - HCG Foundation and Validation"
+
+- name: "workstream:B"
+  color: "d4c5f9"
+  description: "Workstream B - Sophia Cognitive Core Prototype"
+
+- name: "workstream:C"
+  color: "fef2c0"
+  description: "Workstream C - Hermes and Support Services"
+
+# Status Labels - Track issue lifecycle
+- name: "status:blocked"
+  color: "d93f0b"
+  description: "Blocked by dependencies or external factors"
+
+- name: "status:in-progress"
+  color: "0e8a16"
+  description: "Currently being worked on"
+
+- name: "status:review"
+  color: "fbca04"
+  description: "Ready for review"
+
+- name: "status:on-hold"
+  color: "e99695"
+  description: "On hold - temporarily paused"
+
+# Milestone Labels - Phase-specific tracking
+- name: "phase:1"
+  color: "006b75"
+  description: "Phase 1 - HCG and Abstract Pipeline"
+
+- name: "phase:2"
+  color: "0366d6"
+  description: "Phase 2 - Future planning"
+
+# Special Labels
+- name: "good-first-issue"
+  color: "7057ff"
+  description: "Good for newcomers to the project"
+
+- name: "help-wanted"
+  color: "008672"
+  description: "Extra attention or expertise needed"
+
+- name: "question"
+  color: "d876e3"
+  description: "Further information or clarification requested"
+
+- name: "duplicate"
+  color: "cfd3d7"
+  description: "Duplicate of another issue"
+
+- name: "wontfix"
+  color: "ffffff"
+  description: "Will not be addressed"
+
+- name: "dependencies"
+  color: "0366d6"
+  description: "Related to project dependencies"

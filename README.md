@@ -27,6 +27,13 @@ How to run the HCG dev cluster (dev-only)
 2. Neo4j will be reachable on ports 7474 (HTTP) and 7687 (Bolt). Milvus on 19530/9091.
 3. Use the `ontology/core_ontology.cypher` and `ontology/shacl_shapes.ttl` files to initialize and validate the HCG (see Section 4.3.1).
 
+Project Management
+- See `.github/PROJECT_BOARD_SETUP.md` for instructions on setting up the GitHub Project Board, labels, milestones, and issue tracking system.
+- Use `.github/scripts/generate_issues.py` to automatically create issues from the action items document.
+- Weekly progress reports are automatically generated every Monday via GitHub Actions.
+- All project tracking infrastructure is documented in `.github/README.md`.
+
 Notes and next steps
 - The `core_ontology.cypher` and `shacl_shapes.ttl` are intentionally minimal, syntactically valid, and contain comments indicating where the full ontology and constraints described in the spec will be extended.
 - This repo is the canonical place for future ontology updates, SHACL extensions, contract evolution, and HCG infra changes.
+- See `docs/action_items.md` for the complete task breakdown and current progress.
