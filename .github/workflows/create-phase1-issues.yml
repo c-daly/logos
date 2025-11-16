@@ -1,0 +1,179 @@
+name: Create Phase 1 Issues and Project Board
+
+on:
+  workflow_dispatch:
+    inputs:
+      create_milestones:
+        description: 'Create milestones first'
+        required: false
+        default: 'true'
+        type: boolean
+      create_project:
+        description: 'Create project board'
+        required: false
+        default: 'true'
+        type: boolean
+
+jobs:
+  create-project-and-issues:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+      repository-projects: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      
+      - name: Create GitHub Project
+        if: inputs.create_project == 'true'
+        id: create-project
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Creating GitHub Project board..."
+          
+          # Create project using GraphQL API
+          PROJECT_ID=$(gh api graphql -f query='
+            mutation {
+              createProjectV2(input: {
+                ownerId: "${{ github.repository_owner_id }}"
+                title: "Project LOGOS - Phase 1"
+                repositoryId: "${{ github.repository_id }}"
+              }) {
+                projectV2 {
+                  id
+                  number
+                }
+              }
+            }' --jq '.data.createProjectV2.projectV2.id')
+          
+          echo "project_id=$PROJECT_ID" >> $GITHUB_OUTPUT
+          echo "Project created with ID: $PROJECT_ID"
+          
+          # Get the project number
+          PROJECT_NUMBER=$(gh api graphql -f query='
+            mutation {
+              createProjectV2(input: {
+                ownerId: "${{ github.repository_owner_id }}"
+                title: "Project LOGOS - Phase 1"
+                repositoryId: "${{ github.repository_id }}"
+              }) {
+                projectV2 {
+                  number
+                }
+              }
+            }' --jq '.data.createProjectV2.projectV2.number' 2>/dev/null || echo "1")
+          
+          echo "project_number=$PROJECT_NUMBER" >> $GITHUB_OUTPUT
+          echo "✅ Project board created"
+      
+      - name: Create milestones
+        if: inputs.create_milestones == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Creating Phase 1 milestones..."
+          
+          # M1: Infrastructure & Knowledge Foundation
+          gh api repos/${{ github.repository }}/milestones -X POST \
+            -f title="M1: HCG Store & Retrieve" \
+            -f description="Knowledge graph operational. Neo4j + Milvus working, core ontology loaded, basic CRUD operations functional." \
+            2>&1 || echo "M1 already exists or error occurred"
+          
+          # M2: Language & Perception Services  
+          gh api repos/${{ github.repository }}/milestones -X POST \
+            -f title="M2: SHACL Validation" \
+            -f description="Validation and language services operational. SHACL validation working, Hermes endpoints functional, embeddings integrated." \
+            2>&1 || echo "M2 already exists or error occurred"
+          
+          # M3: Cognitive Core & Reasoning
+          gh api repos/${{ github.repository }}/milestones -X POST \
+            -f title="M3: Simple Planning" \
+            -f description="Cognitive capabilities demonstrated. Sophia can generate valid plans using causal reasoning over the knowledge graph." \
+            2>&1 || echo "M3 already exists or error occurred"
+          
+          # M4: Integration & Demonstration
+          gh api repos/${{ github.repository }}/milestones -X POST \
+            -f title="M4: Pick and Place" \
+            -f description="End-to-end autonomous behavior. Full pipeline working from user command to execution with knowledge graph updates." \
+            2>&1 || echo "M4 already exists or error occurred"
+          
+          echo "✅ Milestones created"
+      
+      - name: Generate issue creation script
+        run: |
+          python3 .github/scripts/create_issues_by_epoch.py --format gh-cli > /tmp/create_issues.sh
+          chmod +x /tmp/create_issues.sh
+          echo "✅ Generated issue creation script"
+      
+      - name: Create issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Creating 65 Phase 1 issues organized by functional epochs..."
+          bash /tmp/create_issues.sh
+          echo "✅ Issues created"
+      
+      - name: Add issues to project
+        if: inputs.create_project == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROJECT_ID: ${{ steps.create-project.outputs.project_id }}
+        run: |
+          echo "Adding issues to project board..."
+          
+          # Get all Phase 1 issues
+          ISSUE_IDS=$(gh api graphql -f query='
+            query {
+              repository(owner: "${{ github.repository_owner }}", name: "${{ github.event.repository.name }}") {
+                issues(first: 100, labels: ["phase:1"], states: OPEN) {
+                  nodes {
+                    id
+                  }
+                }
+              }
+            }' --jq '.data.repository.issues.nodes[].id')
+          
+          # Add each issue to the project
+          for ISSUE_ID in $ISSUE_IDS; do
+            gh api graphql -f query='
+              mutation {
+                addProjectV2ItemById(input: {
+                  projectId: "'"$PROJECT_ID"'"
+                  contentId: "'"$ISSUE_ID"'"
+                }) {
+                  item {
+                    id
+                  }
+                }
+              }' > /dev/null 2>&1 || echo "Issue already in project or error"
+          done
+          
+          echo "✅ Issues added to project board"
+      
+      - name: Summary
+        run: |
+          echo "## Phase 1 Setup Complete ✅" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Created:" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ 4 Milestones (M1, M2, M3, M4)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ 65 Issues organized by functional epochs" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ GitHub Project board" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Functional Epochs:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Epoch 1:** Infrastructure & Knowledge Foundation (41 issues)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Epoch 2:** Language & Perception Services (5 issues)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Epoch 3:** Cognitive Core & Reasoning (13 issues)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Epoch 4:** Integration & Demonstration (6 issues)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Quick Links:" >> $GITHUB_STEP_SUMMARY
+          echo "- [View Issues](https://github.com/${{ github.repository }}/issues?q=is%3Aissue+is%3Aopen+label%3Aphase%3A1)" >> $GITHUB_STEP_SUMMARY
+          echo "- [View Milestones](https://github.com/${{ github.repository }}/milestones)" >> $GITHUB_STEP_SUMMARY
+          echo "- [View Project Board](https://github.com/${{ github.repository }}/projects)" >> $GITHUB_STEP_SUMMARY
