@@ -39,13 +39,34 @@ jobs:
         run: |
           echo "Creating GitHub Project board..."
           
+          # First, get the owner ID and repository ID
+          REPO_INFO=$(gh api graphql -f query='
+            query {
+              repository(owner: "${{ github.repository_owner }}", name: "${{ github.event.repository.name }}") {
+                id
+                owner {
+                  id
+                }
+              }
+            }')
+          
+          OWNER_ID=$(echo "$REPO_INFO" | jq -r '.data.repository.owner.id')
+          REPO_ID=$(echo "$REPO_INFO" | jq -r '.data.repository.id')
+          
+          echo "Owner ID: $OWNER_ID"
+          echo "Repository ID: $REPO_ID"
+          
           # Create project using GraphQL API and capture both id and number
-          PROJECT_RESPONSE=$(gh api graphql -f query='
-            mutation {
+          PROJECT_RESPONSE=$(gh api graphql \
+            -f ownerId="$OWNER_ID" \
+            -f title="Project LOGOS - Phase 1" \
+            -f repositoryId="$REPO_ID" \
+            -f query='
+            mutation($ownerId: ID!, $title: String!, $repositoryId: ID!) {
               createProjectV2(input: {
-                ownerId: "${{ github.repository_owner_id }}"
-                title: "Project LOGOS - Phase 1"
-                repositoryId: "${{ github.repository_id }}"
+                ownerId: $ownerId
+                title: $title
+                repositoryId: $repositoryId
               }) {
                 projectV2 {
                   id
