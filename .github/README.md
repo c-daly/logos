@@ -20,7 +20,7 @@ Pre-configured templates for creating different types of issues:
 
 Comprehensive labeling system with categories:
 
-- **Component Labels**: `component:sophia`, `component:hermes`, `component:talos`, `component:apollo`, `component:infrastructure`
+- **Component Labels**: `component:sophia`, `component:hermes`, `component:talos`, `component:apollo`, `component:logos`, `component:infrastructure`
 - **Priority Labels**: `priority:high`, `priority:medium`, `priority:low`
 - **Type Labels**: `type:feature`, `type:bug`, `type:research`, `type:documentation`, etc.
 - **Workstream Labels**: `workstream:A`, `workstream:B`, `workstream:C`

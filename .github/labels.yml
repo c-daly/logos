@@ -19,6 +19,10 @@
   color: "d93f0b"
   description: "Related to Apollo UI/client (dashboard, visualization, command interface)"
 
+- name: "component:logos"
+  color: "7b68ee"
+  description: "Related to LOGOS foundry (specifications, ontology, contracts, infrastructure)"
+
 - name: "component:infrastructure"
   color: "5319e7"
   description: "Related to infrastructure, HCG, ontology, CI/CD, or repository setup"
@@ -60,6 +64,10 @@
 - name: "type:testing"
   color: "bfd4f2"
   description: "Test creation or improvement"
+
+- name: "type:outreach"
+  color: "e99695"
+  description: "Community outreach or engagement activities"
 
 # Workstream Labels - Align with Phase 1 workstreams
 - name: "workstream:A"

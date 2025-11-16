@@ -235,6 +235,8 @@ def format_as_gh_cli(tasks: List[Dict[str, Any]]) -> str:
     commands.append("# GitHub CLI commands to create issues for Project LOGOS\n")
     commands.append("# Make sure you have gh CLI installed and authenticated\n")
     commands.append("# Usage: bash create_issues.sh\n\n")
+    commands.append("# Use environment variable for repo or default to current repo\n")
+    commands.append('REPO="${GITHUB_REPOSITORY:-c-daly/logos}"\n\n')
     
     for task in tasks:
         title = task['title'].replace('"', '\\"')
@@ -259,8 +261,8 @@ def format_as_gh_cli(tasks: List[Dict[str, Any]]) -> str:
         # Build labels
         labels = ','.join(task.get('labels', []))
         
-        # Create gh issue create command
-        cmd = f'gh issue create --repo c-daly/logos --title "{title}" --body "{body}" --label "{labels}"\n'
+        # Create gh issue create command using $REPO variable
+        cmd = f'gh issue create --repo "$REPO" --title "{title}" --body "{body}" --label "{labels}"\n'
         commands.append(cmd)
     
     return ''.join(commands)

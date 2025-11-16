@@ -79,6 +79,8 @@ project:
             color: "yellow"
           - name: "Apollo"
             color: "orange"
+          - name: "LOGOS"
+            color: "mediumpurple"
           - name: "Infrastructure"
             color: "gray"
       

@@ -449,6 +449,8 @@ def format_as_gh_cli(tasks: List[Dict[str, Any]]) -> str:
     commands.append("# Organized by epochs (milestones)\n")
     commands.append("# Make sure you have gh CLI installed and authenticated\n\n")
     commands.append("set -e  # Exit on error\n\n")
+    commands.append("# Use environment variable for repo or default to current repo\n")
+    commands.append('REPO="${GITHUB_REPOSITORY:-c-daly/logos}"\n\n')
     
     # Group by epoch
     tasks_by_epoch = {}
@@ -495,8 +497,8 @@ def format_as_gh_cli(tasks: List[Dict[str, Any]]) -> str:
             # Build milestone (will need to be created first)
             milestone = task.get('milestone', '').replace('"', '\\"')
             
-            # Create gh issue create command
-            cmd = f'gh issue create --repo c-daly/logos --title "{title}" --body "{body}" --label "{labels}"'
+            # Create gh issue create command using $REPO variable
+            cmd = f'gh issue create --repo "$REPO" --title "{title}" --body "{body}" --label "{labels}"'
             if milestone:
                 cmd += f' --milestone "{milestone}"'
             cmd += '\n'

@@ -1,0 +1,110 @@
+name: Sync Labels
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/labels.yml'
+    branches:
+      - main
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  sync-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Sync labels using GitHub API
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "🏷️  Syncing labels from .github/labels.yml..."
+          
+          # Function to create or update a label
+          create_or_update_label() {
+            local name="$1"
+            local color="$2"
+            local description="$3"
+            
+            # Try to create the label
+            if gh api repos/${{ github.repository }}/labels -X POST \
+              -f name="$name" \
+              -f color="$color" \
+              -f description="$description" 2>&1; then
+              echo "✅ Created label: $name"
+            else
+              # If creation fails (label exists), try to update it
+              if gh api repos/${{ github.repository }}/labels/$name -X PATCH \
+                -f color="$color" \
+                -f description="$description" 2>&1; then
+                echo "✅ Updated label: $name"
+              else
+                echo "⚠️  Could not create or update label: $name"
+              fi
+            fi
+          }
+          
+          # Parse YAML and create/update labels
+          # Note: This is a simplified approach. For production, consider using yq or python
+          while IFS= read -r line; do
+            if [[ $line =~ ^-\ name:\ \"(.+)\" ]]; then
+              name="${BASH_REMATCH[1]}"
+            elif [[ $line =~ ^\ \ color:\ \"(.+)\" ]]; then
+              color="${BASH_REMATCH[1]}"
+            elif [[ $line =~ ^\ \ description:\ \"(.+)\" ]]; then
+              description="${BASH_REMATCH[1]}"
+              # We have all three fields, create/update the label
+              create_or_update_label "$name" "$color" "$description"
+            fi
+          done < .github/labels.yml
+          
+          echo ""
+          echo "✅ Label sync complete!"
+      
+      - name: Verify labels
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "🔍 Verifying all labels exist..."
+          
+          # Get all labels from the repository
+          REPO_LABELS=$(gh api repos/${{ github.repository }}/labels --paginate --jq '.[].name')
+          
+          # Check each label from our config file
+          MISSING_LABELS=0
+          while IFS= read -r line; do
+            if [[ $line =~ ^-\ name:\ \"(.+)\" ]]; then
+              name="${BASH_REMATCH[1]}"
+              if echo "$REPO_LABELS" | grep -q "^${name}$"; then
+                echo "✅ $name"
+              else
+                echo "❌ Missing: $name"
+                MISSING_LABELS=$((MISSING_LABELS + 1))
+              fi
+            fi
+          done < .github/labels.yml
+          
+          if [ $MISSING_LABELS -gt 0 ]; then
+            echo ""
+            echo "⚠️  $MISSING_LABELS label(s) are missing!"
+            exit 1
+          else
+            echo ""
+            echo "✅ All labels verified successfully!"
+          fi
+      
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Label Sync Results 🏷️" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Labels have been synced from \`.github/labels.yml\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Quick Links:" >> $GITHUB_STEP_SUMMARY
+          echo "- [View Labels](https://github.com/${{ github.repository }}/labels)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Edit labels.yml](.github/labels.yml)" >> $GITHUB_STEP_SUMMARY

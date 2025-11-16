@@ -31,6 +31,44 @@ jobs:
         with:
           python-version: '3.x'
       
+      - name: Sync labels first
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "🏷️  Syncing labels before creating issues..."
+          
+          # Function to create or update a label
+          create_or_update_label() {
+            local name="$1"
+            local color="$2"
+            local description="$3"
+            
+            # Try to create the label
+            gh api repos/${{ github.repository }}/labels -X POST \
+              -f name="$name" \
+              -f color="$color" \
+              -f description="$description" 2>/dev/null || \
+            # If creation fails (label exists), update it
+            gh api repos/${{ github.repository }}/labels/$name -X PATCH \
+              -f color="$color" \
+              -f description="$description" 2>/dev/null || \
+            echo "⚠️  Could not sync label: $name"
+          }
+          
+          # Parse YAML and create/update labels
+          while IFS= read -r line; do
+            if [[ $line =~ ^-\ name:\ \"(.+)\" ]]; then
+              name="${BASH_REMATCH[1]}"
+            elif [[ $line =~ ^\ \ color:\ \"(.+)\" ]]; then
+              color="${BASH_REMATCH[1]}"
+            elif [[ $line =~ ^\ \ description:\ \"(.+)\" ]]; then
+              description="${BASH_REMATCH[1]}"
+              create_or_update_label "$name" "$color" "$description"
+            fi
+          done < .github/labels.yml
+          
+          echo "✅ Labels synced successfully"
+      
       - name: Create GitHub Project
         if: inputs.create_project == 'true'
         id: create-project
@@ -89,31 +127,46 @@ jobs:
         run: |
           echo "Creating Phase 1 milestones..."
           
+          # Function to create milestone if it doesn't exist
+          create_milestone_if_not_exists() {
+            local title="$1"
+            local description="$2"
+            
+            # Check if milestone already exists
+            if gh api repos/${{ github.repository }}/milestones --jq '.[].title' | grep -q "^${title}$"; then
+              echo "ℹ️  Milestone already exists: $title"
+            else
+              if gh api repos/${{ github.repository }}/milestones -X POST \
+                -f title="$title" \
+                -f description="$description" 2>&1; then
+                echo "✅ Created milestone: $title"
+              else
+                echo "❌ Failed to create milestone: $title"
+              fi
+            fi
+          }
+          
           # M1: Infrastructure & Knowledge Foundation
-          gh api repos/${{ github.repository }}/milestones -X POST \
-            -f title="M1: HCG Store & Retrieve" \
-            -f description="Knowledge graph operational. Neo4j + Milvus working, core ontology loaded, basic CRUD operations functional." \
-            2>&1 || echo "M1 already exists or error occurred"
+          create_milestone_if_not_exists \
+            "M1: HCG Store & Retrieve" \
+            "Knowledge graph operational. Neo4j + Milvus working, core ontology loaded, basic CRUD operations functional."
           
           # M2: Language & Perception Services  
-          gh api repos/${{ github.repository }}/milestones -X POST \
-            -f title="M2: SHACL Validation" \
-            -f description="Validation and language services operational. SHACL validation working, Hermes endpoints functional, embeddings integrated." \
-            2>&1 || echo "M2 already exists or error occurred"
+          create_milestone_if_not_exists \
+            "M2: SHACL Validation" \
+            "Validation and language services operational. SHACL validation working, Hermes endpoints functional, embeddings integrated."
           
           # M3: Cognitive Core & Reasoning
-          gh api repos/${{ github.repository }}/milestones -X POST \
-            -f title="M3: Simple Planning" \
-            -f description="Cognitive capabilities demonstrated. Sophia can generate valid plans using causal reasoning over the knowledge graph." \
-            2>&1 || echo "M3 already exists or error occurred"
+          create_milestone_if_not_exists \
+            "M3: Simple Planning" \
+            "Cognitive capabilities demonstrated. Sophia can generate valid plans using causal reasoning over the knowledge graph."
           
           # M4: Integration & Demonstration
-          gh api repos/${{ github.repository }}/milestones -X POST \
-            -f title="M4: Pick and Place" \
-            -f description="End-to-end autonomous behavior. Full pipeline working from user command to execution with knowledge graph updates." \
-            2>&1 || echo "M4 already exists or error occurred"
+          create_milestone_if_not_exists \
+            "M4: Pick and Place" \
+            "End-to-end autonomous behavior. Full pipeline working from user command to execution with knowledge graph updates."
           
-          echo "✅ Milestones created"
+          echo "✅ Milestones ready"
       
       - name: Generate issue creation script
         run: |
