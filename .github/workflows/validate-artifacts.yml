@@ -16,10 +16,15 @@ on:
       - '.github/workflows/validate-artifacts.yml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   validate-cypher:
     name: Validate Cypher Ontology
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
       - name: Checkout repository
@@ -56,6 +61,8 @@ jobs:
   validate-shacl:
     name: Validate SHACL Shapes
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
       - name: Checkout repository
@@ -104,6 +111,8 @@ jobs:
   validate-openapi:
     name: Validate OpenAPI Contract
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     
     steps:
       - name: Checkout repository
@@ -137,6 +146,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [validate-cypher, validate-shacl, validate-openapi]
     if: always()
+    permissions:
+      contents: read
     
     steps:
       - name: Check validation results
