@@ -54,6 +54,44 @@ chmod +x /tmp/create_issues.sh
 bash /tmp/create_issues.sh
 ```
 
+### Reset and Recreate All Phase 1 Issues
+
+**⚠️ WARNING: DESTRUCTIVE OPERATION**
+
+If you need to close all existing Phase 1 issues and recreate them from scratch (for example, after significant updates to `docs/action_items.md`), you can use the `--include-reset-phase1` flag:
+
+```bash
+# Authenticate GitHub CLI first
+gh auth login
+
+# Generate the reset and recreate script
+python3 .github/scripts/create_issues_by_epoch.py \
+  --format gh-cli \
+  --include-reset-phase1 \
+  > /tmp/reset_phase1_issues.sh
+
+# IMPORTANT: Review the script carefully before running!
+less /tmp/reset_phase1_issues.sh
+
+# Execute it (you'll have 5 seconds to cancel with Ctrl+C)
+chmod +x /tmp/reset_phase1_issues.sh
+bash /tmp/reset_phase1_issues.sh
+```
+
+**What this does:**
+1. Displays a warning message about the destructive operation
+2. Waits 5 seconds (press Ctrl+C to cancel)
+3. Closes all open issues labeled `phase:1` in the repository with a comment explaining the reset
+4. Recreates all Phase 1 issues from `docs/action_items.md` with proper labels, milestones, and organization
+
+**When to use this:**
+- After major restructuring of action items
+- When issue IDs or organization has changed significantly
+- To ensure a clean slate for Phase 1 planning
+
+**Note:** Closed issues are not deleted (GitHub does not support issue deletion). They remain in the repository history but are moved to the "Closed" state.
+
+
 ## Functional Epoch Breakdown
 
 ### Epoch 1: Infrastructure & Knowledge Foundation (41 issues)
