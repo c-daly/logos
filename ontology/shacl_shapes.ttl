@@ -1,0 +1,59 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix logos: <http://logos.ontology/> .
+
+# LOGOS HCG SHACL Shapes — Level 1 Deterministic Validation
+# See Project LOGOS spec: Section 4.3.1 (SHACL shapes for validation).
+# Minimal, syntactically valid scaffold to be extended per spec.
+
+# TODO: Add full Entity shape constraints per Appendix A
+logos:EntityShape
+    a sh:NodeShape ;
+    sh:targetClass logos:Entity ;
+    sh:property [
+        sh:path logos:uuid ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+    ] .
+
+# TODO: Add full Concept shape constraints per Appendix A
+logos:ConceptShape
+    a sh:NodeShape ;
+    sh:targetClass logos:Concept ;
+    sh:property [
+        sh:path logos:uuid ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+    ] ;
+    sh:property [
+        sh:path logos:name ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+    ] .
+
+# TODO: Add full State shape constraints per Appendix A
+logos:StateShape
+    a sh:NodeShape ;
+    sh:targetClass logos:State ;
+    sh:property [
+        sh:path logos:uuid ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+    ] .
+
+# TODO: Add full Process shape constraints per Appendix A
+logos:ProcessShape
+    a sh:NodeShape ;
+    sh:targetClass logos:Process ;
+    sh:property [
+        sh:path logos:uuid ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+    ] .

@@ -1,0 +1,49 @@
+version: '3.8'
+
+# LOGOS HCG Development Cluster
+# See Project LOGOS spec: Section 4.1 (Core Ontology) and Section 5.2 (Vector Store).
+# Neo4j (with neosemantics/SHACL support) + Milvus for the Hybrid Causal Graph backend.
+
+services:
+  neo4j:
+    image: neo4j:5.13.0
+    container_name: logos-hcg-neo4j
+    ports:
+      - "7474:7474"  # HTTP
+      - "7687:7687"  # Bolt
+    environment:
+      - NEO4J_AUTH=neo4j/logosdev
+      - NEO4J_PLUGINS=["apoc", "graph-data-science", "neosemantics"]
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*,gds.*,n10s.*
+      - NEO4J_dbms_security_procedures_allowlist=apoc.*,gds.*,n10s.*
+    volumes:
+      - neo4j-data:/data
+      - neo4j-logs:/logs
+    networks:
+      - logos-hcg-dev-net
+    restart: unless-stopped
+
+  milvus-standalone:
+    image: milvusdb/milvus:v2.3.3
+    container_name: logos-hcg-milvus
+    ports:
+      - "19530:19530"  # gRPC
+      - "9091:9091"    # Metrics
+    environment:
+      - ETCD_USE_EMBED=true
+      - COMMON_STORAGETYPE=local
+    volumes:
+      - milvus-data:/var/lib/milvus
+    networks:
+      - logos-hcg-dev-net
+    restart: unless-stopped
+    command: ["milvus", "run", "standalone"]
+
+networks:
+  logos-hcg-dev-net:
+    driver: bridge
+
+volumes:
+  neo4j-data:
+  neo4j-logs:
+  milvus-data:

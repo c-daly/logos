@@ -1,0 +1,220 @@
+openapi: 3.1.0
+info:
+  title: Hermes API
+  version: 1.0.0
+  description: |
+    Canonical Hermes OpenAPI contract for Project LOGOS.
+    See Project LOGOS spec: Table 2 in Section 3.4 (Hermes API endpoints).
+    
+    Hermes is the stateless language & embedding utility providing:
+    - Speech-to-text (STT)
+    - Text-to-speech (TTS)
+    - Simple NLP preprocessing
+    - Text embedding generation
+    
+    All endpoints are stateless and do not interact with the HCG directly.
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+paths:
+  /stt:
+    post:
+      summary: Speech-to-Text
+      description: Convert audio input to text transcription
+      operationId: speechToText
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                audio:
+                  type: string
+                  format: binary
+                  description: Audio file to transcribe
+                language:
+                  type: string
+                  description: Optional language hint (e.g., "en-US")
+                  default: "en-US"
+              required:
+                - audio
+      responses:
+        '200':
+          description: Transcription successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  text:
+                    type: string
+                    description: Transcribed text
+                  confidence:
+                    type: number
+                    format: float
+                    description: Confidence score (0.0 to 1.0)
+        '400':
+          description: Invalid request (e.g., unsupported audio format)
+        '500':
+          description: Internal server error
+
+  /tts:
+    post:
+      summary: Text-to-Speech
+      description: Convert text to synthesized speech audio
+      operationId: textToSpeech
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  description: Text to synthesize
+                voice:
+                  type: string
+                  description: Optional voice identifier
+                  default: "default"
+                language:
+                  type: string
+                  description: Language code (e.g., "en-US")
+                  default: "en-US"
+              required:
+                - text
+      responses:
+        '200':
+          description: Speech synthesis successful
+          content:
+            audio/wav:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Invalid request
+        '500':
+          description: Internal server error
+
+  /simple_nlp:
+    post:
+      summary: Simple NLP Preprocessing
+      description: Perform basic NLP preprocessing (tokenization, POS tagging, etc.)
+      operationId: simpleNlp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  description: Text to process
+                operations:
+                  type: array
+                  items:
+                    type: string
+                    enum: [tokenize, pos_tag, lemmatize, ner]
+                  description: List of NLP operations to perform
+                  default: [tokenize]
+              required:
+                - text
+      responses:
+        '200':
+          description: NLP processing successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tokens:
+                    type: array
+                    items:
+                      type: string
+                    description: Tokenized text (if requested)
+                  pos_tags:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        token:
+                          type: string
+                        tag:
+                          type: string
+                    description: POS tags (if requested)
+                  lemmas:
+                    type: array
+                    items:
+                      type: string
+                    description: Lemmatized tokens (if requested)
+                  entities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        text:
+                          type: string
+                        label:
+                          type: string
+                        start:
+                          type: integer
+                        end:
+                          type: integer
+                    description: Named entities (if requested)
+        '400':
+          description: Invalid request
+        '500':
+          description: Internal server error
+
+  /embed_text:
+    post:
+      summary: Text Embedding Generation
+      description: Generate vector embeddings for input text
+      operationId: embedText
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                text:
+                  type: string
+                  description: Text to embed
+                model:
+                  type: string
+                  description: Optional embedding model identifier
+                  default: "default"
+              required:
+                - text
+      responses:
+        '200':
+          description: Embedding generation successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  embedding:
+                    type: array
+                    items:
+                      type: number
+                      format: float
+                    description: Vector embedding
+                  dimension:
+                    type: integer
+                    description: Embedding dimension
+                  model:
+                    type: string
+                    description: Model used for embedding
+        '400':
+          description: Invalid request
+        '500':
+          description: Internal server error
+
+components:
+  schemas: {}
