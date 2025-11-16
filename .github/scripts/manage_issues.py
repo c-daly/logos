@@ -151,8 +151,9 @@ def enhance_issue_description(task: Dict[str, Any]) -> str:
     
     # Add epoch information
     if task.get('epoch'):
-        parts.append(f"**Epoch:** {task['epoch']['name']}")
-        parts.append(f"**Description:** {task['epoch']['description']}")
+        epoch = task['epoch']
+        parts.append(f"**Epoch:** {epoch.name}")
+        parts.append(f"**Description:** {epoch.description}")
     
     # Add component
     if task.get('component'):
