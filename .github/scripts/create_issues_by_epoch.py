@@ -12,7 +12,17 @@ Epochs (Functionality-Based):
 - Epoch 4: Integration & Demonstration → M4
 
 Usage:
-    python3 .github/scripts/create_issues_by_epoch.py [--dry-run] [--format json|markdown|gh-cli]
+    # Generate issue creation script (default)
+    python3 .github/scripts/create_issues_by_epoch.py --format gh-cli > /tmp/create_issues.sh
+    bash /tmp/create_issues.sh
+    
+    # Generate script with reset (closes existing Phase 1 issues first)
+    python3 .github/scripts/create_issues_by_epoch.py --format gh-cli --reset-phase1 > /tmp/reset_issues.sh
+    bash /tmp/reset_issues.sh
+    
+    # Other formats
+    python3 .github/scripts/create_issues_by_epoch.py --format json
+    python3 .github/scripts/create_issues_by_epoch.py --format markdown
 """
 
 import re
@@ -440,15 +450,51 @@ def format_as_markdown(tasks: List[Dict[str, Any]], group_by_epoch: bool = True)
     return ''.join(output)
 
 
-def format_as_gh_cli(tasks: List[Dict[str, Any]]) -> str:
-    """Format tasks as GitHub CLI commands."""
+def format_as_gh_cli(tasks: List[Dict[str, Any]], reset_phase1: bool = False) -> str:
+    """Format tasks as GitHub CLI commands.
+    
+    Args:
+        tasks: List of task dictionaries to create as issues
+        reset_phase1: If True, include commands to close existing Phase 1 issues first
+    """
     commands = []
     
     commands.append("#!/bin/bash\n")
     commands.append("# GitHub CLI commands to create issues for Project LOGOS\n")
     commands.append("# Organized by epochs (milestones)\n")
     commands.append("# Make sure you have gh CLI installed and authenticated\n\n")
+    
+    if reset_phase1:
+        commands.append("###############################################################################\n")
+        commands.append("# WARNING: DESTRUCTIVE OPERATION\n")
+        commands.append("# This script will CLOSE all existing issues labeled 'phase:1' in c-daly/logos\n")
+        commands.append("# before creating new Phase 1 issues.\n")
+        commands.append("###############################################################################\n\n")
+    
     commands.append("set -e  # Exit on error\n\n")
+    
+    if reset_phase1:
+        commands.append("echo '========================================'\n")
+        commands.append("echo 'Step 1: Closing existing Phase 1 issues'\n")
+        commands.append("echo '========================================'\n\n")
+        commands.append("# Close all issues with phase:1 label\n")
+        commands.append("echo 'Finding and closing all issues with label phase:1...'\n")
+        commands.append('PHASE1_ISSUES=$(gh issue list --repo c-daly/logos --label "phase:1" --state open --limit 1000 --json number --jq ".[].number")\n\n')
+        commands.append("if [ -z \"$PHASE1_ISSUES\" ]; then\n")
+        commands.append("  echo 'No open Phase 1 issues found to close.'\n")
+        commands.append("else\n")
+        commands.append("  echo \"Found Phase 1 issues to close: $(echo $PHASE1_ISSUES | wc -w)\"\n")
+        commands.append("  for issue_num in $PHASE1_ISSUES; do\n")
+        commands.append("    echo \"  Closing issue #$issue_num...\"\n")
+        commands.append("    gh issue close --repo c-daly/logos $issue_num --comment \"Closed to recreate Phase 1 issues with updated configuration.\"\n")
+        commands.append("  done\n")
+        commands.append("  echo 'All Phase 1 issues closed.'\n")
+        commands.append("fi\n\n")
+        commands.append("echo ''\n")
+        commands.append("echo '========================================'\n")
+        commands.append("echo 'Step 2: Creating new Phase 1 issues'\n")
+        commands.append("echo '========================================'\n")
+        commands.append("echo ''\n\n")
     
     # Group by epoch
     tasks_by_epoch = {}
@@ -527,6 +573,11 @@ def main():
         action='store_true',
         help='Show what would be created without executing'
     )
+    parser.add_argument(
+        '--reset-phase1',
+        action='store_true',
+        help='[DESTRUCTIVE] When used with --format gh-cli, first close all existing Phase 1 issues before creating new ones. This makes the script idempotent.'
+    )
     
     args = parser.parse_args()
     
@@ -548,13 +599,19 @@ def main():
         print(f"  {epoch_name}: {count} tasks", file=__import__('sys').stderr)
     print("", file=__import__('sys').stderr)
     
+    # Warn if reset-phase1 is used with non-gh-cli format
+    if args.reset_phase1 and args.format != 'gh-cli':
+        print("WARNING: --reset-phase1 flag only works with --format gh-cli. Ignoring flag.", 
+              file=__import__('sys').stderr)
+        args.reset_phase1 = False
+    
     # Format output
     if args.format == 'json':
         output = format_as_json(tasks)
     elif args.format == 'markdown':
         output = format_as_markdown(tasks, group_by_epoch=True)
     elif args.format == 'gh-cli':
-        output = format_as_gh_cli(tasks)
+        output = format_as_gh_cli(tasks, reset_phase1=args.reset_phase1)
     
     # Write output
     if args.output:

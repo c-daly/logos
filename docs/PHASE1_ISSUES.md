@@ -54,6 +54,32 @@ chmod +x /tmp/create_issues.sh
 bash /tmp/create_issues.sh
 ```
 
+### Reset and Recreate Phase 1 Issues (Idempotent Mode)
+
+If you need to reset and recreate all Phase 1 issues (e.g., to fix duplicates or update configuration), use the `--reset-phase1` flag:
+
+```bash
+# Authenticate GitHub CLI first
+gh auth login
+
+# Generate the reset script (DESTRUCTIVE: closes existing Phase 1 issues)
+python3 .github/scripts/create_issues_by_epoch.py --format gh-cli --reset-phase1 > /tmp/reset_phase1_issues.sh
+
+# Review the script - note the WARNING about destructive operation
+less /tmp/reset_phase1_issues.sh
+
+# Execute it (this will close all issues labeled 'phase:1' before creating new ones)
+chmod +x /tmp/reset_phase1_issues.sh
+bash /tmp/reset_phase1_issues.sh
+```
+
+**Important Notes:**
+- The `--reset-phase1` flag only works with `--format gh-cli`
+- It will **close** (not delete) all existing issues labeled `phase:1` in the repository
+- Closed issues will have a comment: "Closed to recreate Phase 1 issues with updated configuration."
+- This operation is **destructive** but makes the script idempotent, allowing you to rerun it safely
+- GitHub does not support hard deletion via API, so issues are closed instead
+
 ## Functional Epoch Breakdown
 
 ### Epoch 1: Infrastructure & Knowledge Foundation (41 issues)
