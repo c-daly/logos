@@ -9,6 +9,20 @@ This is a quick guide to set up the Project LOGOS tracking infrastructure. For d
 
 ## 5-Minute Setup
 
+### Zero-Config Option (Recommended)
+
+If you want to recreate the entire tracking infrastructure (labels, milestones, project board, and all 65 issues) from the canonical Phase 1 action items/spec references in one shot, run the bootstrap script:
+
+```bash
+# From the repo root
+chmod +x infra/bootstrap_phase1.sh
+
+# Optionally override the target repo via REPO_SLUG
+REPO_SLUG=c-daly/logos ./infra/bootstrap_phase1.sh
+```
+
+The script wraps every command from this quick start, emits references back to `docs/action_items.md` and `docs/spec/project_logos_full.md`, and mirrors the GitHub Actions workflow (`.github/workflows/create-phase1-issues.yml`). Keep reading if you prefer to run each step manually.
+
 ### Step 1: Install GitHub CLI Extensions (Optional)
 
 ```bash

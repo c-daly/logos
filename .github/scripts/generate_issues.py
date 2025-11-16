@@ -227,7 +227,7 @@ def format_as_markdown(tasks: List[Dict[str, Any]]) -> str:
     return ''.join(output)
 
 
-def format_as_gh_cli(tasks: List[Dict[str, Any]]) -> str:
+def format_as_gh_cli(tasks: List[Dict[str, Any]], repo_slug: str) -> str:
     """Format tasks as GitHub CLI commands."""
     commands = []
     
@@ -260,7 +260,7 @@ def format_as_gh_cli(tasks: List[Dict[str, Any]]) -> str:
         labels = ','.join(task.get('labels', []))
         
         # Create gh issue create command
-        cmd = f'gh issue create --repo c-daly/logos --title "{title}" --body "{body}" --label "{labels}"\n'
+        cmd = f'gh issue create --repo {repo_slug} --title "{title}" --body "{body}" --label "{labels}"\n'
         commands.append(cmd)
     
     return ''.join(commands)
@@ -275,6 +275,11 @@ def main():
         choices=['json', 'markdown', 'gh-cli'],
         default='json',
         help='Output format (default: json)'
+    )
+    parser.add_argument(
+        '--repo',
+        default='c-daly/logos',
+        help='Repository slug to target when emitting gh commands (default: c-daly/logos)'
     )
     parser.add_argument(
         '--output',
@@ -295,7 +300,7 @@ def main():
     elif args.format == 'markdown':
         output = format_as_markdown(tasks)
     elif args.format == 'gh-cli':
-        output = format_as_gh_cli(tasks)
+        output = format_as_gh_cli(tasks, args.repo)
     
     # Write output
     if args.output:

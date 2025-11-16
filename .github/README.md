@@ -81,6 +81,15 @@ Step-by-step instructions for:
 
 ## Quick Start
 
+### 0. Bootstrap Everything Automatically (Optional)
+
+```bash
+chmod +x infra/bootstrap_phase1.sh
+REPO_SLUG=c-daly/logos ./infra/bootstrap_phase1.sh
+```
+
+This script orchestrates every step below, sourcing tasks from `docs/action_items.md`, section references from `docs/spec/project_logos_full.md`, and configuration from `.github/project_config.yml`.
+
 ### 1. Set Up Labels
 
 ```bash

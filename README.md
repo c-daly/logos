@@ -29,6 +29,7 @@ How to run the HCG dev cluster (dev-only)
 
 Project Management
 - See `.github/PROJECT_BOARD_SETUP.md` for instructions on setting up the GitHub Project Board, labels, milestones, and issue tracking system.
+- Use `infra/bootstrap_phase1.sh` for a single-command recreation of labels, milestones, project board, and issues sourced from `docs/action_items.md` and `docs/spec/project_logos_full.md`.
 - Use `.github/scripts/generate_issues.py` to automatically create issues from the action items document.
 - Weekly progress reports are automatically generated every Monday via GitHub Actions.
 - All project tracking infrastructure is documented in `.github/README.md`.
