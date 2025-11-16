@@ -1,5 +1,7 @@
 # Project LOGOS — Meta Repository
 
+[![Validate LOGOS Artifacts](https://github.com/c-daly/logos/actions/workflows/validate-artifacts.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/validate-artifacts.yml)
+
 This repository is the canonical "foundry" for Project LOGOS. It contains the formal specification, API contracts, the Hybrid Causal Graph (HCG) founding documents, and the development infrastructure for the shared HCG cluster.
 
 Purpose
@@ -32,6 +34,13 @@ Project Management
 - Use `.github/scripts/generate_issues.py` to automatically create issues from the action items document.
 - Weekly progress reports are automatically generated every Monday via GitHub Actions.
 - All project tracking infrastructure is documented in `.github/README.md`.
+
+CI/CD and Validation
+- Automated validation of all canonical artifacts runs on every push and pull request.
+- **Cypher Ontology**: Syntax validation using Neo4j 5.13.0 (`ontology/core_ontology.cypher`)
+- **SHACL Shapes**: RDF/Turtle syntax validation using rdflib (`ontology/shacl_shapes.ttl`)
+- **OpenAPI Contract**: OpenAPI 3.1.0 specification validation using swagger-cli (`contracts/hermes.openapi.yaml`)
+- See `.github/workflows/validate-artifacts.yml` for the complete validation pipeline.
 
 Notes and next steps
 - The `core_ontology.cypher` and `shacl_shapes.ttl` are intentionally minimal, syntactically valid, and contain comments indicating where the full ontology and constraints described in the spec will be extended.

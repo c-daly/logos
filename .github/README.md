@@ -56,6 +56,18 @@ python .github/scripts/generate_issues.py --format markdown --output issues.md
 
 ### Workflows (`workflows/`)
 
+**validate-artifacts.yml** - CI/CD validation for LOGOS artifacts
+
+- Runs on push to main/develop branches (when artifacts change)
+- Runs on pull requests (when artifacts change)
+- Can be triggered manually via workflow_dispatch
+- Validates three core artifacts:
+  - **Cypher Ontology** (`ontology/core_ontology.cypher`) - Syntax validation using Neo4j 5.13.0
+  - **SHACL Shapes** (`ontology/shacl_shapes.ttl`) - RDF/Turtle syntax validation using rdflib
+  - **OpenAPI Contract** (`contracts/hermes.openapi.yaml`) - OpenAPI 3.1.0 spec validation using swagger-cli
+- Provides aggregated pass/fail summary in GitHub Actions
+- Ensures canonical LOGOS artifacts remain syntactically valid
+
 **weekly-progress.yml** - Automated weekly progress reporting
 
 - Runs every Monday at 9:00 AM UTC
@@ -66,6 +78,14 @@ python .github/scripts/generate_issues.py --format markdown --output issues.md
   - Blocked issues
   - Breakdown by component
 - Output appears in GitHub Actions summary
+
+**create-phase1-issues.yml** - Project board and issue setup
+
+- Manual workflow for creating Phase 1 project infrastructure
+- Creates milestones (M1-M4)
+- Generates and creates 65 Phase 1 issues organized by functional epochs
+- Sets up GitHub Project board
+- Links issues to project board
 
 ### Documentation
 
