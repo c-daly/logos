@@ -13,46 +13,42 @@ This document provides the complete list of 65 Phase 1 issues organized by funct
 
 ## Creating Milestones and Issues
 
-### Recommended: Use GitHub Actions Workflow
+### Recommended: Use Management Script (No Workflows)
 
-The easiest way to create all milestones, issues, and the project board is using the provided GitHub Actions workflow:
-
-1. Go to **Actions** tab in the repository
-2. Select **"Create Phase 1 Issues and Project Board"** workflow
-3. Click **"Run workflow"**
-4. Options:
-   - **create_milestones**: Check to create M1, M2, M3, M4 (default: true)
-   - **create_project**: Check to create the project board (default: true)
-5. Click **"Run workflow"** button
-
-The workflow will:
-- Create GitHub Project board "Project LOGOS - Phase 1"
-- Create 4 milestones (M1, M2, M3, M4)
-- Create all 65 issues with proper labels and milestone assignments
-- Add all issues to the project board automatically
-- Organize issues by functional epoch
-- Provide a summary with links
-
-**Status:** Workflow available at `.github/workflows/create-phase1-issues.yml`
-
-### Alternative: Manual Creation with GitHub CLI
-
-If you prefer to run locally with GitHub CLI:
+The recommended approach uses Python scripts with GitHub CLI - **NO WORKFLOWS REQUIRED**:
 
 ```bash
-# Authenticate GitHub CLI first
-gh auth login
+# 1. Get a GitHub personal access token
+# Visit: https://github.com/settings/tokens
+# Create token with 'repo' scope
 
-# Generate the issue creation script
-python3 .github/scripts/create_issues_by_epoch.py --format gh-cli > /tmp/create_issues.sh
+# 2. Set the token
+export GH_TOKEN=your_token_here
 
-# Review the script
-less /tmp/create_issues.sh
-
-# Execute it
-chmod +x /tmp/create_issues.sh
-bash /tmp/create_issues.sh
+# 3. Run the automatic script
+python3 .github/scripts/manage_issues_auto.py
 ```
+
+The script will:
+- Close all existing issues (with comment explaining why)
+- Create 4 milestones (M1, M2, M3, M4) with descriptions
+- Create all 65 issues with:
+  - Enhanced descriptions including context and acceptance criteria
+  - Proper labels (phase, component, workstream, priority, type)
+  - Milestone assignments
+  - Task ID prefixes for easy reference
+- Provide progress updates and summary
+
+**Interactive Mode:**
+
+For step-by-step confirmation before each action:
+
+```bash
+export GH_TOKEN=your_token_here
+python3 .github/scripts/manage_issues.py
+```
+
+**Documentation:** See `.github/scripts/README_ISSUE_MANAGEMENT.md` for full details
 
 ## Functional Epoch Breakdown
 
