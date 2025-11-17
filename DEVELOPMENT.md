@@ -80,6 +80,11 @@ logos-generate-dependency-issues --format json
 logos-generate-dependency-issues --format markdown
 ```
 
+> **Note:** If you've pulled new changes that add CLI tools and get a `command not found` error, reinstall the package to register the new console script entry points:
+> ```bash
+> pip install -e ".[dev]" --force-reinstall --no-deps
+> ```
+
 ## Running the HCG Development Cluster
 
 See the main [README.md](README.md) for instructions on running the Neo4j + Milvus development cluster.

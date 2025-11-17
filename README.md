@@ -35,6 +35,7 @@ Python Tooling
 - Install tools via: `pip install -e ".[dev]"`
 - CLI tools: `logos-generate-issues`, `logos-create-issues-by-epoch`, `logos-generate-dependency-issues`
 - Run tests: `pytest`
+- **Troubleshooting**: If a CLI command is not found after pulling new changes, reinstall with: `pip install -e ".[dev]" --force-reinstall --no-deps`
 
 Project Management
 - See `.github/PROJECT_BOARD_SETUP.md` for instructions on setting up the GitHub Project Board, labels, milestones, and issue tracking system.

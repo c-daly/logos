@@ -19,6 +19,11 @@ First, install the LOGOS foundry tools:
 pip install -e ".[dev]"
 ```
 
+> **Note:** If you've already installed the package and are seeing a `command not found` error for `logos-generate-dependency-issues`, you may need to reinstall it to register the new console script entry point:
+> ```bash
+> pip install -e ".[dev]" --force-reinstall --no-deps
+> ```
+
 ## Usage
 
 ### Generate GitHub CLI Commands
