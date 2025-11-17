@@ -8,52 +8,301 @@
 # See Project LOGOS spec: Section 4.3.1 (SHACL shapes for validation).
 # Minimal, syntactically valid scaffold to be extended per spec.
 
-# TODO: Add full Entity shape constraints per Appendix A
+# Entity shape with extended properties for pick-and-place domain
 logos:EntityShape
     a sh:NodeShape ;
     sh:targetClass logos:Entity ;
+    rdfs:label "Entity Shape" ;
+    rdfs:comment "Validates concrete objects and agents in the world" ;
     sh:property [
         sh:path logos:uuid ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:datatype xsd:string ;
+        sh:pattern "^entity-.*" ;
+        rdfs:label "UUID" ;
+        rdfs:comment "Unique identifier for entity, must start with 'entity-'" ;
+    ] ;
+    sh:property [
+        sh:path logos:name ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Name" ;
+    ] ;
+    sh:property [
+        sh:path logos:description ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Description" ;
+    ] ;
+    sh:property [
+        sh:path logos:created_at ;
+        sh:maxCount 1 ;
+        rdfs:label "Creation Timestamp" ;
     ] .
 
-# TODO: Add full Concept shape constraints per Appendix A
+# Concept shape with extended constraints
 logos:ConceptShape
     a sh:NodeShape ;
     sh:targetClass logos:Concept ;
+    rdfs:label "Concept Shape" ;
+    rdfs:comment "Validates abstract categories and types" ;
     sh:property [
         sh:path logos:uuid ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:datatype xsd:string ;
+        sh:pattern "^concept-.*" ;
+        rdfs:label "UUID" ;
+        rdfs:comment "Unique identifier for concept, must start with 'concept-'" ;
     ] ;
     sh:property [
         sh:path logos:name ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:datatype xsd:string ;
+        rdfs:label "Name" ;
+        rdfs:comment "Unique name for concept" ;
+    ] ;
+    sh:property [
+        sh:path logos:description ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Description" ;
     ] .
 
-# TODO: Add full State shape constraints per Appendix A
+# State shape with temporal and spatial property constraints
 logos:StateShape
     a sh:NodeShape ;
     sh:targetClass logos:State ;
+    rdfs:label "State Shape" ;
+    rdfs:comment "Validates temporal snapshots of entity properties" ;
     sh:property [
         sh:path logos:uuid ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:datatype xsd:string ;
+        sh:pattern "^state-.*" ;
+        rdfs:label "UUID" ;
+        rdfs:comment "Unique identifier for state, must start with 'state-'" ;
+    ] ;
+    sh:property [
+        sh:path logos:name ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Name" ;
+    ] ;
+    sh:property [
+        sh:path logos:timestamp ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        rdfs:label "Timestamp" ;
+        rdfs:comment "Time when this state occurred" ;
+    ] ;
+    sh:property [
+        sh:path logos:position_x ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        rdfs:label "Position X coordinate" ;
+    ] ;
+    sh:property [
+        sh:path logos:position_y ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        rdfs:label "Position Y coordinate" ;
+    ] ;
+    sh:property [
+        sh:path logos:position_z ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        rdfs:label "Position Z coordinate" ;
+    ] ;
+    sh:property [
+        sh:path logos:orientation_roll ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        rdfs:label "Orientation roll angle" ;
+    ] ;
+    sh:property [
+        sh:path logos:orientation_pitch ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        rdfs:label "Orientation pitch angle" ;
+    ] ;
+    sh:property [
+        sh:path logos:orientation_yaw ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        rdfs:label "Orientation yaw angle" ;
     ] .
 
-# TODO: Add full Process shape constraints per Appendix A
+# Process shape with temporal and causal constraints
 logos:ProcessShape
     a sh:NodeShape ;
     sh:targetClass logos:Process ;
+    rdfs:label "Process Shape" ;
+    rdfs:comment "Validates causal transformations between states" ;
     sh:property [
         sh:path logos:uuid ;
         sh:minCount 1 ;
         sh:maxCount 1 ;
         sh:datatype xsd:string ;
+        sh:pattern "^process-.*" ;
+        rdfs:label "UUID" ;
+        rdfs:comment "Unique identifier for process, must start with 'process-'" ;
+    ] ;
+    sh:property [
+        sh:path logos:name ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Name" ;
+    ] ;
+    sh:property [
+        sh:path logos:description ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Description" ;
+    ] ;
+    sh:property [
+        sh:path logos:start_time ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        rdfs:label "Start Time" ;
+        rdfs:comment "Time when process started" ;
+    ] ;
+    sh:property [
+        sh:path logos:duration_ms ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        rdfs:label "Duration (milliseconds)" ;
+        rdfs:comment "Process duration in milliseconds" ;
+    ] .
+
+# Additional domain-specific shapes for pick-and-place
+
+# Spatial properties validation
+logos:SpatialPropertiesShape
+    a sh:NodeShape ;
+    rdfs:label "Spatial Properties Shape" ;
+    rdfs:comment "Validates spatial properties like position and orientation" ;
+    sh:targetClass logos:Entity ;
+    sh:property [
+        sh:path logos:width ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ;
+        rdfs:label "Width" ;
+    ] ;
+    sh:property [
+        sh:path logos:height ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ;
+        rdfs:label "Height" ;
+    ] ;
+    sh:property [
+        sh:path logos:depth ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ;
+        rdfs:label "Depth" ;
+    ] ;
+    sh:property [
+        sh:path logos:radius ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ;
+        rdfs:label "Radius" ;
+    ] ;
+    sh:property [
+        sh:path logos:mass ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ;
+        rdfs:label "Mass (kg)" ;
+    ] .
+
+# Gripper-specific properties validation
+logos:GripperPropertiesShape
+    a sh:NodeShape ;
+    rdfs:label "Gripper Properties Shape" ;
+    rdfs:comment "Validates gripper-specific properties" ;
+    sh:targetClass logos:Entity ;
+    sh:property [
+        sh:path logos:max_grasp_width ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ;
+        rdfs:label "Maximum Grasp Width" ;
+    ] ;
+    sh:property [
+        sh:path logos:max_force ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ;
+        rdfs:label "Maximum Force (N)" ;
+    ] .
+
+# Joint-specific properties validation
+logos:JointPropertiesShape
+    a sh:NodeShape ;
+    rdfs:label "Joint Properties Shape" ;
+    rdfs:comment "Validates joint-specific properties" ;
+    sh:targetClass logos:Entity ;
+    sh:property [
+        sh:path logos:joint_type ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ( "revolute" "prismatic" "fixed" "continuous" ) ;
+        rdfs:label "Joint Type" ;
+    ] ;
+    sh:property [
+        sh:path logos:min_angle ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        rdfs:label "Minimum Angle (radians)" ;
+    ] ;
+    sh:property [
+        sh:path logos:max_angle ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        rdfs:label "Maximum Angle (radians)" ;
+    ] .
+
+# Relationship validation shapes
+
+logos:IsARelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "IS_A Relationship Shape" ;
+    rdfs:comment "Validates type membership relationships" ;
+    sh:targetClass logos:Entity ;
+    sh:property [
+        sh:path logos:IS_A ;
+        sh:class logos:Concept ;
+        rdfs:label "Type Membership" ;
+        rdfs:comment "Entity must be instance of a Concept" ;
+    ] .
+
+logos:HasStateRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "HAS_STATE Relationship Shape" ;
+    rdfs:comment "Validates entity-state relationships" ;
+    sh:targetClass logos:Entity ;
+    sh:property [
+        sh:path logos:HAS_STATE ;
+        sh:class logos:State ;
+        rdfs:label "Current State" ;
+        rdfs:comment "Entity can have one or more states" ;
+    ] .
+
+logos:CausesRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "CAUSES Relationship Shape" ;
+    rdfs:comment "Validates process-state causal relationships" ;
+    sh:targetClass logos:Process ;
+    sh:property [
+        sh:path logos:CAUSES ;
+        sh:class logos:State ;
+        rdfs:label "Causes State" ;
+        rdfs:comment "Process must cause at least one state" ;
     ] .
