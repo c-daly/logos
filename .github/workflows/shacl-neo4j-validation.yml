@@ -40,7 +40,7 @@ jobs:
       - name: Start Neo4j with n10s via docker-compose
         run: |
           cd infra
-          docker-compose -f docker-compose.hcg.dev.yml up -d neo4j
+          docker compose -f docker-compose.hcg.dev.yml up -d neo4j
           echo "✓ Neo4j container started"
       
       - name: Wait for Neo4j to be ready
@@ -116,7 +116,7 @@ jobs:
         if: always()
         run: |
           cd infra
-          docker-compose -f docker-compose.hcg.dev.yml down -v
+          docker compose -f docker-compose.hcg.dev.yml down -v
       
       - name: Summary
         if: success()
