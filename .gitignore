@@ -30,6 +30,10 @@ env.bak/
 venv.bak/
 .venv/
 
+# Poetry
+poetry.lock
+.poetry/
+
 # Testing
 .pytest_cache/
 .coverage

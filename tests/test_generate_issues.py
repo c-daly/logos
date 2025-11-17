@@ -2,14 +2,10 @@
 Tests for the issue generation scripts.
 """
 
-import sys
 from pathlib import Path
 
-# Add .github/scripts to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent / '.github' / 'scripts'))
-
 import pytest
-from generate_issues import TaskParser
+from logos_tools.generate_issues import TaskParser
 
 
 def test_task_parser_initialization():
