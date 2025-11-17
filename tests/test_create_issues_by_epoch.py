@@ -2,14 +2,10 @@
 Tests for the epoch-based issue generation script.
 """
 
-import sys
 from pathlib import Path
 
-# Add .github/scripts to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent / ".github" / "scripts"))
-
 import pytest
-from create_issues_by_epoch import EPOCHS, EnhancedTaskParser
+from logos_tools.create_issues_by_epoch import EPOCHS, EnhancedTaskParser
 
 
 def test_epochs_defined():

@@ -1,17 +1,14 @@
 [build-system]
-requires = ["setuptools>=68.0", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
-[project]
+[tool.poetry]
 name = "logos-foundry"
 version = "0.1.0"
 description = "LOGOS Foundry - Canonical source of truth for Project LOGOS specifications, ontology, and infrastructure"
 readme = "README.md"
-requires-python = ">=3.11"
-license = {text = "MIT"}
-authors = [
-    {name = "Project LOGOS Contributors"}
-]
+authors = ["Project LOGOS Contributors"]
+license = "MIT"
 keywords = [
     "logos",
     "hybrid-causal-graph",
@@ -31,33 +28,24 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-
-dependencies = [
-    "rdflib>=7.0.0",
-    "pyshacl>=0.25.0",
+packages = [
+    { include = "logos_tools" }
 ]
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.4.0",
-    "pytest-cov>=4.1.0",
-    "ruff>=0.1.0",
-    "mypy>=1.7.0",
-]
+[tool.poetry.dependencies]
+python = "^3.10"
+rdflib = "^7.0.0"
+pyshacl = "^0.25.0"
 
-scripts = [
-    # For running the issue generation scripts
-]
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+pytest-cov = "^4.1.0"
+ruff = "^0.1.0"
+mypy = "^1.7.0"
 
-[project.scripts]
+[tool.poetry.scripts]
 logos-generate-issues = "logos_tools.generate_issues:main"
 logos-create-issues-by-epoch = "logos_tools.create_issues_by_epoch:main"
-
-[tool.setuptools]
-packages = ["logos_tools"]
-
-[tool.setuptools.package-dir]
-logos_tools = ".github/scripts"
 
 [tool.pytest.ini_options]
 minversion = "7.0"
@@ -66,7 +54,7 @@ testpaths = ["tests"]
 pythonpath = ["."]
 
 [tool.coverage.run]
-source = [".github/scripts"]
+source = ["logos_tools"]
 omit = ["*/tests/*", "*/test_*.py"]
 
 [tool.coverage.report]
