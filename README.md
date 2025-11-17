@@ -2,6 +2,7 @@
 
 [![Validate LOGOS Artifacts](https://github.com/c-daly/logos/actions/workflows/validate-artifacts.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/validate-artifacts.yml)
 [![Run Tests](https://github.com/c-daly/logos/actions/workflows/test.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/test.yml)
+[![Phase 1 Gate](https://github.com/c-daly/logos/actions/workflows/phase1-gate.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/phase1-gate.yml)
 
 This repository is the canonical "foundry" for Project LOGOS. It contains the formal specification, API contracts, the Hybrid Causal Graph (HCG) founding documents, and the development infrastructure for the shared HCG cluster.
 
@@ -49,6 +50,14 @@ CI/CD and Validation
 - **SHACL Shapes**: RDF/Turtle syntax validation using rdflib (`ontology/shacl_shapes.ttl`)
 - **OpenAPI Contract**: OpenAPI 3.1.0 specification validation using swagger-cli (`contracts/hermes.openapi.yaml`)
 - See `.github/workflows/validate-artifacts.yml` for the complete validation pipeline.
+
+Phase 1 Verification and Gate
+- Phase 1 must be completed and verified before Phase 2 work can begin.
+- **Phase 1 Gate**: Automated tests verify M2 (SHACL validation) and M3 (planning) milestones.
+- **Verification Checklist**: See `docs/PHASE1_VERIFY.md` for complete Phase 1 verification criteria.
+- **Gate Status**: [![Phase 1 Gate](https://github.com/c-daly/logos/actions/workflows/phase1-gate.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/phase1-gate.yml)
+- Milestones M1 (HCG store/retrieve) and M4 (end-to-end demo) require manual verification.
+- Phase 2 work is blocked until all automated tests pass and manual verifications are complete.
 
 Notes and next steps
 - The `core_ontology.cypher` and `shacl_shapes.ttl` are intentionally minimal, syntactically valid, and contain comments indicating where the full ontology and constraints described in the spec will be extended.
