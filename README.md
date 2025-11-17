@@ -29,9 +29,16 @@ How to run the HCG dev cluster (dev-only)
 2. Neo4j will be reachable on ports 7474 (HTTP) and 7687 (Bolt). Milvus on 19530/9091.
 3. Use the `ontology/core_ontology.cypher` and `ontology/shacl_shapes.ttl` files to initialize and validate the HCG (see Section 4.3.1).
 
+Python Tooling
+- This repository includes Python-based utilities for project management and artifact validation.
+- See `DEVELOPMENT.md` for setup instructions and documentation.
+- Install tools via: `pip install -e ".[dev]"`
+- CLI tools: `logos-generate-issues`, `logos-create-issues-by-epoch`
+- Run tests: `pytest`
+
 Project Management
 - See `.github/PROJECT_BOARD_SETUP.md` for instructions on setting up the GitHub Project Board, labels, milestones, and issue tracking system.
-- Use `.github/scripts/generate_issues.py` to automatically create issues from the action items document.
+- Use `logos-generate-issues` or `.github/scripts/generate_issues.py` to automatically create issues from the action items document.
 - Weekly progress reports are automatically generated every Monday via GitHub Actions.
 - All project tracking infrastructure is documented in `.github/README.md`.
 
