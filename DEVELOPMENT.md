@@ -24,7 +24,13 @@ poetry install
 
 3. Activate the virtual environment:
 ```bash
-poetry shell
+pip install -e .
+pip install -r requirements-dev.txt
+```
+
+**Note**: The project uses Poetry for dependency management. If you have Poetry installed, you can use:
+```bash
+poetry install
 ```
 
 ### Using pip (basic installation only)
@@ -33,8 +39,8 @@ For basic installation without development tools:
 
 1. Create a virtual environment:
 ```bash
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -e .
+pip install -r requirements-dev.txt
 ```
 
 2. Install the package in editable mode:
@@ -52,15 +58,20 @@ The project uses pytest for testing. Tests should be run via Poetry:
 # Run all tests
 poetry run pytest
 
+# Run with verbose output
+pytest -v
+
 # Run with coverage
-poetry run pytest --cov=logos_tools --cov-report=html
+pytest --cov=logos_tools --cov-report=term-missing --cov-report=html
 
 # Run specific test file
-poetry run pytest tests/test_generate_issues.py
+pytest tests/test_generate_issues.py
 
-# Run with verbose output
-poetry run pytest -v
+# Run tests matching a pattern
+pytest -k "test_parser"
 ```
+
+Test configuration is defined in `pyproject.toml` under `[tool.pytest.ini_options]`.
 
 ## Linting and Code Quality
 
