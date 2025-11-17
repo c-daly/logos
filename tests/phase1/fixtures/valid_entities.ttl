@@ -1,6 +1,8 @@
 @prefix logos: <http://logos.ontology/> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
+# ========== Basic Node Types ==========
+
 # Valid entity with all required fields
 logos:entity-valid-001 a logos:Entity ;
     logos:uuid "entity-valid-001" ;
@@ -26,3 +28,116 @@ logos:process-valid-001 a logos:Process ;
     logos:name "ValidProcess" ;
     logos:start_time "2025-11-17T00:00:00Z"^^xsd:dateTime ;
     logos:duration_ms 1000 .
+
+# ========== Entities with Spatial Properties ==========
+
+logos:entity-spatial-001 a logos:Entity ;
+    logos:uuid "entity-spatial-001" ;
+    logos:name "SpatialEntity" ;
+    logos:width 0.5 ;
+    logos:height 0.3 ;
+    logos:depth 0.2 ;
+    logos:mass 1.5 .
+
+logos:entity-cylindrical-001 a logos:Entity ;
+    logos:uuid "entity-cylindrical-001" ;
+    logos:name "CylindricalEntity" ;
+    logos:radius 0.05 ;
+    logos:height 0.1 ;
+    logos:mass 0.2 .
+
+# ========== State with Spatial Properties ==========
+
+logos:state-spatial-001 a logos:State ;
+    logos:uuid "state-spatial-001" ;
+    logos:name "SpatialState" ;
+    logos:timestamp "2025-11-17T01:00:00Z"^^xsd:dateTime ;
+    logos:position_x 1.5 ;
+    logos:position_y 0.0 ;
+    logos:position_z 0.5 ;
+    logos:orientation_roll 0.0 ;
+    logos:orientation_pitch 0.0 ;
+    logos:orientation_yaw 1.57 .
+
+# ========== Entities with Gripper Properties ==========
+
+logos:entity-gripper-001 a logos:Entity ;
+    logos:uuid "entity-gripper-001" ;
+    logos:name "TestGripper" ;
+    logos:max_grasp_width 0.08 ;
+    logos:max_force 50.0 .
+
+# ========== Entities with Joint Properties ==========
+
+logos:entity-joint-001 a logos:Entity ;
+    logos:uuid "entity-joint-001" ;
+    logos:name "RevoluteJoint" ;
+    logos:joint_type "revolute" ;
+    logos:min_angle -3.14 ;
+    logos:max_angle 3.14 .
+
+logos:entity-joint-002 a logos:Entity ;
+    logos:uuid "entity-joint-002" ;
+    logos:name "PrismaticJoint" ;
+    logos:joint_type "prismatic" .
+
+# ========== Valid Relationships ==========
+
+# Additional entities for relationship tests
+logos:entity-parent a logos:Entity ;
+    logos:uuid "entity-parent" ;
+    logos:name "ParentEntity" .
+
+logos:entity-child a logos:Entity ;
+    logos:uuid "entity-child" ;
+    logos:name "ChildEntity" ;
+    logos:PART_OF logos:entity-parent .
+
+logos:entity-location a logos:Entity ;
+    logos:uuid "entity-location" ;
+    logos:name "LocationEntity" .
+
+logos:entity-object a logos:Entity ;
+    logos:uuid "entity-object" ;
+    logos:name "ObjectEntity" ;
+    logos:LOCATED_AT logos:entity-location .
+
+logos:entity-base a logos:Entity ;
+    logos:uuid "entity-base" ;
+    logos:name "BaseEntity" .
+
+logos:entity-attached a logos:Entity ;
+    logos:uuid "entity-attached" ;
+    logos:name "AttachedEntity" ;
+    logos:ATTACHED_TO logos:entity-base .
+
+logos:entity-capable a logos:Entity ;
+    logos:uuid "entity-capable" ;
+    logos:name "CapableEntity" ;
+    logos:IS_A logos:concept-valid-001 ;
+    logos:CAN_PERFORM logos:concept-valid-001 .
+
+logos:entity-with-state a logos:Entity ;
+    logos:uuid "entity-with-state" ;
+    logos:name "EntityWithState" ;
+    logos:HAS_STATE logos:state-valid-001 .
+
+# States with temporal ordering
+logos:state-first a logos:State ;
+    logos:uuid "state-first" ;
+    logos:name "FirstState" ;
+    logos:timestamp "2025-11-17T02:00:00Z"^^xsd:dateTime .
+
+logos:state-second a logos:State ;
+    logos:uuid "state-second" ;
+    logos:name "SecondState" ;
+    logos:timestamp "2025-11-17T02:01:00Z"^^xsd:dateTime ;
+    logos:PRECEDES logos:state-first .
+
+# Process with relationships
+logos:process-with-relations a logos:Process ;
+    logos:uuid "process-with-relations" ;
+    logos:name "ProcessWithRelations" ;
+    logos:start_time "2025-11-17T03:00:00Z"^^xsd:dateTime ;
+    logos:REQUIRES logos:state-first ;
+    logos:CAUSES logos:state-second .

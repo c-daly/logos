@@ -306,3 +306,75 @@ logos:CausesRelationshipShape
         rdfs:label "Causes State" ;
         rdfs:comment "Process must cause at least one state" ;
     ] .
+
+logos:PartOfRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "PART_OF Relationship Shape" ;
+    rdfs:comment "Validates compositional hierarchy between entities" ;
+    sh:targetClass logos:Entity ;
+    sh:property [
+        sh:path logos:PART_OF ;
+        sh:class logos:Entity ;
+        rdfs:label "Part Of" ;
+        rdfs:comment "Entity can be part of another entity" ;
+    ] .
+
+logos:LocatedAtRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "LOCATED_AT Relationship Shape" ;
+    rdfs:comment "Validates spatial relationships between entities" ;
+    sh:targetClass logos:Entity ;
+    sh:property [
+        sh:path logos:LOCATED_AT ;
+        sh:class logos:Entity ;
+        rdfs:label "Located At" ;
+        rdfs:comment "Entity can be located at another entity" ;
+    ] .
+
+logos:AttachedToRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "ATTACHED_TO Relationship Shape" ;
+    rdfs:comment "Validates physical attachment between entities" ;
+    sh:targetClass logos:Entity ;
+    sh:property [
+        sh:path logos:ATTACHED_TO ;
+        sh:class logos:Entity ;
+        rdfs:label "Attached To" ;
+        rdfs:comment "Entity can be physically attached to another entity" ;
+    ] .
+
+logos:PrecedesRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "PRECEDES Relationship Shape" ;
+    rdfs:comment "Validates temporal ordering between states" ;
+    sh:targetClass logos:State ;
+    sh:property [
+        sh:path logos:PRECEDES ;
+        sh:class logos:State ;
+        rdfs:label "Precedes" ;
+        rdfs:comment "State can temporally precede another state" ;
+    ] .
+
+logos:RequiresRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "REQUIRES Relationship Shape" ;
+    rdfs:comment "Validates precondition relationships for processes" ;
+    sh:targetClass logos:Process ;
+    sh:property [
+        sh:path logos:REQUIRES ;
+        sh:class logos:State ;
+        rdfs:label "Requires State" ;
+        rdfs:comment "Process can require one or more precondition states" ;
+    ] .
+
+logos:CanPerformRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "CAN_PERFORM Relationship Shape" ;
+    rdfs:comment "Validates capability relationships between entities and concepts" ;
+    sh:targetClass logos:Entity ;
+    sh:property [
+        sh:path logos:CAN_PERFORM ;
+        sh:class logos:Concept ;
+        rdfs:label "Can Perform" ;
+        rdfs:comment "Entity can have capabilities defined by concepts" ;
+    ] .
