@@ -269,9 +269,13 @@ ON CREATE SET
     process_move_pre.start_time = datetime(),
     process_move_pre.duration_ms = 2000;
 
+MATCH (process_move_pre:Process {uuid: 'process-move-pregrasp-01'})
 MATCH (move_concept:Concept {uuid: 'concept-move'})
 MERGE (process_move_pre)-[:IS_A]->(move_concept);
-MERGE (process_move_pre)-[:REQUIRES]->(arm_state_home);
+
+MATCH (process_move_pre2:Process {uuid: 'process-move-pregrasp-01'})
+MATCH (arm_state_home:State {uuid: 'state-arm-home-01'})
+MERGE (process_move_pre2)-[:REQUIRES]->(arm_state_home);
 
 // Resulting state: arm above block
 MERGE (arm_state_pregrasp:State {uuid: 'state-arm-pregrasp-01'})
@@ -285,8 +289,13 @@ ON CREATE SET
     arm_state_pregrasp.orientation_pitch = 1.5708,
     arm_state_pregrasp.orientation_yaw = 0.0;
 
+MATCH (process_move_pre:Process {uuid: 'process-move-pregrasp-01'})
+MATCH (arm_state_pregrasp:State {uuid: 'state-arm-pregrasp-01'})
 MERGE (process_move_pre)-[:CAUSES]->(arm_state_pregrasp);
-MERGE (arm_state_home)-[:PRECEDES]->(arm_state_pregrasp);
+
+MATCH (arm_state_home:State {uuid: 'state-arm-home-01'})
+MATCH (arm_state_pregrasp2:State {uuid: 'state-arm-pregrasp-01'})
+MERGE (arm_state_home)-[:PRECEDES]->(arm_state_pregrasp2);
 
 // Process: Grasp red block
 MERGE (process_grasp:Process {uuid: 'process-grasp-red-01'})
@@ -296,10 +305,17 @@ ON CREATE SET
     process_grasp.start_time = datetime(),
     process_grasp.duration_ms = 500;
 
+MATCH (process_grasp:Process {uuid: 'process-grasp-red-01'})
 MATCH (grasp_concept:Concept {uuid: 'concept-grasp'})
 MERGE (process_grasp)-[:IS_A]->(grasp_concept);
-MERGE (process_grasp)-[:REQUIRES]->(arm_state_pregrasp);
-MERGE (process_grasp)-[:REQUIRES]->(gripper_state_open);
+
+MATCH (process_grasp2:Process {uuid: 'process-grasp-red-01'})
+MATCH (arm_state_pregrasp:State {uuid: 'state-arm-pregrasp-01'})
+MERGE (process_grasp2)-[:REQUIRES]->(arm_state_pregrasp);
+
+MATCH (process_grasp3:Process {uuid: 'process-grasp-red-01'})
+MATCH (gripper_state_open:State {uuid: 'state-gripper-open-01'})
+MERGE (process_grasp3)-[:REQUIRES]->(gripper_state_open);
 
 // Resulting states: gripper closed, block grasped
 MERGE (gripper_state_closed:State {uuid: 'state-gripper-closed-01'})
@@ -319,12 +335,25 @@ ON CREATE SET
     block_red_state_grasped.position_z = 0.8,
     block_red_state_grasped.is_grasped = true;
 
+MATCH (process_grasp:Process {uuid: 'process-grasp-red-01'})
+MATCH (gripper_state_closed:State {uuid: 'state-gripper-closed-01'})
 MERGE (process_grasp)-[:CAUSES]->(gripper_state_closed);
-MERGE (process_grasp)-[:CAUSES]->(block_red_state_grasped);
-MERGE (gripper_state_open)-[:PRECEDES]->(gripper_state_closed);
-MERGE (block_red_state_01)-[:PRECEDES]->(block_red_state_grasped);
+
+MATCH (process_grasp2:Process {uuid: 'process-grasp-red-01'})
+MATCH (block_red_state_grasped:State {uuid: 'state-block-red-grasped-01'})
+MERGE (process_grasp2)-[:CAUSES]->(block_red_state_grasped);
+
+MATCH (gripper_state_open:State {uuid: 'state-gripper-open-01'})
+MATCH (gripper_state_closed2:State {uuid: 'state-gripper-closed-01'})
+MERGE (gripper_state_open)-[:PRECEDES]->(gripper_state_closed2);
+
+MATCH (block_red_state_01:State {uuid: 'state-block-red-01'})
+MATCH (block_red_state_grasped2:State {uuid: 'state-block-red-grasped-01'})
+MERGE (block_red_state_01)-[:PRECEDES]->(block_red_state_grasped2);
+
+MATCH (block_red_state_grasped3:State {uuid: 'state-block-red-grasped-01'})
 MATCH (grasped_concept:Concept {uuid: 'concept-grasped'})
-MERGE (block_red_state_grasped)-[:IS_A]->(grasped_concept);
+MERGE (block_red_state_grasped3)-[:IS_A]->(grasped_concept);
 
 // Process: Move to placement position
 MERGE (process_move_place:Process {uuid: 'process-move-place-01'})
@@ -334,9 +363,13 @@ ON CREATE SET
     process_move_place.start_time = datetime(),
     process_move_place.duration_ms = 2500;
 
+MATCH (process_move_place:Process {uuid: 'process-move-place-01'})
 MATCH (move_concept:Concept {uuid: 'concept-move'})
 MERGE (process_move_place)-[:IS_A]->(move_concept);
-MERGE (process_move_place)-[:REQUIRES]->(block_red_state_grasped);
+
+MATCH (process_move_place2:Process {uuid: 'process-move-place-01'})
+MATCH (block_red_state_grasped:State {uuid: 'state-block-red-grasped-01'})
+MERGE (process_move_place2)-[:REQUIRES]->(block_red_state_grasped);
 
 // Resulting state: arm above bin
 MERGE (arm_state_place:State {uuid: 'state-arm-place-01'})
@@ -350,8 +383,13 @@ ON CREATE SET
     arm_state_place.orientation_pitch = 1.5708,
     arm_state_place.orientation_yaw = 0.0;
 
+MATCH (process_move_place:Process {uuid: 'process-move-place-01'})
+MATCH (arm_state_place:State {uuid: 'state-arm-place-01'})
 MERGE (process_move_place)-[:CAUSES]->(arm_state_place);
-MERGE (arm_state_pregrasp)-[:PRECEDES]->(arm_state_place);
+
+MATCH (arm_state_pregrasp:State {uuid: 'state-arm-pregrasp-01'})
+MATCH (arm_state_place2:State {uuid: 'state-arm-place-01'})
+MERGE (arm_state_pregrasp)-[:PRECEDES]->(arm_state_place2);
 
 // Process: Release block
 MERGE (process_release:Process {uuid: 'process-release-red-01'})
@@ -361,10 +399,17 @@ ON CREATE SET
     process_release.start_time = datetime(),
     process_release.duration_ms = 500;
 
+MATCH (process_release:Process {uuid: 'process-release-red-01'})
 MATCH (release_concept:Concept {uuid: 'concept-release'})
 MERGE (process_release)-[:IS_A]->(release_concept);
-MERGE (process_release)-[:REQUIRES]->(arm_state_place);
-MERGE (process_release)-[:REQUIRES]->(gripper_state_closed);
+
+MATCH (process_release2:Process {uuid: 'process-release-red-01'})
+MATCH (arm_state_place:State {uuid: 'state-arm-place-01'})
+MERGE (process_release2)-[:REQUIRES]->(arm_state_place);
+
+MATCH (process_release3:Process {uuid: 'process-release-red-01'})
+MATCH (gripper_state_closed:State {uuid: 'state-gripper-closed-01'})
+MERGE (process_release3)-[:REQUIRES]->(gripper_state_closed);
 
 // Resulting states: gripper open, block in bin
 MERGE (gripper_state_open_final:State {uuid: 'state-gripper-open-final-01'})
@@ -384,14 +429,29 @@ ON CREATE SET
     block_red_state_in_bin.position_z = 0.8,
     block_red_state_in_bin.is_grasped = false;
 
+MATCH (process_release:Process {uuid: 'process-release-red-01'})
+MATCH (gripper_state_open_final:State {uuid: 'state-gripper-open-final-01'})
 MERGE (process_release)-[:CAUSES]->(gripper_state_open_final);
-MERGE (process_release)-[:CAUSES]->(block_red_state_in_bin);
-MERGE (gripper_state_closed)-[:PRECEDES]->(gripper_state_open_final);
-MERGE (block_red_state_grasped)-[:PRECEDES]->(block_red_state_in_bin);
+
+MATCH (process_release2:Process {uuid: 'process-release-red-01'})
+MATCH (block_red_state_in_bin:State {uuid: 'state-block-red-in-bin-01'})
+MERGE (process_release2)-[:CAUSES]->(block_red_state_in_bin);
+
+MATCH (gripper_state_closed:State {uuid: 'state-gripper-closed-01'})
+MATCH (gripper_state_open_final2:State {uuid: 'state-gripper-open-final-01'})
+MERGE (gripper_state_closed)-[:PRECEDES]->(gripper_state_open_final2);
+
+MATCH (block_red_state_grasped:State {uuid: 'state-block-red-grasped-01'})
+MATCH (block_red_state_in_bin2:State {uuid: 'state-block-red-in-bin-01'})
+MERGE (block_red_state_grasped)-[:PRECEDES]->(block_red_state_in_bin2);
+
+MATCH (block_red_state_in_bin3:State {uuid: 'state-block-red-in-bin-01'})
 MATCH (positioned:Concept {uuid: 'concept-positioned'})
-MERGE (block_red_state_in_bin)-[:IS_A]->(positioned);
+MERGE (block_red_state_in_bin3)-[:IS_A]->(positioned);
 
 // Establish spatial relationship
+MATCH (block_red:Entity {uuid: 'entity-block-red-01'})
+MATCH (bin:Entity {uuid: 'entity-bin-01'})
 MERGE (block_red)-[:LOCATED_AT {timestamp: datetime()}]->(bin);
 
 RETURN "test data for pick-and-place scenario created";
