@@ -108,27 +108,60 @@ ON CREATE SET
 //// Entity Type Relationships (IS_A)
 
 // Robot components
-MERGE (robot_arm)-[:IS_A]->(manip:Concept {uuid: 'concept-manipulator'});
-MERGE (robot_gripper)-[:IS_A]->(grip_concept:Concept {uuid: 'concept-gripper'});
-MERGE (joint1)-[:IS_A]->(joint_concept:Concept {uuid: 'concept-joint'});
-MERGE (joint2)-[:IS_A]->(joint_concept);
+MATCH (robot_arm:Entity {uuid: 'entity-robot-arm-01'})
+MATCH (manip:Concept {uuid: 'concept-manipulator'})
+MERGE (robot_arm)-[:IS_A]->(manip);
+
+MATCH (robot_gripper:Entity {uuid: 'entity-gripper-01'})
+MATCH (grip_concept:Concept {uuid: 'concept-gripper'})
+MERGE (robot_gripper)-[:IS_A]->(grip_concept);
+
+MATCH (joint1:Entity {uuid: 'entity-joint-01'})
+MATCH (joint2:Entity {uuid: 'entity-joint-02'})
+MATCH (joint3:Entity {uuid: 'entity-joint-03'})
+MATCH (joint_concept:Concept {uuid: 'concept-joint'})
+MERGE (joint1)-[:IS_A]->(joint_concept)
+MERGE (joint2)-[:IS_A]->(joint_concept)
 MERGE (joint3)-[:IS_A]->(joint_concept);
 
 // Workspace components
-MERGE (table)-[:IS_A]->(surf:Concept {uuid: 'concept-surface'});
-MERGE (bin)-[:IS_A]->(cont:Concept {uuid: 'concept-container'});
+MATCH (table:Entity {uuid: 'entity-table-01'})
+MATCH (surf:Concept {uuid: 'concept-surface'})
+MERGE (table)-[:IS_A]->(surf);
+
+MATCH (bin:Entity {uuid: 'entity-bin-01'})
+MATCH (cont:Concept {uuid: 'concept-container'})
+MERGE (bin)-[:IS_A]->(cont);
 
 // Graspable objects
-MERGE (block_red)-[:IS_A]->(grasp:Concept {uuid: 'concept-graspable'});
-MERGE (block_blue)-[:IS_A]->(grasp);
+MATCH (block_red:Entity {uuid: 'entity-block-red-01'})
+MATCH (block_blue:Entity {uuid: 'entity-block-blue-01'})
+MATCH (cylinder_green:Entity {uuid: 'entity-cylinder-green-01'})
+MATCH (grasp:Concept {uuid: 'concept-graspable'})
+MERGE (block_red)-[:IS_A]->(grasp)
+MERGE (block_blue)-[:IS_A]->(grasp)
 MERGE (cylinder_green)-[:IS_A]->(grasp);
 
 //// Compositional Relationships (PART_OF)
 
+MATCH (robot_gripper:Entity {uuid: 'entity-gripper-01'})
+MATCH (robot_arm:Entity {uuid: 'entity-robot-arm-01'})
 MERGE (robot_gripper)-[:PART_OF]->(robot_arm);
-MERGE (joint1)-[:PART_OF]->(robot_arm);
-MERGE (joint2)-[:PART_OF]->(robot_arm);
-MERGE (joint3)-[:PART_OF]->(robot_arm);
+
+MATCH (joint1:Entity {uuid: 'entity-joint-01'})
+MATCH (robot_arm2:Entity {uuid: 'entity-robot-arm-01'})
+MERGE (joint1)-[:PART_OF]->(robot_arm2);
+
+MATCH (joint2:Entity {uuid: 'entity-joint-02'})
+MATCH (robot_arm3:Entity {uuid: 'entity-robot-arm-01'})
+MERGE (joint2)-[:PART_OF]->(robot_arm3);
+
+MATCH (joint3:Entity {uuid: 'entity-joint-03'})
+MATCH (robot_arm4:Entity {uuid: 'entity-robot-arm-01'})
+MERGE (joint3)-[:PART_OF]->(robot_arm4);
+
+MATCH (bin:Entity {uuid: 'entity-bin-01'})
+MATCH (table:Entity {uuid: 'entity-table-01'})
 MERGE (bin)-[:LOCATED_AT]->(table);
 
 //// Initial States
@@ -145,6 +178,8 @@ ON CREATE SET
     arm_state_home.orientation_pitch = 0.0,
     arm_state_home.orientation_yaw = 0.0;
 
+MATCH (robot_arm:Entity {uuid: 'entity-robot-arm-01'})
+MATCH (arm_state_home:State {uuid: 'state-arm-home-01'})
 MERGE (robot_arm)-[:HAS_STATE]->(arm_state_home);
 
 // Gripper state - open
@@ -156,8 +191,13 @@ ON CREATE SET
     gripper_state_open.grasp_width = 0.08,
     gripper_state_open.applied_force = 0.0;
 
+MATCH (robot_gripper:Entity {uuid: 'entity-gripper-01'})
+MATCH (gripper_state_open:State {uuid: 'state-gripper-open-01'})
 MERGE (robot_gripper)-[:HAS_STATE]->(gripper_state_open);
-MERGE (gripper_state_open)-[:IS_A]->(free:Concept {uuid: 'concept-free'});
+
+MATCH (gripper_state_open2:State {uuid: 'state-gripper-open-01'})
+MATCH (free:Concept {uuid: 'concept-free'})
+MERGE (gripper_state_open2)-[:IS_A]->(free);
 
 // Red block state - on table
 MERGE (block_red_state_01:State {uuid: 'state-block-red-01'})
@@ -169,8 +209,13 @@ ON CREATE SET
     block_red_state_01.position_z = 0.775,
     block_red_state_01.is_grasped = false;
 
+MATCH (block_red:Entity {uuid: 'entity-block-red-01'})
+MATCH (block_red_state_01:State {uuid: 'state-block-red-01'})
 MERGE (block_red)-[:HAS_STATE]->(block_red_state_01);
-MERGE (block_red_state_01)-[:IS_A]->(positioned:Concept {uuid: 'concept-positioned'});
+
+MATCH (block_red_state_01_2:State {uuid: 'state-block-red-01'})
+MATCH (positioned:Concept {uuid: 'concept-positioned'})
+MERGE (block_red_state_01_2)-[:IS_A]->(positioned);
 
 // Blue block state - on table
 MERGE (block_blue_state_01:State {uuid: 'state-block-blue-01'})
@@ -182,6 +227,8 @@ ON CREATE SET
     block_blue_state_01.position_z = 0.775,
     block_blue_state_01.is_grasped = false;
 
+MATCH (block_blue:Entity {uuid: 'entity-block-blue-01'})
+MATCH (block_blue_state_01:State {uuid: 'state-block-blue-01'})
 MERGE (block_blue)-[:HAS_STATE]->(block_blue_state_01);
 
 // Green cylinder state - on table
@@ -194,6 +241,8 @@ ON CREATE SET
     cylinder_green_state_01.position_z = 0.775,
     cylinder_green_state_01.is_grasped = false;
 
+MATCH (cylinder_green:Entity {uuid: 'entity-cylinder-green-01'})
+MATCH (cylinder_green_state_01:State {uuid: 'state-cylinder-green-01'})
 MERGE (cylinder_green)-[:HAS_STATE]->(cylinder_green_state_01);
 
 // Bin state - empty on table
@@ -206,6 +255,8 @@ ON CREATE SET
     bin_state_01.position_z = 0.75,
     bin_state_01.is_empty = true;
 
+MATCH (bin:Entity {uuid: 'entity-bin-01'})
+MATCH (bin_state_01:State {uuid: 'state-bin-01'})
 MERGE (bin)-[:HAS_STATE]->(bin_state_01);
 
 //// Example Process - Grasping Red Block
@@ -218,7 +269,8 @@ ON CREATE SET
     process_move_pre.start_time = datetime(),
     process_move_pre.duration_ms = 2000;
 
-MERGE (process_move_pre)-[:IS_A]->(move_concept:Concept {uuid: 'concept-move'});
+MATCH (move_concept:Concept {uuid: 'concept-move'})
+MERGE (process_move_pre)-[:IS_A]->(move_concept);
 MERGE (process_move_pre)-[:REQUIRES]->(arm_state_home);
 
 // Resulting state: arm above block
@@ -244,7 +296,8 @@ ON CREATE SET
     process_grasp.start_time = datetime(),
     process_grasp.duration_ms = 500;
 
-MERGE (process_grasp)-[:IS_A]->(grasp_concept:Concept {uuid: 'concept-grasp'});
+MATCH (grasp_concept:Concept {uuid: 'concept-grasp'})
+MERGE (process_grasp)-[:IS_A]->(grasp_concept);
 MERGE (process_grasp)-[:REQUIRES]->(arm_state_pregrasp);
 MERGE (process_grasp)-[:REQUIRES]->(gripper_state_open);
 
@@ -270,7 +323,8 @@ MERGE (process_grasp)-[:CAUSES]->(gripper_state_closed);
 MERGE (process_grasp)-[:CAUSES]->(block_red_state_grasped);
 MERGE (gripper_state_open)-[:PRECEDES]->(gripper_state_closed);
 MERGE (block_red_state_01)-[:PRECEDES]->(block_red_state_grasped);
-MERGE (block_red_state_grasped)-[:IS_A]->(grasped_concept:Concept {uuid: 'concept-grasped'});
+MATCH (grasped_concept:Concept {uuid: 'concept-grasped'})
+MERGE (block_red_state_grasped)-[:IS_A]->(grasped_concept);
 
 // Process: Move to placement position
 MERGE (process_move_place:Process {uuid: 'process-move-place-01'})
@@ -280,6 +334,7 @@ ON CREATE SET
     process_move_place.start_time = datetime(),
     process_move_place.duration_ms = 2500;
 
+MATCH (move_concept:Concept {uuid: 'concept-move'})
 MERGE (process_move_place)-[:IS_A]->(move_concept);
 MERGE (process_move_place)-[:REQUIRES]->(block_red_state_grasped);
 
@@ -306,7 +361,8 @@ ON CREATE SET
     process_release.start_time = datetime(),
     process_release.duration_ms = 500;
 
-MERGE (process_release)-[:IS_A]->(release_concept:Concept {uuid: 'concept-release'});
+MATCH (release_concept:Concept {uuid: 'concept-release'})
+MERGE (process_release)-[:IS_A]->(release_concept);
 MERGE (process_release)-[:REQUIRES]->(arm_state_place);
 MERGE (process_release)-[:REQUIRES]->(gripper_state_closed);
 
@@ -332,6 +388,7 @@ MERGE (process_release)-[:CAUSES]->(gripper_state_open_final);
 MERGE (process_release)-[:CAUSES]->(block_red_state_in_bin);
 MERGE (gripper_state_closed)-[:PRECEDES]->(gripper_state_open_final);
 MERGE (block_red_state_grasped)-[:PRECEDES]->(block_red_state_in_bin);
+MATCH (positioned:Concept {uuid: 'concept-positioned'})
 MERGE (block_red_state_in_bin)-[:IS_A]->(positioned);
 
 // Establish spatial relationship
