@@ -1,0 +1,46 @@
+name: M3 - Planning Capability
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+  schedule:
+    # Run weekly on Mondays at 9:00 AM UTC
+    - cron: '0 9 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  m3-planning:
+    name: M3 Planning Gate
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest pytest-cov rdflib pyshacl
+      
+      - name: Run M3 Planning Tests
+        run: |
+          echo "## M3: Planning Capability Tests" >> $GITHUB_STEP_SUMMARY
+          pytest tests/phase1/test_m3_planning.py -v --tb=short
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **M3 GATE PASSED**: Planning concepts validated" >> $GITHUB_STEP_SUMMARY
+          echo "See \`docs/PHASE1_VERIFY.md\` for complete M3 checklist." >> $GITHUB_STEP_SUMMARY

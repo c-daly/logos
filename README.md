@@ -2,7 +2,6 @@
 
 [![Validate LOGOS Artifacts](https://github.com/c-daly/logos/actions/workflows/validate-artifacts.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/validate-artifacts.yml)
 [![Run Tests](https://github.com/c-daly/logos/actions/workflows/test.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/test.yml)
-[![Phase 1 Gate](https://github.com/c-daly/logos/actions/workflows/phase1-gate.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/phase1-gate.yml)
 
 This repository is the canonical "foundry" for Project LOGOS. It contains the formal specification, API contracts, the Hybrid Causal Graph (HCG) founding documents, and the development infrastructure for the shared HCG cluster.
 
@@ -53,11 +52,13 @@ CI/CD and Validation
 
 Phase 1 Verification and Gate
 - Phase 1 must be completed and verified before Phase 2 work can begin.
-- **Phase 1 Gate**: Automated tests verify M2 (SHACL validation) and M3 (planning) milestones.
 - **Verification Checklist**: See `docs/PHASE1_VERIFY.md` for complete Phase 1 verification criteria.
-- **Gate Status**: [![Phase 1 Gate](https://github.com/c-daly/logos/actions/workflows/phase1-gate.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/phase1-gate.yml)
-- Milestones M1 (HCG store/retrieve) and M4 (end-to-end demo) require manual verification.
-- Phase 2 work is blocked until all automated tests pass and manual verifications are complete.
+- **Milestone Gates**: Each milestone is verified through automated tests that produce individual badges:
+  - **M1** (HCG Store/Retrieve): ⏸️ Manual verification required
+  - **M2** (SHACL Validation): [![M2 Gate](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml)
+  - **M3** (Planning): [![M3 Gate](https://github.com/c-daly/logos/actions/workflows/m3-planning.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m3-planning.yml)
+  - **M4** (End-to-End Demo): ⏸️ Manual verification required
+- Phase 2 work is blocked until all milestone gates pass (automated tests green + manual verifications complete).
 
 Notes and next steps
 - The `core_ontology.cypher` and `shacl_shapes.ttl` are intentionally minimal, syntactically valid, and contain comments indicating where the full ontology and constraints described in the spec will be extended.
