@@ -10,15 +10,19 @@ This document describes how to set up the development environment for the LOGOS 
 
 ## Python Environment Setup
 
-### Using pip (recommended for development)
+### Using Poetry (recommended for development)
 
-1. Create a virtual environment:
+1. Install Poetry if not already installed:
 ```bash
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install poetry
 ```
 
-2. Install the package in editable mode with development dependencies:
+2. Install the package and all dependencies (including dev dependencies):
+```bash
+poetry install
+```
+
+3. Activate the virtual environment:
 ```bash
 pip install -e .
 pip install -r requirements-dev.txt
@@ -29,21 +33,30 @@ pip install -r requirements-dev.txt
 poetry install
 ```
 
-### Using system Python
+### Using pip (basic installation only)
 
-If you prefer to install dependencies system-wide:
+For basic installation without development tools:
+
+1. Create a virtual environment:
 ```bash
 pip install -e .
 pip install -r requirements-dev.txt
 ```
 
+2. Install the package in editable mode:
+```bash
+pip install -e .
+```
+
+**Note:** Development dependencies (pytest, ruff, mypy, etc.) are managed via Poetry and require `poetry install` for full setup.
+
 ## Running Tests
 
-The project uses pytest for testing:
+The project uses pytest for testing. Tests should be run via Poetry:
 
 ```bash
 # Run all tests
-pytest
+poetry run pytest
 
 # Run with verbose output
 pytest -v
@@ -62,31 +75,38 @@ Test configuration is defined in `pyproject.toml` under `[tool.pytest.ini_option
 
 ## Linting and Code Quality
 
-The project uses Ruff for linting and formatting:
+The project uses Ruff for linting and formatting, and mypy for type checking:
 
 ```bash
 # Lint the codebase
-ruff check .
+poetry run ruff check .
+
+# Auto-fix linting issues
+poetry run ruff check --fix .
 
 # Format code
-ruff format .
+poetry run ruff format .
 
 # Type checking with mypy
-mypy .github/scripts
+poetry run mypy logos_tools
 ```
 
 ## Using the CLI Tools
 
-After installation, you can use the command-line tools:
+After installation with Poetry, you can use the command-line tools:
 
 ```bash
 # Generate issues in JSON format
-logos-generate-issues --format json
+poetry run logos-generate-issues --format json
 
 # Generate issues as GitHub CLI commands
-logos-generate-issues --format gh-cli --output create_issues.sh
+poetry run logos-generate-issues --format gh-cli --output create_issues.sh
 
 # Create issues organized by epochs
+poetry run logos-create-issues-by-epoch --format markdown
+
+# Or, if you've activated the Poetry shell (poetry shell):
+logos-generate-issues --format json
 logos-create-issues-by-epoch --format markdown
 ```
 

@@ -33,32 +33,32 @@ class TaskParser:
         current_subsection = None
         current_workstream = None
 
-        lines = content.split('\n')
+        lines = content.split("\n")
         i = 0
 
         while i < len(lines):
             line = lines[i].strip()
 
             # Detect main sections
-            if line.startswith('## '):
+            if line.startswith("## "):
                 current_section = line[3:].strip()
                 current_subsection = None
                 current_workstream = None
 
             # Detect subsections
-            elif line.startswith('### '):
+            elif line.startswith("### "):
                 current_subsection = line[4:].strip()
 
                 # Check if this is a workstream
-                if 'Workstream' in current_subsection:
+                if "Workstream" in current_subsection:
                     current_workstream = current_subsection
 
             # Detect tasks (unchecked items in lists)
-            elif line.startswith('- [ ] '):
+            elif line.startswith("- [ ] "):
                 task_text = line[6:].strip()
 
                 # Extract task ID if present (e.g., **A1:** or **B2:**)
-                task_id_match = re.match(r'\*\*([A-Z]\d+):\s*(.+?)\*\*\s*(?:\((.+?)\))?', task_text)
+                task_id_match = re.match(r"\*\*([A-Z]\d+):\s*(.+?)\*\*\s*(?:\((.+?)\))?", task_text)
 
                 if task_id_match:
                     task_id = task_id_match.group(1)
@@ -68,7 +68,7 @@ class TaskParser:
                     # Collect sub-tasks (indented items)
                     sub_tasks = []
                     j = i + 1
-                    while j < len(lines) and lines[j].strip().startswith('- [ ]'):
+                    while j < len(lines) and lines[j].strip().startswith("- [ ]"):
                         sub_task = lines[j].strip()[6:].strip()
                         sub_tasks.append(sub_task)
                         j += 1
@@ -79,15 +79,15 @@ class TaskParser:
                     )
 
                     task = {
-                        'id': task_id,
-                        'title': f"[{component.title()}] {task_title}",
-                        'section': current_section,
-                        'subsection': current_subsection,
-                        'workstream': current_workstream,
-                        'reference': task_ref,
-                        'sub_tasks': sub_tasks,
-                        'component': component,
-                        'labels': labels
+                        "id": task_id,
+                        "title": f"[{component.title()}] {task_title}",
+                        "section": current_section,
+                        "subsection": current_subsection,
+                        "workstream": current_workstream,
+                        "reference": task_ref,
+                        "sub_tasks": sub_tasks,
+                        "component": component,
+                        "labels": labels,
                     }
 
                     self.tasks.append(task)
@@ -96,12 +96,14 @@ class TaskParser:
                 else:
                     # Regular task without ID
                     task = {
-                        'title': task_text,
-                        'section': current_section,
-                        'subsection': current_subsection,
-                        'workstream': current_workstream,
-                        'component': self._infer_component(task_text, current_subsection),
-                        'labels': self._infer_labels(task_text, current_section, current_subsection)
+                        "title": task_text,
+                        "section": current_section,
+                        "subsection": current_subsection,
+                        "workstream": current_workstream,
+                        "component": self._infer_component(task_text, current_subsection),
+                        "labels": self._infer_labels(
+                            task_text, current_section, current_subsection
+                        ),
                     }
                     self.tasks.append(task)
 
@@ -109,50 +111,50 @@ class TaskParser:
 
         return self.tasks
 
-    def _determine_component_and_labels(self, task_id: str, title: str,
-                                       section: str, subsection: str,
-                                       workstream: str) -> tuple:
+    def _determine_component_and_labels(
+        self, task_id: str, title: str, section: str, subsection: str, workstream: str
+    ) -> tuple:
         """Determine component and labels for a task."""
         component = "infrastructure"
         labels = ["phase:1"]
 
         # Determine component based on task ID prefix or workstream
-        if task_id and task_id.startswith('A'):
+        if task_id and task_id.startswith("A"):
             component = "infrastructure"
             labels.extend(["component:infrastructure", "workstream:A", "priority:high"])
-        elif task_id and task_id.startswith('B'):
+        elif task_id and task_id.startswith("B"):
             component = "sophia"
             labels.extend(["component:sophia", "workstream:B", "priority:high"])
-        elif task_id and task_id.startswith('C'):
+        elif task_id and task_id.startswith("C"):
             # C tasks could be Hermes, Talos, or Apollo
-            if 'Hermes' in title:
+            if "Hermes" in title:
                 component = "hermes"
                 labels.extend(["component:hermes", "workstream:C", "priority:medium"])
-            elif 'Talos' in title:
+            elif "Talos" in title:
                 component = "talos"
                 labels.extend(["component:talos", "workstream:C", "priority:medium"])
-            elif 'Apollo' in title:
+            elif "Apollo" in title:
                 component = "apollo"
                 labels.extend(["component:apollo", "workstream:C", "priority:medium"])
             else:
                 component = "infrastructure"
                 labels.extend(["component:infrastructure", "workstream:C", "priority:medium"])
-        elif task_id and task_id.startswith('R'):
+        elif task_id and task_id.startswith("R"):
             component = "research"
             labels.extend(["type:research", "priority:low"])
-        elif task_id and task_id.startswith('D'):
+        elif task_id and task_id.startswith("D"):
             component = "docs"
             labels.extend(["type:documentation", "priority:medium"])
-        elif task_id and task_id.startswith('M'):
+        elif task_id and task_id.startswith("M"):
             component = "infrastructure"
             labels.extend(["component:infrastructure", "priority:high"])
 
         # Add type based on content
-        if 'test' in title.lower() or 'validation' in title.lower():
+        if "test" in title.lower() or "validation" in title.lower():
             labels.append("type:testing")
-        elif 'implement' in title.lower() or 'create' in title.lower():
+        elif "implement" in title.lower() or "create" in title.lower():
             labels.append("type:feature")
-        elif 'document' in title.lower() or 'write' in title.lower():
+        elif "document" in title.lower() or "write" in title.lower():
             labels.append("type:documentation")
 
         return component, list(set(labels))  # Remove duplicates
@@ -161,16 +163,16 @@ class TaskParser:
         """Infer component from task text."""
         task_lower = task.lower()
 
-        if 'sophia' in task_lower:
-            return 'sophia'
-        elif 'hermes' in task_lower:
-            return 'hermes'
-        elif 'talos' in task_lower:
-            return 'talos'
-        elif 'apollo' in task_lower:
-            return 'apollo'
+        if "sophia" in task_lower:
+            return "sophia"
+        elif "hermes" in task_lower:
+            return "hermes"
+        elif "talos" in task_lower:
+            return "talos"
+        elif "apollo" in task_lower:
+            return "apollo"
         else:
-            return 'infrastructure'
+            return "infrastructure"
 
     def _infer_labels(self, task: str, section: str, subsection: str) -> list[str]:
         """Infer labels from task content."""
@@ -178,20 +180,20 @@ class TaskParser:
         task_lower = task.lower()
 
         # Component labels
-        if 'sophia' in task_lower:
-            labels.append('component:sophia')
-        if 'hermes' in task_lower:
-            labels.append('component:hermes')
-        if 'talos' in task_lower:
-            labels.append('component:talos')
-        if 'apollo' in task_lower:
-            labels.append('component:apollo')
+        if "sophia" in task_lower:
+            labels.append("component:sophia")
+        if "hermes" in task_lower:
+            labels.append("component:hermes")
+        if "talos" in task_lower:
+            labels.append("component:talos")
+        if "apollo" in task_lower:
+            labels.append("component:apollo")
 
         # Priority (default to medium for non-workstream tasks)
-        if 'Repository and Project Infrastructure Setup' in section:
-            labels.append('priority:high')
+        if "Repository and Project Infrastructure Setup" in section:
+            labels.append("priority:high")
         else:
-            labels.append('priority:medium')
+            labels.append("priority:medium")
 
         return list(set(labels))
 
@@ -208,23 +210,23 @@ def format_as_markdown(tasks: list[dict[str, Any]]) -> str:
     for task in tasks:
         output.append(f"## {task['title']}\n")
         output.append(f"**Section:** {task.get('section', 'N/A')}\n")
-        if task.get('subsection'):
+        if task.get("subsection"):
             output.append(f"**Subsection:** {task['subsection']}\n")
-        if task.get('workstream'):
+        if task.get("workstream"):
             output.append(f"**Workstream:** {task['workstream']}\n")
-        if task.get('reference'):
+        if task.get("reference"):
             output.append(f"**Reference:** {task['reference']}\n")
 
         output.append(f"\n**Labels:** {', '.join(task.get('labels', []))}\n")
 
-        if task.get('sub_tasks'):
+        if task.get("sub_tasks"):
             output.append("\n**Sub-tasks:**\n")
-            for sub_task in task['sub_tasks']:
+            for sub_task in task["sub_tasks"]:
                 output.append(f"- [ ] {sub_task}\n")
 
         output.append("\n---\n\n")
 
-    return ''.join(output)
+    return "".join(output)
 
 
 def format_as_gh_cli(tasks: list[dict[str, Any]]) -> str:
@@ -237,74 +239,68 @@ def format_as_gh_cli(tasks: list[dict[str, Any]]) -> str:
     commands.append("# Usage: bash create_issues.sh\n\n")
 
     for task in tasks:
-        title = task['title'].replace('"', '\\"')
+        title = task["title"].replace('"', '\\"')
 
         # Build body
         body_parts = []
         body_parts.append(f"**Section:** {task.get('section', 'N/A')}")
-        if task.get('subsection'):
+        if task.get("subsection"):
             body_parts.append(f"**Subsection:** {task['subsection']}")
-        if task.get('workstream'):
+        if task.get("workstream"):
             body_parts.append(f"**Workstream:** {task['workstream']}")
-        if task.get('reference'):
+        if task.get("reference"):
             body_parts.append(f"**Reference:** {task['reference']}")
 
-        if task.get('sub_tasks'):
+        if task.get("sub_tasks"):
             body_parts.append("\n**Sub-tasks:**")
-            for sub_task in task['sub_tasks']:
+            for sub_task in task["sub_tasks"]:
                 body_parts.append(f"- [ ] {sub_task}")
 
         body = "\\n".join(body_parts).replace('"', '\\"')
 
         # Build labels
-        labels = ','.join(task.get('labels', []))
+        labels = ",".join(task.get("labels", []))
 
         # Create gh issue create command
         cmd = f'gh issue create --repo c-daly/logos --title "{title}" --body "{body}" --label "{labels}"\n'
         commands.append(cmd)
 
-    return ''.join(commands)
+    return "".join(commands)
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description='Generate GitHub issues from action_items.md'
-    )
+    parser = argparse.ArgumentParser(description="Generate GitHub issues from action_items.md")
     parser.add_argument(
-        '--format',
-        choices=['json', 'markdown', 'gh-cli'],
-        default='json',
-        help='Output format (default: json)'
+        "--format",
+        choices=["json", "markdown", "gh-cli"],
+        default="json",
+        help="Output format (default: json)",
     )
-    parser.add_argument(
-        '--output',
-        type=str,
-        help='Output file (default: stdout)'
-    )
+    parser.add_argument("--output", type=str, help="Output file (default: stdout)")
 
     args = parser.parse_args()
 
     # Parse tasks
-    doc_path = Path(__file__).parent.parent.parent / 'docs' / 'action_items.md'
+    doc_path = Path(__file__).parent.parent.parent / "docs" / "action_items.md"
     parser_obj = TaskParser(doc_path)
     tasks = parser_obj.parse()
 
     # Format output
-    if args.format == 'json':
+    if args.format == "json":
         output = format_as_json(tasks)
-    elif args.format == 'markdown':
+    elif args.format == "markdown":
         output = format_as_markdown(tasks)
-    elif args.format == 'gh-cli':
+    elif args.format == "gh-cli":
         output = format_as_gh_cli(tasks)
 
     # Write output
     if args.output:
-        with open(args.output, 'w') as f:
+        with open(args.output, "w") as f:
             f.write(output)
         print(f"Output written to {args.output}")
     else:
         print(output)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
