@@ -15,7 +15,6 @@ Reference: docs/PHASE1_VERIFY.md, M2 section
 import argparse
 import sys
 from pathlib import Path
-from typing import Optional, Tuple
 
 from neo4j import GraphDatabase
 from rdflib import Graph
@@ -188,7 +187,7 @@ class Neo4jSHACLValidator:
                 print(f"✗ Failed to import test data to Neo4j: {e}")
                 return False
 
-    def run_shacl_validation(self) -> Tuple[bool, str]:
+    def run_shacl_validation(self) -> tuple[bool, str]:
         """
         Run SHACL validation in Neo4j via n10s.
 
