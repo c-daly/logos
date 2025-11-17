@@ -1,0 +1,136 @@
+name: FastAPI Harness Tests
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'examples/fastapi-harness/**'
+      - 'contracts/hermes.openapi.yaml'
+      - '.github/workflows/fastapi-harness.yml'
+  pull_request:
+    paths:
+      - 'examples/fastapi-harness/**'
+      - 'contracts/hermes.openapi.yaml'
+      - '.github/workflows/fastapi-harness.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-test:
+    name: Lint and Test FastAPI Harness
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          cd examples/fastapi-harness
+          pip install -r requirements.txt
+          pip install pytest pytest-cov ruff openapi-spec-validator pyyaml
+
+      - name: Run linting with ruff
+        run: |
+          cd examples/fastapi-harness
+          ruff check app/ tests/
+
+      - name: Run contract validation tests
+        run: |
+          cd examples/fastapi-harness
+          pytest tests/ -v --cov=app --cov-report=term-missing --cov-report=xml
+
+      - name: Upload coverage to artifacts
+        uses: actions/upload-artifact@v4
+        if: matrix.python-version == '3.11'
+        with:
+          name: fastapi-harness-coverage
+          path: examples/fastapi-harness/coverage.xml
+          retention-days: 30
+
+  docker-build:
+    name: Docker Build Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          cd examples/fastapi-harness
+          docker build -t logos-fastapi-harness:test .
+
+      - name: Test Docker image
+        run: |
+          # Start container in background
+          docker run -d --name harness-test -p 8080:8080 logos-fastapi-harness:test
+          
+          # Wait for container to be healthy
+          sleep 5
+          
+          # Test root endpoint
+          curl -f http://localhost:8080/ || exit 1
+          
+          # Test simple_nlp endpoint
+          curl -f -X POST http://localhost:8080/simple_nlp \
+            -H "Content-Type: application/json" \
+            -d '{"text": "test", "operations": ["tokenize"]}' || exit 1
+          
+          # Test embed_text endpoint
+          curl -f -X POST http://localhost:8080/embed_text \
+            -H "Content-Type: application/json" \
+            -d '{"text": "test"}' || exit 1
+          
+          # Stop container
+          docker stop harness-test
+          docker rm harness-test
+
+  contract-validation:
+    name: Validate OpenAPI Contract
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install swagger-cli
+        run: |
+          npm install -g @apidevtools/swagger-cli
+
+      - name: Validate Hermes OpenAPI contract
+        run: |
+          swagger-cli validate contracts/hermes.openapi.yaml
+
+      - name: Install Python validation tools
+        run: |
+          pip install openapi-spec-validator pyyaml
+
+      - name: Validate contract with Python
+        run: |
+          python -c "
+from openapi_spec_validator.readers import read_from_filename
+from openapi_spec_validator import validate
+
+spec_dict, spec_url = read_from_filename('contracts/hermes.openapi.yaml')
+validate(spec_dict)
+print('✅ Contract validation passed')
+          "

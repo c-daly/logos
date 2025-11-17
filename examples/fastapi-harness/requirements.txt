@@ -1,0 +1,6 @@
+# Requirements for FastAPI Contract Validation Harness
+# This is a minimal set for demonstration purposes only
+
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+pydantic>=2.0.0

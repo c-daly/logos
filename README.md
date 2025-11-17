@@ -50,6 +50,9 @@ CI/CD and Validation
 - **OpenAPI Contract**: OpenAPI 3.1.0 specification validation using swagger-cli (`contracts/hermes.openapi.yaml`)
 - See `.github/workflows/validate-artifacts.yml` for the complete validation pipeline.
 
+Examples and Contract Usage
+- **FastAPI Contract Validation Harness**: See `examples/fastapi-harness/` for a minimal demonstration of how to implement and validate services against the canonical OpenAPI contracts. This is NOT a full service template - for production scaffolding, refer to the logos-template repository or your organization's service template.
+
 Notes and next steps
 - The `core_ontology.cypher` and `shacl_shapes.ttl` are intentionally minimal, syntactically valid, and contain comments indicating where the full ontology and constraints described in the spec will be extended.
 - This repo is the canonical place for future ontology updates, SHACL extensions, contract evolution, and HCG infra changes.
