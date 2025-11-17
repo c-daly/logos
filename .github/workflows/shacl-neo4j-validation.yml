@@ -37,12 +37,26 @@ jobs:
           pip install -e .
           pip install pytest neo4j rdflib pyshacl
       
-      - name: Start Neo4j with n10s via docker-compose
+      - name: Start Neo4j with docker-compose
         run: |
           cd infra
           docker compose -f docker-compose.hcg.dev.yml up -d neo4j
           echo "✓ Neo4j container started"
-          echo "Waiting for plugin downloads to complete..."
+          echo "Waiting for APOC plugin to download..."
+          sleep 15
+      
+      - name: Install n10s plugin manually
+        run: |
+          echo "Downloading n10s plugin..."
+          # Download n10s plugin for Neo4j 5.x
+          wget -q https://github.com/neo4j-labs/neosemantics/releases/download/5.13.0/neosemantics-5.13.0.jar
+          
+          # Copy plugin into Neo4j container
+          docker cp neosemantics-5.13.0.jar logos-hcg-neo4j:/var/lib/neo4j/plugins/
+          
+          # Restart Neo4j to load the plugin
+          docker restart logos-hcg-neo4j
+          echo "✓ n10s plugin installed, Neo4j restarting..."
           sleep 10
       
       - name: Wait for Neo4j to be ready
@@ -50,8 +64,6 @@ jobs:
           echo "Waiting for Neo4j to be ready..."
           timeout 180 bash -c 'until docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "RETURN 1 AS test" 2>/dev/null | grep -q "test"; do sleep 5; done'
           echo "✓ Neo4j is ready"
-          echo "Giving plugins additional time to initialize..."
-          sleep 10
       
       - name: Check Neo4j logs for plugin initialization
         run: |

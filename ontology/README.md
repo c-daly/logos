@@ -18,23 +18,47 @@ This directory contains the LOGOS ontology definition, SHACL validation shapes, 
 
 ## Quick Start
 
-### 1. Start Neo4j with n10s plugin
+### 1. Start Neo4j with APOC plugin
 
 ```bash
 cd ../infra
-docker-compose -f docker-compose.hcg.dev.yml up -d
+docker compose -f docker-compose.hcg.dev.yml up -d
 ```
 
 Wait for Neo4j to be ready at http://localhost:7474 (login: neo4j/logosdev)
 
-### 2. Load Core Ontology
+### 2. Install n10s Plugin (Manual)
+
+The n10s plugin needs to be installed manually as it's not available via NEO4JLABS_PLUGINS:
+
+```bash
+# Download n10s plugin for Neo4j 5.13.0
+wget https://github.com/neo4j-labs/neosemantics/releases/download/5.13.0/neosemantics-5.13.0.jar
+
+# Copy into Neo4j container
+docker cp neosemantics-5.13.0.jar logos-hcg-neo4j:/var/lib/neo4j/plugins/
+
+# Restart Neo4j to load the plugin
+docker restart logos-hcg-neo4j
+
+# Wait for Neo4j to be ready again
+sleep 15
+```
+
+Verify the plugin is loaded:
+```bash
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+  "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'n10s' RETURN count(name) AS count"
+```
+
+### 3. Load Core Ontology
 
 ```bash
 cat core_ontology.cypher | \
   docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p logosdev
 ```
 
-### 3. Load SHACL Shapes and Run Validation
+### 4. Load SHACL Shapes and Run Validation
 
 ```bash
 # Install Python dependencies
@@ -49,7 +73,7 @@ python load_and_validate_shacl.py \
   --skip-validation
 ```
 
-### 4. Validate Test Data
+### 5. Validate Test Data
 
 #### Valid Data (should pass)
 ```bash
