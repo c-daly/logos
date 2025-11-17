@@ -52,6 +52,7 @@ scripts = [
 [project.scripts]
 logos-generate-issues = "logos_tools.generate_issues:main"
 logos-create-issues-by-epoch = "logos_tools.create_issues_by_epoch:main"
+logos-generate-dependency-issues = "logos_tools.generate_dependency_issues:main"
 
 [tool.setuptools]
 packages = ["logos_tools"]
