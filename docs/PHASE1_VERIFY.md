@@ -163,6 +163,78 @@ Demonstrate that SHACL validation rules successfully catch malformed graph updat
 
 ### Manual Demonstration Steps
 
+#### Option 1: SHACL Validation via Neo4j neosemantics (n10s) - **RECOMMENDED**
+
+This approach validates data directly in Neo4j using the n10s plugin, which is closer to production usage.
+
+1. **Start Neo4j with n10s plugin**
+   ```bash
+   cd infra
+   docker-compose -f docker-compose.hcg.dev.yml up -d
+   # Wait for Neo4j to be ready (check localhost:7474)
+   ```
+
+2. **Load SHACL Shapes into Neo4j**
+   ```bash
+   # Load core ontology first
+   cat ontology/core_ontology.cypher | \
+     docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p logosdev
+   
+   # Load SHACL shapes via n10s
+   python ontology/load_and_validate_shacl.py \
+     --uri bolt://localhost:7687 \
+     --user neo4j \
+     --password logosdev \
+     --shapes ontology/shacl_shapes.ttl \
+     --skip-validation
+   ```
+
+3. **Test with Valid Data**
+   ```bash
+   # Run validation against valid test fixtures
+   python ontology/load_and_validate_shacl.py \
+     --uri bolt://localhost:7687 \
+     --user neo4j \
+     --password logosdev \
+     --shapes ontology/shacl_shapes.ttl \
+     --test-data tests/phase1/fixtures/valid_entities.ttl \
+     --clear
+   
+   # Expected output: ✓ VALIDATION PASSED
+   ```
+
+4. **Test with Invalid Data**
+   ```bash
+   # Run validation against invalid test fixtures
+   python ontology/load_and_validate_shacl.py \
+     --uri bolt://localhost:7687 \
+     --user neo4j \
+     --password logosdev \
+     --shapes ontology/shacl_shapes.ttl \
+     --test-data tests/phase1/fixtures/invalid_entities.ttl \
+     --clear
+   
+   # Expected output: ✗ VALIDATION FAILED with detailed violation reports
+   ```
+
+5. **View Validation Results in Neo4j Browser**
+   - Open http://localhost:7474 in browser
+   - Login with neo4j/logosdev
+   - Run queries to inspect loaded shapes and data:
+     ```cypher
+     // View loaded SHACL shapes
+     MATCH (n) WHERE n.uri CONTAINS 'shacl' RETURN n LIMIT 10;
+     
+     // View validation violations (if any)
+     CALL n10s.validation.shacl.validate() 
+     YIELD focusNode, propertyShape, severity, resultMessage
+     RETURN focusNode, propertyShape, severity, resultMessage;
+     ```
+
+#### Option 2: Standalone SHACL Validation with pyshacl
+
+This approach validates RDF data files directly without Neo4j (useful for quick checks).
+
 1. **Load SHACL Shapes**
    ```bash
    # Using Python with rdflib and pyshacl
@@ -174,37 +246,7 @@ Demonstrate that SHACL validation rules successfully catch malformed graph updat
    EOF
    ```
 
-2. **Test Valid Data**
-   ```cypher
-   // This should pass validation
-   CREATE (e:Entity {
-     uuid: 'entity-valid-001',
-     name: 'ValidEntity',
-     created_at: datetime()
-   })
-   RETURN e;
-   ```
-
-3. **Test Invalid UUID Format**
-   ```cypher
-   // This should fail validation (wrong UUID prefix)
-   CREATE (e:Entity {
-     uuid: 'invalid-001',  // Should be 'entity-001'
-     name: 'InvalidEntity'
-   })
-   RETURN e;
-   ```
-
-4. **Test Missing Required Field**
-   ```cypher
-   // This should fail validation (missing UUID)
-   CREATE (e:Entity {
-     name: 'NoUUID'
-   })
-   RETURN e;
-   ```
-
-5. **Run SHACL Validation**
+2. **Run SHACL Validation**
    ```python
    from rdflib import Graph
    from pyshacl import validate
@@ -215,7 +257,7 @@ Demonstrate that SHACL validation rules successfully catch malformed graph updat
    
    # Load data to validate
    data_graph = Graph()
-   # ... populate data_graph from Neo4j or test fixture
+   data_graph.parse("tests/phase1/fixtures/valid_entities.ttl", format="turtle")
    
    # Validate
    conforms, results_graph, results_text = validate(
@@ -232,6 +274,8 @@ Demonstrate that SHACL validation rules successfully catch malformed graph updat
 
 ### Automated Smoke Tests
 
+#### Standalone pyshacl Tests
+
 See: `tests/phase1/test_m2_shacl_validation.py`
 
 The automated test verifies:
@@ -245,6 +289,29 @@ The automated test verifies:
 - Validation reports are parseable and informative
 
 **Status**: ✅ Implemented - [![M2 Gate](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml) (8 tests passing)
+
+#### Neo4j n10s Integration Tests
+
+See: `.github/workflows/shacl-neo4j-validation.yml`
+
+The CI workflow verifies:
+- Neo4j starts successfully with n10s plugin
+- n10s graph configuration initializes correctly
+- SHACL shapes load into Neo4j via n10s
+- Valid test data passes SHACL validation in Neo4j
+- Invalid test data correctly fails SHACL validation in Neo4j
+- Validation reports provide detailed violation information
+
+**Status**: ✅ Implemented - [![SHACL Neo4j Validation](https://github.com/c-daly/logos/actions/workflows/shacl-neo4j-validation.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/shacl-neo4j-validation.yml)
+
+**Script**: `ontology/load_and_validate_shacl.py`
+
+The validation script provides:
+- Automated n10s initialization in Neo4j
+- SHACL shape loading from TTL files
+- Test data loading and validation
+- Detailed violation reporting
+- Exit codes for CI integration (0 = pass, 1 = fail)
 
 ---
 

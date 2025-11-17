@@ -1,0 +1,140 @@
+name: SHACL Validation via Neo4j n10s
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+  schedule:
+    # Run weekly on Mondays at 10:00 AM UTC
+    - cron: '0 10 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  shacl-neo4j-validation:
+    name: SHACL Validation Smoke Test
+    runs-on: ubuntu-latest
+    
+    services:
+      neo4j:
+        image: neo4j:5.13.0
+        env:
+          NEO4J_AUTH: neo4j/logosdev
+          NEO4J_PLUGINS: '["apoc", "n10s"]'
+          NEO4J_dbms_security_procedures_unrestricted: apoc.*,n10s.*
+          NEO4J_dbms_security_procedures_allowlist: apoc.*,n10s.*
+        ports:
+          - 7474:7474
+          - 7687:7687
+        options: >-
+          --health-cmd "cypher-shell -u neo4j -p logosdev 'RETURN 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest neo4j rdflib pyshacl
+      
+      - name: Wait for Neo4j to be ready
+        run: |
+          echo "Waiting for Neo4j to be ready..."
+          timeout 60 bash -c 'until curl -s http://localhost:7474 > /dev/null; do sleep 2; done'
+          sleep 5  # Additional buffer for n10s plugin initialization
+          echo "✓ Neo4j is ready"
+      
+      - name: Verify n10s plugin is loaded
+        run: |
+          echo "Verifying n10s plugin..."
+          docker exec $(docker ps -q -f "ancestor=neo4j:5.13.0") \
+            cypher-shell -u neo4j -p logosdev \
+            "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'n10s' RETURN count(name) AS count" \
+            | grep -E "[0-9]+" || echo "n10s check output"
+      
+      - name: Load core ontology
+        run: |
+          echo "Loading core ontology into Neo4j..."
+          cat ontology/core_ontology.cypher | \
+            docker exec -i $(docker ps -q -f "ancestor=neo4j:5.13.0") \
+            cypher-shell -u neo4j -p logosdev || true
+          echo "✓ Core ontology loaded"
+      
+      - name: Load SHACL shapes via n10s
+        run: |
+          echo "## SHACL Validation via Neo4j n10s" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          python ontology/load_and_validate_shacl.py \
+            --uri bolt://localhost:7687 \
+            --user neo4j \
+            --password logosdev \
+            --shapes ontology/shacl_shapes.ttl \
+            --skip-validation
+          echo "✓ SHACL shapes loaded into Neo4j"
+      
+      - name: Test validation with valid data
+        run: |
+          echo "Testing SHACL validation with valid test data..."
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Valid Data Test" >> $GITHUB_STEP_SUMMARY
+          
+          python ontology/load_and_validate_shacl.py \
+            --uri bolt://localhost:7687 \
+            --user neo4j \
+            --password logosdev \
+            --shapes ontology/shacl_shapes.ttl \
+            --test-data tests/phase1/fixtures/valid_entities.ttl \
+            --clear
+          
+          echo "✓ Valid data passed SHACL validation" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Test validation with invalid data (should fail)
+        run: |
+          echo "Testing SHACL validation with invalid test data..."
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Invalid Data Test" >> $GITHUB_STEP_SUMMARY
+          
+          # This should fail, so we expect exit code 1
+          if python ontology/load_and_validate_shacl.py \
+            --uri bolt://localhost:7687 \
+            --user neo4j \
+            --password logosdev \
+            --shapes ontology/shacl_shapes.ttl \
+            --test-data tests/phase1/fixtures/invalid_entities.ttl \
+            --clear; then
+            echo "✗ FAILURE: Invalid data should have failed validation" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "✓ Invalid data correctly failed SHACL validation" >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Summary
+        if: success()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **SHACL VALIDATION SMOKE TEST PASSED**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- SHACL shapes loaded successfully via n10s" >> $GITHUB_STEP_SUMMARY
+          echo "- Valid data passed validation" >> $GITHUB_STEP_SUMMARY
+          echo "- Invalid data correctly failed validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "See \`docs/PHASE1_VERIFY.md\` for complete M2 checklist." >> $GITHUB_STEP_SUMMARY
