@@ -50,6 +50,29 @@ ON (p.start_time);
 //// - (:Process)-[:REQUIRES]->(:State) — Precondition
 //// - (:Entity)-[:CAN_PERFORM]->(:Concept) — Capability
 
+//// Property Schemas by Node Type (see ontology/README_PICK_AND_PLACE.md for details)
+////
+//// Entity Properties:
+////   Common: uuid (required), name, description, created_at
+////   Spatial: width, height, depth, radius, mass (all decimal, >= 0)
+////   Gripper: max_grasp_width, max_force (decimal, >= 0)
+////   Joint: joint_type (enum: revolute|prismatic|fixed|continuous), min_angle, max_angle (decimal)
+////
+//// Concept Properties:
+////   Required: uuid, name
+////   Optional: description
+////
+//// State Properties:
+////   Required: uuid, timestamp
+////   Optional: name, position_x/y/z, orientation_roll/pitch/yaw,
+////            is_grasped, is_closed, is_empty, grasp_width, applied_force
+////
+//// Process Properties:
+////   Required: uuid, start_time
+////   Optional: name, description, duration_ms
+////
+//// See shacl_shapes.ttl for validation constraints
+
 //// Pick-and-Place Domain Concepts
 //// These define the abstract categories for the pick-and-place scenario
 
@@ -110,5 +133,17 @@ ON CREATE SET positioned_state.description = 'State with specific spatial positi
 MERGE (gripper)-[:IS_A]->(manipulator);
 MERGE (container)-[:IS_A]->(graspable);
 MERGE (graspable)-[:IS_A]->(rigid_body);
+
+//// Vector Embedding Integration (Section 4.2)
+//// Each graph node that requires semantic search maintains:
+//// - embedding_id: Reference to vector in Milvus
+//// - embedding_model: Model used for embedding generation
+//// - last_sync: Timestamp of last vector sync
+////
+//// Example usage (to be integrated in Phase 1):
+//// MERGE (c:Concept {uuid: 'concept-manipulator'})
+//// SET c.embedding_id = 'milvus-vector-id-manipulator',
+////     c.embedding_model = 'sentence-transformers/all-MiniLM-L6-v2',
+////     c.last_sync = datetime();
 
 RETURN "core ontology extended with pick-and-place domain (no-op if already present)";
