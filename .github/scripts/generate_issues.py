@@ -9,62 +9,62 @@ Usage:
     python .github/scripts/generate_issues.py [--format json|markdown|gh-cli]
 """
 
-import re
-import json
 import argparse
-from typing import List, Dict, Any
+import json
+import re
 from pathlib import Path
+from typing import Any
 
 
 class TaskParser:
     """Parse tasks from the action items markdown document."""
-    
+
     def __init__(self, doc_path: str):
         self.doc_path = Path(doc_path)
         self.tasks = []
-        
-    def parse(self) -> List[Dict[str, Any]]:
+
+    def parse(self) -> list[dict[str, Any]]:
         """Parse the action items document and extract tasks."""
-        with open(self.doc_path, 'r') as f:
+        with open(self.doc_path) as f:
             content = f.read()
-        
+
         # Parse sections and tasks
         current_section = None
         current_subsection = None
         current_workstream = None
-        
+
         lines = content.split('\n')
         i = 0
-        
+
         while i < len(lines):
             line = lines[i].strip()
-            
+
             # Detect main sections
             if line.startswith('## '):
                 current_section = line[3:].strip()
                 current_subsection = None
                 current_workstream = None
-                
+
             # Detect subsections
             elif line.startswith('### '):
                 current_subsection = line[4:].strip()
-                
+
                 # Check if this is a workstream
                 if 'Workstream' in current_subsection:
                     current_workstream = current_subsection
-                    
+
             # Detect tasks (unchecked items in lists)
             elif line.startswith('- [ ] '):
                 task_text = line[6:].strip()
-                
+
                 # Extract task ID if present (e.g., **A1:** or **B2:**)
                 task_id_match = re.match(r'\*\*([A-Z]\d+):\s*(.+?)\*\*\s*(?:\((.+?)\))?', task_text)
-                
+
                 if task_id_match:
                     task_id = task_id_match.group(1)
                     task_title = task_id_match.group(2)
                     task_ref = task_id_match.group(3)  # Section reference if present
-                    
+
                     # Collect sub-tasks (indented items)
                     sub_tasks = []
                     j = i + 1
@@ -72,12 +72,12 @@ class TaskParser:
                         sub_task = lines[j].strip()[6:].strip()
                         sub_tasks.append(sub_task)
                         j += 1
-                    
+
                     # Determine component and labels
                     component, labels = self._determine_component_and_labels(
                         task_id, task_title, current_section, current_subsection, current_workstream
                     )
-                    
+
                     task = {
                         'id': task_id,
                         'title': f"[{component.title()}] {task_title}",
@@ -89,10 +89,10 @@ class TaskParser:
                         'component': component,
                         'labels': labels
                     }
-                    
+
                     self.tasks.append(task)
                     i = j - 1  # Skip the sub-tasks we already processed
-                    
+
                 else:
                     # Regular task without ID
                     task = {
@@ -104,18 +104,18 @@ class TaskParser:
                         'labels': self._infer_labels(task_text, current_section, current_subsection)
                     }
                     self.tasks.append(task)
-            
+
             i += 1
-        
+
         return self.tasks
-    
-    def _determine_component_and_labels(self, task_id: str, title: str, 
-                                       section: str, subsection: str, 
+
+    def _determine_component_and_labels(self, task_id: str, title: str,
+                                       section: str, subsection: str,
                                        workstream: str) -> tuple:
         """Determine component and labels for a task."""
         component = "infrastructure"
         labels = ["phase:1"]
-        
+
         # Determine component based on task ID prefix or workstream
         if task_id and task_id.startswith('A'):
             component = "infrastructure"
@@ -146,7 +146,7 @@ class TaskParser:
         elif task_id and task_id.startswith('M'):
             component = "infrastructure"
             labels.extend(["component:infrastructure", "priority:high"])
-        
+
         # Add type based on content
         if 'test' in title.lower() or 'validation' in title.lower():
             labels.append("type:testing")
@@ -154,13 +154,13 @@ class TaskParser:
             labels.append("type:feature")
         elif 'document' in title.lower() or 'write' in title.lower():
             labels.append("type:documentation")
-        
+
         return component, list(set(labels))  # Remove duplicates
-    
+
     def _infer_component(self, task: str, subsection: str) -> str:
         """Infer component from task text."""
         task_lower = task.lower()
-        
+
         if 'sophia' in task_lower:
             return 'sophia'
         elif 'hermes' in task_lower:
@@ -171,12 +171,12 @@ class TaskParser:
             return 'apollo'
         else:
             return 'infrastructure'
-    
-    def _infer_labels(self, task: str, section: str, subsection: str) -> List[str]:
+
+    def _infer_labels(self, task: str, section: str, subsection: str) -> list[str]:
         """Infer labels from task content."""
         labels = ["phase:1"]
         task_lower = task.lower()
-        
+
         # Component labels
         if 'sophia' in task_lower:
             labels.append('component:sophia')
@@ -186,25 +186,25 @@ class TaskParser:
             labels.append('component:talos')
         if 'apollo' in task_lower:
             labels.append('component:apollo')
-        
+
         # Priority (default to medium for non-workstream tasks)
         if 'Repository and Project Infrastructure Setup' in section:
             labels.append('priority:high')
         else:
             labels.append('priority:medium')
-        
+
         return list(set(labels))
 
 
-def format_as_json(tasks: List[Dict[str, Any]]) -> str:
+def format_as_json(tasks: list[dict[str, Any]]) -> str:
     """Format tasks as JSON."""
     return json.dumps(tasks, indent=2)
 
 
-def format_as_markdown(tasks: List[Dict[str, Any]]) -> str:
+def format_as_markdown(tasks: list[dict[str, Any]]) -> str:
     """Format tasks as markdown issue descriptions."""
     output = []
-    
+
     for task in tasks:
         output.append(f"## {task['title']}\n")
         output.append(f"**Section:** {task.get('section', 'N/A')}\n")
@@ -214,31 +214,31 @@ def format_as_markdown(tasks: List[Dict[str, Any]]) -> str:
             output.append(f"**Workstream:** {task['workstream']}\n")
         if task.get('reference'):
             output.append(f"**Reference:** {task['reference']}\n")
-        
+
         output.append(f"\n**Labels:** {', '.join(task.get('labels', []))}\n")
-        
+
         if task.get('sub_tasks'):
             output.append("\n**Sub-tasks:**\n")
             for sub_task in task['sub_tasks']:
                 output.append(f"- [ ] {sub_task}\n")
-        
+
         output.append("\n---\n\n")
-    
+
     return ''.join(output)
 
 
-def format_as_gh_cli(tasks: List[Dict[str, Any]]) -> str:
+def format_as_gh_cli(tasks: list[dict[str, Any]]) -> str:
     """Format tasks as GitHub CLI commands."""
     commands = []
-    
+
     commands.append("#!/bin/bash\n")
     commands.append("# GitHub CLI commands to create issues for Project LOGOS\n")
     commands.append("# Make sure you have gh CLI installed and authenticated\n")
     commands.append("# Usage: bash create_issues.sh\n\n")
-    
+
     for task in tasks:
         title = task['title'].replace('"', '\\"')
-        
+
         # Build body
         body_parts = []
         body_parts.append(f"**Section:** {task.get('section', 'N/A')}")
@@ -248,21 +248,21 @@ def format_as_gh_cli(tasks: List[Dict[str, Any]]) -> str:
             body_parts.append(f"**Workstream:** {task['workstream']}")
         if task.get('reference'):
             body_parts.append(f"**Reference:** {task['reference']}")
-        
+
         if task.get('sub_tasks'):
             body_parts.append("\n**Sub-tasks:**")
             for sub_task in task['sub_tasks']:
                 body_parts.append(f"- [ ] {sub_task}")
-        
+
         body = "\\n".join(body_parts).replace('"', '\\"')
-        
+
         # Build labels
         labels = ','.join(task.get('labels', []))
-        
+
         # Create gh issue create command
         cmd = f'gh issue create --repo c-daly/logos --title "{title}" --body "{body}" --label "{labels}"\n'
         commands.append(cmd)
-    
+
     return ''.join(commands)
 
 
@@ -281,14 +281,14 @@ def main():
         type=str,
         help='Output file (default: stdout)'
     )
-    
+
     args = parser.parse_args()
-    
+
     # Parse tasks
     doc_path = Path(__file__).parent.parent.parent / 'docs' / 'action_items.md'
     parser_obj = TaskParser(doc_path)
     tasks = parser_obj.parse()
-    
+
     # Format output
     if args.format == 'json':
         output = format_as_json(tasks)
@@ -296,7 +296,7 @@ def main():
         output = format_as_markdown(tasks)
     elif args.format == 'gh-cli':
         output = format_as_gh_cli(tasks)
-    
+
     # Write output
     if args.output:
         with open(args.output, 'w') as f:
