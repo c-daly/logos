@@ -1,0 +1,46 @@
+name: M2 - SHACL Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+  schedule:
+    # Run weekly on Mondays at 9:00 AM UTC
+    - cron: '0 9 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  m2-shacl-validation:
+    name: M2 SHACL Validation Gate
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest pytest-cov rdflib pyshacl
+      
+      - name: Run M2 SHACL Validation Tests
+        run: |
+          echo "## M2: SHACL Validation Tests" >> $GITHUB_STEP_SUMMARY
+          pytest tests/phase1/test_m2_shacl_validation.py -v --tb=short
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **M2 GATE PASSED**: SHACL validation catches errors" >> $GITHUB_STEP_SUMMARY
+          echo "See \`docs/PHASE1_VERIFY.md\` for complete M2 checklist." >> $GITHUB_STEP_SUMMARY

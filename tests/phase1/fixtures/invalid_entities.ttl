@@ -1,0 +1,26 @@
+@prefix logos: <http://logos.ontology/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Invalid entity - missing UUID
+logos:entity-missing-uuid a logos:Entity ;
+    logos:name "MissingUUID" .
+
+# Invalid entity - wrong UUID format (should start with "entity-")
+logos:entity-wrong-prefix a logos:Entity ;
+    logos:uuid "wrong-prefix-001" ;
+    logos:name "WrongPrefix" .
+
+# Invalid concept - missing required name field
+logos:concept-missing-name a logos:Concept ;
+    logos:uuid "concept-no-name" .
+
+# Invalid state - missing required timestamp
+logos:state-missing-timestamp a logos:State ;
+    logos:uuid "state-no-timestamp" ;
+    logos:name "MissingTimestamp" .
+
+# Invalid process - wrong UUID format
+logos:process-wrong-uuid a logos:Process ;
+    logos:uuid "invalid-uuid-format" ;
+    logos:name "WrongUUID" ;
+    logos:start_time "2025-11-17T00:00:00Z"^^xsd:dateTime .

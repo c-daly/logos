@@ -1,0 +1,28 @@
+@prefix logos: <http://logos.ontology/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# Valid entity with all required fields
+logos:entity-valid-001 a logos:Entity ;
+    logos:uuid "entity-valid-001" ;
+    logos:name "ValidTestEntity" ;
+    logos:description "A valid test entity" ;
+    logos:created_at "2025-11-17T00:00:00Z"^^xsd:dateTime .
+
+# Valid concept
+logos:concept-valid-001 a logos:Concept ;
+    logos:uuid "concept-valid-001" ;
+    logos:name "ValidConcept" ;
+    logos:description "A valid test concept" .
+
+# Valid state with timestamp
+logos:state-valid-001 a logos:State ;
+    logos:uuid "state-valid-001" ;
+    logos:name "ValidState" ;
+    logos:timestamp "2025-11-17T00:00:00Z"^^xsd:dateTime .
+
+# Valid process
+logos:process-valid-001 a logos:Process ;
+    logos:uuid "process-valid-001" ;
+    logos:name "ValidProcess" ;
+    logos:start_time "2025-11-17T00:00:00Z"^^xsd:dateTime ;
+    logos:duration_ms 1000 .

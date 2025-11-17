@@ -1,0 +1,170 @@
+name: Phase 1 Gate Check
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+  schedule:
+    # Run weekly on Mondays at 9:00 AM UTC
+    - cron: '0 9 * * 1'
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  check-gate-status:
+    name: Phase 1 Gate Status
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest pytest-cov rdflib pyshacl
+      
+      - name: Run M2 SHACL Validation Tests
+        id: m2_tests
+        run: |
+          echo "## M2: SHACL Validation Tests" >> $GITHUB_STEP_SUMMARY
+          pytest tests/phase1/test_m2_shacl_validation.py -v --tb=short 2>&1 | tee m2_output.txt
+          if [ ${PIPESTATUS[0]} -eq 0 ]; then
+            echo "✅ **PASSED**: SHACL validation catches errors" >> $GITHUB_STEP_SUMMARY
+            echo "m2_status=passed" >> $GITHUB_OUTPUT
+          else
+            echo "❌ **FAILED**: SHACL validation tests failed" >> $GITHUB_STEP_SUMMARY
+            echo "m2_status=failed" >> $GITHUB_OUTPUT
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Run M3 Planning Tests
+        id: m3_tests
+        run: |
+          echo "## M3: Planning Capability Tests" >> $GITHUB_STEP_SUMMARY
+          pytest tests/phase1/test_m3_planning.py -v --tb=short 2>&1 | tee m3_output.txt
+          if [ ${PIPESTATUS[0]} -eq 0 ]; then
+            echo "✅ **PASSED**: Planning concepts validated" >> $GITHUB_STEP_SUMMARY
+            echo "m3_status=passed" >> $GITHUB_OUTPUT
+          else
+            echo "❌ **FAILED**: Planning tests failed" >> $GITHUB_STEP_SUMMARY
+            echo "m3_status=failed" >> $GITHUB_OUTPUT
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Check for Phase 2 Gate Override
+        id: check_override
+        run: |
+          # Check if there's an approved gate override issue
+          echo "Checking for gate override approval..."
+          # This would query GitHub API for issues with label 'gate-override-approved'
+          # For now, we'll assume no override unless explicitly set
+          echo "override_approved=false" >> $GITHUB_OUTPUT
+      
+      - name: Determine Gate Status
+        id: gate_status
+        run: |
+          echo "## Phase 1 Gate Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Collect milestone statuses
+          m2_status="${{ steps.m2_tests.outputs.m2_status }}"
+          m3_status="${{ steps.m3_tests.outputs.m3_status }}"
+          override="${{ steps.check_override.outputs.override_approved }}"
+          
+          # M1 and M4 require manual verification for now
+          echo "### Milestone Status" >> $GITHUB_STEP_SUMMARY
+          echo "- M1 (HCG Store/Retrieve): ⏸️ Manual verification required" >> $GITHUB_STEP_SUMMARY
+          echo "- M2 (SHACL Validation): ${m2_status}" >> $GITHUB_STEP_SUMMARY
+          echo "- M3 (Planning): ${m3_status}" >> $GITHUB_STEP_SUMMARY
+          echo "- M4 (End-to-End Demo): ⏸️ Manual verification required" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Determine overall status
+          if [ "$m2_status" = "passed" ] && [ "$m3_status" = "passed" ]; then
+            if [ "$override" = "true" ]; then
+              echo "### 🟡 Gate Status: CONDITIONAL PASS (Override Approved)" >> $GITHUB_STEP_SUMMARY
+              echo "gate_status=conditional_pass" >> $GITHUB_OUTPUT
+            else
+              echo "### 🟢 Gate Status: AUTOMATED TESTS PASSED" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Note**: M1 and M4 require manual verification before Phase 2 can begin." >> $GITHUB_STEP_SUMMARY
+              echo "See \`docs/PHASE1_VERIFY.md\` for complete checklist." >> $GITHUB_STEP_SUMMARY
+              echo "gate_status=tests_passed" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "### 🔴 Gate Status: BLOCKED" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Automated tests must pass before proceeding to Phase 2.**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Failed tests:" >> $GITHUB_STEP_SUMMARY
+            [ "$m2_status" != "passed" ] && echo "- M2 (SHACL Validation)" >> $GITHUB_STEP_SUMMARY
+            [ "$m3_status" != "passed" ] && echo "- M3 (Planning)" >> $GITHUB_STEP_SUMMARY
+            echo "gate_status=blocked" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Upload test outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase1-gate-test-outputs
+          path: |
+            m2_output.txt
+            m3_output.txt
+          retention-days: 30
+      
+      - name: Fail if gate blocked
+        if: steps.gate_status.outputs.gate_status == 'blocked'
+        run: |
+          echo "::error::Phase 1 Gate is BLOCKED. Automated tests must pass."
+          exit 1
+
+  validate-no-phase2-work:
+    name: Prevent Phase 2 Work
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: check-gate-status
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Check for Phase 2 indicators in PR
+        run: |
+          echo "Checking PR for Phase 2 work..."
+          
+          # Check PR title and description
+          pr_title="${{ github.event.pull_request.title }}"
+          pr_body="${{ github.event.pull_request.body }}"
+          
+          if echo "$pr_title" | grep -iE "phase.?2|phase.?ii"; then
+            echo "::warning::PR title mentions Phase 2"
+            echo "phase2_in_title=true" >> $GITHUB_ENV
+          fi
+          
+          # Check changed files for Phase 2 markers
+          git diff origin/${{ github.base_ref }}...HEAD --name-only > changed_files.txt
+          
+          if grep -iE "phase.?2|phase.?ii" changed_files.txt; then
+            echo "::warning::Changed files may contain Phase 2 work"
+            echo "phase2_in_files=true" >> $GITHUB_ENV
+          fi
+          
+          # This is informational only - doesn't block PR
+          echo "Phase 2 check complete. Gate status determines if Phase 2 work is allowed."

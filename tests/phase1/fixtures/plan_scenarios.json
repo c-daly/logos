@@ -1,0 +1,76 @@
+{
+  "scenarios": [
+    {
+      "name": "simple_grasp",
+      "description": "Single-step plan to grasp an object",
+      "initial_state": {
+        "gripper": "open",
+        "arm_position": "pre_grasp",
+        "object_grasped": false
+      },
+      "goal_state": {
+        "object_grasped": true
+      },
+      "expected_plan": [
+        {
+          "process": "GraspAction",
+          "preconditions": ["gripper_open", "arm_at_pre_grasp"],
+          "effects": ["object_grasped"]
+        }
+      ]
+    },
+    {
+      "name": "pick_and_place",
+      "description": "Multi-step plan to pick up object and place it",
+      "initial_state": {
+        "gripper": "open",
+        "arm_position": "home",
+        "object_location": "table",
+        "object_grasped": false
+      },
+      "goal_state": {
+        "object_location": "bin",
+        "object_grasped": false
+      },
+      "expected_plan": [
+        {
+          "process": "MoveAction",
+          "preconditions": ["arm_at_home"],
+          "effects": ["arm_at_pre_grasp"]
+        },
+        {
+          "process": "GraspAction",
+          "preconditions": ["gripper_open", "arm_at_pre_grasp"],
+          "effects": ["object_grasped", "gripper_closed"]
+        },
+        {
+          "process": "MoveAction",
+          "preconditions": ["object_grasped"],
+          "effects": ["arm_at_place_position"]
+        },
+        {
+          "process": "ReleaseAction",
+          "preconditions": ["arm_at_place_position", "object_grasped"],
+          "effects": ["object_released", "object_at_bin", "gripper_open"]
+        }
+      ]
+    }
+  ],
+  "causal_relationships": [
+    {
+      "process": "GraspAction",
+      "causes": "object_grasped",
+      "requires": ["gripper_open", "arm_at_pre_grasp"]
+    },
+    {
+      "process": "ReleaseAction",
+      "causes": "object_released",
+      "requires": ["object_grasped", "arm_at_place_position"]
+    },
+    {
+      "process": "MoveAction",
+      "causes": "arm_position_changed",
+      "requires": ["arm_at_any_position"]
+    }
+  ]
+}

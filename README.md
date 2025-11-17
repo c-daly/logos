@@ -50,6 +50,16 @@ CI/CD and Validation
 - **OpenAPI Contract**: OpenAPI 3.1.0 specification validation using swagger-cli (`contracts/hermes.openapi.yaml`)
 - See `.github/workflows/validate-artifacts.yml` for the complete validation pipeline.
 
+Phase 1 Verification and Gate
+- Phase 1 must be completed and verified before Phase 2 work can begin.
+- **Verification Checklist**: See `docs/PHASE1_VERIFY.md` for complete Phase 1 verification criteria.
+- **Milestone Gates**: Each milestone is verified through automated tests that produce individual badges:
+  - **M1** (HCG Store/Retrieve): ⏸️ Manual verification required
+  - **M2** (SHACL Validation): [![M2 Gate](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml)
+  - **M3** (Planning): [![M3 Gate](https://github.com/c-daly/logos/actions/workflows/m3-planning.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m3-planning.yml)
+  - **M4** (End-to-End Demo): ⏸️ Manual verification required
+- Phase 2 work is blocked until all milestone gates pass (automated tests green + manual verifications complete).
+
 Notes and next steps
 - The `core_ontology.cypher` and `shacl_shapes.ttl` are intentionally minimal, syntactically valid, and contain comments indicating where the full ontology and constraints described in the spec will be extended.
 - This repo is the canonical place for future ontology updates, SHACL extensions, contract evolution, and HCG infra changes.
