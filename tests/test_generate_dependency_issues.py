@@ -132,11 +132,21 @@ def test_format_as_gh_cli():
     assert "--repo c-daly/talos" in cli_output
     assert "--repo c-daly/apollo" in cli_output
 
-    # Should include labels
+    # Should include labels (even if commented)
     assert "--label" in cli_output
 
     # Should have success message
     assert "successfully" in cli_output.lower()
+
+    # Should properly escape backticks
+    assert "\\`" in cli_output
+
+    # Should have warning about labels
+    assert "IMPORTANT" in cli_output or "labels" in cli_output
+
+    # Should have both commented and uncommented commands
+    assert "# Without labels" in cli_output
+    assert "# With labels" in cli_output
 
 
 def test_labels_consistency():

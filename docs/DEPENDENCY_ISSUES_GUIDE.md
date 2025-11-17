@@ -39,6 +39,11 @@ chmod +x create_dependency_issues.sh
 ./create_dependency_issues.sh
 ```
 
+**Important Notes:**
+- The generated script creates issues **without labels by default** to avoid errors if labels don't exist in target repositories
+- If you want to add labels, uncomment the labeled commands in the script (ensure labels exist first)
+- Milestones are commented out by default - create them in target repos before uncommenting
+
 ### Generate JSON Format
 
 To get machine-readable output:

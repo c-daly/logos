@@ -190,6 +190,13 @@ def format_as_gh_cli(issues: list[dict[str, Any]]) -> str:
     commands.append("#!/bin/bash\n")
     commands.append("# GitHub CLI commands to create dependency management issues\n")
     commands.append("# for LOGOS component repositories\n")
+    commands.append("#\n")
+    commands.append("# IMPORTANT: This script creates issues without labels by default.\n")
+    commands.append(
+        "# If you want to use labels, make sure they exist in the target repositories first.\n"
+    )
+    commands.append("# You can create labels using: gh label create <label-name> --repo <repo>\n")
+    commands.append("#\n")
     commands.append("# Make sure you have gh CLI installed and authenticated\n")
     commands.append("# Usage: bash create_dependency_issues.sh\n\n")
     commands.append("set -e  # Exit on error\n\n")
@@ -197,20 +204,39 @@ def format_as_gh_cli(issues: list[dict[str, Any]]) -> str:
     for issue in issues:
         repo = issue["repository"]
         title = issue["title"].replace('"', '\\"')
-        body = issue["body"].replace('"', '\\"').replace("\n", "\\n")
+        # Escape special characters for bash: backticks, dollar signs, backslashes, and quotes
+        body = (
+            issue["body"]
+            .replace("\\", "\\\\")  # Escape backslashes first
+            .replace("`", "\\`")  # Escape backticks (command substitution)
+            .replace("$", "\\$")  # Escape dollar signs (variable expansion)
+            .replace('"', '\\"')  # Escape double quotes
+            .replace("\n", "\\n")  # Escape newlines
+        )
         labels = ",".join(issue["labels"])
         milestone = issue["milestone"].replace('"', '\\"')
 
         commands.append(f"echo 'Creating issue in {repo}...'\n")
-        cmd = f'gh issue create --repo {repo} --title "{title}" --body "{body}" --label "{labels}"'
+
+        # Create command without labels (default, will work immediately)
+        cmd_no_labels = f'gh issue create --repo {repo} --title "{title}" --body "{body}"'
+
+        # Create command with labels (commented out by default)
+        cmd_with_labels = (
+            f'gh issue create --repo {repo} --title "{title}" --body "{body}" --label "{labels}"'
+        )
+
+        # Add both versions - no labels active, with labels commented
+        commands.append("# Without labels (active by default):\n")
+        commands.append(f"{cmd_no_labels}\n")
+        commands.append(f"# With labels (uncomment if labels exist in {repo}):\n")
+        commands.append(f"# {cmd_with_labels}\n")
 
         # Note: Only add milestone if it exists in the target repo
-        # The milestone may need to be created first
         commands.append(
-            f'# Note: Ensure milestone "{milestone}" exists in {repo} before uncommenting\n'
+            f'# Note: To add milestone "{milestone}", ensure it exists in {repo} first, then use:\n'
         )
-        commands.append(f'# {cmd} --milestone "{milestone}"\n')
-        commands.append(f"{cmd}\n\n")
+        commands.append(f'# {cmd_with_labels} --milestone "{milestone}"\n\n')
 
     commands.append("echo 'All dependency management issues created successfully!'\n")
 
