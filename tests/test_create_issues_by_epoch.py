@@ -4,7 +4,6 @@ Tests for the epoch-based issue generation script.
 
 from pathlib import Path
 
-import pytest
 from logos_tools.create_issues_by_epoch import EPOCHS, EnhancedTaskParser
 
 

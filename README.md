@@ -1,6 +1,7 @@
 # Project LOGOS — Meta Repository
 
 [![Validate LOGOS Artifacts](https://github.com/c-daly/logos/actions/workflows/validate-artifacts.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/validate-artifacts.yml)
+[![Run Tests](https://github.com/c-daly/logos/actions/workflows/test.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/test.yml)
 
 This repository is the canonical "foundry" for Project LOGOS. It contains the formal specification, API contracts, the Hybrid Causal Graph (HCG) founding documents, and the development infrastructure for the shared HCG cluster.
 

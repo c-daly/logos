@@ -20,14 +20,21 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 2. Install the package in editable mode with development dependencies:
 ```bash
-pip install -e ".[dev]"
+pip install -e .
+pip install -r requirements-dev.txt
+```
+
+**Note**: The project uses Poetry for dependency management. If you have Poetry installed, you can use:
+```bash
+poetry install
 ```
 
 ### Using system Python
 
 If you prefer to install dependencies system-wide:
 ```bash
-pip install -e ".[dev]"
+pip install -e .
+pip install -r requirements-dev.txt
 ```
 
 ## Running Tests
@@ -38,12 +45,20 @@ The project uses pytest for testing:
 # Run all tests
 pytest
 
+# Run with verbose output
+pytest -v
+
 # Run with coverage
-pytest --cov=.github/scripts --cov-report=html
+pytest --cov=logos_tools --cov-report=term-missing --cov-report=html
 
 # Run specific test file
 pytest tests/test_generate_issues.py
+
+# Run tests matching a pattern
+pytest -k "test_parser"
 ```
+
+Test configuration is defined in `pyproject.toml` under `[tool.pytest.ini_options]`.
 
 ## Linting and Code Quality
 
