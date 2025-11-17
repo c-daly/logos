@@ -1,8 +1,10 @@
-version: '3.8'
-
 # LOGOS HCG Development Cluster
 # See Project LOGOS spec: Section 4.1 (Core Ontology) and Section 5.2 (Vector Store).
 # Neo4j (with neosemantics/SHACL support) + Milvus for the Hybrid Causal Graph backend.
+#
+# Note: graph-data-science and n10s plugins may not auto-install for all Neo4j versions.
+# For Phase 1, APOC is sufficient for basic ontology operations. Additional plugins can be
+# installed manually if needed for advanced graph algorithms or RDF/SHACL validation.
 
 services:
   neo4j:
@@ -13,7 +15,7 @@ services:
       - "7687:7687"  # Bolt
     environment:
       - NEO4J_AUTH=neo4j/logosdev
-      - NEO4J_PLUGINS=["apoc", "graph-data-science", "neosemantics"]
+      - NEO4J_PLUGINS=["apoc", "graph-data-science", "n10s"]
       - NEO4J_dbms_security_procedures_unrestricted=apoc.*,gds.*,n10s.*
       - NEO4J_dbms_security_procedures_allowlist=apoc.*,gds.*,n10s.*
     volumes:
