@@ -9,9 +9,10 @@ Reference: docs/PHASE1_VERIFY.md, M2 section
 """
 
 from pathlib import Path
-from rdflib import Graph
-from pyshacl import validate
+
 import pytest
+from pyshacl import validate
+from rdflib import Graph
 
 
 @pytest.fixture
@@ -55,7 +56,7 @@ def test_valid_entities_pass_validation(shacl_shapes, valid_data):
         inference='rdfs',
         abort_on_first=False
     )
-    
+
     assert conforms, f"Valid data should pass validation. Results:\n{results_text}"
     print("✓ Valid entities passed SHACL validation")
 
@@ -68,9 +69,9 @@ def test_invalid_entities_fail_validation(shacl_shapes, invalid_data):
         inference='rdfs',
         abort_on_first=False
     )
-    
+
     assert not conforms, "Invalid data should fail validation"
-    print(f"✓ Invalid entities correctly failed SHACL validation")
+    print("✓ Invalid entities correctly failed SHACL validation")
     print(f"  Validation report: {results_text}")
 
 
@@ -82,14 +83,14 @@ def test_missing_uuid_detected(shacl_shapes):
         logos:entity-no-uuid a logos:Entity ;
             logos:name "MissingUUID" .
     """, format="turtle")
-    
+
     conforms, results_graph, results_text = validate(
         data_graph,
         shacl_graph=shacl_shapes,
         inference='rdfs',
         abort_on_first=False
     )
-    
+
     assert not conforms, "Entity without UUID should fail validation"
     assert "uuid" in results_text.lower() or "minCount" in results_text, \
         "Validation error should mention missing UUID"
@@ -105,14 +106,14 @@ def test_wrong_uuid_format_detected(shacl_shapes):
             logos:uuid "wrong-format-123" ;
             logos:name "WrongFormat" .
     """, format="turtle")
-    
+
     conforms, results_graph, results_text = validate(
         data_graph,
         shacl_graph=shacl_shapes,
         inference='rdfs',
         abort_on_first=False
     )
-    
+
     assert not conforms, "Entity with wrong UUID format should fail validation"
     assert "pattern" in results_text.lower() or "entity-" in results_text.lower(), \
         "Validation error should mention pattern violation"
@@ -127,14 +128,14 @@ def test_concept_name_required(shacl_shapes):
         logos:concept-no-name a logos:Concept ;
             logos:uuid "concept-missing-name" .
     """, format="turtle")
-    
+
     conforms, results_graph, results_text = validate(
         data_graph,
         shacl_graph=shacl_shapes,
         inference='rdfs',
         abort_on_first=False
     )
-    
+
     assert not conforms, "Concept without name should fail validation"
     print("✓ Missing concept name correctly detected")
 
@@ -148,14 +149,14 @@ def test_state_timestamp_required(shacl_shapes):
             logos:uuid "state-missing-timestamp" ;
             logos:name "NoTimestamp" .
     """, format="turtle")
-    
+
     conforms, results_graph, results_text = validate(
         data_graph,
         shacl_graph=shacl_shapes,
         inference='rdfs',
         abort_on_first=False
     )
-    
+
     assert not conforms, "State without timestamp should fail validation"
     print("✓ Missing state timestamp correctly detected")
 
@@ -169,14 +170,14 @@ def test_process_start_time_required(shacl_shapes):
             logos:uuid "process-missing-time" ;
             logos:name "NoTime" .
     """, format="turtle")
-    
+
     conforms, results_graph, results_text = validate(
         data_graph,
         shacl_graph=shacl_shapes,
         inference='rdfs',
         abort_on_first=False
     )
-    
+
     assert not conforms, "Process without start_time should fail validation"
     print("✓ Missing process start_time correctly detected")
 
