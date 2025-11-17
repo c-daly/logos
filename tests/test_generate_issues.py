@@ -4,7 +4,6 @@ Tests for the issue generation scripts.
 
 from pathlib import Path
 
-import pytest
 from logos_tools.generate_issues import TaskParser
 
 
@@ -21,10 +20,10 @@ def test_task_parser_parses_tasks():
     doc_path = Path(__file__).parent.parent / 'docs' / 'action_items.md'
     parser = TaskParser(doc_path)
     tasks = parser.parse()
-    
+
     # Should find at least some tasks
     assert len(tasks) > 0
-    
+
     # Each task should have required fields
     for task in tasks:
         assert 'title' in task
@@ -38,10 +37,10 @@ def test_task_parser_identifies_components():
     doc_path = Path(__file__).parent.parent / 'docs' / 'action_items.md'
     parser = TaskParser(doc_path)
     tasks = parser.parse()
-    
+
     # Find tasks with different components
     components = {task['component'] for task in tasks}
-    
+
     # Should have various components
     assert len(components) > 0
     # Common components that should appear
