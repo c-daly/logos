@@ -33,7 +33,7 @@ Python Tooling
 - This repository includes Python-based utilities for project management and artifact validation.
 - See `DEVELOPMENT.md` for setup instructions and documentation.
 - Install tools via: `pip install -e ".[dev]"`
-- CLI tools: `logos-generate-issues`, `logos-create-issues-by-epoch`
+- CLI tools: `logos-generate-issues`, `logos-create-issues-by-epoch`, `logos-generate-dependency-issues`
 - Run tests: `pytest`
 
 Project Management

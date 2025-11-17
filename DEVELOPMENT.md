@@ -73,6 +73,11 @@ logos-generate-issues --format gh-cli --output create_issues.sh
 
 # Create issues organized by epochs
 logos-create-issues-by-epoch --format markdown
+
+# Generate dependency management issues for component repositories
+logos-generate-dependency-issues --format gh-cli --output create_dependency_issues.sh
+logos-generate-dependency-issues --format json
+logos-generate-dependency-issues --format markdown
 ```
 
 ## Running the HCG Development Cluster
