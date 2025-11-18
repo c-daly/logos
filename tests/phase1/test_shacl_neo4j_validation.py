@@ -102,11 +102,10 @@ def setup_neo4j_base(neo4j_session):
             pass
         neo4j_session.run("CALL n10s.nsprefixes.add('logos', 'http://logos.ontology/')")
 
-    # Only clear test data nodes if we're in local mode (no shapes pre-loaded)
-    # In CI mode, workflow has already set everything up correctly
-    if not shapes_exist:
-        # Clear test data, but preserve n10s internal nodes
-        neo4j_session.run("MATCH (n) WHERE NOT n:_GraphConfig AND NOT n:_NsPrefDef DETACH DELETE n")
+    # Always clear only user data nodes by explicit labels
+    # This preserves n10s infrastructure (config, prefixes, SHACL shapes)
+    # SHACL shapes are RDF nodes without special labels, so label-based deletion is safe
+    neo4j_session.run("MATCH (n) WHERE n:Entity OR n:Concept OR n:State OR n:Process DETACH DELETE n")
 
     yield neo4j_session
 
