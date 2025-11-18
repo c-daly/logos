@@ -146,14 +146,14 @@ jobs:
           fetch-depth: 0
       
       - name: Check for Phase 2 indicators in PR
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
           echo "Checking PR for Phase 2 work..."
           
-          # Check PR title and description
-          pr_title="${{ github.event.pull_request.title }}"
-          pr_body="${{ github.event.pull_request.body }}"
-          
-          if echo "$pr_title" | grep -iE "phase.?2|phase.?ii"; then
+          # Check PR title for Phase 2 markers
+          if echo "$PR_TITLE" | grep -qiE "phase.?2|phase.?ii"; then
             echo "::warning::PR title mentions Phase 2"
             echo "phase2_in_title=true" >> $GITHUB_ENV
           fi
@@ -161,7 +161,7 @@ jobs:
           # Check changed files for Phase 2 markers
           git diff origin/${{ github.base_ref }}...HEAD --name-only > changed_files.txt
           
-          if grep -iE "phase.?2|phase.?ii" changed_files.txt; then
+          if grep -qiE "phase.?2|phase.?ii" changed_files.txt; then
             echo "::warning::Changed files may contain Phase 2 work"
             echo "phase2_in_files=true" >> $GITHUB_ENV
           fi
