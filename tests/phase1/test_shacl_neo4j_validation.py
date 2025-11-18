@@ -105,9 +105,6 @@ def setup_neo4j(setup_neo4j_base):
     shapes_file = Path(__file__).parent.parent.parent / "ontology" / "shacl_shapes.ttl"
     shapes_text = shapes_file.read_text(encoding="utf-8")
 
-    # Rewrite namespace to match n10s expectations
-    shapes_rewritten = shapes_text.replace("http://logos.ontology/", "neo4j://graph.schema#")
-
     # Clear any existing shapes before loading new ones
     try:
         setup_neo4j_base.run("CALL n10s.validation.shacl.clear()")
@@ -117,10 +114,10 @@ def setup_neo4j(setup_neo4j_base):
         except Neo4jError:
             pass  # Shapes might not exist yet
 
-    # Load SHACL shapes
+    # Load SHACL shapes (keep original namespace to match imported data)
     setup_neo4j_base.run(
         "CALL n10s.validation.shacl.import.inline($rdf, 'Turtle')",
-        rdf=shapes_rewritten
+        rdf=shapes_text
     )
 
     # Verify shapes are loaded
@@ -179,13 +176,10 @@ def test_validate_valid_entities(setup_neo4j):
     valid_file = Path(__file__).parent / "fixtures" / "valid_entities.ttl"
     valid_text = valid_file.read_text(encoding="utf-8")
 
-    # Rewrite namespace to match n10s expectations
-    valid_rewritten = valid_text.replace("http://logos.ontology/", "neo4j://graph.schema#")
-
-    # Import valid data
+    # Import valid data (keep original namespace)
     setup_neo4j.run(
         "CALL n10s.rdf.import.inline($rdf, 'Turtle')",
-        rdf=valid_rewritten
+        rdf=valid_text
     )
 
     # Validate the data
@@ -211,13 +205,10 @@ def test_validate_invalid_entities(setup_neo4j):
     invalid_file = Path(__file__).parent / "fixtures" / "invalid_entities.ttl"
     invalid_text = invalid_file.read_text(encoding="utf-8")
 
-    # Rewrite namespace to match n10s expectations
-    invalid_rewritten = invalid_text.replace("http://logos.ontology/", "neo4j://graph.schema#")
-
-    # Import invalid data
+    # Import invalid data (keep original namespace)
     setup_neo4j.run(
         "CALL n10s.rdf.import.inline($rdf, 'Turtle')",
-        rdf=invalid_rewritten
+        rdf=invalid_text
     )
 
     # Validate the data
@@ -240,9 +231,9 @@ def test_validate_invalid_entities(setup_neo4j):
 
 def test_reject_bad_write_wrong_uuid_prefix(setup_neo4j):
     """Test that Neo4j rejects write with wrong UUID prefix through validation."""
-    # Create an entity with wrong UUID prefix
+    # Create an entity with wrong UUID prefix (keep original namespace)
     bad_entity_ttl = """
-        @prefix logos: <neo4j://graph.schema#> .
+        @prefix logos: <http://logos.ontology/> .
         @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
         logos:entity-bad-prefix a logos:Entity ;
@@ -283,9 +274,9 @@ def test_reject_bad_write_wrong_uuid_prefix(setup_neo4j):
 
 def test_reject_bad_write_missing_required_property(setup_neo4j):
     """Test that Neo4j rejects write with missing required property through validation."""
-    # Create a Concept without required 'name' field
+    # Create a Concept without required 'name' field (keep original namespace)
     bad_concept_ttl = """
-        @prefix logos: <neo4j://graph.schema#> .
+        @prefix logos: <http://logos.ontology/> .
 
         logos:concept-no-name a logos:Concept ;
             logos:uuid "concept-missing-name" .
@@ -315,9 +306,9 @@ def test_reject_bad_write_missing_required_property(setup_neo4j):
 
 def test_reject_bad_write_entity_missing_uuid(setup_neo4j):
     """Test that Neo4j rejects entity write with missing UUID."""
-    # Create an entity without UUID
+    # Create an entity without UUID (keep original namespace)
     bad_entity_ttl = """
-        @prefix logos: <neo4j://graph.schema#> .
+        @prefix logos: <http://logos.ontology/> .
 
         logos:entity-no-uuid a logos:Entity ;
             logos:name "EntityWithoutUUID" .
