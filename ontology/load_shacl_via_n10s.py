@@ -55,6 +55,24 @@ def main() -> int:
         else:
             print("⚠️ No SHACL clear/drop procedure available; continuing without clearing existing shapes.")
 
+        # Initialize graph config to be namespace aware
+        print("Initializing n10s graph configuration (MAP vocab URIs)...")
+        session.run(
+            """
+            CALL n10s.graphconfig.init({
+              handleVocabUris: 'MAP',
+              handleMultival: 'ARRAY',
+              keepLangTag: true,
+              handleRDFTypes: 'LABELS'
+            })
+            """
+        )
+
+        # Register prefix for logos ontology to satisfy namespace requirement
+        session.run(
+            "CALL n10s.nsprefixes.add('logos', 'http://logos.ontology/')"
+        )
+
         print(f"Loading SHACL shapes inline from {shapes_path} ...")
         # Import shapes; n10s returns no rows if called without YIELD
         session.run(
