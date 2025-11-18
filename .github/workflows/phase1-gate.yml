@@ -157,16 +157,15 @@ jobs:
             echo "phase2_in_title=true" >> $GITHUB_ENV
           fi
           
-          # Check changed files for Phase 2 markers
+          # Check changed files for Phase 2 markers in filenames
           # Use GitHub's built-in base and head refs for PRs
-          if git diff origin/${{ github.base_ref }}...HEAD --name-only > changed_files.txt 2>&1; then
-            if [ -s changed_files.txt ]; then
-              if grep -qiE "phase.?2|phase.?ii" changed_files.txt || true; then
-                if grep -iE "phase.?2|phase.?ii" changed_files.txt > /dev/null 2>&1; then
-                  echo "::warning::Changed files may contain Phase 2 work"
-                  echo "phase2_in_files=true" >> $GITHUB_ENV
-                fi
-              fi
+          git diff origin/${{ github.base_ref }}...HEAD --name-only > changed_files.txt 2>&1 || true
+          
+          if [ -f changed_files.txt ] && [ -s changed_files.txt ]; then
+            # Check if any filename contains phase 2 markers
+            if grep -iqE "phase.?2|phase.?ii" changed_files.txt; then
+              echo "::warning::Changed files may contain Phase 2 work"
+              echo "phase2_in_files=true" >> $GITHUB_ENV
             fi
           else
             echo "::notice::Could not check changed files for Phase 2 markers"
