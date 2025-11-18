@@ -59,16 +59,26 @@ def setup_neo4j_base(neo4j_session):
     if not procedures:
         pytest.skip("n10s plugin not installed in Neo4j")
 
-    # Check if n10s is already configured (e.g., by the workflow)
+    # Check if n10s is already configured and shapes are loaded (e.g., by the workflow)
     config_exists = False
+    shapes_exist = False
+    
     try:
         result = neo4j_session.run("MATCH (gc:_GraphConfig) RETURN count(gc) AS count").single()
         config_exists = result["count"] > 0
     except Neo4jError:
         pass
 
+    try:
+        shapes_count = len(neo4j_session.run("CALL n10s.validation.shacl.listShapes()").data())
+        shapes_exist = shapes_count > 0
+    except Neo4jError as e:
+        # "No shapes compiled" means shapes don't exist
+        if "No shapes compiled" not in str(e):
+            raise
+
     if not config_exists:
-        # Configure n10s (workflow may have already done this)
+        # Configure n10s (workflow hasn't done this yet, so we're in local test mode)
         try:
             neo4j_session.run("CALL n10s.graphconfig.drop()")
         except Neo4jError:
@@ -92,13 +102,17 @@ def setup_neo4j_base(neo4j_session):
             pass
         neo4j_session.run("CALL n10s.nsprefixes.add('logos', 'http://logos.ontology/')")
 
-    # Clear only test data, preserve config and namespace definitions
-    neo4j_session.run("MATCH (n) WHERE NOT n:_GraphConfig AND NOT n:_NsPrefDef DETACH DELETE n")
+    # Only clear test data nodes if we're in local mode (no shapes pre-loaded)
+    # In CI mode, workflow has already set everything up correctly
+    if not shapes_exist:
+        # Clear test data, but preserve n10s internal nodes
+        neo4j_session.run("MATCH (n) WHERE NOT n:_GraphConfig AND NOT n:_NsPrefDef DETACH DELETE n")
 
     yield neo4j_session
 
-    # Cleanup after all tests (but keep shapes and config)
-    neo4j_session.run("MATCH (n) WHERE NOT n:_GraphConfig AND NOT n:_NsPrefDef DETACH DELETE n")
+    # Cleanup after all tests - clear only user data, not n10s infrastructure
+    # Use labels to identify user data (Entity, Concept, State, Process from our ontology)
+    neo4j_session.run("MATCH (n) WHERE n:Entity OR n:Concept OR n:State OR n:Process DETACH DELETE n")
 
 
 @pytest.fixture(scope="function")
@@ -134,8 +148,8 @@ def setup_neo4j(setup_neo4j_base):
 
     yield setup_neo4j_base
 
-    # Clean up data (but not shapes) after each test
-    setup_neo4j_base.run("MATCH (n) WHERE NOT n:_GraphConfig AND NOT n:_NsPrefDef DETACH DELETE n")
+    # Clean up data after each test - only delete user data nodes by label
+    setup_neo4j_base.run("MATCH (n) WHERE n:Entity OR n:Concept OR n:State OR n:Process DETACH DELETE n")
 
 
 def test_neo4j_connection(neo4j_session):
