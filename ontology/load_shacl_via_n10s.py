@@ -56,24 +56,37 @@ def main() -> int:
             print("⚠️ No SHACL clear/drop procedure available; continuing without clearing existing shapes.")
 
         print(f"Loading SHACL shapes inline from {shapes_path} ...")
-        result = session.run(
+        rec = session.run(
             """
             CALL n10s.validation.shacl.import.inline($rdf, "Turtle")
-            YIELD status, extraInfo, triplesLoaded
-            RETURN status, extraInfo, triplesLoaded
+            YIELD *
+            RETURN *
             """,
             rdf=rdf_text,
         ).single()
 
-        status = result["status"] if result else None
-        extra = result["extraInfo"] if result else None
-        loaded = result["triplesLoaded"] if result else None
+        if not rec:
+            print("✗ No response from n10s.import.inline", file=sys.stderr)
+            return 1
 
-        print(f"status: {status}, triplesLoaded: {loaded}")
+        data = rec.data()
+        print(f"Import response fields: {list(data.keys())}")
+        print(f"Import response values: {data}")
+
+        # Determine status
+        status = data.get("status") or data.get("terminationStatus")
+        extra = data.get("extraInfo")
+        loaded = data.get("triplesLoaded") or data.get("triplesloaded") or data.get("loaded")
+
+        if status:
+            print(f"status: {status}")
+        if loaded is not None:
+            print(f"triplesLoaded: {loaded}")
         if extra:
             print(f"extraInfo: {extra}")
 
-        if status != "OK":
+        # Fail if an explicit status is present and not OK
+        if status and str(status).upper() != "OK":
             print("✗ Failed to load SHACL shapes via n10s", file=sys.stderr)
             return 1
 
