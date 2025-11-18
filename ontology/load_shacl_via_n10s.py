@@ -72,6 +72,7 @@ def main() -> int:
         return 1
 
     rdf_text = shapes_path.read_text(encoding="utf-8")
+    rdf_rewritten = rdf_text.replace("http://logos.ontology/", "neo4j://graph.schema#")
 
     try:
         with driver.session(database="neo4j") as session:
@@ -101,19 +102,18 @@ def main() -> int:
 
             print(f"Loading SHACL shapes inline from {shapes_path} ...")
             try:
-                import_shapes(session, rdf_text)
+                import_shapes(session, rdf_rewritten)
             except Neo4jError as exc:
                 # Retry with SHORTEN if namespace-awareness still not honored
                 if "UriNamespaceHasNoAssociatedPrefix" in str(exc):
                     print("Namespace error during import; retrying after reconfiguring with SHORTEN...")
                     configure_n10s(session, vocab_mode="SHORTEN")
                     try:
-                        import_shapes(session, rdf_text)
+                        import_shapes(session, rdf_rewritten)
                     except Neo4jError as exc2:
                         if "UriNamespaceHasNoAssociatedPrefix" in str(exc2):
-                            print("Namespace error persists; rewriting IRIs to neo4j://graph.schema# and retrying...")
-                            rewritten = rdf_text.replace("http://logos.ontology/", "neo4j://graph.schema#")
-                            import_shapes(session, rewritten)
+                            print("Namespace error persists even after rewrite/SHORTEN; aborting.")
+                            raise
                         else:
                             raise
                 else:
