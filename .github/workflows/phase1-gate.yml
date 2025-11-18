@@ -149,6 +149,7 @@ jobs:
         env:
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_BODY: ${{ github.event.pull_request.body }}
+          BASE_REF: ${{ github.base_ref }}
         run: |
           echo "Checking PR for Phase 2 work..."
           
@@ -159,11 +160,25 @@ jobs:
           fi
           
           # Check changed files for Phase 2 markers
-          git diff origin/${{ github.base_ref }}...HEAD --name-only > changed_files.txt
+          # Use github.event.pull_request.base.ref for more reliable base branch access
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
           
-          if grep -qiE "phase.?2|phase.?ii" changed_files.txt; then
-            echo "::warning::Changed files may contain Phase 2 work"
-            echo "phase2_in_files=true" >> $GITHUB_ENV
+          # Validate that we have valid refs
+          if [ -z "$BASE_SHA" ] || [ -z "$HEAD_SHA" ]; then
+            echo "::warning::Unable to determine base or head SHA, skipping file check"
+          else
+            # Use SHA-based diff which is more reliable
+            if git diff --name-only "$BASE_SHA".."$HEAD_SHA" > changed_files.txt 2>&1; then
+              if [ -s changed_files.txt ] && grep -qiE "phase.?2|phase.?ii" changed_files.txt; then
+                echo "::warning::Changed files may contain Phase 2 work"
+                echo "phase2_in_files=true" >> $GITHUB_ENV
+              fi
+            else
+              echo "::warning::Git diff failed, skipping file check"
+              echo "Git diff output:"
+              cat changed_files.txt || echo "No output file generated"
+            fi
           fi
           
           # This is informational only - doesn't block PR
