@@ -40,6 +40,25 @@ services:
     restart: unless-stopped
     command: ["milvus", "run", "standalone"]
 
+  shacl-validation:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile.shacl-validation
+    container_name: logos-shacl-validation
+    ports:
+      - "8081:8081"  # SHACL Validation API
+    volumes:
+      - ../ontology:/app/ontology:ro
+    networks:
+      - logos-hcg-dev-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
 networks:
   logos-hcg-dev-net:
     driver: bridge

@@ -16,6 +16,12 @@ The `docker-compose.hcg.dev.yml` file provides a complete local development envi
   - gRPC endpoint: localhost:19530
   - Metrics endpoint: http://localhost:9091
 
+- **SHACL Validation Service**: REST API for RDF/SHACL validation
+  - HTTP API: http://localhost:8081
+  - Interactive docs: http://localhost:8081/docs
+  - Health check: http://localhost:8081/health
+  - Validates data against LOGOS SHACL shapes (ontology/shacl_shapes.ttl)
+
 ## Quick Start
 
 ### Start the HCG Development Cluster
@@ -33,9 +39,10 @@ docker compose -f infra/docker-compose.hcg.dev.yml ps
 
 Expected output:
 ```
-NAME               IMAGE                    COMMAND                  STATUS
-logos-hcg-milvus   milvusdb/milvus:v2.3.3   "/tini -- milvus run…"   Up
-logos-hcg-neo4j    neo4j:5.13.0             "tini -g -- /startup…"   Up
+NAME                      IMAGE                    COMMAND                  STATUS
+logos-hcg-milvus          milvusdb/milvus:v2.3.3   "/tini -- milvus run…"   Up
+logos-hcg-neo4j           neo4j:5.13.0             "tini -g -- /startup…"   Up
+logos-shacl-validation    logos-shacl-validation   "python -m uvicorn…"     Up (healthy)
 ```
 
 ### Load the Core Ontology
@@ -69,6 +76,31 @@ Open http://localhost:7474 in your browser and connect with:
 - URL: `bolt://localhost:7687`
 - Username: `neo4j`
 - Password: `logosdev`
+
+### Use SHACL Validation Service
+
+The SHACL validation service provides a REST API for validating RDF data:
+
+```bash
+# Check service health
+curl http://localhost:8081/health
+
+# View interactive API documentation
+open http://localhost:8081/docs
+
+# Validate RDF data (example)
+curl -X POST http://localhost:8081/validate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "data": "@prefix logos: <http://logos.ontology/> .\n@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n\nlogos:entity-test-001 a logos:Entity ;\n    logos:uuid \"entity-test-001\" ;\n    logos:name \"Test Entity\" .",
+    "format": "turtle"
+  }'
+
+# Get information about loaded SHACL shapes
+curl http://localhost:8081/shapes
+```
+
+For detailed API documentation and examples, visit http://localhost:8081/docs when the service is running.
 
 ### Stop the Cluster
 
@@ -167,9 +199,11 @@ For better performance, allocate more resources to Docker:
 
 ## Integration with LOGOS Components
 
-- **Sophia**: Connects to Neo4j for HCG operations and Milvus for semantic search
+- **Sophia**: Connects to Neo4j for HCG operations and Milvus for semantic search; can use SHACL validation endpoint to validate graph updates
 - **Hermes**: Does not access HCG directly (stateless utilities)
 - **Talos**: May log sensor data to HCG in future phases
-- **Apollo**: Visualizes HCG state via Neo4j queries
+- **Apollo**: Visualizes HCG state via Neo4j queries; can use SHACL validation endpoint to validate user inputs
+
+The SHACL validation service provides programmatic validation for any component that needs to validate RDF data against the LOGOS ontology shapes.
 
 See the main [README.md](../README.md) and specification in `docs/spec/project_logos_full.md` for more details.
