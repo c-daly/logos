@@ -40,6 +40,21 @@ logos-hcg-neo4j    neo4j:5.13.0             "tini -g -- /startup…"   Up
 
 ### Load the Core Ontology
 
+#### Option 1: Using the Automated Script (Recommended)
+
+```bash
+# From the repository root
+./infra/load_ontology.sh
+```
+
+This script will:
+- Check if Neo4j is running and wait for it to be ready
+- Load the core ontology constraints, indexes, and concepts
+- Verify successful loading with detailed output
+- Provide helpful error messages if something goes wrong
+
+#### Option 2: Manual Loading
+
 ```bash
 # Wait for Neo4j to be ready (may take 10-30 seconds on first start)
 docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "RETURN 1;"
