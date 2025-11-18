@@ -41,7 +41,7 @@ def configure_n10s(session, vocab_mode: str = "MAP") -> None:
         pass
     session.run("CALL n10s.nsprefixes.add('logos', 'http://logos.ontology/')")
 
-    cfg = session.run("CALL n10s.graphconfig.show()").single()
+    cfg = {record["param"]: record["value"] for record in session.run("CALL n10s.graphconfig.show()")}
     print(f"n10s graph config now: {cfg}")
 
 
@@ -107,7 +107,15 @@ def main() -> int:
                 if "UriNamespaceHasNoAssociatedPrefix" in str(exc):
                     print("Namespace error during import; retrying after reconfiguring with SHORTEN...")
                     configure_n10s(session, vocab_mode="SHORTEN")
-                    import_shapes(session, rdf_text)
+                    try:
+                        import_shapes(session, rdf_text)
+                    except Neo4jError as exc2:
+                        if "UriNamespaceHasNoAssociatedPrefix" in str(exc2):
+                            print("Namespace error persists; rewriting IRIs to neo4j://graph.schema# and retrying...")
+                            rewritten = rdf_text.replace("http://logos.ontology/", "neo4j://graph.schema#")
+                            import_shapes(session, rewritten)
+                        else:
+                            raise
                 else:
                     raise
 
