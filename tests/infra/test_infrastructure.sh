@@ -75,19 +75,43 @@ docker exec logos-hcg-milvus ps aux | grep milvus > /dev/null
 echo "✓ Milvus is running"
 echo ""
 
-# Test 9: Verify volumes exist
-echo "Test 9: Verifying data volumes..."
-VOLUMES=$(docker volume ls | grep -c "infra_")
-if [ "$VOLUMES" -ge 3 ]; then
-  echo "✓ Found $VOLUMES data volumes"
+# Test 9: Initialize and verify Milvus collections
+echo "Test 9: Initializing Milvus collections..."
+python3 "${REPO_ROOT}/infra/init_milvus_collections.py" --host localhost --port 19530 > /dev/null 2>&1
+echo "✓ Milvus collections initialized"
+echo ""
+
+# Test 10: Verify Milvus collections exist
+echo "Test 10: Verifying Milvus collections..."
+COLLECTION_COUNT=$(python3 -c "
+from pymilvus import connections, utility
+connections.connect(alias='default', host='localhost', port='19530')
+collections = ['hcg_entity_embeddings', 'hcg_concept_embeddings', 'hcg_state_embeddings', 'hcg_process_embeddings']
+count = sum(1 for c in collections if utility.has_collection(c))
+connections.disconnect('default')
+print(count)
+" 2>/dev/null)
+if [ "$COLLECTION_COUNT" -eq 4 ]; then
+  echo "✓ Found all 4 Milvus collections"
 else
-  echo "✗ Expected at least 3 volumes, found $VOLUMES"
+  echo "✗ Expected 4 collections, found $COLLECTION_COUNT"
   exit 1
 fi
 echo ""
 
-# Test 10: Verify network exists
-echo "Test 10: Verifying network..."
+# Test 11: Verify volumes exist
+echo "Test 11: Verifying data volumes..."
+VOLUMES=$(docker volume ls | grep -c "infra_")
+if [ "$VOLUMES" -ge 4 ]; then
+  echo "✓ Found $VOLUMES data volumes"
+else
+  echo "✗ Expected at least 4 volumes, found $VOLUMES"
+  exit 1
+fi
+echo ""
+
+# Test 12: Verify network exists
+echo "Test 12: Verifying network..."
 docker network inspect infra_logos-hcg-dev-net > /dev/null 2>&1
 echo "✓ Network infra_logos-hcg-dev-net exists"
 echo ""
@@ -98,6 +122,7 @@ echo "Infrastructure is ready for development!"
 echo "- Neo4j Browser: http://localhost:7474 (neo4j/logosdev)"
 echo "- Neo4j Bolt: bolt://localhost:7687"
 echo "- Milvus gRPC: localhost:19530"
+echo "- Milvus Collections: 4 initialized (Entity, Concept, State, Process)"
 echo ""
 echo "To stop the cluster:"
 echo "  docker compose -f infra/docker-compose.hcg.dev.yml down"
