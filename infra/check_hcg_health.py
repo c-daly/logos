@@ -19,12 +19,12 @@ from logos_hcg import HCGClient, HCGMilvusSync
 def check_neo4j(uri: str, user: str, password: str) -> dict[str, Any]:
     """
     Check Neo4j connectivity and node counts.
-    
+
     Args:
         uri: Neo4j connection URI
         user: Neo4j username
         password: Neo4j password
-        
+
     Returns:
         Dictionary with Neo4j health status
     """
@@ -53,11 +53,11 @@ def check_neo4j(uri: str, user: str, password: str) -> dict[str, Any]:
 def check_milvus(host: str, port: str) -> dict[str, Any]:
     """
     Check Milvus connectivity and collection status.
-    
+
     Args:
         host: Milvus server host
         port: Milvus server port
-        
+
     Returns:
         Dictionary with Milvus health status
     """
@@ -88,7 +88,7 @@ def check_sync_consistency(
 ) -> dict[str, Any]:
     """
     Check synchronization consistency between Neo4j and Milvus.
-    
+
     Returns:
         Dictionary with sync reports for each node type
     """
@@ -128,11 +128,11 @@ def check_sync_consistency(
 def print_status(status: dict[str, Any], service_name: str) -> bool:
     """
     Print health status for a service.
-    
+
     Args:
         status: Service health status
         service_name: Name of the service
-        
+
     Returns:
         True if service is healthy, False otherwise
     """

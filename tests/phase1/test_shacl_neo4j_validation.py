@@ -104,7 +104,7 @@ def _reconfigure_n10s(session, vocab_mode: str = "MAP"):
         session.run("CALL n10s.graphconfig.drop()")
     except Neo4jError:
         pass
-    
+
     session.run(
         """
         CALL n10s.graphconfig.init({
@@ -116,7 +116,7 @@ def _reconfigure_n10s(session, vocab_mode: str = "MAP"):
         """,
         vocab_mode=vocab_mode
     )
-    
+
     # Re-register namespace
     try:
         session.run("CALL n10s.nsprefixes.remove('logos')")

@@ -8,15 +8,16 @@ Note: These are unit tests that mock Milvus interactions.
 Integration tests require a running Milvus instance.
 """
 
-import pytest
 from datetime import datetime
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 from uuid import uuid4
 
+import pytest
+
 from logos_hcg.sync import (
+    COLLECTION_NAMES,
     HCGMilvusSync,
     MilvusSyncError,
-    COLLECTION_NAMES,
 )
 
 
@@ -290,7 +291,7 @@ class TestHCGMilvusSync:
         """Test sync verification when databases are in sync."""
         mock_utility.has_collection.return_value = True
         mock_coll_instance = Mock()
-        
+
         # Milvus has same UUIDs as Neo4j
         neo4j_uuids = {"uuid-1", "uuid-2", "uuid-3"}
         mock_coll_instance.query.return_value = [
@@ -318,7 +319,7 @@ class TestHCGMilvusSync:
         """Test sync verification with orphaned embeddings."""
         mock_utility.has_collection.return_value = True
         mock_coll_instance = Mock()
-        
+
         # Milvus has extra UUIDs not in Neo4j
         neo4j_uuids = {"uuid-1", "uuid-2"}
         mock_coll_instance.query.return_value = [
@@ -346,7 +347,7 @@ class TestHCGMilvusSync:
         """Test sync verification with missing embeddings."""
         mock_utility.has_collection.return_value = True
         mock_coll_instance = Mock()
-        
+
         # Neo4j has UUIDs not in Milvus
         neo4j_uuids = {"uuid-1", "uuid-2", "uuid-missing"}
         mock_coll_instance.query.return_value = [
@@ -384,7 +385,7 @@ class TestHCGMilvusSync:
         assert health["connected"] is True
         assert len(health["collections"]) == 4
         # All collections should exist and be loaded
-        for node_type, status in health["collections"].items():
+        for _node_type, status in health["collections"].items():
             assert status["exists"] is True
             assert status["loaded"] is True
             assert status["count"] == 42
@@ -405,7 +406,7 @@ class TestHCGMilvusSync:
         """Test health check with unloaded collection."""
         def has_collection_side_effect(name, using):
             return name == "hcg_entity_embeddings"
-        
+
         mock_utility.has_collection.side_effect = has_collection_side_effect
         mock_coll_instance = Mock()
         # Simulate collection not loaded (accessing num_entities raises exception)
