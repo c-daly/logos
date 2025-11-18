@@ -46,8 +46,8 @@ def neo4j_session(neo4j_driver):
 
 
 @pytest.fixture(scope="module")
-def setup_neo4j(neo4j_session):
-    """Set up Neo4j with SHACL shapes and test data."""
+def setup_neo4j_base(neo4j_session):
+    """Set up Neo4j base configuration (run once per module)."""
     # Check if n10s procedures are available
     procedures = [
         p[0]
@@ -92,28 +92,45 @@ def setup_neo4j(neo4j_session):
         pass
     neo4j_session.run("CALL n10s.nsprefixes.add('logos', 'http://logos.ontology/')")
 
-    # Load SHACL shapes
+    yield neo4j_session
+
+    # Cleanup after all tests
+    neo4j_session.run("MATCH (n) DETACH DELETE n")
+
+
+@pytest.fixture(scope="function")
+def setup_neo4j(setup_neo4j_base):
+    """Set up Neo4j with SHACL shapes for each test."""
+    # Load SHACL shapes for this test
     shapes_file = Path(__file__).parent.parent.parent / "ontology" / "shacl_shapes.ttl"
     shapes_text = shapes_file.read_text(encoding="utf-8")
 
     # Rewrite namespace to match n10s expectations
     shapes_rewritten = shapes_text.replace("http://logos.ontology/", "neo4j://graph.schema#")
 
-    neo4j_session.run(
+    # Clear any existing shapes before loading new ones
+    try:
+        setup_neo4j_base.run("CALL n10s.validation.shacl.clear()")
+    except Neo4jError:
+        try:
+            setup_neo4j_base.run("CALL n10s.validation.shacl.dropShapes()")
+        except Neo4jError:
+            pass  # Shapes might not exist yet
+
+    # Load SHACL shapes
+    setup_neo4j_base.run(
         "CALL n10s.validation.shacl.import.inline($rdf, 'Turtle')",
         rdf=shapes_rewritten
     )
 
     # Verify shapes are loaded
-    shapes_count = len(neo4j_session.run("CALL n10s.validation.shacl.listShapes()").data())
+    shapes_count = len(setup_neo4j_base.run("CALL n10s.validation.shacl.listShapes()").data())
     assert shapes_count > 0, "SHACL shapes should be loaded"
 
-    print(f"✓ Neo4j setup complete with {shapes_count} SHACL shapes")
+    yield setup_neo4j_base
 
-    yield neo4j_session
-
-    # Cleanup after all tests
-    neo4j_session.run("MATCH (n) DETACH DELETE n")
+    # Clean up data (but not shapes) after each test
+    setup_neo4j_base.run("MATCH (n) WHERE NOT n:_GraphConfig AND NOT n:_NsPrefDef DETACH DELETE n")
 
 
 def test_neo4j_connection(neo4j_session):
@@ -186,9 +203,6 @@ def test_validate_valid_entities(setup_neo4j):
     if violations:
         pytest.fail(f"Valid data should not have violations. Found {len(violations)} violations: {violations}")
 
-    # Clean up for next test
-    setup_neo4j.run("MATCH (n) WHERE NOT n:_GraphConfig AND NOT n:_NsPrefDef DETACH DELETE n")
-
     print("✓ Valid entities passed SHACL validation in Neo4j")
 
 
@@ -222,9 +236,6 @@ def test_validate_invalid_entities(setup_neo4j):
     print("  Sample violations:")
     for i, violation in enumerate(violations[:3]):  # Show first 3 violations
         print(f"    - Violation {i+1}: {violation}")
-
-    # Clean up for next test
-    setup_neo4j.run("MATCH (n) WHERE NOT n:_GraphConfig AND NOT n:_NsPrefDef DETACH DELETE n")
 
 
 def test_reject_bad_write_wrong_uuid_prefix(setup_neo4j):
@@ -269,9 +280,6 @@ def test_reject_bad_write_wrong_uuid_prefix(setup_neo4j):
 
     print("✓ Wrong UUID prefix correctly rejected by SHACL validation")
 
-    # Clean up
-    setup_neo4j.run("MATCH (n) WHERE NOT n:_GraphConfig AND NOT n:_NsPrefDef DETACH DELETE n")
-
 
 def test_reject_bad_write_missing_required_property(setup_neo4j):
     """Test that Neo4j rejects write with missing required property through validation."""
@@ -304,9 +312,6 @@ def test_reject_bad_write_missing_required_property(setup_neo4j):
     print("✓ Missing required property correctly rejected by SHACL validation")
     print(f"  {len(violations)} violations detected")
 
-    # Clean up
-    setup_neo4j.run("MATCH (n) WHERE NOT n:_GraphConfig AND NOT n:_NsPrefDef DETACH DELETE n")
-
 
 def test_reject_bad_write_entity_missing_uuid(setup_neo4j):
     """Test that Neo4j rejects entity write with missing UUID."""
@@ -337,9 +342,6 @@ def test_reject_bad_write_entity_missing_uuid(setup_neo4j):
     assert len(violations) > 0, "Missing UUID should produce validation violations"
 
     print("✓ Missing UUID correctly rejected by SHACL validation")
-
-    # Clean up
-    setup_neo4j.run("MATCH (n) WHERE NOT n:_GraphConfig AND NOT n:_NsPrefDef DETACH DELETE n")
 
 
 if __name__ == "__main__":
