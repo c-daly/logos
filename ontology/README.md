@@ -232,3 +232,111 @@ If you see "n10s plugin not available", ensure:
 - **Verification**: `docs/PHASE1_VERIFY.md`, M2 section
 - **Infrastructure**: `infra/docker-compose.hcg.dev.yml`
 - **Test Fixtures**: `tests/phase1/fixtures/`
+
+## Vector Embedding Integration (Section 4.2)
+
+The HCG ontology supports semantic search through integration with Milvus vector database. Each node type (Entity, Concept, State, Process) can maintain vector embeddings for similarity-based retrieval.
+
+### Embedding Metadata Fields
+
+All HCG nodes support optional embedding metadata:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `embedding_id` | String | Reference to vector in Milvus (matches node UUID) |
+| `embedding_model` | String | Model used to generate the embedding (e.g., "sentence-transformers/all-MiniLM-L6-v2") |
+| `last_sync` | DateTime | Timestamp of last synchronization with Milvus |
+
+These fields are **optional** and only populated when semantic search is needed.
+
+### Milvus Collections
+
+Embeddings are stored in four Milvus collections:
+- `hcg_entity_embeddings` - Entity vectors
+- `hcg_concept_embeddings` - Concept vectors  
+- `hcg_state_embeddings` - State vectors
+- `hcg_process_embeddings` - Process vectors
+
+**Initialize collections**:
+```bash
+# From repository root
+python infra/init_milvus_collections.py --host localhost --port 19530
+
+# Or use the shell script
+./infra/init_milvus.sh
+```
+
+### Synchronization
+
+The `logos_hcg.sync` module provides bidirectional sync between Neo4j and Milvus:
+
+```python
+from logos_hcg import HCGMilvusSync
+
+# Upsert embedding
+with HCGMilvusSync(milvus_host="localhost", milvus_port="19530") as sync:
+    metadata = sync.upsert_embedding(
+        node_type="Entity",
+        uuid="entity-uuid",
+        embedding=[0.1, 0.2, ...],  # 384-dimensional vector
+        model="sentence-transformers/all-MiniLM-L6-v2"
+    )
+    
+# Update Neo4j node with metadata
+# SET node.embedding_id = metadata["embedding_id"],
+#     node.embedding_model = metadata["embedding_model"],
+#     node.last_sync = metadata["last_sync"]
+```
+
+**For complete documentation**, see:
+- **Lifecycle Guide**: `ontology/EMBEDDING_LIFECYCLE.md`
+- **API Documentation**: `logos_hcg/sync.py`
+- **Tests**: `tests/test_hcg_milvus_sync.py`
+
+### Verification
+
+Check sync consistency between Neo4j and Milvus:
+
+```python
+from logos_hcg import HCGClient, HCGMilvusSync
+
+# Get all Entity UUIDs from Neo4j
+with HCGClient(uri="bolt://localhost:7687", user="neo4j", password="password") as client:
+    entities = client.find_all_entities()
+    neo4j_uuids = {str(e.uuid) for e in entities}
+
+# Verify sync
+with HCGMilvusSync() as sync:
+    report = sync.verify_sync(node_type="Entity", neo4j_uuids=neo4j_uuids)
+    
+    if not report["in_sync"]:
+        print(f"⚠ Sync issues detected:")
+        print(f"  - Orphaned embeddings: {len(report['orphaned_embeddings'])}")
+        print(f"  - Missing embeddings: {len(report['missing_embeddings'])}")
+```
+
+### Health Checks
+
+Monitor Milvus connection and collection status:
+
+```python
+with HCGMilvusSync() as sync:
+    health = sync.health_check()
+    
+    print(f"Connected: {health['connected']}")
+    for node_type, status in health["collections"].items():
+        print(f"{node_type}: {status['count']} embeddings")
+```
+
+### Integration with Hermes
+
+The typical workflow for semantic search:
+
+1. **Create Node**: Create node in Neo4j (via Sophia)
+2. **Generate Embedding**: Call Hermes `/embed_text` endpoint
+3. **Store Vector**: Use `HCGMilvusSync.upsert_embedding()`
+4. **Update Metadata**: Set embedding fields in Neo4j node
+5. **Semantic Query**: Use Milvus for similarity search
+6. **Graph Enrichment**: Retrieve full nodes from Neo4j using UUIDs
+
+See `contracts/hermes.openapi.yaml` for Hermes API specification.
