@@ -128,41 +128,37 @@ def _reconfigure_n10s(session, vocab_mode: str = "MAP"):
 @pytest.fixture(scope="function")
 def setup_neo4j(setup_neo4j_base):
     """Set up Neo4j with SHACL shapes for each test."""
-    # Load SHACL shapes for this test
-    shapes_file = Path(__file__).parent.parent.parent / "ontology" / "shacl_shapes.ttl"
-    shapes_text = shapes_file.read_text(encoding="utf-8")
+    # Check if shapes are already loaded (e.g., by the workflow's load_shacl_via_n10s.py)
+    shapes_count = len(setup_neo4j_base.run("CALL n10s.validation.shacl.listShapes()").data())
 
-    # Clear any existing shapes before loading new ones
-    try:
-        setup_neo4j_base.run("CALL n10s.validation.shacl.clear()")
-    except Neo4jError:
+    if shapes_count == 0:
+        # Shapes not loaded yet, load them now
+        shapes_file = Path(__file__).parent.parent.parent / "ontology" / "shacl_shapes.ttl"
+        shapes_text = shapes_file.read_text(encoding="utf-8")
+
+        # Rewrite URIs to use neo4j:// scheme as done in load_shacl_via_n10s.py
+        shapes_rewritten = shapes_text.replace("http://logos.ontology/", "neo4j://graph.schema#")
+
+        # Load SHACL shapes with error handling for namespace issues
         try:
-            setup_neo4j_base.run("CALL n10s.validation.shacl.dropShapes()")
-        except Neo4jError:
-            pass  # Shapes might not exist yet
-
-    # Rewrite URIs to use neo4j:// scheme as done in load_shacl_via_n10s.py
-    shapes_rewritten = shapes_text.replace("http://logos.ontology/", "neo4j://graph.schema#")
-
-    # Load SHACL shapes with error handling for namespace issues
-    try:
-        setup_neo4j_base.run(
-            "CALL n10s.validation.shacl.import.inline($rdf, 'Turtle')",
-            rdf=shapes_rewritten
-        )
-    except Neo4jError as e:
-        # If we get a namespace error, retry with SHORTEN mode
-        if "UriNamespaceHasNoAssociatedPrefix" in str(e):
-            _reconfigure_n10s(setup_neo4j_base, vocab_mode="SHORTEN")
             setup_neo4j_base.run(
                 "CALL n10s.validation.shacl.import.inline($rdf, 'Turtle')",
                 rdf=shapes_rewritten
             )
-        else:
-            raise
+        except Neo4jError as e:
+            # If we get a namespace error, retry with SHORTEN mode
+            if "UriNamespaceHasNoAssociatedPrefix" in str(e):
+                _reconfigure_n10s(setup_neo4j_base, vocab_mode="SHORTEN")
+                setup_neo4j_base.run(
+                    "CALL n10s.validation.shacl.import.inline($rdf, 'Turtle')",
+                    rdf=shapes_rewritten
+                )
+            else:
+                raise
 
-    # Verify shapes are loaded
-    shapes_count = len(setup_neo4j_base.run("CALL n10s.validation.shacl.listShapes()").data())
+        # Verify shapes are now loaded
+        shapes_count = len(setup_neo4j_base.run("CALL n10s.validation.shacl.listShapes()").data())
+
     assert shapes_count > 0, "SHACL shapes should be loaded"
 
     yield setup_neo4j_base
