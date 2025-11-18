@@ -14,8 +14,6 @@ Reference: docs/PHASE1_VERIFY.md - M1 checklist
 
 import os
 import subprocess
-import time
-from datetime import datetime
 from uuid import uuid4
 
 import pytest
@@ -62,14 +60,14 @@ def neo4j_driver():
 def loaded_ontology(neo4j_driver):
     """Load core ontology into Neo4j before tests."""
     ontology_path = os.path.join(REPO_ROOT, "ontology", "core_ontology.cypher")
-    
+
     # First, clean the database
     with neo4j_driver.session() as session:
         session.run("MATCH (n) DETACH DELETE n")
-    
+
     # Load ontology via docker exec (more reliable than parsing)
     try:
-        result = subprocess.run(
+        subprocess.run(
             f"cat {ontology_path} | docker exec -i {NEO4J_CONTAINER} cypher-shell -u {NEO4J_USER} -p {NEO4J_PASSWORD}",
             shell=True,
             capture_output=True,
@@ -85,10 +83,10 @@ def loaded_ontology(neo4j_driver):
 def loaded_test_data(neo4j_driver, loaded_ontology):
     """Load test data into Neo4j before tests."""
     test_data_path = os.path.join(REPO_ROOT, "ontology", "test_data_pick_and_place.cypher")
-    
+
     # Load test data via docker exec (more reliable than parsing)
     try:
-        result = subprocess.run(
+        subprocess.run(
             f"cat {test_data_path} | docker exec -i {NEO4J_CONTAINER} cypher-shell -u {NEO4J_USER} -p {NEO4J_PASSWORD}",
             shell=True,
             capture_output=True,
@@ -102,34 +100,34 @@ def loaded_test_data(neo4j_driver, loaded_ontology):
 
 class TestOntologyLoading:
     """Test that ontology and test data load successfully."""
-    
+
     def test_ontology_loaded(self, loaded_ontology):
         """Verify core ontology is loaded."""
         assert loaded_ontology is True
-    
+
     def test_test_data_loaded(self, loaded_test_data):
         """Verify test data is loaded."""
         assert loaded_test_data is True
-    
+
     def test_constraints_exist(self, neo4j_driver, loaded_ontology):
         """Verify UUID constraints are created."""
         with neo4j_driver.session() as session:
             result = session.run("SHOW CONSTRAINTS")
             constraints = [record["name"] for record in result]
-            
+
             # Check for LOGOS constraints
             assert any("logos_entity_uuid" in c for c in constraints), "Entity UUID constraint missing"
             assert any("logos_concept_uuid" in c for c in constraints), "Concept UUID constraint missing"
             assert any("logos_state_uuid" in c for c in constraints), "State UUID constraint missing"
             assert any("logos_process_uuid" in c for c in constraints), "Process UUID constraint missing"
             assert any("logos_concept_name" in c for c in constraints), "Concept name constraint missing"
-    
+
     def test_indexes_exist(self, neo4j_driver, loaded_ontology):
         """Verify indexes are created."""
         with neo4j_driver.session() as session:
             result = session.run("SHOW INDEXES")
             indexes = [record["name"] for record in result]
-            
+
             # Check for LOGOS indexes
             assert any("logos_entity_name" in i for i in indexes), "Entity name index missing"
             assert any("logos_state_timestamp" in i for i in indexes), "State timestamp index missing"
@@ -138,11 +136,11 @@ class TestOntologyLoading:
 
 class TestEntityCreation:
     """Test Entity node creation with UUID constraints."""
-    
+
     def test_create_entity_with_valid_uuid(self, neo4j_driver, loaded_ontology):
         """Test creating entity with valid UUID prefix."""
         test_uuid = f"entity-test-{uuid4()}"
-        
+
         with neo4j_driver.session() as session:
             result = session.run(
                 "CREATE (e:Entity {uuid: $uuid, name: $name, created_at: datetime()}) RETURN e",
@@ -152,14 +150,14 @@ class TestEntityCreation:
             entity = result.single()
             assert entity is not None
             assert entity["e"]["uuid"] == test_uuid
-            
+
             # Cleanup
             session.run("MATCH (e:Entity {uuid: $uuid}) DELETE e", uuid=test_uuid)
-    
+
     def test_create_entity_duplicate_uuid_fails(self, neo4j_driver, loaded_ontology):
         """Test that duplicate UUID fails with constraint violation."""
         test_uuid = f"entity-test-duplicate-{uuid4()}"
-        
+
         with neo4j_driver.session() as session:
             # Create first entity
             session.run(
@@ -167,7 +165,7 @@ class TestEntityCreation:
                 uuid=test_uuid,
                 name="TestEntity01"
             )
-            
+
             # Try to create duplicate - should fail
             with pytest.raises(ClientError) as exc_info:
                 session.run(
@@ -175,21 +173,21 @@ class TestEntityCreation:
                     uuid=test_uuid,
                     name="TestEntity02"
                 )
-            
+
             assert "ConstraintValidationFailed" in str(exc_info.value) or "already exists" in str(exc_info.value).lower()
-            
+
             # Cleanup
             session.run("MATCH (e:Entity {uuid: $uuid}) DELETE e", uuid=test_uuid)
 
 
 class TestConceptCreation:
     """Test Concept node creation with UUID and name constraints."""
-    
+
     def test_create_concept_with_valid_uuid(self, neo4j_driver, loaded_ontology):
         """Test creating concept with valid UUID prefix."""
         test_uuid = f"concept-test-{uuid4()}"
         test_name = f"TestConcept{uuid4().hex[:8]}"
-        
+
         with neo4j_driver.session() as session:
             result = session.run(
                 "CREATE (c:Concept {uuid: $uuid, name: $name}) RETURN c",
@@ -200,16 +198,16 @@ class TestConceptCreation:
             assert concept is not None
             assert concept["c"]["uuid"] == test_uuid
             assert concept["c"]["name"] == test_name
-            
+
             # Cleanup
             session.run("MATCH (c:Concept {uuid: $uuid}) DELETE c", uuid=test_uuid)
-    
+
     def test_create_concept_duplicate_name_fails(self, neo4j_driver, loaded_ontology):
         """Test that duplicate concept name fails with constraint violation."""
         test_uuid1 = f"concept-test-{uuid4()}"
         test_uuid2 = f"concept-test-{uuid4()}"
         test_name = f"TestConceptDuplicate{uuid4().hex[:8]}"
-        
+
         with neo4j_driver.session() as session:
             # Create first concept
             session.run(
@@ -217,7 +215,7 @@ class TestConceptCreation:
                 uuid=test_uuid1,
                 name=test_name
             )
-            
+
             # Try to create duplicate name - should fail
             with pytest.raises(ClientError) as exc_info:
                 session.run(
@@ -225,20 +223,20 @@ class TestConceptCreation:
                     uuid=test_uuid2,
                     name=test_name
                 )
-            
+
             assert "ConstraintValidationFailed" in str(exc_info.value) or "already exists" in str(exc_info.value).lower()
-            
+
             # Cleanup
             session.run("MATCH (c:Concept {uuid: $uuid}) DELETE c", uuid=test_uuid1)
 
 
 class TestStateCreation:
     """Test State node creation with UUID constraints."""
-    
+
     def test_create_state_with_valid_uuid(self, neo4j_driver, loaded_ontology):
         """Test creating state with valid UUID prefix."""
         test_uuid = f"state-test-{uuid4()}"
-        
+
         with neo4j_driver.session() as session:
             result = session.run(
                 "CREATE (s:State {uuid: $uuid, timestamp: datetime()}) RETURN s",
@@ -248,41 +246,41 @@ class TestStateCreation:
             assert state is not None
             assert state["s"]["uuid"] == test_uuid
             assert state["s"]["timestamp"] is not None
-            
+
             # Cleanup
             session.run("MATCH (s:State {uuid: $uuid}) DELETE s", uuid=test_uuid)
-    
+
     def test_create_state_duplicate_uuid_fails(self, neo4j_driver, loaded_ontology):
         """Test that duplicate state UUID fails."""
         test_uuid = f"state-test-duplicate-{uuid4()}"
-        
+
         with neo4j_driver.session() as session:
             # Create first state
             session.run(
                 "CREATE (s:State {uuid: $uuid, timestamp: datetime()})",
                 uuid=test_uuid
             )
-            
+
             # Try to create duplicate
             with pytest.raises(ClientError) as exc_info:
                 session.run(
                     "CREATE (s:State {uuid: $uuid, timestamp: datetime()})",
                     uuid=test_uuid
                 )
-            
+
             assert "ConstraintValidationFailed" in str(exc_info.value) or "already exists" in str(exc_info.value).lower()
-            
+
             # Cleanup
             session.run("MATCH (s:State {uuid: $uuid}) DELETE s", uuid=test_uuid)
 
 
 class TestProcessCreation:
     """Test Process node creation with UUID constraints."""
-    
+
     def test_create_process_with_valid_uuid(self, neo4j_driver, loaded_ontology):
         """Test creating process with valid UUID prefix."""
         test_uuid = f"process-test-{uuid4()}"
-        
+
         with neo4j_driver.session() as session:
             result = session.run(
                 "CREATE (p:Process {uuid: $uuid, start_time: datetime()}) RETURN p",
@@ -292,43 +290,43 @@ class TestProcessCreation:
             assert process is not None
             assert process["p"]["uuid"] == test_uuid
             assert process["p"]["start_time"] is not None
-            
+
             # Cleanup
             session.run("MATCH (p:Process {uuid: $uuid}) DELETE p", uuid=test_uuid)
-    
+
     def test_create_process_duplicate_uuid_fails(self, neo4j_driver, loaded_ontology):
         """Test that duplicate process UUID fails."""
         test_uuid = f"process-test-duplicate-{uuid4()}"
-        
+
         with neo4j_driver.session() as session:
             # Create first process
             session.run(
                 "CREATE (p:Process {uuid: $uuid, start_time: datetime()})",
                 uuid=test_uuid
             )
-            
+
             # Try to create duplicate
             with pytest.raises(ClientError) as exc_info:
                 session.run(
                     "CREATE (p:Process {uuid: $uuid, start_time: datetime()})",
                     uuid=test_uuid
                 )
-            
+
             assert "ConstraintValidationFailed" in str(exc_info.value) or "already exists" in str(exc_info.value).lower()
-            
+
             # Cleanup
             session.run("MATCH (p:Process {uuid: $uuid}) DELETE p", uuid=test_uuid)
 
 
 class TestRelationshipCreation:
     """Test relationship creation between nodes."""
-    
+
     def test_create_is_a_relationship(self, neo4j_driver, loaded_ontology):
         """Test creating IS_A relationship between Entity and Concept."""
         entity_uuid = f"entity-test-{uuid4()}"
         concept_uuid = f"concept-test-{uuid4()}"
         concept_name = f"TestConcept{uuid4().hex[:8]}"
-        
+
         with neo4j_driver.session() as session:
             # Create nodes
             session.run(
@@ -341,7 +339,7 @@ class TestRelationshipCreation:
                 c_uuid=concept_uuid,
                 c_name=concept_name
             )
-            
+
             # Create relationship
             result = session.run(
                 """
@@ -355,19 +353,19 @@ class TestRelationshipCreation:
             )
             rel = result.single()
             assert rel is not None
-            
+
             # Cleanup
             session.run(
                 "MATCH (e:Entity {uuid: $e_uuid})-[r:IS_A]->(c:Concept {uuid: $c_uuid}) DELETE r, e, c",
                 e_uuid=entity_uuid,
                 c_uuid=concept_uuid
             )
-    
+
     def test_create_has_state_relationship(self, neo4j_driver, loaded_ontology):
         """Test creating HAS_STATE relationship between Entity and State."""
         entity_uuid = f"entity-test-{uuid4()}"
         state_uuid = f"state-test-{uuid4()}"
-        
+
         with neo4j_driver.session() as session:
             # Create nodes
             session.run(
@@ -379,7 +377,7 @@ class TestRelationshipCreation:
                 "CREATE (s:State {uuid: $s_uuid, timestamp: datetime()})",
                 s_uuid=state_uuid
             )
-            
+
             # Create relationship
             result = session.run(
                 """
@@ -393,19 +391,19 @@ class TestRelationshipCreation:
             )
             rel = result.single()
             assert rel is not None
-            
+
             # Cleanup
             session.run(
                 "MATCH (e:Entity {uuid: $e_uuid})-[r:HAS_STATE]->(s:State {uuid: $s_uuid}) DELETE r, e, s",
                 e_uuid=entity_uuid,
                 s_uuid=state_uuid
             )
-    
+
     def test_create_causes_relationship(self, neo4j_driver, loaded_ontology):
         """Test creating CAUSES relationship between Process and State."""
         process_uuid = f"process-test-{uuid4()}"
         state_uuid = f"state-test-{uuid4()}"
-        
+
         with neo4j_driver.session() as session:
             # Create nodes
             session.run(
@@ -416,7 +414,7 @@ class TestRelationshipCreation:
                 "CREATE (s:State {uuid: $s_uuid, timestamp: datetime()})",
                 s_uuid=state_uuid
             )
-            
+
             # Create relationship
             result = session.run(
                 """
@@ -430,19 +428,19 @@ class TestRelationshipCreation:
             )
             rel = result.single()
             assert rel is not None
-            
+
             # Cleanup
             session.run(
                 "MATCH (p:Process {uuid: $p_uuid})-[r:CAUSES]->(s:State {uuid: $s_uuid}) DELETE r, p, s",
                 p_uuid=process_uuid,
                 s_uuid=state_uuid
             )
-    
+
     def test_create_part_of_relationship(self, neo4j_driver, loaded_ontology):
         """Test creating PART_OF relationship between entities."""
         part_uuid = f"entity-test-part-{uuid4()}"
         whole_uuid = f"entity-test-whole-{uuid4()}"
-        
+
         with neo4j_driver.session() as session:
             # Create nodes
             session.run(
@@ -455,7 +453,7 @@ class TestRelationshipCreation:
                 e_uuid=whole_uuid,
                 e_name="TestWhole"
             )
-            
+
             # Create relationship
             result = session.run(
                 """
@@ -469,7 +467,7 @@ class TestRelationshipCreation:
             )
             rel = result.single()
             assert rel is not None
-            
+
             # Cleanup
             session.run(
                 "MATCH (part:Entity {uuid: $part_uuid})-[r:PART_OF]->(whole:Entity {uuid: $whole_uuid}) DELETE r, part, whole",
@@ -480,7 +478,7 @@ class TestRelationshipCreation:
 
 class TestRelationshipTraversal:
     """Test traversing relationships in the graph."""
-    
+
     def test_traverse_is_a_for_type_lookup(self, neo4j_driver, loaded_test_data):
         """Test traversing IS_A relationship to find entity type."""
         with neo4j_driver.session() as session:
@@ -495,7 +493,7 @@ class TestRelationshipTraversal:
             assert record is not None
             assert record["entity_name"] == "RobotArm01"
             assert record["concept_name"] == "Manipulator"
-    
+
     def test_traverse_has_state_for_current_state(self, neo4j_driver, loaded_test_data):
         """Test traversing HAS_STATE relationship to find current state."""
         with neo4j_driver.session() as session:
@@ -511,7 +509,7 @@ class TestRelationshipTraversal:
             record = result.single()
             assert record is not None
             assert record["state_name"] == "ArmHomeState"
-    
+
     def test_traverse_causes_for_causal_chain(self, neo4j_driver, loaded_test_data):
         """Test traversing CAUSES relationships to trace causal chain."""
         with neo4j_driver.session() as session:
@@ -526,7 +524,7 @@ class TestRelationshipTraversal:
             assert record is not None
             assert record["process_name"] == "GraspRedBlock"
             assert record["state_name"] == "GripperClosedState"
-    
+
     def test_traverse_multi_hop_causal_chain(self, neo4j_driver, loaded_test_data):
         """Test traversing multi-hop causal chains."""
         with neo4j_driver.session() as session:
@@ -543,7 +541,7 @@ class TestRelationshipTraversal:
             assert record is not None
             # Should find a state in the causal chain
             assert record["chain_length"] > 0
-    
+
     def test_traverse_part_of_for_composition(self, neo4j_driver, loaded_test_data):
         """Test traversing PART_OF relationships for composition hierarchy."""
         with neo4j_driver.session() as session:
@@ -556,7 +554,7 @@ class TestRelationshipTraversal:
                 """
             )
             parts = [record["part_name"] for record in result]
-            
+
             # Should include gripper and joints
             assert "Gripper01" in parts
             assert any("Joint" in p for p in parts)
@@ -565,7 +563,7 @@ class TestRelationshipTraversal:
 
 class TestQueryOperations:
     """Test various query operations on the graph."""
-    
+
     def test_query_entity_by_uuid(self, neo4j_driver, loaded_test_data):
         """Test querying entity by UUID."""
         with neo4j_driver.session() as session:
@@ -576,7 +574,7 @@ class TestQueryOperations:
             record = result.single()
             assert record is not None
             assert record["name"] == "RobotArm01"
-    
+
     def test_query_entity_by_name(self, neo4j_driver, loaded_test_data):
         """Test querying entity by name."""
         with neo4j_driver.session() as session:
@@ -587,7 +585,7 @@ class TestQueryOperations:
             record = result.single()
             assert record is not None
             assert record["uuid"] == "entity-robot-arm-01"
-    
+
     def test_query_states_by_timestamp(self, neo4j_driver, loaded_test_data):
         """Test querying states by timestamp range."""
         with neo4j_driver.session() as session:
@@ -601,7 +599,7 @@ class TestQueryOperations:
             record = result.single()
             assert record is not None
             assert record["state_count"] > 0
-    
+
     def test_query_processes_by_start_time(self, neo4j_driver, loaded_test_data):
         """Test querying processes by start time."""
         with neo4j_driver.session() as session:
@@ -615,7 +613,7 @@ class TestQueryOperations:
             record = result.single()
             assert record is not None
             assert record["process_count"] > 0
-    
+
     def test_count_nodes_by_type(self, neo4j_driver, loaded_test_data):
         """Test counting nodes by type."""
         with neo4j_driver.session() as session:
@@ -623,17 +621,17 @@ class TestQueryOperations:
             result = session.run("MATCH (e:Entity) RETURN count(e) AS count")
             entity_count = result.single()["count"]
             assert entity_count > 0
-            
+
             # Count concepts
             result = session.run("MATCH (c:Concept) RETURN count(c) AS count")
             concept_count = result.single()["count"]
             assert concept_count > 0
-            
+
             # Count states
             result = session.run("MATCH (s:State) RETURN count(s) AS count")
             state_count = result.single()["count"]
             assert state_count > 0
-            
+
             # Count processes
             result = session.run("MATCH (p:Process) RETURN count(p) AS count")
             process_count = result.single()["count"]
