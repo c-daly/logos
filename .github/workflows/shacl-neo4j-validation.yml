@@ -51,8 +51,14 @@ jobs:
           # Download n10s plugin for Neo4j 5.x (5.14.0 compatible with Neo4j 5.13)
           wget -q https://github.com/neo4j-labs/neosemantics/releases/download/5.14.0/neosemantics-5.14.0.jar
           
+          # Verify download succeeded
+          ls -lh neosemantics-5.14.0.jar
+          
           # Copy plugin into Neo4j container
           docker cp neosemantics-5.14.0.jar logos-hcg-neo4j:/var/lib/neo4j/plugins/
+          
+          # Verify plugin was copied
+          docker exec logos-hcg-neo4j ls -lh /var/lib/neo4j/plugins/
           
           # Restart Neo4j to load the plugin
           docker restart logos-hcg-neo4j
@@ -64,18 +70,27 @@ jobs:
           echo "Waiting for Neo4j to be ready..."
           timeout 180 bash -c 'until docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "RETURN 1 AS test" 2>/dev/null | grep -q "test"; do sleep 5; done'
           echo "✓ Neo4j is ready"
+          # Give Neo4j extra time to finish loading plugins
+          sleep 15
       
       - name: Check Neo4j logs for plugin initialization
         run: |
           echo "Checking Neo4j logs for plugin status..."
-          docker logs logos-hcg-neo4j 2>&1 | tail -50
+          docker logs logos-hcg-neo4j 2>&1 | tail -100
       
       - name: Verify n10s plugin is loaded
         run: |
           echo "Verifying n10s plugin..."
           docker exec logos-hcg-neo4j \
             cypher-shell -u neo4j -p logosdev \
-            "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'n10s' RETURN count(name) AS count"
+            "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'n10s' RETURN count(name) AS count" || {
+            echo "Failed to verify n10s plugin"
+            echo "Checking plugins directory:"
+            docker exec logos-hcg-neo4j ls -la /var/lib/neo4j/plugins/
+            echo "Checking Neo4j version and config:"
+            docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "CALL dbms.components() YIELD name, versions RETURN name, versions"
+            exit 1
+          }
       
       - name: Load core ontology
         run: |
