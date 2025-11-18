@@ -7,6 +7,11 @@ These models represent the four primary node types in the HCG:
 - State: Temporal snapshots of entity properties
 - Process: Actions that cause state changes
 
+Each node type includes embedding metadata for vector integration (Section 4.2):
+- embedding_id: Reference to vector in Milvus
+- embedding_model: Model used for embedding generation
+- last_sync: Timestamp of last vector sync
+
 See Project LOGOS spec: Section 4.1 for ontology structure.
 """
 
@@ -15,6 +20,26 @@ from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
+
+
+class EmbeddingMetadata(BaseModel):
+    """
+    Embedding metadata for vector integration (Section 4.2).
+    
+    Properties:
+    - embedding_id: Reference to vector in Milvus (matches node UUID)
+    - embedding_model: Model used to generate the embedding
+    - last_sync: Timestamp of last synchronization with Milvus
+    """
+    embedding_id: str | None = None
+    embedding_model: str | None = None
+    last_sync: datetime | None = None
+
+    model_config = ConfigDict(
+        json_encoders={
+            datetime: lambda v: v.isoformat() if v else None,
+        }
+    )
 
 
 class Entity(BaseModel):
@@ -27,6 +52,7 @@ class Entity(BaseModel):
     - description: Optional description
     - created_at: Timestamp of creation
     - Additional properties for spatial/physical entities (width, height, depth, etc.)
+    - Embedding metadata (Section 4.2): embedding_id, embedding_model, last_sync
     """
     uuid: UUID
     name: str | None = None
@@ -49,6 +75,11 @@ class Entity(BaseModel):
     min_angle: float | None = None
     max_angle: float | None = None
 
+    # Vector embedding metadata (Section 4.2)
+    embedding_id: str | None = None
+    embedding_model: str | None = None
+    last_sync: datetime | None = None
+
     # Store any additional properties from Neo4j
     extra_properties: dict[str, Any] = Field(default_factory=dict)
 
@@ -68,10 +99,16 @@ class Concept(BaseModel):
     - uuid: Unique identifier (required)
     - name: Concept name (required, unique)
     - description: Optional description
+    - Embedding metadata (Section 4.2): embedding_id, embedding_model, last_sync
     """
     uuid: UUID
     name: str
     description: str | None = None
+
+    # Vector embedding metadata (Section 4.2)
+    embedding_id: str | None = None
+    embedding_model: str | None = None
+    last_sync: datetime | None = None
 
     # Store any additional properties from Neo4j
     extra_properties: dict[str, Any] = Field(default_factory=dict)
@@ -79,6 +116,7 @@ class Concept(BaseModel):
     model_config = ConfigDict(
         json_encoders={
             UUID: str,
+            datetime: lambda v: v.isoformat() if v else None,
         }
     )
 
@@ -95,6 +133,7 @@ class State(BaseModel):
     - Orientation: orientation_roll, orientation_pitch, orientation_yaw
     - Boolean flags: is_grasped, is_closed, is_empty
     - Physical: grasp_width, applied_force
+    - Embedding metadata (Section 4.2): embedding_id, embedding_model, last_sync
     """
     uuid: UUID
     timestamp: datetime
@@ -119,6 +158,11 @@ class State(BaseModel):
     grasp_width: float | None = Field(None, ge=0)
     applied_force: float | None = Field(None, ge=0)
 
+    # Vector embedding metadata (Section 4.2)
+    embedding_id: str | None = None
+    embedding_model: str | None = None
+    last_sync: datetime | None = None
+
     # Store any additional properties from Neo4j
     extra_properties: dict[str, Any] = Field(default_factory=dict)
 
@@ -140,12 +184,18 @@ class Process(BaseModel):
     - name: Optional process name
     - description: Optional description
     - duration_ms: Duration in milliseconds
+    - Embedding metadata (Section 4.2): embedding_id, embedding_model, last_sync
     """
     uuid: UUID
     start_time: datetime
     name: str | None = None
     description: str | None = None
     duration_ms: int | None = Field(None, ge=0)
+
+    # Vector embedding metadata (Section 4.2)
+    embedding_id: str | None = None
+    embedding_model: str | None = None
+    last_sync: datetime | None = None
 
     # Store any additional properties from Neo4j
     extra_properties: dict[str, Any] = Field(default_factory=dict)
