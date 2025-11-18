@@ -109,17 +109,22 @@ Demonstrate that the HCG (Neo4j + Milvus hybrid system) can store and retrieve e
 
 ### Automated Smoke Tests
 
-See: `tests/phase1/test_m1_hcg_store_retrieve.py`
+See: `tests/phase1/test_m1_neo4j_crud.py`
 
 The automated test verifies:
 - Neo4j connection and authentication
 - Ontology script execution without errors
-- Entity creation with UUID constraints
+- Constraints and indexes created (entity UUID, concept UUID/name, state UUID, process UUID)
+- Entity creation with UUID constraints and prefix validation (entity-*)
+- Concept creation with UUID constraints and name uniqueness (concept-*)
+- State creation with UUID constraints (state-*)
+- Process creation with UUID constraints (process-*)
 - Relationship creation (IS_A, HAS_STATE, CAUSES, PART_OF)
+- Relationship traversal (type lookup via IS_A, current state via HAS_STATE, causal chains via CAUSES/PRECEDES, composition via PART_OF)
 - Query operations (by UUID, by name, by timestamp)
-- Constraint enforcement (UUID uniqueness, format validation)
+- Constraint enforcement (UUID uniqueness, name uniqueness)
 
-**Status**: ✅ Implemented - [![M1 Gate](https://github.com/c-daly/logos/actions/workflows/test.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/test.yml) (Manual verification required for Neo4j integration)
+**Status**: ✅ Implemented - [![M1 Gate](https://github.com/c-daly/logos/actions/workflows/m1-neo4j-crud.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m1-neo4j-crud.yml) (26 tests passing)
 
 ---
 
@@ -546,9 +551,9 @@ Phase 2 work **MUST NOT** begin until ALL of the following criteria are met:
 - [ ] M4 verification checklist 100% complete
 
 #### 2. Automated Tests Passing
-- [ ] M1: Manual verification (integration tests deferred - requires Neo4j)
-- [ ] M2: [![M2 Gate](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml) `test_m2_shacl_validation.py` passes
-- [ ] M3: [![M3 Gate](https://github.com/c-daly/logos/actions/workflows/m3-planning.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m3-planning.yml) `test_m3_planning.py` passes
+- [x] M1: [![M1 Gate](https://github.com/c-daly/logos/actions/workflows/m1-neo4j-crud.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m1-neo4j-crud.yml) `test_m1_neo4j_crud.py` passes (26 tests)
+- [x] M2: [![M2 Gate](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml) `test_m2_shacl_validation.py` passes
+- [x] M3: [![M3 Gate](https://github.com/c-daly/logos/actions/workflows/m3-planning.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m3-planning.yml) `test_m3_planning.py` passes
 - [ ] All existing tests continue to pass
 - [ ] No security vulnerabilities in changed code (CodeQL clean)
 
@@ -617,17 +622,16 @@ In exceptional circumstances, the gate can be overridden with proper justificati
 
 **Overall Status**: 🟢 **Automated Tests Passing** | ⏸️ **Manual Verification Pending**
 
-**Last Updated**: 2025-11-17
+**Last Updated**: 2025-11-18
 
 **Milestone Badge Status**:
-- **M1** (HCG Store/Retrieve): ⏸️ Manual verification required
+- **M1** (HCG Store/Retrieve): [![M1 Gate](https://github.com/c-daly/logos/actions/workflows/m1-neo4j-crud.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m1-neo4j-crud.yml) - 26 tests passing
 - **M2** (SHACL Validation): [![M2 Gate](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml) - 8 tests passing
 - **M3** (Planning): [![M3 Gate](https://github.com/c-daly/logos/actions/workflows/m3-planning.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m3-planning.yml) - 11 tests passing
 - **M4** (End-to-End Demo): ⏸️ Manual verification required
 
 **Next Steps**:
-1. Complete M1 manual demonstration (HCG store/retrieve)
-2. Complete Sophia/Talos/Apollo integration for M4
+1. Complete Sophia/Talos/Apollo integration for M4
 3. Complete M4 manual demonstration (end-to-end demo)
 5. Integrate components for M4 demo
 
