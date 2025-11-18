@@ -35,8 +35,12 @@ The n10s plugin must be installed manually (NOT via `NEO4JLABS_PLUGINS`) because
 # Download n10s plugin for Neo4j 5.13.0 (use 5.14.0 which is compatible)
 wget https://github.com/neo4j-labs/neosemantics/releases/download/5.14.0/neosemantics-5.14.0.jar
 
-# Copy into Neo4j container
-docker cp neosemantics-5.14.0.jar logos-hcg-neo4j:/var/lib/neo4j/plugins/
+# Copy into Neo4j container's /plugins directory
+docker cp neosemantics-5.14.0.jar logos-hcg-neo4j:/plugins/
+
+# Fix permissions (Neo4j runs as user 'neo4j')
+docker exec logos-hcg-neo4j chown neo4j:neo4j /plugins/neosemantics-5.14.0.jar
+docker exec logos-hcg-neo4j chmod 644 /plugins/neosemantics-5.14.0.jar
 
 # Restart Neo4j to load the plugin
 docker restart logos-hcg-neo4j
