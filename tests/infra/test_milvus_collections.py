@@ -3,10 +3,13 @@ Tests for Milvus collection initialization
 
 Verifies that the init_milvus_collections.py script correctly creates
 and configures collections for HCG embeddings.
+
+These tests require a running Milvus instance on localhost:19530.
+If Milvus is not available, tests will be skipped.
 """
 
 import pytest
-from pymilvus import Collection, connections, utility
+from pymilvus import Collection, MilvusException, connections, utility
 
 # Expected collections per Section 4.1 (Core Ontology)
 EXPECTED_COLLECTIONS = [
@@ -20,6 +23,27 @@ EXPECTED_COLLECTIONS = [
 EXPECTED_FIELDS = ["uuid", "embedding", "embedding_model", "last_sync"]
 
 
+def _check_milvus_available():
+    """Check if Milvus is available for testing."""
+    try:
+        connections.connect(
+            alias="test_connection",
+            host="localhost",
+            port="19530",
+        )
+        connections.disconnect("test_connection")
+        return True
+    except Exception:
+        return False
+
+
+# Skip all tests in this module if Milvus is not available
+pytestmark = pytest.mark.skipif(
+    not _check_milvus_available(),
+    reason="Milvus is not available on localhost:19530"
+)
+
+
 @pytest.fixture(scope="module")
 def milvus_connection():
     """Connect to Milvus for testing."""
@@ -30,8 +54,13 @@ def milvus_connection():
             port="19530",
         )
         yield
+    except MilvusException as e:
+        pytest.skip(f"Cannot connect to Milvus: {e}")
     finally:
-        connections.disconnect("default")
+        try:
+            connections.disconnect("default")
+        except Exception:
+            pass
 
 
 class TestMilvusCollections:
