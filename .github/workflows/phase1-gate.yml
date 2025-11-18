@@ -146,7 +146,6 @@ jobs:
       
       - name: Check for Phase 2 indicators in PR
         run: |
-          set -e
           echo "Checking PR for Phase 2 work..."
           
           # Check PR title and description
@@ -160,10 +159,14 @@ jobs:
           
           # Check changed files for Phase 2 markers
           # Use GitHub's built-in base and head refs for PRs
-          if git diff origin/${{ github.base_ref }}...HEAD --name-only > changed_files.txt 2>/dev/null; then
-            if grep -qiE "phase.?2|phase.?ii" changed_files.txt 2>/dev/null; then
-              echo "::warning::Changed files may contain Phase 2 work"
-              echo "phase2_in_files=true" >> $GITHUB_ENV
+          if git diff origin/${{ github.base_ref }}...HEAD --name-only > changed_files.txt 2>&1; then
+            if [ -s changed_files.txt ]; then
+              if grep -qiE "phase.?2|phase.?ii" changed_files.txt || true; then
+                if grep -iE "phase.?2|phase.?ii" changed_files.txt > /dev/null 2>&1; then
+                  echo "::warning::Changed files may contain Phase 2 work"
+                  echo "phase2_in_files=true" >> $GITHUB_ENV
+                fi
+              fi
             fi
           else
             echo "::notice::Could not check changed files for Phase 2 markers"
@@ -171,3 +174,4 @@ jobs:
           
           # This is informational only - doesn't block PR
           echo "Phase 2 check complete. Gate status determines if Phase 2 work is allowed."
+          exit 0
