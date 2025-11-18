@@ -11,6 +11,47 @@ import sys
 from pathlib import Path
 
 from neo4j import GraphDatabase
+from neo4j.exceptions import Neo4jError
+
+
+def configure_n10s(session, vocab_mode: str = "MAP") -> None:
+    """Reset n10s graph config and set vocab handling/prefixes."""
+    print(f"Configuring n10s graph (drop + init; handleVocabUris={vocab_mode})...")
+    try:
+        session.run("CALL n10s.graphconfig.drop()")
+    except Neo4jError as exc:  # drop can fail if no config exists yet
+        print(f"Graph config drop warning (ignored): {exc}")
+
+    session.run(
+        """
+        CALL n10s.graphconfig.init({
+          handleVocabUris: $vocab_mode,
+          handleRDFTypes: 'LABELS',
+          handleMultival: 'ARRAY',
+          keepLangTag: true
+        });
+        """,
+        vocab_mode=vocab_mode,
+    )
+
+    # Ensure prefix is registered so n10s keeps full IRIs instead of stripping them
+    try:
+        session.run("CALL n10s.nsprefixes.remove('logos')")
+    except Neo4jError:
+        pass
+    session.run("CALL n10s.nsprefixes.add('logos', 'http://logos.ontology/')")
+
+    cfg = session.run("CALL n10s.graphconfig.show()").single()
+    print(f"n10s graph config now: {cfg}")
+
+
+def import_shapes(session, rdf_text: str) -> None:
+    session.run(
+        """
+        CALL n10s.validation.shacl.import.inline($rdf, "Turtle")
+        """,
+        rdf=rdf_text,
+    )
 
 
 def main() -> int:
@@ -32,65 +73,56 @@ def main() -> int:
 
     rdf_text = shapes_path.read_text(encoding="utf-8")
 
-    with driver.session(database="neo4j") as session:
-        # Verify n10s procedures are available
-        procedures = [
-            p[0]
-            for p in session.run(
-                "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'n10s' RETURN name"
-            ).values()
-        ]
+    try:
+        with driver.session(database="neo4j") as session:
+            # Verify n10s procedures are available
+            procedures = [
+                p[0]
+                for p in session.run(
+                    "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'n10s' RETURN name"
+                ).values()
+            ]
 
-        if not procedures:
-            print("✗ n10s procedures not found. Check plugin installation.", file=sys.stderr)
-            return 1
+            if not procedures:
+                print("✗ n10s procedures not found. Check plugin installation.", file=sys.stderr)
+                return 1
 
-        # Clear existing shapes if possible
-        if "n10s.validation.shacl.clear" in procedures:
-            print("Clearing existing SHACL shapes with n10s.validation.shacl.clear()...")
-            session.run("CALL n10s.validation.shacl.clear();")
-        elif "n10s.validation.shacl.dropShapes" in procedures:
-            print("Clearing existing SHACL shapes with n10s.validation.shacl.dropShapes()...")
-            session.run("CALL n10s.validation.shacl.dropShapes();")
-        else:
-            print("⚠️ No SHACL clear/drop procedure available; continuing without clearing existing shapes.")
+            # Clear existing shapes if possible
+            if "n10s.validation.shacl.clear" in procedures:
+                print("Clearing existing SHACL shapes with n10s.validation.shacl.clear()...")
+                session.run("CALL n10s.validation.shacl.clear();")
+            elif "n10s.validation.shacl.dropShapes" in procedures:
+                print("Clearing existing SHACL shapes with n10s.validation.shacl.dropShapes()...")
+                session.run("CALL n10s.validation.shacl.dropShapes();")
+            else:
+                print("⚠️ No SHACL clear/drop procedure available; continuing without clearing existing shapes.")
 
-        # Initialize graph config to be namespace aware
-        print("Initializing n10s graph configuration (MAP vocab URIs)...")
-        session.run(
-            """
-            CALL n10s.graphconfig.init({
-              handleVocabUris: 'MAP',
-              handleMultival: 'ARRAY',
-              keepLangTag: true,
-              handleRDFTypes: 'LABELS'
-            })
-            """
-        )
+            configure_n10s(session, vocab_mode="MAP")
 
-        # Register prefix for logos ontology to satisfy namespace requirement
-        session.run(
-            "CALL n10s.nsprefixes.add('logos', 'http://logos.ontology/')"
-        )
+            print(f"Loading SHACL shapes inline from {shapes_path} ...")
+            try:
+                import_shapes(session, rdf_text)
+            except Neo4jError as exc:
+                # Retry with SHORTEN if namespace-awareness still not honored
+                if "UriNamespaceHasNoAssociatedPrefix" in str(exc):
+                    print("Namespace error during import; retrying after reconfiguring with SHORTEN...")
+                    configure_n10s(session, vocab_mode="SHORTEN")
+                    import_shapes(session, rdf_text)
+                else:
+                    raise
 
-        print(f"Loading SHACL shapes inline from {shapes_path} ...")
-        # Import shapes; n10s returns no rows if called without YIELD
-        session.run(
-            """
-            CALL n10s.validation.shacl.import.inline($rdf, "Turtle")
-            """,
-            rdf=rdf_text,
-        )
+            # Verify shapes are present
+            shapes_count = session.run(
+                "CALL n10s.validation.shacl.listShapes() YIELD name RETURN count(*) AS count"
+            ).single()["count"]
 
-        # Verify shapes are present
-        shapes_count = session.run(
-            "CALL n10s.validation.shacl.listShapes() YIELD name RETURN count(*) AS count"
-        ).single()["count"]
-
-        print(f"✓ SHACL shapes loaded via n10s; shapes listed: {shapes_count}")
-        if shapes_count == 0:
-            print("✗ No SHACL shapes found after import", file=sys.stderr)
-            return 1
+            print(f"✓ SHACL shapes loaded via n10s; shapes listed: {shapes_count}")
+            if shapes_count == 0:
+                print("✗ No SHACL shapes found after import", file=sys.stderr)
+                return 1
+    except Neo4jError as exc:
+        print(f"✗ Neo4j error during SHACL load: {exc}", file=sys.stderr)
+        return 1
 
     print("✓ SHACL shapes loaded via n10s")
     return 0
