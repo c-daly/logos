@@ -130,6 +130,34 @@ jobs:
             --shapes ontology/shacl_shapes.ttl
           echo "" >> $GITHUB_STEP_SUMMARY
       
+      - name: Run SHACL Neo4j validation tests
+        run: |
+          echo "## Running SHACL Neo4j Validation Tests" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          export NEO4J_URI=bolt://localhost:7687
+          export NEO4J_USER=neo4j
+          export NEO4J_PASSWORD=logosdev
+          
+          pytest tests/phase1/test_shacl_neo4j_validation.py -v --tb=short 2>&1 | tee neo4j_validation_output.txt
+          
+          if [ ${PIPESTATUS[0]} -eq 0 ]; then
+            echo "✅ **PASSED**: All Neo4j SHACL validation tests passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **FAILED**: Some Neo4j SHACL validation tests failed" >> $GITHUB_STEP_SUMMARY
+            cat neo4j_validation_output.txt >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Upload test outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: neo4j-validation-test-outputs
+          path: neo4j_validation_output.txt
+          retention-days: 30
+      
       - name: Cleanup
         if: always()
         run: |
@@ -142,9 +170,12 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "---" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✅ **SHACL VALIDATION SMOKE TEST PASSED**" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **SHACL VALIDATION VIA NEO4J TESTS PASSED**" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- n10s plugin loaded successfully" >> $GITHUB_STEP_SUMMARY
           echo "- SHACL shapes imported successfully via n10s" >> $GITHUB_STEP_SUMMARY
+          echo "- Valid entities passed validation" >> $GITHUB_STEP_SUMMARY
+          echo "- Invalid entities correctly rejected with violations" >> $GITHUB_STEP_SUMMARY
+          echo "- Bad writes (wrong UUID prefix, missing properties) rejected" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "See \`docs/PHASE1_VERIFY.md\` for complete M2 checklist and local validation instructions." >> $GITHUB_STEP_SUMMARY
