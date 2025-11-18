@@ -137,7 +137,6 @@ jobs:
     name: Prevent Phase 2 Work
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
-    needs: check-gate-status
     
     steps:
       - name: Checkout repository
