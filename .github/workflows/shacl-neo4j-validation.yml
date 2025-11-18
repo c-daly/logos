@@ -54,15 +54,15 @@ jobs:
           # Verify download succeeded
           ls -lh neosemantics-5.14.0.jar
           
-          # Copy plugin into Neo4j container's /plugins directory (NOT /var/lib/neo4j/plugins/)
-          docker cp neosemantics-5.14.0.jar logos-hcg-neo4j:/plugins/neosemantics-5.14.0.jar
+          # Copy plugin into Neo4j container's plugins directory
+          docker cp neosemantics-5.14.0.jar logos-hcg-neo4j:/var/lib/neo4j/plugins/neosemantics-5.14.0.jar
           
-          # Fix permissions - Neo4j runs as UID 7474
-          docker exec logos-hcg-neo4j chown neo4j:neo4j /plugins/neosemantics-5.14.0.jar
-          docker exec logos-hcg-neo4j chmod 644 /plugins/neosemantics-5.14.0.jar
+          # Fix permissions - Neo4j runs as user neo4j
+          docker exec logos-hcg-neo4j chown neo4j:neo4j /var/lib/neo4j/plugins/neosemantics-5.14.0.jar
+          docker exec logos-hcg-neo4j chmod 644 /var/lib/neo4j/plugins/neosemantics-5.14.0.jar
           
           # Verify plugin was copied with correct permissions
-          docker exec logos-hcg-neo4j ls -lh /plugins/
+          docker exec logos-hcg-neo4j ls -lh /var/lib/neo4j/plugins/
           
           # Restart Neo4j to load the plugin
           docker restart logos-hcg-neo4j
@@ -85,14 +85,21 @@ jobs:
       - name: Verify n10s plugin is loaded
         run: |
           echo "Verifying n10s plugin..."
-          docker exec logos-hcg-neo4j \
-            cypher-shell -u neo4j -p logosdev \
-            "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'n10s' RETURN count(name) AS count" || {
+          timeout 60 bash -c '
+            until docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+              "SHOW PROCEDURES YIELD name WHERE name STARTS WITH \"n10s\" RETURN count(name) AS count" 2>/dev/null | grep -q "count"; do
+              echo "waiting for n10s procedures..."
+              sleep 3
+            done
+          '
+          docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+            "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'n10s' RETURN name" || {
             echo "Failed to verify n10s plugin"
             echo "Checking plugins directory:"
             docker exec logos-hcg-neo4j ls -la /var/lib/neo4j/plugins/
             echo "Checking Neo4j version and config:"
             docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "CALL dbms.components() YIELD name, versions RETURN name, versions"
+            docker logs logos-hcg-neo4j | tail -200
             exit 1
           }
       
