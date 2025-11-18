@@ -98,33 +98,6 @@ def setup_neo4j_base(neo4j_session):
     neo4j_session.run("MATCH (n) DETACH DELETE n")
 
 
-def _reconfigure_n10s(session, vocab_mode: str = "MAP"):
-    """Reconfigure n10s with specified vocab mode."""
-    try:
-        session.run("CALL n10s.graphconfig.drop()")
-    except Neo4jError:
-        pass
-
-    session.run(
-        """
-        CALL n10s.graphconfig.init({
-          handleVocabUris: $vocab_mode,
-          handleRDFTypes: 'LABELS',
-          handleMultival: 'ARRAY',
-          keepLangTag: true
-        })
-        """,
-        vocab_mode=vocab_mode
-    )
-
-    # Re-register namespace
-    try:
-        session.run("CALL n10s.nsprefixes.remove('logos')")
-    except Neo4jError:
-        pass
-    session.run("CALL n10s.nsprefixes.add('logos', 'http://logos.ontology/')")
-
-
 @pytest.fixture(scope="function")
 def setup_neo4j(setup_neo4j_base):
     """Set up Neo4j with SHACL shapes for each test."""
@@ -136,25 +109,11 @@ def setup_neo4j(setup_neo4j_base):
         shapes_file = Path(__file__).parent.parent.parent / "ontology" / "shacl_shapes.ttl"
         shapes_text = shapes_file.read_text(encoding="utf-8")
 
-        # Rewrite URIs to use neo4j:// scheme as done in load_shacl_via_n10s.py
-        shapes_rewritten = shapes_text.replace("http://logos.ontology/", "neo4j://graph.schema#")
-
-        # Load SHACL shapes with error handling for namespace issues
-        try:
-            setup_neo4j_base.run(
-                "CALL n10s.validation.shacl.import.inline($rdf, 'Turtle')",
-                rdf=shapes_rewritten
-            )
-        except Neo4jError as e:
-            # If we get a namespace error, retry with SHORTEN mode
-            if "UriNamespaceHasNoAssociatedPrefix" in str(e):
-                _reconfigure_n10s(setup_neo4j_base, vocab_mode="SHORTEN")
-                setup_neo4j_base.run(
-                    "CALL n10s.validation.shacl.import.inline($rdf, 'Turtle')",
-                    rdf=shapes_rewritten
-                )
-            else:
-                raise
+        # Load SHACL shapes (keep original namespace to match imported data)
+        setup_neo4j_base.run(
+            "CALL n10s.validation.shacl.import.inline($rdf, 'Turtle')",
+            rdf=shapes_text
+        )
 
         # Verify shapes are now loaded
         shapes_count = len(setup_neo4j_base.run("CALL n10s.validation.shacl.listShapes()").data())
@@ -213,13 +172,10 @@ def test_validate_valid_entities(setup_neo4j):
     valid_file = Path(__file__).parent / "fixtures" / "valid_entities.ttl"
     valid_text = valid_file.read_text(encoding="utf-8")
 
-    # Rewrite URIs to match the shapes loaded by workflow (neo4j://graph.schema#)
-    valid_text_rewritten = valid_text.replace("http://logos.ontology/", "neo4j://graph.schema#")
-
-    # Import valid data
+    # Import valid data (keep original namespace)
     setup_neo4j.run(
         "CALL n10s.rdf.import.inline($rdf, 'Turtle')",
-        rdf=valid_text_rewritten
+        rdf=valid_text
     )
 
     # Validate the data
@@ -245,13 +201,10 @@ def test_validate_invalid_entities(setup_neo4j):
     invalid_file = Path(__file__).parent / "fixtures" / "invalid_entities.ttl"
     invalid_text = invalid_file.read_text(encoding="utf-8")
 
-    # Rewrite URIs to match the shapes loaded by workflow (neo4j://graph.schema#)
-    invalid_text_rewritten = invalid_text.replace("http://logos.ontology/", "neo4j://graph.schema#")
-
-    # Import invalid data
+    # Import invalid data (keep original namespace)
     setup_neo4j.run(
         "CALL n10s.rdf.import.inline($rdf, 'Turtle')",
-        rdf=invalid_text_rewritten
+        rdf=invalid_text
     )
 
     # Validate the data
@@ -274,9 +227,9 @@ def test_validate_invalid_entities(setup_neo4j):
 
 def test_reject_bad_write_wrong_uuid_prefix(setup_neo4j):
     """Test that Neo4j rejects write with wrong UUID prefix through validation."""
-    # Create an entity with wrong UUID prefix
+    # Create an entity with wrong UUID prefix (keep original namespace)
     bad_entity_ttl = """
-        @prefix logos: <neo4j://graph.schema#> .
+        @prefix logos: <http://logos.ontology/> .
         @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
         logos:entity-bad-prefix a logos:Entity ;
@@ -317,9 +270,9 @@ def test_reject_bad_write_wrong_uuid_prefix(setup_neo4j):
 
 def test_reject_bad_write_missing_required_property(setup_neo4j):
     """Test that Neo4j rejects write with missing required property through validation."""
-    # Create a Concept without required 'name' field
+    # Create a Concept without required 'name' field (keep original namespace)
     bad_concept_ttl = """
-        @prefix logos: <neo4j://graph.schema#> .
+        @prefix logos: <http://logos.ontology/> .
 
         logos:concept-no-name a logos:Concept ;
             logos:uuid "concept-missing-name" .
@@ -349,9 +302,9 @@ def test_reject_bad_write_missing_required_property(setup_neo4j):
 
 def test_reject_bad_write_entity_missing_uuid(setup_neo4j):
     """Test that Neo4j rejects entity write with missing UUID."""
-    # Create an entity without UUID
+    # Create an entity without UUID (keep original namespace)
     bad_entity_ttl = """
-        @prefix logos: <neo4j://graph.schema#> .
+        @prefix logos: <http://logos.ontology/> .
 
         logos:entity-no-uuid a logos:Entity ;
             logos:name "EntityWithoutUUID" .
