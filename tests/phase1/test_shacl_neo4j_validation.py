@@ -213,10 +213,13 @@ def test_validate_valid_entities(setup_neo4j):
     valid_file = Path(__file__).parent / "fixtures" / "valid_entities.ttl"
     valid_text = valid_file.read_text(encoding="utf-8")
 
-    # Import valid data (keep original namespace)
+    # Rewrite URIs to match the shapes loaded by workflow (neo4j://graph.schema#)
+    valid_text_rewritten = valid_text.replace("http://logos.ontology/", "neo4j://graph.schema#")
+
+    # Import valid data
     setup_neo4j.run(
         "CALL n10s.rdf.import.inline($rdf, 'Turtle')",
-        rdf=valid_text
+        rdf=valid_text_rewritten
     )
 
     # Validate the data
@@ -242,10 +245,13 @@ def test_validate_invalid_entities(setup_neo4j):
     invalid_file = Path(__file__).parent / "fixtures" / "invalid_entities.ttl"
     invalid_text = invalid_file.read_text(encoding="utf-8")
 
-    # Import invalid data (keep original namespace)
+    # Rewrite URIs to match the shapes loaded by workflow (neo4j://graph.schema#)
+    invalid_text_rewritten = invalid_text.replace("http://logos.ontology/", "neo4j://graph.schema#")
+
+    # Import invalid data
     setup_neo4j.run(
         "CALL n10s.rdf.import.inline($rdf, 'Turtle')",
-        rdf=invalid_text
+        rdf=invalid_text_rewritten
     )
 
     # Validate the data
@@ -268,9 +274,9 @@ def test_validate_invalid_entities(setup_neo4j):
 
 def test_reject_bad_write_wrong_uuid_prefix(setup_neo4j):
     """Test that Neo4j rejects write with wrong UUID prefix through validation."""
-    # Create an entity with wrong UUID prefix (keep original namespace)
+    # Create an entity with wrong UUID prefix
     bad_entity_ttl = """
-        @prefix logos: <http://logos.ontology/> .
+        @prefix logos: <neo4j://graph.schema#> .
         @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
         logos:entity-bad-prefix a logos:Entity ;
@@ -311,9 +317,9 @@ def test_reject_bad_write_wrong_uuid_prefix(setup_neo4j):
 
 def test_reject_bad_write_missing_required_property(setup_neo4j):
     """Test that Neo4j rejects write with missing required property through validation."""
-    # Create a Concept without required 'name' field (keep original namespace)
+    # Create a Concept without required 'name' field
     bad_concept_ttl = """
-        @prefix logos: <http://logos.ontology/> .
+        @prefix logos: <neo4j://graph.schema#> .
 
         logos:concept-no-name a logos:Concept ;
             logos:uuid "concept-missing-name" .
@@ -343,9 +349,9 @@ def test_reject_bad_write_missing_required_property(setup_neo4j):
 
 def test_reject_bad_write_entity_missing_uuid(setup_neo4j):
     """Test that Neo4j rejects entity write with missing UUID."""
-    # Create an entity without UUID (keep original namespace)
+    # Create an entity without UUID
     bad_entity_ttl = """
-        @prefix logos: <http://logos.ontology/> .
+        @prefix logos: <neo4j://graph.schema#> .
 
         logos:entity-no-uuid a logos:Entity ;
             logos:name "EntityWithoutUUID" .
