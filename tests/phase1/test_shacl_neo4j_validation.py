@@ -60,7 +60,7 @@ def _clear_instance_data(session):
     session.run(
         """
         MATCH (n)
-        WHERE n:Entity OR n:Concept OR n:State OR n:Process OR exists(n.uuid)
+        WHERE n:Entity OR n:Concept OR n:State OR n:Process OR n.uuid IS NOT NULL
         DETACH DELETE n
         """
     )
