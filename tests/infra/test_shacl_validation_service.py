@@ -5,19 +5,18 @@ Tests for SHACL Validation Service API
 Tests the HTTP endpoints of the SHACL validation service.
 """
 
-import pytest
-from fastapi.testclient import TestClient
-
-
 # Import the app
 import sys
 from pathlib import Path
+
+import pytest
+from fastapi.testclient import TestClient
 
 # Add infra to path so we can import the service
 infra_path = Path(__file__).parent.parent.parent / "infra"
 sys.path.insert(0, str(infra_path))
 
-from shacl_validation_service import app, load_shacl_shapes
+from shacl_validation_service import app, load_shacl_shapes  # noqa: E402
 
 
 @pytest.fixture(scope="module")
@@ -73,7 +72,7 @@ logos:entity-test-001 a logos:Entity ;
     logos:name "Test Entity" ;
     logos:description "A valid test entity" .
 """
-    
+
     response = client.post(
         "/validate",
         json={
@@ -82,7 +81,7 @@ logos:entity-test-001 a logos:Entity ;
             "inference": "none"
         }
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["conforms"] is True
@@ -99,7 +98,7 @@ logos:entity-test-001 a logos:Entity ;
     logos:uuid "wrong-prefix-001" ;
     logos:name "Test Entity" .
 """
-    
+
     response = client.post(
         "/validate",
         json={
@@ -108,7 +107,7 @@ logos:entity-test-001 a logos:Entity ;
             "inference": "none"
         }
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["conforms"] is False
@@ -125,7 +124,7 @@ def test_validate_invalid_entity_missing_uuid(client):
 logos:entity-test-001 a logos:Entity ;
     logos:name "Test Entity" .
 """
-    
+
     response = client.post(
         "/validate",
         json={
@@ -134,7 +133,7 @@ logos:entity-test-001 a logos:Entity ;
             "inference": "none"
         }
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["conforms"] is False
@@ -152,7 +151,7 @@ logos:concept-test-001 a logos:Concept ;
     logos:name "TestConcept" ;
     logos:description "A valid test concept" .
 """
-    
+
     response = client.post(
         "/validate",
         json={
@@ -160,7 +159,7 @@ logos:concept-test-001 a logos:Concept ;
             "format": "turtle"
         }
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["conforms"] is True
@@ -176,7 +175,7 @@ def test_validate_invalid_concept_missing_name(client):
 logos:concept-test-001 a logos:Concept ;
     logos:uuid "concept-test-001" .
 """
-    
+
     response = client.post(
         "/validate",
         json={
@@ -184,7 +183,7 @@ logos:concept-test-001 a logos:Concept ;
             "format": "turtle"
         }
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["conforms"] is False
@@ -196,7 +195,7 @@ def test_validate_malformed_rdf(client):
     malformed_data = """
 This is not valid RDF data at all!
 """
-    
+
     response = client.post(
         "/validate",
         json={
@@ -204,7 +203,7 @@ This is not valid RDF data at all!
             "format": "turtle"
         }
     )
-    
+
     assert response.status_code == 400
     assert "Validation failed" in response.json()["detail"]
 
@@ -219,7 +218,7 @@ logos:entity-test-001 a logos:Entity ;
     logos:uuid "entity-test-001" ;
     logos:name "Test Entity" .
 """
-    
+
     response = client.post(
         "/validate",
         json={
@@ -228,7 +227,7 @@ logos:entity-test-001 a logos:Entity ;
             "inference": "rdfs"
         }
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert "conforms" in data
@@ -245,7 +244,7 @@ logos:entity-1 a logos:Entity ;
 logos:entity-2 a logos:Entity ;
     logos:uuid "wrong-002" .
 """
-    
+
     response = client.post(
         "/validate",
         json={
@@ -254,7 +253,7 @@ logos:entity-2 a logos:Entity ;
             "abort_on_first": True
         }
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["conforms"] is False
@@ -274,7 +273,7 @@ logos:entity-cube-001 a logos:Entity ;
     logos:depth "0.1"^^xsd:decimal ;
     logos:mass "0.5"^^xsd:decimal .
 """
-    
+
     response = client.post(
         "/validate",
         json={
@@ -282,7 +281,7 @@ logos:entity-cube-001 a logos:Entity ;
             "format": "turtle"
         }
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["conforms"] is True
@@ -301,7 +300,7 @@ logos:entity-cube-001 a logos:Entity ;
     logos:width "-0.1"^^xsd:decimal ;
     logos:height "0.1"^^xsd:decimal .
 """
-    
+
     response = client.post(
         "/validate",
         json={
@@ -309,7 +308,7 @@ logos:entity-cube-001 a logos:Entity ;
             "format": "turtle"
         }
     )
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["conforms"] is False
