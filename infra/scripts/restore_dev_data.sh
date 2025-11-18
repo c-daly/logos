@@ -71,6 +71,14 @@ EOF
 
 # Parse command line arguments
 parse_args() {
+    # Check for help flag first
+    for arg in "$@"; do
+        if [ "$arg" = "-h" ] || [ "$arg" = "--help" ]; then
+            usage
+            exit 0
+        fi
+    done
+    
     if [ $# -eq 0 ]; then
         print_error "Missing backup archive argument"
         usage
