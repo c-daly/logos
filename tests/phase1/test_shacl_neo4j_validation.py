@@ -102,7 +102,16 @@ def setup_neo4j_base(neo4j_session):
 def setup_neo4j(setup_neo4j_base):
     """Set up Neo4j with SHACL shapes for each test."""
     # Check if shapes are already loaded (e.g., by the workflow's load_shacl_via_n10s.py)
-    shapes_count = len(setup_neo4j_base.run("CALL n10s.validation.shacl.listShapes()").data())
+    # Note: listShapes() will fail if no shapes compiled yet, so we catch that exception
+    shapes_count = 0
+    try:
+        shapes_count = len(setup_neo4j_base.run("CALL n10s.validation.shacl.listShapes()").data())
+    except Neo4jError as e:
+        # If error is "No shapes compiled", shapes need to be loaded
+        if "No shapes compiled" in str(e):
+            shapes_count = 0
+        else:
+            raise
 
     if shapes_count == 0:
         # Shapes not loaded yet, load them now
