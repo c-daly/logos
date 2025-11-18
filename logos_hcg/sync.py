@@ -15,13 +15,11 @@ See Project LOGOS spec: Section 4.2 (Vector Integration)
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Literal
 from uuid import UUID
 
 from pymilvus import Collection, connections, utility
-
-from logos_hcg.models import Concept, Entity, Process, State
 
 logger = logging.getLogger(__name__)
 
@@ -188,7 +186,7 @@ class HCGMilvusSync:
         try:
             # Prepare data for insertion
             # Milvus uses upsert based on primary key (uuid)
-            timestamp = int(datetime.now(timezone.utc).timestamp())
+            timestamp = int(datetime.now(UTC).timestamp())
             data = [
                 [uuid_str],  # uuid
                 [embedding],  # embedding
@@ -205,7 +203,7 @@ class HCGMilvusSync:
             return {
                 "embedding_id": uuid_str,
                 "embedding_model": model,
-                "last_sync": datetime.now(timezone.utc),
+                "last_sync": datetime.now(UTC),
             }
 
         except Exception as e:
@@ -238,7 +236,7 @@ class HCGMilvusSync:
 
         try:
             # Prepare batch data
-            timestamp = int(datetime.now(timezone.utc).timestamp())
+            timestamp = int(datetime.now(UTC).timestamp())
             uuids = [str(e["uuid"]) for e in embeddings]
             vectors = [e["embedding"] for e in embeddings]
             models = [e["model"] for e in embeddings]
@@ -253,14 +251,14 @@ class HCGMilvusSync:
             logger.info(f"Batch upserted {len(embeddings)} embeddings for {node_type}")
 
             # Return metadata for each embedding
-            sync_time = datetime.now(timezone.utc)
+            sync_time = datetime.now(UTC)
             return [
                 {
                     "embedding_id": uuid,
                     "embedding_model": model,
                     "last_sync": sync_time,
                 }
-                for uuid, model in zip(uuids, models)
+                for uuid, model in zip(uuids, models, strict=True)
             ]
 
         except Exception as e:

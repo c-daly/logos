@@ -25,7 +25,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class EmbeddingMetadata(BaseModel):
     """
     Embedding metadata for vector integration (Section 4.2).
-    
+
     Properties:
     - embedding_id: Reference to vector in Milvus (matches node UUID)
     - embedding_model: Model used to generate the embedding
