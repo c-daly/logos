@@ -108,15 +108,12 @@ jobs:
         run: |
           echo "## SHACL Validation via Neo4j n10s" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          python ontology/load_and_validate_shacl.py \
+          python ontology/load_shacl_via_n10s.py \
             --uri bolt://localhost:7687 \
             --user neo4j \
             --password logosdev \
-            --shapes ontology/shacl_shapes.ttl \
-            --skip-validation
-          echo "✓ SHACL shapes loaded into Neo4j"
+            --shapes ontology/shacl_shapes.ttl
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✅ **SHACL shapes loaded successfully via n10s**" >> $GITHUB_STEP_SUMMARY
       
       - name: Cleanup
         if: always()
