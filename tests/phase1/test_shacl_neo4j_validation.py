@@ -18,6 +18,11 @@ import pytest
 from neo4j import GraphDatabase
 from neo4j.exceptions import Neo4jError
 
+RUN_NEO4J_SHACL = os.getenv("RUN_NEO4J_SHACL") == "1"
+pytestmark = pytest.mark.skipif(
+    not RUN_NEO4J_SHACL,
+    reason="Neo4j SHACL validation runs only when RUN_NEO4J_SHACL=1",
+)
 
 @pytest.fixture(scope="module")
 def neo4j_driver():
@@ -45,89 +50,79 @@ def neo4j_session(neo4j_driver):
         yield session
 
 
-@pytest.fixture(scope="module")
-def setup_neo4j_base(neo4j_session):
-    """Set up Neo4j base configuration (run once per module)."""
-    # Check if n10s procedures are available
-    procedures = [
+def _has_n10s(session):
+    """Return list of available n10s procedures."""
+    return [
         p[0]
-        for p in neo4j_session.run(
+        for p in session.run(
             "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'n10s' RETURN name"
         ).values()
     ]
 
-    if not procedures:
-        pytest.skip("n10s plugin not installed in Neo4j")
 
-    # Clear existing data and shapes
-    neo4j_session.run("MATCH (n) DETACH DELETE n")
-
-    # Clear existing SHACL shapes if procedure exists
-    if "n10s.validation.shacl.clear" in procedures:
-        neo4j_session.run("CALL n10s.validation.shacl.clear()")
-    elif "n10s.validation.shacl.dropShapes" in procedures:
-        neo4j_session.run("CALL n10s.validation.shacl.dropShapes()")
-
-    # Configure n10s
-    try:
-        neo4j_session.run("CALL n10s.graphconfig.drop()")
-    except Neo4jError:
-        pass  # Config may not exist
-
-    neo4j_session.run(
+def _clear_instance_data(session):
+    """Delete only user data, not SHACL shapes/config."""
+    session.run(
         """
-        CALL n10s.graphconfig.init({
-          handleVocabUris: 'MAP',
-          handleRDFTypes: 'LABELS',
-          handleMultival: 'ARRAY',
-          keepLangTag: true
-        })
+        MATCH (n)
+        WHERE n:Entity OR n:Concept OR n:State OR n:Process OR n.uuid IS NOT NULL
+        DETACH DELETE n
         """
     )
 
-    # Register namespace
-    try:
-        neo4j_session.run("CALL n10s.nsprefixes.remove('logos')")
-    except Neo4jError:
-        pass
-    neo4j_session.run("CALL n10s.nsprefixes.add('logos', 'http://logos.ontology/')")
 
-    yield neo4j_session
+def _ensure_shapes(session, procedures):
+    """Ensure SHACL shapes are loaded; load from disk if missing."""
+    shapes_count = len(session.run("CALL n10s.validation.shacl.listShapes()").data())
+    if shapes_count > 0:
+        return
 
-    # Cleanup after all tests
-    neo4j_session.run("MATCH (n) DETACH DELETE n")
-
-
-@pytest.fixture(scope="function")
-def setup_neo4j(setup_neo4j_base):
-    """Set up Neo4j with SHACL shapes for each test."""
-    # Load SHACL shapes for this test
     shapes_file = Path(__file__).parent.parent.parent / "ontology" / "shacl_shapes.ttl"
     shapes_text = shapes_file.read_text(encoding="utf-8")
 
-    # Clear any existing shapes before loading new ones
-    try:
-        setup_neo4j_base.run("CALL n10s.validation.shacl.clear()")
-    except Neo4jError:
-        try:
-            setup_neo4j_base.run("CALL n10s.validation.shacl.dropShapes()")
-        except Neo4jError:
-            pass  # Shapes might not exist yet
+    if "n10s.validation.shacl.clear" in procedures:
+        session.run("CALL n10s.validation.shacl.clear()")
+    elif "n10s.validation.shacl.dropShapes" in procedures:
+        session.run("CALL n10s.validation.shacl.dropShapes()")
 
-    # Load SHACL shapes (keep original namespace to match imported data)
-    setup_neo4j_base.run(
+    session.run(
         "CALL n10s.validation.shacl.import.inline($rdf, 'Turtle')",
-        rdf=shapes_text
+        rdf=shapes_text,
     )
 
-    # Verify shapes are loaded
-    shapes_count = len(setup_neo4j_base.run("CALL n10s.validation.shacl.listShapes()").data())
+
+@pytest.fixture(scope="function")
+def setup_neo4j(neo4j_session):
+    """Set up Neo4j with SHACL shapes for each test (lightweight, preserves shapes)."""
+    procedures = _has_n10s(neo4j_session)
+    if not procedures:
+        pytest.skip("n10s plugin not installed in Neo4j")
+
+    # Configure n10s if not already configured
+    try:
+        neo4j_session.run(
+            "CALL n10s.graphconfig.init({handleVocabUris:'MAP',handleRDFTypes:'LABELS',handleMultival:'ARRAY',keepLangTag:true})"
+        )
+    except Neo4jError:
+        pass  # Already configured is fine
+
+    # Register namespace if missing
+    try:
+        neo4j_session.run("CALL n10s.nsprefixes.add('logos', 'http://logos.ontology/')")
+    except Neo4jError:
+        pass
+
+    _ensure_shapes(neo4j_session, procedures)
+    _clear_instance_data(neo4j_session)
+
+    shapes_count = len(
+        neo4j_session.run("CALL n10s.validation.shacl.listShapes()").data()
+    )
     assert shapes_count > 0, "SHACL shapes should be loaded"
 
-    yield setup_neo4j_base
+    yield neo4j_session
 
-    # Clean up data (but not shapes) after each test
-    setup_neo4j_base.run("MATCH (n) WHERE NOT n:_GraphConfig AND NOT n:_NsPrefDef DETACH DELETE n")
+    _clear_instance_data(neo4j_session)
 
 
 def test_neo4j_connection(neo4j_session):
