@@ -98,6 +98,33 @@ def setup_neo4j_base(neo4j_session):
     neo4j_session.run("MATCH (n) DETACH DELETE n")
 
 
+def _reconfigure_n10s(session, vocab_mode: str = "MAP"):
+    """Reconfigure n10s with specified vocab mode."""
+    try:
+        session.run("CALL n10s.graphconfig.drop()")
+    except Neo4jError:
+        pass
+    
+    session.run(
+        """
+        CALL n10s.graphconfig.init({
+          handleVocabUris: $vocab_mode,
+          handleRDFTypes: 'LABELS',
+          handleMultival: 'ARRAY',
+          keepLangTag: true
+        })
+        """,
+        vocab_mode=vocab_mode
+    )
+    
+    # Re-register namespace
+    try:
+        session.run("CALL n10s.nsprefixes.remove('logos')")
+    except Neo4jError:
+        pass
+    session.run("CALL n10s.nsprefixes.add('logos', 'http://logos.ontology/')")
+
+
 @pytest.fixture(scope="function")
 def setup_neo4j(setup_neo4j_base):
     """Set up Neo4j with SHACL shapes for each test."""
@@ -114,11 +141,25 @@ def setup_neo4j(setup_neo4j_base):
         except Neo4jError:
             pass  # Shapes might not exist yet
 
-    # Load SHACL shapes (keep original namespace to match imported data)
-    setup_neo4j_base.run(
-        "CALL n10s.validation.shacl.import.inline($rdf, 'Turtle')",
-        rdf=shapes_text
-    )
+    # Rewrite URIs to use neo4j:// scheme as done in load_shacl_via_n10s.py
+    shapes_rewritten = shapes_text.replace("http://logos.ontology/", "neo4j://graph.schema#")
+
+    # Load SHACL shapes with error handling for namespace issues
+    try:
+        setup_neo4j_base.run(
+            "CALL n10s.validation.shacl.import.inline($rdf, 'Turtle')",
+            rdf=shapes_rewritten
+        )
+    except Neo4jError as e:
+        # If we get a namespace error, retry with SHORTEN mode
+        if "UriNamespaceHasNoAssociatedPrefix" in str(e):
+            _reconfigure_n10s(setup_neo4j_base, vocab_mode="SHORTEN")
+            setup_neo4j_base.run(
+                "CALL n10s.validation.shacl.import.inline($rdf, 'Turtle')",
+                rdf=shapes_rewritten
+            )
+        else:
+            raise
 
     # Verify shapes are loaded
     shapes_count = len(setup_neo4j_base.run("CALL n10s.validation.shacl.listShapes()").data())
