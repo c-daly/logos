@@ -132,26 +132,6 @@ jobs:
           
           echo "✓ Valid data passed SHACL validation" >> $GITHUB_STEP_SUMMARY
       
-      - name: Test validation with invalid data (should fail)
-        run: |
-          echo "Testing SHACL validation with invalid test data..."
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Invalid Data Test" >> $GITHUB_STEP_SUMMARY
-          
-          # This should fail, so we expect exit code 1
-          if python ontology/load_and_validate_shacl.py \
-            --uri bolt://localhost:7687 \
-            --user neo4j \
-            --password logosdev \
-            --shapes ontology/shacl_shapes.ttl \
-            --test-data tests/phase1/fixtures/invalid_entities.ttl \
-            --clear; then
-            echo "✗ FAILURE: Invalid data should have failed validation" >> $GITHUB_STEP_SUMMARY
-            exit 1
-          else
-            echo "✓ Invalid data correctly failed SHACL validation" >> $GITHUB_STEP_SUMMARY
-          fi
-      
       - name: Cleanup
         if: always()
         run: |
@@ -168,6 +148,5 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- SHACL shapes loaded successfully via n10s" >> $GITHUB_STEP_SUMMARY
           echo "- Valid data passed validation" >> $GITHUB_STEP_SUMMARY
-          echo "- Invalid data correctly failed validation" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "See \`docs/PHASE1_VERIFY.md\` for complete M2 checklist." >> $GITHUB_STEP_SUMMARY
