@@ -30,7 +30,9 @@ How to run the HCG dev cluster (dev-only)
 2. Neo4j will be reachable on ports 7474 (HTTP) and 7687 (Bolt). Milvus on 19530/9091.
 3. Load the core ontology:
    ./infra/load_ontology.sh
-4. See `infra/README.md` for detailed instructions and manual loading options.
+4. Initialize Milvus collections:
+   ./infra/init_milvus.sh
+5. See `infra/README.md` for detailed instructions and manual loading options.
 
 Python Tooling
 - This repository includes Python-based utilities for project management and artifact validation.

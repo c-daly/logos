@@ -70,6 +70,39 @@ docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "RETURN 1;"
 docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p logosdev < ontology/core_ontology.cypher
 ```
 
+### Initialize Milvus Collections
+
+After starting the cluster, initialize the Milvus collections for HCG embeddings:
+
+```bash
+# From the repository root
+./infra/init_milvus.sh
+```
+
+This script will:
+- Check if Milvus is accessible
+- Create collections for Entity, Concept, State, and Process embeddings
+- Configure indexes for efficient similarity search
+- Verify successful creation
+
+The collections use 384-dimensional embeddings by default (suitable for sentence-transformers models). To use a different dimension:
+
+```bash
+EMBEDDING_DIM=768 ./infra/init_milvus.sh
+```
+
+To force recreation of collections:
+
+```bash
+./infra/init_milvus.sh --force
+```
+
+To verify collections without creating them:
+
+```bash
+./infra/init_milvus.sh --verify-only
+```
+
 ### Access Neo4j Browser
 
 Open http://localhost:7474 in your browser and connect with:
@@ -143,6 +176,30 @@ You should see indexes for entity names, state timestamps, and process timestamp
 docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
   "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'apoc' RETURN count(name) AS apoc_count;"
 ```
+
+### Check Milvus Collections
+
+After initializing Milvus collections, verify they exist:
+
+```bash
+# Using the Python script
+python3 infra/init_milvus_collections.py --verify-only
+
+# Or using pytest
+pytest tests/infra/test_milvus_collections.py -v
+```
+
+You should see four collections:
+- `hcg_entity_embeddings`
+- `hcg_concept_embeddings`
+- `hcg_state_embeddings`
+- `hcg_process_embeddings`
+
+Each collection has the following schema:
+- `uuid` (VARCHAR, primary key): Matches Neo4j node UUID
+- `embedding` (FLOAT_VECTOR): Vector representation for semantic search
+- `embedding_model` (VARCHAR): Model used to generate the embedding
+- `last_sync` (INT64): Unix timestamp of last synchronization
 
 ## Plugin Notes
 
