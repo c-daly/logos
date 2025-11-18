@@ -58,10 +58,11 @@ Phase 1 Verification and Gate
 - Phase 1 must be completed and verified before Phase 2 work can begin.
 - **Verification Checklist**: See `docs/PHASE1_VERIFY.md` for complete Phase 1 verification criteria.
 - **Milestone Gates**: Each milestone is verified through automated tests that produce individual badges:
-  - **M1** (HCG Store/Retrieve): ⏸️ Manual verification required
+  - **M1** (HCG Store/Retrieve): [![M1 Gate](https://github.com/c-daly/logos/actions/workflows/m1-neo4j-crud.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m1-neo4j-crud.yml)
   - **M2** (SHACL Validation): [![M2 Gate](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml)
   - **M3** (Planning): [![M3 Gate](https://github.com/c-daly/logos/actions/workflows/m3-planning.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m3-planning.yml)
-  - **M4** (End-to-End Demo): ⏸️ Manual verification required
+  - **M4** (End-to-End Demo): [![M4 Gate](https://github.com/c-daly/logos/actions/workflows/m4-end-to-end.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m4-end-to-end.yml)
+- **E2E Prototype Script**: Run `./scripts/e2e_prototype.sh` to test the complete flow (Apollo → Sophia → Talos → HCG)
 - Phase 2 work is blocked until all milestone gates pass (automated tests green + manual verifications complete).
 
 Notes and next steps
