@@ -48,11 +48,11 @@ jobs:
       - name: Install n10s plugin manually
         run: |
           echo "Downloading n10s plugin..."
-          # Download n10s plugin for Neo4j 5.x
-          wget -q https://github.com/neo4j-labs/neosemantics/releases/download/5.13.0/neosemantics-5.13.0.jar
+          # Download n10s plugin for Neo4j 5.x (5.14.0 compatible with Neo4j 5.13)
+          wget -q https://github.com/neo4j-labs/neosemantics/releases/download/5.14.0/neosemantics-5.14.0.jar
           
           # Copy plugin into Neo4j container
-          docker cp neosemantics-5.13.0.jar logos-hcg-neo4j:/var/lib/neo4j/plugins/
+          docker cp neosemantics-5.14.0.jar logos-hcg-neo4j:/var/lib/neo4j/plugins/
           
           # Restart Neo4j to load the plugin
           docker restart logos-hcg-neo4j

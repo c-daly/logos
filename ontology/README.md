@@ -32,11 +32,11 @@ Wait for Neo4j to be ready at http://localhost:7474 (login: neo4j/logosdev)
 The n10s plugin needs to be installed manually as it's not available via NEO4JLABS_PLUGINS:
 
 ```bash
-# Download n10s plugin for Neo4j 5.13.0
-wget https://github.com/neo4j-labs/neosemantics/releases/download/5.13.0/neosemantics-5.13.0.jar
+# Download n10s plugin for Neo4j 5.13.0 (use 5.14.0 which is compatible)
+wget https://github.com/neo4j-labs/neosemantics/releases/download/5.14.0/neosemantics-5.14.0.jar
 
 # Copy into Neo4j container
-docker cp neosemantics-5.13.0.jar logos-hcg-neo4j:/var/lib/neo4j/plugins/
+docker cp neosemantics-5.14.0.jar logos-hcg-neo4j:/var/lib/neo4j/plugins/
 
 # Restart Neo4j to load the plugin
 docker restart logos-hcg-neo4j
