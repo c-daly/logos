@@ -48,18 +48,18 @@ jobs:
       - name: Install n10s plugin manually
         run: |
           echo "Downloading n10s plugin..."
-          # Download n10s plugin for Neo4j 5.x (5.14.0 compatible with Neo4j 5.13)
-          wget -q https://github.com/neo4j-labs/neosemantics/releases/download/5.14.0/neosemantics-5.14.0.jar
+          # Download n10s plugin matching Neo4j 5.13.x
+          wget -q https://github.com/neo4j-labs/neosemantics/releases/download/5.13.0/neosemantics-5.13.0.jar
           
           # Verify download succeeded
-          ls -lh neosemantics-5.14.0.jar
+          ls -lh neosemantics-5.13.0.jar
           
           # Copy plugin into Neo4j container's plugins directory (/plugins is the mounted plugin dir in the official image)
-          docker cp neosemantics-5.14.0.jar logos-hcg-neo4j:/plugins/neosemantics-5.14.0.jar
+          docker cp neosemantics-5.13.0.jar logos-hcg-neo4j:/plugins/neosemantics-5.13.0.jar
           
           # Fix permissions - Neo4j runs as user neo4j
-          docker exec logos-hcg-neo4j chown neo4j:neo4j /plugins/neosemantics-5.14.0.jar
-          docker exec logos-hcg-neo4j chmod 644 /plugins/neosemantics-5.14.0.jar
+          docker exec logos-hcg-neo4j chown neo4j:neo4j /plugins/neosemantics-5.13.0.jar
+          docker exec logos-hcg-neo4j chmod 644 /plugins/neosemantics-5.13.0.jar
           
           # Verify plugin was copied with correct permissions
           docker exec logos-hcg-neo4j ls -lh /plugins/

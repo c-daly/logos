@@ -33,6 +33,21 @@ def main() -> int:
     rdf_text = shapes_path.read_text(encoding="utf-8")
 
     with driver.session(database="neo4j") as session:
+        # Verify n10s procedures are available
+        proc_count = session.run(
+            "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'n10s.validation.shacl' RETURN count(name) AS count"
+        ).single()["count"]
+        if proc_count == 0:
+            print("✗ n10s SHACL procedures not found. Check plugin installation.", file=sys.stderr)
+            procs = session.run(
+                "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'n10s' RETURN name"
+            ).values()
+            if procs:
+                print("Available n10s procedures:")
+                for p in procs:
+                    print(f" - {p[0]}")
+            return 1
+
         print("Clearing existing SHACL shapes...")
         session.run("CALL n10s.validation.shacl.clear();")
 
