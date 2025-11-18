@@ -1,0 +1,111 @@
+name: M1 Neo4j CRUD Test
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+  schedule:
+    # Run weekly on Mondays at 09:00 AM UTC
+    - cron: '0 9 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  m1-neo4j-crud:
+    name: M1 HCG Store and Retrieve Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest neo4j
+      
+      - name: Start Neo4j with docker-compose
+        run: |
+          cd infra
+          docker compose -f docker-compose.hcg.dev.yml up -d neo4j
+          echo "✓ Neo4j container started"
+          echo "Waiting for APOC plugin to download..."
+          sleep 15
+      
+      - name: Wait for Neo4j to be ready
+        run: |
+          echo "Waiting for Neo4j to be ready..."
+          timeout 180 bash -c 'until docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "RETURN 1 AS test" 2>/dev/null | grep -q "test"; do sleep 5; done'
+          echo "✓ Neo4j is ready"
+          # Give Neo4j extra time to finish loading plugins
+          sleep 10
+      
+      - name: Verify Neo4j is accessible
+        run: |
+          echo "Verifying Neo4j connection..."
+          docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "RETURN 1 AS test"
+          echo "✓ Neo4j connection verified"
+      
+      - name: Check Neo4j logs
+        run: |
+          echo "Checking Neo4j logs..."
+          docker logs logos-hcg-neo4j 2>&1 | tail -50
+      
+      - name: Run M1 CRUD tests
+        run: |
+          echo "## M1 Neo4j CRUD and Relationship Traversal Test" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Run tests with verbose output
+          pytest tests/phase1/test_m1_neo4j_crud.py -v --tb=short
+          
+          TEST_EXIT_CODE=$?
+          
+          if [ $TEST_EXIT_CODE -eq 0 ]; then
+            echo "✅ **M1 TESTS PASSED**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "All M1 acceptance criteria verified:" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Ontology and test data loaded successfully" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Entity/Concept/State/Process creation with UUID prefixes" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ UUID uniqueness constraints enforced" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ IS_A, HAS_STATE, CAUSES, PART_OF relationships created" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Relationship traversal (type lookup, state, causal chains)" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Constraint violations detected" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **M1 TESTS FAILED**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "See test output above for details." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          exit $TEST_EXIT_CODE
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          cd infra
+          docker compose -f docker-compose.hcg.dev.yml down -v
+      
+      - name: Summary
+        if: success()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **M1 GATE CRITERIA MET**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Reference: \`docs/PHASE1_VERIFY.md\` - M1 checklist" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Next Steps**: Complete M4 (End-to-End Demo) to pass Phase 1 gate" >> $GITHUB_STEP_SUMMARY
