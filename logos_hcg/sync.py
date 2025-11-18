@@ -15,7 +15,7 @@ See Project LOGOS spec: Section 4.2 (Vector Integration)
 """
 
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any, Literal
 from uuid import UUID
 
@@ -186,7 +186,7 @@ class HCGMilvusSync:
         try:
             # Prepare data for insertion
             # Milvus uses upsert based on primary key (uuid)
-            timestamp = int(datetime.now(UTC).timestamp())
+            timestamp = int(datetime.now(timezone.utc).timestamp())
             data = [
                 [uuid_str],  # uuid
                 [embedding],  # embedding
@@ -203,7 +203,7 @@ class HCGMilvusSync:
             return {
                 "embedding_id": uuid_str,
                 "embedding_model": model,
-                "last_sync": datetime.now(UTC),
+                "last_sync": datetime.now(timezone.utc),
             }
 
         except Exception as e:
@@ -236,7 +236,7 @@ class HCGMilvusSync:
 
         try:
             # Prepare batch data
-            timestamp = int(datetime.now(UTC).timestamp())
+            timestamp = int(datetime.now(timezone.utc).timestamp())
             uuids = [str(e["uuid"]) for e in embeddings]
             vectors = [e["embedding"] for e in embeddings]
             models = [e["model"] for e in embeddings]
@@ -251,7 +251,7 @@ class HCGMilvusSync:
             logger.info(f"Batch upserted {len(embeddings)} embeddings for {node_type}")
 
             # Return metadata for each embedding
-            sync_time = datetime.now(UTC)
+            sync_time = datetime.now(timezone.utc)
             return [
                 {
                     "embedding_id": uuid,
