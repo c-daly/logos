@@ -174,15 +174,17 @@ def test_validate_valid_entities(setup_neo4j):
     # Validate the data
     validation_result = setup_neo4j.run(
         "CALL n10s.validation.shacl.validate()"
-    ).data()
+    )
 
     # Check that validation passed (conforms = true or no violations)
-    if validation_result:
-        # Some n10s versions return validation results
-        for result in validation_result:
-            # If there are violations, the test should fail
-            if "violations" in result or "focusNode" in result:
-                pytest.fail(f"Valid data should not have violations: {result}")
+    # Consume the result to check for violations
+    violations = []
+    for record in validation_result:
+        violations.append(record)
+
+    # If there are any violations, the test should fail
+    if violations:
+        pytest.fail(f"Valid data should not have violations. Found {len(violations)} violations: {violations}")
 
     # Clean up for next test
     setup_neo4j.run("MATCH (n) WHERE NOT n:_GraphConfig AND NOT n:_NsPrefDef DETACH DELETE n")
@@ -207,14 +209,18 @@ def test_validate_invalid_entities(setup_neo4j):
     # Validate the data
     validation_result = setup_neo4j.run(
         "CALL n10s.validation.shacl.validate()"
-    ).data()
+    )
 
     # Check that validation failed (violations should be present)
-    assert len(validation_result) > 0, "Invalid data should produce validation violations"
+    violations = []
+    for record in validation_result:
+        violations.append(record)
 
-    print(f"✓ Invalid entities correctly produced {len(validation_result)} validation violations")
+    assert len(violations) > 0, "Invalid data should produce validation violations"
+
+    print(f"✓ Invalid entities correctly produced {len(violations)} validation violations")
     print("  Sample violations:")
-    for i, violation in enumerate(validation_result[:3]):  # Show first 3 violations
+    for i, violation in enumerate(violations[:3]):  # Show first 3 violations
         print(f"    - Violation {i+1}: {violation}")
 
     # Clean up for next test
@@ -242,14 +248,18 @@ def test_reject_bad_write_wrong_uuid_prefix(setup_neo4j):
     # Validate - should fail
     validation_result = setup_neo4j.run(
         "CALL n10s.validation.shacl.validate()"
-    ).data()
+    )
 
     # Should have violations for wrong UUID pattern
-    assert len(validation_result) > 0, "Wrong UUID prefix should produce validation violations"
+    violations = []
+    for record in validation_result:
+        violations.append(record)
+
+    assert len(violations) > 0, "Wrong UUID prefix should produce validation violations"
 
     # Check that the violation is about the UUID pattern
     violation_found = False
-    for violation in validation_result:
+    for violation in violations:
         violation_str = str(violation)
         if "uuid" in violation_str.lower() or "pattern" in violation_str.lower():
             violation_found = True
@@ -282,13 +292,17 @@ def test_reject_bad_write_missing_required_property(setup_neo4j):
     # Validate - should fail
     validation_result = setup_neo4j.run(
         "CALL n10s.validation.shacl.validate()"
-    ).data()
+    )
 
     # Should have violations for missing required property
-    assert len(validation_result) > 0, "Missing required property should produce validation violations"
+    violations = []
+    for record in validation_result:
+        violations.append(record)
+
+    assert len(violations) > 0, "Missing required property should produce validation violations"
 
     print("✓ Missing required property correctly rejected by SHACL validation")
-    print(f"  {len(validation_result)} violations detected")
+    print(f"  {len(violations)} violations detected")
 
     # Clean up
     setup_neo4j.run("MATCH (n) WHERE NOT n:_GraphConfig AND NOT n:_NsPrefDef DETACH DELETE n")
@@ -313,10 +327,14 @@ def test_reject_bad_write_entity_missing_uuid(setup_neo4j):
     # Validate - should fail
     validation_result = setup_neo4j.run(
         "CALL n10s.validation.shacl.validate()"
-    ).data()
+    )
 
     # Should have violations for missing UUID
-    assert len(validation_result) > 0, "Missing UUID should produce validation violations"
+    violations = []
+    for record in validation_result:
+        violations.append(record)
+
+    assert len(violations) > 0, "Missing UUID should produce validation violations"
 
     print("✓ Missing UUID correctly rejected by SHACL validation")
 
