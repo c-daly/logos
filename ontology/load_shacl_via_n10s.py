@@ -8,6 +8,7 @@ error message when a load fails (status: "KO"). It exits non-zero on failure.
 
 import argparse
 import sys
+from pathlib import Path
 
 from neo4j import GraphDatabase
 
