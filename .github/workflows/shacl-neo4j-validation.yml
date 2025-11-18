@@ -57,12 +57,16 @@ jobs:
           # Copy plugin into Neo4j container
           docker cp neosemantics-5.14.0.jar logos-hcg-neo4j:/var/lib/neo4j/plugins/
           
-          # Verify plugin was copied
+          # Fix permissions - Neo4j runs as UID 7474
+          docker exec logos-hcg-neo4j chown neo4j:neo4j /var/lib/neo4j/plugins/neosemantics-5.14.0.jar
+          docker exec logos-hcg-neo4j chmod 644 /var/lib/neo4j/plugins/neosemantics-5.14.0.jar
+          
+          # Verify plugin was copied with correct permissions
           docker exec logos-hcg-neo4j ls -lh /var/lib/neo4j/plugins/
           
           # Restart Neo4j to load the plugin
           docker restart logos-hcg-neo4j
-          echo "✓ n10s plugin installed, Neo4j restarting..."
+          echo "✓ n10s plugin installed with correct permissions, Neo4j restarting..."
           sleep 10
       
       - name: Wait for Neo4j to be ready
