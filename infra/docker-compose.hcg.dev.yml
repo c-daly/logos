@@ -11,7 +11,7 @@ services:
       - "7687:7687"  # Bolt
     environment:
       - NEO4J_AUTH=neo4j/logosdev
-      - NEO4JLABS_PLUGINS=["apoc", "n10s"]
+      - NEO4JLABS_PLUGINS=["apoc"]
       - NEO4J_dbms_security_procedures_unrestricted=apoc.*,n10s.*
       - NEO4J_dbms_security_procedures_allowlist=apoc.*,n10s.*
       # Accept license for plugins

@@ -29,7 +29,7 @@ Wait for Neo4j to be ready at http://localhost:7474 (login: neo4j/logosdev)
 
 ### 2. Install n10s Plugin (Manual)
 
-The n10s plugin is specified in `NEO4JLABS_PLUGINS` but requires manual JAR installation for Neo4j 5.13:
+The n10s plugin must be installed manually (NOT via `NEO4JLABS_PLUGINS`) because Neo4j 5.13 isn't listed as compatible in the n10s versions registry, even though version 5.14.0 works fine:
 
 ```bash
 # Download n10s plugin for Neo4j 5.13.0 (use 5.14.0 which is compatible)
@@ -44,6 +44,8 @@ docker restart logos-hcg-neo4j
 # Wait for Neo4j to be ready again
 sleep 15
 ```
+
+**Important**: Do NOT add `n10s` to `NEO4JLABS_PLUGINS` as it will cause Neo4j to skip loading the manually installed JAR.
 
 Verify the plugin is loaded:
 ```bash
