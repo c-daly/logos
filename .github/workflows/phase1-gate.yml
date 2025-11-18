@@ -136,7 +136,7 @@ jobs:
   validate-no-phase2-work:
     name: Prevent Phase 2 Work
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && (success() || failure())
     needs: check-gate-status
     
     steps:
