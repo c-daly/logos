@@ -1,0 +1,150 @@
+name: SHACL Validation via Neo4j n10s
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+  schedule:
+    # Run weekly on Mondays at 10:00 AM UTC
+    - cron: '0 10 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  shacl-neo4j-validation:
+    name: SHACL Validation Smoke Test
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest neo4j rdflib pyshacl
+      
+      - name: Start Neo4j with docker-compose
+        run: |
+          cd infra
+          docker compose -f docker-compose.hcg.dev.yml up -d neo4j
+          echo "✓ Neo4j container started"
+          echo "Waiting for APOC plugin to download..."
+          sleep 15
+      
+      - name: Install n10s plugin manually
+        run: |
+          echo "Downloading n10s plugin..."
+          # Try Neo4j 5.13.x match first; fallback to 5.14.0 if unavailable
+          if ! curl -fL --retry 3 --retry-delay 5 \
+            -o neosemantics-5.13.0.jar \
+            https://github.com/neo4j-labs/neosemantics/releases/download/5.13.0/neosemantics-5.13.0.jar; then
+            echo "5.13.0 download failed, falling back to 5.14.0"
+            curl -fL --retry 3 --retry-delay 5 \
+              -o neosemantics-5.13.0.jar \
+              https://github.com/neo4j-labs/neosemantics/releases/download/5.14.0/neosemantics-5.14.0.jar
+          fi
+          
+          # Verify download succeeded
+          ls -lh neosemantics-5.13.0.jar || { echo "n10s jar missing"; exit 1; }
+          test -s neosemantics-5.13.0.jar || { echo "n10s jar is empty"; exit 1; }
+          
+          # Copy plugin into Neo4j container's plugins directory (/plugins is the mounted plugin dir in the official image)
+          docker cp neosemantics-5.13.0.jar logos-hcg-neo4j:/plugins/neosemantics-5.13.0.jar
+          
+          # Fix permissions - Neo4j runs as user neo4j
+          docker exec logos-hcg-neo4j chown neo4j:neo4j /plugins/neosemantics-5.13.0.jar
+          docker exec logos-hcg-neo4j chmod 644 /plugins/neosemantics-5.13.0.jar
+          
+          # Verify plugin was copied with correct permissions
+          docker exec logos-hcg-neo4j ls -lh /plugins/
+          
+          # Restart Neo4j to load the plugin
+          docker restart logos-hcg-neo4j
+          echo "✓ n10s plugin installed with correct permissions, Neo4j restarting..."
+          sleep 10
+      
+      - name: Wait for Neo4j to be ready
+        run: |
+          echo "Waiting for Neo4j to be ready..."
+          timeout 180 bash -c 'until docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "RETURN 1 AS test" 2>/dev/null | grep -q "test"; do sleep 5; done'
+          echo "✓ Neo4j is ready"
+          # Give Neo4j extra time to finish loading plugins
+          sleep 15
+      
+      - name: Check Neo4j logs for plugin initialization
+        run: |
+          echo "Checking Neo4j logs for plugin status..."
+          docker logs logos-hcg-neo4j 2>&1 | tail -100
+      
+      - name: Verify n10s plugin is loaded
+        run: |
+          echo "Verifying n10s plugin..."
+          timeout 60 bash -c '
+            until docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+              "SHOW PROCEDURES YIELD name WHERE name STARTS WITH \"n10s\" RETURN count(name) AS count" 2>/dev/null | grep -q "count"; do
+              echo "waiting for n10s procedures..."
+              sleep 3
+            done
+          '
+          docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+            "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'n10s' RETURN name" || {
+            echo "Failed to verify n10s plugin"
+            echo "Checking plugins directory:"
+            docker exec logos-hcg-neo4j ls -la /var/lib/neo4j/plugins/
+            echo "Checking Neo4j version and config:"
+            docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "CALL dbms.components() YIELD name, versions RETURN name, versions"
+            docker logs logos-hcg-neo4j | tail -200
+            exit 1
+          }
+      
+      - name: Load core ontology
+        run: |
+          echo "Loading core ontology into Neo4j..."
+          cat ontology/core_ontology.cypher | \
+            docker exec -i logos-hcg-neo4j \
+            cypher-shell -u neo4j -p logosdev
+          echo "✓ Core ontology loaded"
+      
+      - name: Load SHACL shapes via n10s
+        run: |
+          echo "## SHACL Validation via Neo4j n10s" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          python ontology/load_shacl_via_n10s.py \
+            --uri bolt://localhost:7687 \
+            --user neo4j \
+            --password logosdev \
+            --shapes ontology/shacl_shapes.ttl
+          echo "" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          cd infra
+          docker compose -f docker-compose.hcg.dev.yml down -v
+      
+      - name: Summary
+        if: success()
+        run: |
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **SHACL VALIDATION SMOKE TEST PASSED**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- n10s plugin loaded successfully" >> $GITHUB_STEP_SUMMARY
+          echo "- SHACL shapes imported successfully via n10s" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "See \`docs/PHASE1_VERIFY.md\` for complete M2 checklist and local validation instructions." >> $GITHUB_STEP_SUMMARY
