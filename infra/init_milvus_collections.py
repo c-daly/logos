@@ -7,7 +7,7 @@ Reference: Section 4.2 (Vector Integration) and Section 5.2 (HCG Development Clu
 
 Collections are created for each HCG node type:
 - Entity embeddings
-- Concept embeddings  
+- Concept embeddings
 - State embeddings
 - Process embeddings
 
@@ -22,8 +22,6 @@ Default embedding dimension: 384 (suitable for sentence-transformers models like
 
 import argparse
 import sys
-import time
-from typing import Optional
 
 from pymilvus import (
     Collection,
@@ -33,7 +31,6 @@ from pymilvus import (
     connections,
     utility,
 )
-
 
 # Default configuration
 DEFAULT_HOST = "localhost"
@@ -48,11 +45,11 @@ def create_collection_schema(
 ) -> CollectionSchema:
     """
     Create a Milvus collection schema for HCG node embeddings.
-    
+
     Args:
         collection_name: Name of the collection
         embedding_dim: Dimension of embedding vectors
-        
+
     Returns:
         CollectionSchema configured for HCG embeddings
     """
@@ -85,19 +82,19 @@ def create_collection_schema(
             description="Unix timestamp of last synchronization with Neo4j",
         ),
     ]
-    
+
     schema = CollectionSchema(
         fields=fields,
         description=f"Embeddings for HCG {collection_name} nodes",
     )
-    
+
     return schema
 
 
 def create_index(collection: Collection, index_type: str = DEFAULT_INDEX_TYPE) -> None:
     """
     Create an index on the embedding field for efficient similarity search.
-    
+
     Args:
         collection: Milvus collection
         index_type: Type of index to create
@@ -107,7 +104,7 @@ def create_index(collection: Collection, index_type: str = DEFAULT_INDEX_TYPE) -
         "metric_type": DEFAULT_METRIC_TYPE,
         "params": {"nlist": 128},  # Number of cluster units
     }
-    
+
     collection.create_index(
         field_name="embedding",
         index_params=index_params,
@@ -122,17 +119,17 @@ def init_collection(
 ) -> Collection:
     """
     Initialize a Milvus collection for HCG embeddings.
-    
+
     Args:
         collection_name: Name of the collection to create
         embedding_dim: Dimension of embedding vectors
         force: If True, drop existing collection before creating
-        
+
     Returns:
         Created or existing Collection
     """
     print(f"\nInitializing collection: {collection_name}")
-    
+
     # Check if collection already exists
     if utility.has_collection(collection_name):
         if force:
@@ -141,9 +138,9 @@ def init_collection(
         else:
             print(f"  ℹ Collection already exists: {collection_name}")
             collection = Collection(name=collection_name)
-            print(f"  ✓ Loaded existing collection")
+            print("  ✓ Loaded existing collection")
             return collection
-    
+
     # Create new collection
     schema = create_collection_schema(collection_name, embedding_dim)
     collection = Collection(
@@ -152,14 +149,14 @@ def init_collection(
         using="default",
     )
     print(f"  ✓ Created collection with {embedding_dim}-dimensional vectors")
-    
+
     # Create index
     create_index(collection)
-    
+
     # Load collection into memory
     collection.load()
-    print(f"  ✓ Collection loaded into memory")
-    
+    print("  ✓ Collection loaded into memory")
+
     return collection
 
 
@@ -169,11 +166,11 @@ def init_all_collections(
 ) -> dict[str, Collection]:
     """
     Initialize all HCG collections (Entity, Concept, State, Process).
-    
+
     Args:
         embedding_dim: Dimension of embedding vectors
         force: If True, drop existing collections before creating
-        
+
     Returns:
         Dictionary mapping collection names to Collection objects
     """
@@ -184,30 +181,30 @@ def init_all_collections(
         "hcg_state_embeddings",
         "hcg_process_embeddings",
     ]
-    
+
     collections = {}
     for name in collection_names:
         collections[name] = init_collection(name, embedding_dim, force)
-    
+
     return collections
 
 
 def verify_collections() -> bool:
     """
     Verify that all HCG collections exist and are properly configured.
-    
+
     Returns:
         True if all collections are valid, False otherwise
     """
     print("\n=== Verifying Collections ===")
-    
+
     expected_collections = [
         "hcg_entity_embeddings",
         "hcg_concept_embeddings",
         "hcg_state_embeddings",
         "hcg_process_embeddings",
     ]
-    
+
     all_valid = True
     for name in expected_collections:
         if not utility.has_collection(name):
@@ -218,7 +215,7 @@ def verify_collections() -> bool:
             print(f"✓ Collection exists: {name}")
             print(f"  - Entities: {collection.num_entities}")
             print(f"  - Schema: {len(collection.schema.fields)} fields")
-    
+
     return all_valid
 
 
@@ -253,12 +250,12 @@ def main():
         action="store_true",
         help="Only verify collections, don't create them",
     )
-    
+
     args = parser.parse_args()
-    
+
     print("=== LOGOS Milvus Collection Initialization ===")
     print(f"Connecting to Milvus at {args.host}:{args.port}...")
-    
+
     try:
         # Connect to Milvus
         connections.connect(
@@ -267,7 +264,7 @@ def main():
             port=args.port,
         )
         print("✓ Connected to Milvus")
-        
+
         if args.verify_only:
             # Just verify collections
             success = verify_collections()
@@ -278,17 +275,17 @@ def main():
                 force=args.force,
             )
             print(f"\n✓ Successfully initialized {len(collections)} collections")
-            
+
             # Verify
             success = verify_collections()
-        
+
         if success:
             print("\n=== Initialization Complete ===")
             return 0
         else:
             print("\n⚠ Some collections are invalid")
             return 1
-            
+
     except Exception as e:
         print(f"\n✗ Error: {e}", file=sys.stderr)
         return 1

@@ -36,7 +36,7 @@ def milvus_connection():
 
 class TestMilvusCollections:
     """Test suite for Milvus collection configuration."""
-    
+
     def test_all_collections_exist(self, milvus_connection):
         """Verify that all required HCG collections exist."""
         for collection_name in EXPECTED_COLLECTIONS:
@@ -44,54 +44,54 @@ class TestMilvusCollections:
                 f"Collection {collection_name} does not exist. "
                 "Run 'infra/init_milvus.sh' to initialize collections."
             )
-    
+
     def test_collection_schemas(self, milvus_connection):
         """Verify that collections have the correct schema."""
         for collection_name in EXPECTED_COLLECTIONS:
             if not utility.has_collection(collection_name):
                 pytest.skip(f"Collection {collection_name} not initialized")
-            
+
             collection = Collection(name=collection_name)
             field_names = [field.name for field in collection.schema.fields]
-            
+
             for expected_field in EXPECTED_FIELDS:
                 assert expected_field in field_names, (
                     f"Field {expected_field} missing from {collection_name}"
                 )
-    
+
     def test_uuid_is_primary_key(self, milvus_connection):
         """Verify that uuid field is configured as primary key."""
         for collection_name in EXPECTED_COLLECTIONS:
             if not utility.has_collection(collection_name):
                 pytest.skip(f"Collection {collection_name} not initialized")
-            
+
             collection = Collection(name=collection_name)
-            
+
             # Find the uuid field
             uuid_field = None
             for field in collection.schema.fields:
                 if field.name == "uuid":
                     uuid_field = field
                     break
-            
+
             assert uuid_field is not None, f"uuid field not found in {collection_name}"
             assert uuid_field.is_primary, f"uuid is not primary key in {collection_name}"
-    
+
     def test_embedding_field_dimension(self, milvus_connection):
         """Verify that embedding field has correct dimension."""
         for collection_name in EXPECTED_COLLECTIONS:
             if not utility.has_collection(collection_name):
                 pytest.skip(f"Collection {collection_name} not initialized")
-            
+
             collection = Collection(name=collection_name)
-            
+
             # Find the embedding field
             embedding_field = None
             for field in collection.schema.fields:
                 if field.name == "embedding":
                     embedding_field = field
                     break
-            
+
             assert embedding_field is not None, (
                 f"embedding field not found in {collection_name}"
             )
@@ -99,40 +99,40 @@ class TestMilvusCollections:
             assert embedding_field.params["dim"] > 0, (
                 f"Invalid embedding dimension in {collection_name}"
             )
-    
+
     def test_index_exists(self, milvus_connection):
         """Verify that an index exists on the embedding field."""
         for collection_name in EXPECTED_COLLECTIONS:
             if not utility.has_collection(collection_name):
                 pytest.skip(f"Collection {collection_name} not initialized")
-            
+
             collection = Collection(name=collection_name)
-            
+
             # Get index information
             indexes = collection.indexes
-            
+
             # Should have at least one index on the embedding field
             assert len(indexes) > 0, f"No indexes found on {collection_name}"
-            
+
             # Verify index is on the embedding field
             embedding_indexed = False
             for index in indexes:
                 if index.field_name == "embedding":
                     embedding_indexed = True
                     break
-            
+
             assert embedding_indexed, (
                 f"No index on 'embedding' field in {collection_name}"
             )
-    
+
     def test_collection_descriptions(self, milvus_connection):
         """Verify that collections have appropriate descriptions."""
         for collection_name in EXPECTED_COLLECTIONS:
             if not utility.has_collection(collection_name):
                 pytest.skip(f"Collection {collection_name} not initialized")
-            
+
             collection = Collection(name=collection_name)
-            
+
             # Schema should have a description
             assert collection.schema.description, (
                 f"Collection {collection_name} missing description"
@@ -144,45 +144,45 @@ class TestMilvusCollections:
 
 class TestMilvusIntegration:
     """Integration tests for Milvus functionality."""
-    
+
     def test_insert_and_search(self, milvus_connection):
         """Test basic insert and search operations."""
         import time
-        
+
         collection_name = "hcg_entity_embeddings"
         if not utility.has_collection(collection_name):
             pytest.skip(f"Collection {collection_name} not initialized")
-        
+
         collection = Collection(name=collection_name)
-        
+
         # Get embedding dimension
         embedding_dim = None
         for field in collection.schema.fields:
             if field.name == "embedding":
                 embedding_dim = field.params["dim"]
                 break
-        
+
         assert embedding_dim is not None, "Could not determine embedding dimension"
-        
+
         # Insert a test entity
         test_uuid = f"test-entity-{int(time.time())}"
         test_embedding = [0.1] * embedding_dim
         test_model = "test-model"
         test_timestamp = int(time.time())
-        
+
         data = [
             [test_uuid],
             [test_embedding],
             [test_model],
             [test_timestamp],
         ]
-        
+
         collection.insert(data)
         collection.flush()
-        
+
         # Verify insert succeeded
         assert collection.num_entities > 0, "No entities in collection after insert"
-        
+
         # Search for similar vectors
         search_params = {"metric_type": "L2", "params": {"nprobe": 10}}
         results = collection.search(
@@ -191,10 +191,10 @@ class TestMilvusIntegration:
             param=search_params,
             limit=1,
         )
-        
+
         assert len(results) > 0, "Search returned no results"
         assert len(results[0]) > 0, "No matches found for test entity"
-        
+
         # Clean up - delete the test entity
         collection.delete(f"uuid in ['{test_uuid}']")
         collection.flush()
