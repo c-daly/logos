@@ -120,9 +120,8 @@ def main() -> int:
                     raise
 
             # Verify shapes are present
-            shapes_count = session.run(
-                "CALL n10s.validation.shacl.listShapes() YIELD name RETURN count(*) AS count"
-            ).single()["count"]
+            shapes_rows = session.run("CALL n10s.validation.shacl.listShapes()").data()
+            shapes_count = len(shapes_rows)
 
             print(f"✓ SHACL shapes loaded via n10s; shapes listed: {shapes_count}")
             if shapes_count == 0:
