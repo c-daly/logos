@@ -148,7 +148,25 @@ The automated test verifies:
 ### Objective
 Demonstrate that SHACL validation rules successfully catch malformed graph updates and enforce data quality.
 
-> Note: CI uses pyshacl for shape checks by default. Live Neo4j+n10s validation is opt-in; set `RUN_NEO4J_SHACL=1` and run `tests/phase1/test_shacl_neo4j_validation.py`, or enable a dedicated Neo4j validation job.
+### Validation Strategy (Two-Tier Approach)
+
+LOGOS uses a two-tier validation strategy:
+
+1. **Default CI Gate (pyshacl)** - Fast, connectionless validation
+   - Runs on every push/PR automatically
+   - No infrastructure dependencies
+   - Tests: `tests/phase1/test_shacl_pyshacl.py` and `tests/phase1/test_m2_shacl_validation.py`
+   - Workflow: `.github/workflows/m2-shacl-validation.yml`
+   - ✅ **This is the primary gate for CI**
+
+2. **Optional Integration Tests (Neo4j+n10s)** - Comprehensive, realistic validation
+   - Opt-in: Set `RUN_NEO4J_SHACL=1` to enable locally
+   - Requires Neo4j cluster with n10s plugin
+   - Tests: `tests/phase1/test_shacl_neo4j_validation.py`
+   - Workflow: `.github/workflows/shacl-neo4j-validation.yml` (manual/weekly)
+   - 🔧 **Use for development and integration testing**
+
+> **Quick Start**: Run `pytest tests/phase1/test_shacl_pyshacl.py -v` for fast validation without any setup. For full Neo4j integration testing, see the Neo4j n10s Integration Tests section below.
 
 ### Verification Checklist
 
@@ -312,9 +330,11 @@ The automated test verifies:
 
 **Status**: ✅ Implemented - [![M2 Gate](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml) (20 tests passing)
 
-#### Neo4j n10s Integration Tests
+#### Neo4j n10s Integration Tests (Opt-In)
 
-See: `.github/workflows/shacl-neo4j-validation.yml`
+> **Important**: Neo4j SHACL validation is **opt-in** and not required for CI to pass. The default pyshacl tests above are the primary gate. Neo4j validation provides comprehensive integration testing but requires infrastructure setup.
+
+See: `.github/workflows/shacl-neo4j-validation.yml` and `tests/phase1/test_shacl_neo4j_validation.py`
 
 The CI workflow verifies:
 - Neo4j starts successfully with n10s plugin
@@ -325,6 +345,68 @@ The CI workflow verifies:
 - Validation reports provide detailed violation information
 
 **Status**: ✅ Implemented - [![SHACL Neo4j Validation](https://github.com/c-daly/logos/actions/workflows/shacl-neo4j-validation.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/shacl-neo4j-validation.yml)
+
+**When to Run**:
+- Automatically: Manual workflow dispatch or weekly schedule (Monday 10:00 AM UTC)
+- Locally: Before making changes to SHACL shapes or Neo4j integration
+
+**How to Run Locally**:
+
+1. **Start the HCG development cluster** (if not already running):
+   ```bash
+   cd infra
+   docker compose -f docker-compose.hcg.dev.yml up -d
+   # Wait ~15 seconds for Neo4j to be ready
+   ```
+
+2. **Install the n10s plugin** (one-time setup):
+   ```bash
+   # Download n10s plugin
+   curl -L -o neosemantics-5.13.0.jar \
+     https://github.com/neo4j-labs/neosemantics/releases/download/5.13.0/neosemantics-5.13.0.jar
+   
+   # Copy to Neo4j container
+   docker cp neosemantics-5.13.0.jar logos-hcg-neo4j:/plugins/
+   
+   # Fix permissions and restart
+   docker exec logos-hcg-neo4j chown neo4j:neo4j /plugins/neosemantics-5.13.0.jar
+   docker restart logos-hcg-neo4j
+   
+   # Wait for Neo4j to restart (~15 seconds)
+   sleep 15
+   
+   # Verify plugin loaded
+   docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+     "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'n10s' RETURN name LIMIT 1"
+   ```
+
+3. **Load the core ontology**:
+   ```bash
+   ./infra/load_ontology.sh
+   # Or manually:
+   # cat ontology/core_ontology.cypher | docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p logosdev
+   ```
+
+4. **Run Neo4j SHACL validation tests**:
+   ```bash
+   # Set environment variables
+   export NEO4J_URI=bolt://localhost:7687
+   export NEO4J_USER=neo4j
+   export NEO4J_PASSWORD=logosdev
+   export RUN_NEO4J_SHACL=1
+   
+   # Run tests
+   pytest tests/phase1/test_shacl_neo4j_validation.py -v
+   ```
+
+   Expected output: 8 tests pass (connection, plugin, shapes, valid/invalid data, bad writes)
+
+**Without the Flag**: Tests are automatically skipped:
+```bash
+# Without RUN_NEO4J_SHACL=1, all tests skip
+pytest tests/phase1/test_shacl_neo4j_validation.py -v
+# Output: 8 skipped in 0.XX seconds
+```
 
 **Script**: `ontology/load_and_validate_shacl.py`
 
