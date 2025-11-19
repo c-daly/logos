@@ -14,7 +14,7 @@ from typing import Any
 class TelemetryExporter:
     """
     Exports telemetry data to local storage or external collectors.
-    
+
     Phase 2 implementation focuses on local file storage.
     Can be extended for Grafana, Prometheus, or other backends.
     """
@@ -26,7 +26,7 @@ class TelemetryExporter:
     ):
         """
         Initialize the telemetry exporter.
-        
+
         Args:
             output_dir: Directory for storing telemetry files
             enable_file_export: Enable file-based export
@@ -42,7 +42,7 @@ class TelemetryExporter:
     def export_event(self, event: dict[str, Any]):
         """
         Export a single telemetry event.
-        
+
         Args:
             event: Event data to export
         """
@@ -66,7 +66,7 @@ class TelemetryExporter:
     def export_batch(self, events: list[dict[str, Any]]):
         """
         Export a batch of telemetry events.
-        
+
         Args:
             events: List of events to export
         """
@@ -81,12 +81,12 @@ class TelemetryExporter:
     ) -> list[dict[str, Any]]:
         """
         Retrieve stored telemetry events.
-        
+
         Args:
             event_type: Filter by event type
             start_date: Filter events after this date (YYYY-MM-DD)
             end_date: Filter events before this date (YYYY-MM-DD)
-        
+
         Returns:
             List of matching events
         """
@@ -119,7 +119,7 @@ class TelemetryExporter:
     def get_summary(self) -> dict[str, Any]:
         """
         Get a summary of stored telemetry data.
-        
+
         Returns:
             Summary statistics
         """

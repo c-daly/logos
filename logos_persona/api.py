@@ -36,10 +36,10 @@ class SentimentSummaryResponse(BaseModel):
 def create_persona_api(driver: Driver) -> APIRouter:
     """
     Create FastAPI router for persona diary endpoints.
-    
+
     Args:
         driver: Neo4j driver instance
-    
+
     Returns:
         Configured APIRouter
     """
@@ -50,10 +50,10 @@ def create_persona_api(driver: Driver) -> APIRouter:
     def create_entry(request: CreatePersonaEntryRequest):
         """
         Create a new persona diary entry.
-        
+
         Args:
             request: Entry creation request
-        
+
         Returns:
             Created entry
         """
@@ -71,11 +71,11 @@ def create_persona_api(driver: Driver) -> APIRouter:
     ):
         """
         Get recent persona entries.
-        
+
         Args:
             limit: Maximum number of entries to return
             sentiment: Filter by sentiment (optional)
-        
+
         Returns:
             List of persona entries
         """
@@ -86,10 +86,10 @@ def create_persona_api(driver: Driver) -> APIRouter:
     def get_entries_for_process(process_uuid: str):
         """
         Get all persona entries related to a specific process.
-        
+
         Args:
             process_uuid: UUID of the Process node
-        
+
         Returns:
             List of persona entries
         """
@@ -100,7 +100,7 @@ def create_persona_api(driver: Driver) -> APIRouter:
     def get_sentiment_summary():
         """
         Get sentiment distribution summary.
-        
+
         Returns:
             Sentiment summary statistics
         """

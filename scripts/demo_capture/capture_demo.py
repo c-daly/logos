@@ -25,7 +25,7 @@ class DemoCapture:
     def __init__(self, output_dir: str = "./demo_output"):
         """
         Initialize the demo capture tool.
-        
+
         Args:
             output_dir: Directory to store captured artifacts
         """
@@ -36,11 +36,11 @@ class DemoCapture:
     def capture_browser(self, url: str = "http://localhost:3000", duration: int = 60):
         """
         Capture browser session using ffmpeg (screen recording).
-        
+
         Args:
             url: URL to capture
             duration: Recording duration in seconds
-        
+
         Note:
             Requires ffmpeg and X11/Wayland display server.
             For headless environments, use virtual display (Xvfb).
@@ -92,7 +92,7 @@ class DemoCapture:
     def capture_cli(self, commands: list[str] | None = None):
         """
         Capture CLI session using script command or manual recording.
-        
+
         Args:
             commands: Optional list of commands to execute
         """
@@ -131,7 +131,7 @@ class DemoCapture:
     def aggregate_logs(self, log_dirs: list[str] | None = None):
         """
         Aggregate logs from various LOGOS components.
-        
+
         Args:
             log_dirs: List of directories containing logs
         """

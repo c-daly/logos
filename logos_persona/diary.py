@@ -17,7 +17,7 @@ from neo4j import Driver
 class PersonaEntry:
     """
     Represents a persona diary entry.
-    
+
     Attributes:
         uuid: Unique identifier for the entry
         timestamp: When this entry was created
@@ -45,7 +45,7 @@ class PersonaEntry:
 class PersonaDiary:
     """
     Manages persona diary entries in the HCG.
-    
+
     Writes entries to Neo4j as (:PersonaEntry) nodes and provides
     query methods for Apollo to retrieve relevant context.
     """
@@ -53,7 +53,7 @@ class PersonaDiary:
     def __init__(self, driver: Driver):
         """
         Initialize the persona diary with a Neo4j driver.
-        
+
         Args:
             driver: Neo4j driver instance
         """
@@ -67,12 +67,12 @@ class PersonaDiary:
     ) -> PersonaEntry:
         """
         Create a new persona diary entry.
-        
+
         Args:
             summary: Text summary of the activity
             sentiment: Emotional tone
             related_process: UUID of related Process node
-        
+
         Returns:
             Created PersonaEntry
         """
@@ -130,11 +130,11 @@ class PersonaDiary:
     ) -> list[PersonaEntry]:
         """
         Get recent persona entries.
-        
+
         Args:
             limit: Maximum number of entries to return
             sentiment: Filter by sentiment (optional)
-        
+
         Returns:
             List of PersonaEntry objects
         """
@@ -175,10 +175,10 @@ class PersonaDiary:
     def get_entries_for_process(self, process_uuid: str) -> list[PersonaEntry]:
         """
         Get all persona entries related to a specific process.
-        
+
         Args:
             process_uuid: UUID of the Process node
-        
+
         Returns:
             List of PersonaEntry objects
         """
@@ -208,7 +208,7 @@ class PersonaDiary:
     def get_sentiment_summary(self) -> dict[str, int]:
         """
         Get a summary of sentiment distribution across entries.
-        
+
         Returns:
             Dictionary mapping sentiment types to counts
         """

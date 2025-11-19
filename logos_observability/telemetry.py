@@ -154,11 +154,11 @@ def setup_telemetry(
 ) -> TracerProvider:
     """
     Setup OpenTelemetry tracer provider for the service.
-    
+
     Args:
         service_name: Name of the service for trace identification
         export_to_console: If True, export spans to console (dev mode)
-    
+
     Returns:
         Configured TracerProvider instance
     """
@@ -184,10 +184,10 @@ def setup_telemetry(
 def get_tracer(name: str) -> trace.Tracer:
     """
     Get a tracer instance for the given name.
-    
+
     Args:
         name: Name/module for the tracer
-    
+
     Returns:
         Tracer instance
     """
@@ -197,11 +197,11 @@ def get_tracer(name: str) -> trace.Tracer:
 def get_logger(name: str, level: int = logging.INFO) -> StructuredLogger:
     """
     Get a structured logger instance.
-    
+
     Args:
         name: Logger name
         level: Log level
-    
+
     Returns:
         StructuredLogger instance
     """

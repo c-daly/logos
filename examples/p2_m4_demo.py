@@ -13,9 +13,10 @@ Run this after starting Neo4j:
 """
 
 from neo4j import GraphDatabase
-from logos_observability import setup_telemetry, get_logger, TelemetryExporter
-from logos_persona import PersonaDiary
+
 from logos_cwm_e import CWMEReflector
+from logos_observability import TelemetryExporter, get_logger, setup_telemetry
+from logos_persona import PersonaDiary
 
 
 def main():

@@ -18,7 +18,7 @@ from neo4j import Driver
 class EmotionState:
     """
     Represents an emotional/affective state tag.
-    
+
     Attributes:
         uuid: Unique identifier for the emotion state
         timestamp: When this state was generated
@@ -49,7 +49,7 @@ class EmotionState:
 class CWMEReflector:
     """
     CWM-E reflection engine that generates EmotionState tags.
-    
+
     Analyzes persona entries and HCG context to infer emotional states
     and tag them onto processes and entities for consumption by planners,
     executors, and Apollo.
@@ -58,7 +58,7 @@ class CWMEReflector:
     def __init__(self, driver: Driver):
         """
         Initialize the CWM-E reflector with a Neo4j driver.
-        
+
         Args:
             driver: Neo4j driver instance
         """
@@ -72,12 +72,12 @@ class CWMEReflector:
     ) -> EmotionState:
         """
         Create a new emotion state node.
-        
+
         Args:
             emotion_type: Type of emotion
             intensity: Intensity value (0.0-1.0)
             context: Context description
-        
+
         Returns:
             Created EmotionState
         """
@@ -119,7 +119,7 @@ class CWMEReflector:
     def tag_process(self, emotion_uuid: str, process_uuid: str):
         """
         Tag a process with an emotion state.
-        
+
         Args:
             emotion_uuid: UUID of the EmotionState node
             process_uuid: UUID of the Process node
@@ -135,7 +135,7 @@ class CWMEReflector:
     def tag_entity(self, emotion_uuid: str, entity_uuid: str):
         """
         Tag an entity with an emotion state.
-        
+
         Args:
             emotion_uuid: UUID of the EmotionState node
             entity_uuid: UUID of the Entity node
@@ -151,14 +151,14 @@ class CWMEReflector:
     def reflect_on_persona_entries(self, limit: int = 10) -> list[EmotionState]:
         """
         Analyze recent persona entries and generate emotion states.
-        
+
         This is a simplified Phase 2 implementation. In production, this would
         use ML models or rule-based inference to analyze sentiment patterns
         and generate appropriate emotional tags.
-        
+
         Args:
             limit: Number of recent entries to analyze
-        
+
         Returns:
             List of generated EmotionState objects
         """
@@ -206,12 +206,12 @@ class CWMEReflector:
     def _infer_emotion(self, sentiment: str) -> tuple[str, float]:
         """
         Infer emotion type and intensity from sentiment.
-        
+
         Simple rule-based implementation for Phase 2.
-        
+
         Args:
             sentiment: Sentiment string from persona entry
-        
+
         Returns:
             Tuple of (emotion_type, intensity)
         """
@@ -245,10 +245,10 @@ class CWMEReflector:
     def get_emotions_for_process(self, process_uuid: str) -> list[EmotionState]:
         """
         Get all emotion states tagged on a process.
-        
+
         Args:
             process_uuid: UUID of the Process node
-        
+
         Returns:
             List of EmotionState objects
         """
@@ -279,10 +279,10 @@ class CWMEReflector:
     def get_emotions_for_entity(self, entity_uuid: str) -> list[EmotionState]:
         """
         Get all emotion states tagged on an entity.
-        
+
         Args:
             entity_uuid: UUID of the Entity node
-        
+
         Returns:
             List of EmotionState objects
         """

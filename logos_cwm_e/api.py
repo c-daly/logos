@@ -50,10 +50,10 @@ class ReflectionResponse(BaseModel):
 def create_cwm_e_api(driver: Driver) -> APIRouter:
     """
     Create FastAPI router for CWM-E endpoints.
-    
+
     Args:
         driver: Neo4j driver instance
-    
+
     Returns:
         Configured APIRouter
     """
@@ -64,10 +64,10 @@ def create_cwm_e_api(driver: Driver) -> APIRouter:
     def create_emotion_state(request: CreateEmotionStateRequest):
         """
         Create a new emotion state node.
-        
+
         Args:
             request: Emotion state creation request
-        
+
         Returns:
             Created emotion state
         """
@@ -82,10 +82,10 @@ def create_cwm_e_api(driver: Driver) -> APIRouter:
     def tag_process(request: TagProcessRequest):
         """
         Tag a process with an emotion state.
-        
+
         Args:
             request: Tag process request
-        
+
         Returns:
             Success message
         """
@@ -96,10 +96,10 @@ def create_cwm_e_api(driver: Driver) -> APIRouter:
     def tag_entity(request: TagEntityRequest):
         """
         Tag an entity with an emotion state.
-        
+
         Args:
             request: Tag entity request
-        
+
         Returns:
             Success message
         """
@@ -110,10 +110,10 @@ def create_cwm_e_api(driver: Driver) -> APIRouter:
     def run_reflection(limit: int = 10):
         """
         Run CWM-E reflection job to analyze persona entries and generate emotions.
-        
+
         Args:
             limit: Number of recent persona entries to analyze
-        
+
         Returns:
             Reflection job results
         """
@@ -127,10 +127,10 @@ def create_cwm_e_api(driver: Driver) -> APIRouter:
     def get_emotions_for_process(process_uuid: str):
         """
         Get all emotion states tagged on a process.
-        
+
         Args:
             process_uuid: UUID of the Process node
-        
+
         Returns:
             List of emotion states
         """
@@ -141,10 +141,10 @@ def create_cwm_e_api(driver: Driver) -> APIRouter:
     def get_emotions_for_entity(entity_uuid: str):
         """
         Get all emotion states tagged on an entity.
-        
+
         Args:
             entity_uuid: UUID of the Entity node
-        
+
         Returns:
             List of emotion states
         """
