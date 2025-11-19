@@ -6,7 +6,7 @@ This test validates the complete prototype flow:
 2. Ontology and SHACL loading
 3. Pick-and-place test data loading
 4. Apollo command simulation
-5. Sophia plan generation
+5. Sophia plan generation (via planner API)
 6. Talos execution simulation
 7. State verification in HCG
 
@@ -18,6 +18,13 @@ import subprocess
 from pathlib import Path
 
 import pytest
+
+# Try to import planner client for API-based planning
+try:
+    from planner_stub.client import PlannerClient
+    PLANNER_CLIENT_AVAILABLE = True
+except ImportError:
+    PLANNER_CLIENT_AVAILABLE = False
 
 RUN_M4_E2E = os.getenv("RUN_M4_E2E") == "1"
 pytestmark = pytest.mark.skipif(
@@ -240,7 +247,7 @@ class TestM4SimulatedWorkflow:
         assert "TestGoalState" in stdout, "Expected goal state to be created"
 
     def test_create_plan_processes(self, loaded_test_data):
-        """Simulate Sophia generating a plan."""
+        """Simulate Sophia generating a plan (using direct Cypher)."""
         query = """
         CREATE (p1:Process {
             uuid: 'process-test-' + randomUUID(),
@@ -261,6 +268,71 @@ class TestM4SimulatedWorkflow:
         assert returncode == 0, f"Failed to create plan processes: {stderr}"
         assert "TestGraspAction" in stdout, "Expected grasp action to be created"
         assert "TestPlaceAction" in stdout, "Expected place action to be created"
+    
+    @pytest.mark.skipif(
+        not PLANNER_CLIENT_AVAILABLE,
+        reason="Planner client not available"
+    )
+    def test_create_plan_via_planner_api(self, loaded_test_data):
+        """
+        Simulate Sophia generating a plan via planner API.
+        
+        This test replaces direct Cypher plan generation with a call to the
+        planner stub API, then stores the plan in Neo4j.
+        """
+        # Check if planner service is available
+        client = PlannerClient()
+        if not client.is_available(timeout=2.0):
+            pytest.skip("Planner service not running")
+        
+        # Generate plan via API
+        response = client.generate_plan_for_scenario("pick_and_place")
+        assert response.success is True, "Plan generation should succeed"
+        assert len(response.plan) == 4, "Pick-and-place should have 4 steps"
+        
+        # Store plan processes in Neo4j
+        for i, step in enumerate(response.plan):
+            query = f"""
+            CREATE (p:Process {{
+                uuid: '{step.uuid}',
+                name: '{step.process}',
+                start_time: datetime(),
+                description: 'API-generated {step.process}',
+                step_number: {i}
+            }})
+            RETURN p.uuid, p.name;
+            """
+            returncode, stdout, stderr = run_cypher_query(query)
+            assert returncode == 0, f"Failed to create process {step.process}: {stderr}"
+            assert step.process in stdout, f"Expected {step.process} in output"
+        
+        # Create PRECEDES relationships between sequential steps
+        for i in range(len(response.plan) - 1):
+            current_uuid = response.plan[i].uuid
+            next_uuid = response.plan[i + 1].uuid
+            
+            query = f"""
+            MATCH (p1:Process {{uuid: '{current_uuid}'}})
+            MATCH (p2:Process {{uuid: '{next_uuid}'}})
+            CREATE (p1)-[:PRECEDES]->(p2)
+            RETURN p1.name, p2.name;
+            """
+            returncode, stdout, stderr = run_cypher_query(query)
+            assert returncode == 0, f"Failed to create PRECEDES relationship: {stderr}"
+        
+        # Verify plan structure in Neo4j
+        verify_query = """
+        MATCH path = (start:Process)-[:PRECEDES*]->(end:Process)
+        WHERE NOT EXISTS((start)<-[:PRECEDES]-())
+        RETURN length(path) AS path_length, 
+               [n IN nodes(path) | n.name] AS process_sequence;
+        """
+        returncode, stdout, stderr = run_cypher_query(verify_query)
+        assert returncode == 0, f"Failed to verify plan structure: {stderr}"
+        
+        print(f"✓ Created plan via planner API with {len(response.plan)} steps")
+        print(f"  Processes: {[step.process for step in response.plan]}")
+
 
     def test_simulate_execution_state_update(self, loaded_test_data):
         """Simulate Talos updating state during execution."""
