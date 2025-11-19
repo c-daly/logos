@@ -2,8 +2,13 @@
 
 [![Validate LOGOS Artifacts](https://github.com/c-daly/logos/actions/workflows/validate-artifacts.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/validate-artifacts.yml)
 [![Run Tests](https://github.com/c-daly/logos/actions/workflows/test.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+> **A Non-Linguistic Cognitive Architecture for Autonomous Agents**
 
 This repository is the canonical "foundry" for Project LOGOS. It contains the formal specification, API contracts, the Hybrid Causal Graph (HCG) founding documents, and the development infrastructure for the shared HCG cluster.
+
+**Phase 1 Complete ✅** | [Read the docs](docs/) | [Contributing](CONTRIBUTING.md) | [Blog Series](docs/outreach/BLOG_SERIES_PLAN.md)
 
 Purpose
 - Host the canonical spec and design artifacts that bind all LOGOS components together (see Section 3.1: Overview and Core Principles).
@@ -148,3 +153,56 @@ Notes and next steps
 - The `core_ontology.cypher` and `shacl_shapes.ttl` are intentionally minimal, syntactically valid, and contain comments indicating where the full ontology and constraints described in the spec will be extended.
 - This repo is the canonical place for future ontology updates, SHACL extensions, contract evolution, and HCG infra changes.
 - Historical action items and research notes now live under `docs/old/`; current planning lives in the phase-specific specs and GitHub Project board.
+
+## Contributing
+
+We welcome contributions from the community! Project LOGOS is open source under the MIT License.
+
+**Getting Started:**
+- Read [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guidelines
+- Check out [good first issues](https://github.com/c-daly/logos/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+- Review the [Code of Conduct](CODE_OF_CONDUCT.md)
+- See [SECURITY.md](SECURITY.md) for security policies
+
+**Ways to Contribute:**
+- 🐛 Report bugs and issues
+- 📖 Improve documentation
+- 💡 Suggest new features aligned with our non-linguistic cognition philosophy
+- 🔧 Submit pull requests
+- 🧪 Add tests and improve coverage
+- 🌐 Extend the ontology for new domains
+- 📝 Write blog posts or tutorials
+
+**Questions?** Open a [GitHub Discussion](https://github.com/c-daly/logos/discussions) or file an issue.
+
+## License
+
+Project LOGOS is released under the [MIT License](LICENSE). See the LICENSE file for details.
+
+## Citation
+
+If you use LOGOS in your research, please cite:
+
+```bibtex
+@software{logos2025,
+  title = {LOGOS: A Non-Linguistic Cognitive Architecture for Autonomous Agents},
+  author = {Project LOGOS Contributors},
+  year = {2025},
+  url = {https://github.com/c-daly/logos},
+  note = {Phase 1 Complete}
+}
+```
+
+A research paper is in preparation. Citation will be updated upon publication.
+
+## Community and Outreach
+
+- 📝 [Blog Post Series](docs/outreach/BLOG_SERIES_PLAN.md): "Building a Non-Linguistic Mind"
+- 📄 [Research Paper](docs/outreach/RESEARCH_PAPER_OUTLINE.md): In preparation
+- 🎥 Demo Video: Coming Q1 2025
+- 💬 Join the discussion on [GitHub Discussions](https://github.com/c-daly/logos/discussions)
+
+## Acknowledgments
+
+Project LOGOS builds on decades of cognitive architecture research and modern graph database technologies. We're grateful to the open-source community and the researchers who paved the way for non-linguistic AI systems.
+
