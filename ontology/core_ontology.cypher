@@ -19,6 +19,15 @@ CREATE CONSTRAINT logos_process_uuid IF NOT EXISTS
 FOR (p:Process)
 REQUIRE p.uuid IS UNIQUE;
 
+//// Phase 2: PersonaEntry and EmotionState node constraints
+CREATE CONSTRAINT logos_persona_entry_uuid IF NOT EXISTS
+FOR (pe:PersonaEntry)
+REQUIRE pe.uuid IS UNIQUE;
+
+CREATE CONSTRAINT logos_emotion_state_uuid IF NOT EXISTS
+FOR (es:EmotionState)
+REQUIRE es.uuid IS UNIQUE;
+
 //// Concept uniqueness
 CREATE CONSTRAINT logos_concept_name IF NOT EXISTS
 FOR (c:Concept)
@@ -37,6 +46,15 @@ CREATE INDEX logos_process_timestamp IF NOT EXISTS
 FOR (p:Process)
 ON (p.start_time);
 
+//// Phase 2: Indexes for PersonaEntry and EmotionState
+CREATE INDEX logos_persona_entry_timestamp IF NOT EXISTS
+FOR (pe:PersonaEntry)
+ON (pe.timestamp);
+
+CREATE INDEX logos_emotion_state_timestamp IF NOT EXISTS
+FOR (es:EmotionState)
+ON (es.timestamp);
+
 //// Base relationship types (Section 4.1)
 //// - (:Entity)-[:IS_A]->(:Concept) — Type membership
 //// - (:Entity)-[:HAS_STATE]->(:State) — Current state
@@ -49,6 +67,12 @@ ON (p.start_time);
 //// - (:State)-[:PRECEDES]->(:State) — Temporal ordering
 //// - (:Process)-[:REQUIRES]->(:State) — Precondition
 //// - (:Entity)-[:CAN_PERFORM]->(:Concept) — Capability
+
+//// Phase 2: Extended relationship types for persona and emotions
+//// - (:PersonaEntry)-[:RELATES_TO]->(:Process) — Diary entry linked to process
+//// - (:EmotionState)-[:TAGGED_ON]->(:Process) — Emotion tag on process
+//// - (:EmotionState)-[:TAGGED_ON]->(:Entity) — Emotion tag on entity
+//// - (:EmotionState)-[:GENERATED_BY]->(:PersonaEntry) — Emotion derived from reflection
 
 //// Property Schemas by Node Type (see ontology/README_PICK_AND_PLACE.md for details)
 ////
@@ -70,6 +94,19 @@ ON (p.start_time);
 //// Process Properties:
 ////   Required: uuid, start_time
 ////   Optional: name, description, duration_ms
+////
+//// Phase 2: PersonaEntry Properties (Section 3.4 - Diagnostics & Persona):
+////   Required: uuid, timestamp
+////   Optional: summary (text summary of activity), 
+////            sentiment (e.g., "confident", "cautious", "neutral"),
+////            related_process (UUID of linked Process)
+////
+//// Phase 2: EmotionState Properties (CWM-E reflection tags):
+////   Required: uuid, timestamp
+////   Optional: emotion_type (e.g., "confident", "cautious", "curious"),
+////            intensity (0.0-1.0 confidence/strength),
+////            context (brief description),
+////            source (what triggered this emotion tag)
 ////
 //// See shacl_shapes.ttl for validation constraints
 
