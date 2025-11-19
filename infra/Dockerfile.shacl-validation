@@ -17,6 +17,7 @@ COPY pyproject.toml ./
 COPY setup.py ./
 COPY logos_tools ./logos_tools
 COPY README.md ./
+COPY logos_hcg ./logos_hcg
 
 # Install dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
