@@ -434,6 +434,8 @@ The automated test verifies:
 ### Objective
 Demonstrate the complete system integration: Apollo → Sophia → Talos → HCG, executing a pick-and-place task.
 
+> Note: The full M4 end-to-end test is opt-in. Set `RUN_M4_E2E=1` (or run the workflow with `skip_e2e=false`) to execute the slow flow; by default CI skips it.
+
 ### Verification Checklist
 
 #### Component Integration
