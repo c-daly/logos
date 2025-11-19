@@ -80,3 +80,6 @@ docs/.doctrees/
 .neo4j/
 .milvus/
 volumes/
+
+# Development backups
+infra/backups/

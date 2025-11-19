@@ -254,6 +254,90 @@ For better performance, allocate more resources to Docker:
 - Memory: At least 4GB recommended
 - CPU: 2+ cores recommended
 
+## Backup and Restore (Development)
+
+**⚠️ Development Use Only**: These scripts are designed for local development snapshots and experimentation. They are NOT suitable for production use.
+
+### Creating a Backup
+
+Create a timestamped backup of all development data (Neo4j + Milvus volumes):
+
+```bash
+# From the repository root
+./infra/scripts/backup_dev_data.sh
+```
+
+This will:
+- Pause services cleanly to ensure data consistency
+- Backup Neo4j volumes (neo4j-data, neo4j-logs, neo4j-plugins)
+- Backup Milvus volume (milvus-data)
+- Create a timestamped tarball in `infra/backups/` (e.g., `backup-20240118-1430.tar.gz`)
+- Resume services automatically
+- Print backup location and size
+
+**Custom output location:**
+```bash
+./infra/scripts/backup_dev_data.sh --output /tmp/my-backup.tar.gz
+```
+
+**Expected downtime:** Services are paused for the duration of the backup (typically 10-30 seconds for small dev datasets, longer for larger data).
+
+### Restoring from a Backup
+
+Restore data from a previous backup archive:
+
+```bash
+# From the repository root
+./infra/scripts/restore_dev_data.sh infra/backups/backup-20240118-1430.tar.gz
+```
+
+This will:
+- Verify the backup archive is valid and contains all required volumes
+- Display backup metadata (timestamp, volumes included)
+- Ask for confirmation before overwriting existing data
+- Stop services
+- Restore all volumes from the archive
+- Restart services and wait for them to be ready
+- Verify services are accessible
+
+**Skip confirmation prompt:**
+```bash
+./infra/scripts/restore_dev_data.sh infra/backups/backup-20240118-1430.tar.gz --force
+```
+
+**Expected downtime:** Services are stopped during restore (typically 30-60 seconds plus service startup time).
+
+### Typical Workflow
+
+```bash
+# 1. Create a baseline backup before experiments
+./infra/scripts/backup_dev_data.sh
+
+# 2. Run experiments, make changes, test things out
+# ... work with your data ...
+
+# 3. If something goes wrong, restore from the backup
+./infra/scripts/restore_dev_data.sh infra/backups/backup-YYYYMMDD-HHMM.tar.gz
+
+# 4. Or create another backup after successful changes
+./infra/scripts/backup_dev_data.sh
+```
+
+### Requirements
+
+- Docker and Docker Compose must be installed and running
+- Services must be running for backup (they will be paused automatically)
+- Services will be stopped for restore (they will be restarted automatically)
+- Sufficient disk space for backup archives (size depends on data volume)
+
+### Notes
+
+- Backups are stored in `infra/backups/` which is gitignored
+- Backup archives include metadata (timestamp, volume names, compose file used)
+- Restore validates archive contents before overwriting data
+- Both scripts use POSIX shell features only (no bash-specific features for portability)
+- Scripts handle errors gracefully and always attempt to resume/restart services
+
 ## Integration with LOGOS Components
 
 - **Sophia**: Connects to Neo4j for HCG operations and Milvus for semantic search; can use SHACL validation endpoint to validate graph updates
