@@ -2,6 +2,8 @@
 
 This document supersedes the original full specification. It folds in every relevant requirement from the prior spec, records the work delivered during Phase 1, and codifies the flexible deployment philosophy that now guides the roadmap. Treat this file as the single source of truth for architecture, ontology, infrastructure, and milestone expectations. Phase-specific deliverables now live under `docs/phase1/`, `docs/phase2/`, etc., while archival references were moved into `docs/old/`.
 
+For detailed rationale behind key architectural decisions, see the Architecture Decision Records in `docs/adr/`.
+
 ---
 
 ## 1. Introduction and Vision
