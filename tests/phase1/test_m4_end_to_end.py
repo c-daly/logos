@@ -190,7 +190,11 @@ class TestM4TestDataLoading:
 
     def test_entities_loaded(self, loaded_test_data):
         """Verify test entities are present."""
-        query = "MATCH (e:Entity) WHERE e.name CONTAINS 'RedBlock' OR e.name CONTAINS 'Manipulator' RETURN count(e) AS count;"
+        query = (
+            "MATCH (e:Entity) "
+            "WHERE e.name CONTAINS 'RedBlock' OR e.uuid = 'entity-robot-arm-01' "
+            "RETURN count(e) AS count;"
+        )
         returncode, stdout, stderr = run_cypher_query(query)
         assert returncode == 0, f"Failed to query entities: {stderr}"
         # Should find at least one entity
@@ -198,11 +202,15 @@ class TestM4TestDataLoading:
 
     def test_manipulator_entity_exists(self, loaded_test_data):
         """Verify manipulator entity exists."""
-        query = "MATCH (e:Entity) WHERE e.name CONTAINS 'Manipulator' RETURN e.name LIMIT 1;"
+        query = (
+            "MATCH (e:Entity) "
+            "WHERE e.uuid = 'entity-robot-arm-01' "
+            "   OR e.name CONTAINS 'RobotArm' "
+            "RETURN count(e) AS count;"
+        )
         returncode, stdout, stderr = run_cypher_query(query)
         assert returncode == 0, f"Failed to query manipulator: {stderr}"
-        # Check if we got a result (output should contain a name)
-        assert len(stdout.strip()) > 0, "Expected manipulator entity to exist"
+        assert "count" in stdout.lower() and "1" in stdout, "Expected manipulator entity to exist"
 
 
 class TestM4SimulatedWorkflow:
