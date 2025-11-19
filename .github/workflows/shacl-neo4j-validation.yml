@@ -1,17 +1,25 @@
-name: SHACL Validation via Neo4j n10s
+# Neo4j + n10s SHACL Validation Integration Test
+#
+# This workflow validates SHACL shapes using Neo4j's n10s plugin.
+# It is opt-in and runs on:
+# - Manual trigger via workflow_dispatch
+# - Weekly schedule (Monday 10:00 AM UTC) as a nightly integration check
+#
+# For default CI validation (without Neo4j), see test.yml which runs
+# pyshacl tests automatically on every push/PR.
+#
+# To run locally:
+# 1. Start dev cluster: docker compose -f infra/docker-compose.hcg.dev.yml up -d
+# 2. Install n10s plugin (see infra/README.md)
+# 3. Load ontology: ./infra/load_ontology.sh
+# 4. Run tests: RUN_NEO4J_SHACL=1 pytest tests/phase1/test_shacl_neo4j_validation.py -v
+
+name: SHACL Validation via Neo4j n10s (Integration Test)
 
 on:
-  pull_request:
-    branches:
-      - main
-      - develop
-  push:
-    branches:
-      - main
-      - develop
   workflow_dispatch:
   schedule:
-    # Run weekly on Mondays at 10:00 AM UTC
+    # Run weekly on Mondays at 10:00 AM UTC (nightly/integration check)
     - cron: '0 10 * * 1'
 
 permissions:
@@ -19,7 +27,7 @@ permissions:
 
 jobs:
   shacl-neo4j-validation:
-    name: SHACL Validation Smoke Test
+    name: Neo4j + n10s Integration Test (opt-in)
     runs-on: ubuntu-latest
     
     steps:
@@ -138,6 +146,7 @@ jobs:
           export NEO4J_URI=bolt://localhost:7687
           export NEO4J_USER=neo4j
           export NEO4J_PASSWORD=logosdev
+          export RUN_NEO4J_SHACL=1
           
           pytest tests/phase1/test_shacl_neo4j_validation.py -v --tb=short 2>&1 | tee neo4j_validation_output.txt
           

@@ -54,6 +54,16 @@ CI/CD and Validation
 - **OpenAPI Contract**: OpenAPI 3.1.0 specification validation using swagger-cli (`contracts/hermes.openapi.yaml`)
 - See `.github/workflows/validate-artifacts.yml` for the complete validation pipeline.
 
+SHACL Validation Strategy
+- **Default CI (pyshacl)**: Fast, connectionless validation runs automatically on every push/PR
+  - Tests in `tests/phase1/test_shacl_pyshacl.py` validate shapes against fixtures without requiring Neo4j
+  - Ensures SHACL shapes are syntactically correct and fixtures conform to expectations
+- **Integration Tests (Neo4j+n10s)**: Opt-in validation for testing Neo4j integration
+  - Tests in `tests/phase1/test_shacl_neo4j_validation.py` validate data using Neo4j's n10s plugin
+  - Requires Neo4j with n10s plugin installed and `RUN_NEO4J_SHACL=1` environment variable
+  - Can be run manually or via workflow dispatch (see `infra/README.md` for local setup)
+  - Workflow: `.github/workflows/shacl-neo4j-validation.yml` (manual trigger only)
+
 Phase 1 Verification and Gate
 - Phase 1 must be completed and verified before Phase 2 work can begin.
 - **Verification Checklist**: See `docs/PHASE1_VERIFY.md` for complete Phase 1 verification criteria.

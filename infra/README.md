@@ -201,6 +201,80 @@ Each collection has the following schema:
 - `embedding_model` (VARCHAR): Model used to generate the embedding
 - `last_sync` (INT64): Unix timestamp of last synchronization
 
+## SHACL Validation
+
+The LOGOS project uses a two-tier SHACL validation strategy:
+
+### Default: pyshacl (Connectionless)
+
+**Purpose**: Fast validation in CI without requiring Neo4j or n10s.
+
+**Usage**:
+```bash
+# Run pyshacl tests (no Neo4j required)
+pytest tests/phase1/test_shacl_pyshacl.py -v
+```
+
+**What it validates**:
+- SHACL shapes are syntactically correct
+- Valid fixtures pass validation
+- Invalid fixtures fail validation with expected violations
+- Wrong UUID prefixes, missing required properties, etc. are detected
+
+**When to use**: Default for CI, quick local validation, and development iteration.
+
+### Integration: Neo4j + n10s (Opt-in)
+
+**Purpose**: Test SHACL validation through Neo4j's n10s plugin for integration testing.
+
+**Requirements**:
+1. Neo4j dev cluster running (`docker compose -f infra/docker-compose.hcg.dev.yml up -d`)
+2. n10s plugin installed (see instructions below)
+3. Core ontology loaded (`./infra/load_ontology.sh`)
+4. `RUN_NEO4J_SHACL=1` environment variable set
+
+**Usage**:
+```bash
+# 1. Start the dev cluster
+docker compose -f infra/docker-compose.hcg.dev.yml up -d
+
+# 2. Install n10s plugin (if not already installed)
+# Download n10s jar for Neo4j 5.13.x
+curl -fL -o neosemantics-5.13.0.jar \
+  https://github.com/neo4j-labs/neosemantics/releases/download/5.13.0/neosemantics-5.13.0.jar
+
+# Copy into Neo4j plugins directory
+docker cp neosemantics-5.13.0.jar logos-hcg-neo4j:/plugins/
+
+# Fix permissions and restart
+docker exec logos-hcg-neo4j chown neo4j:neo4j /plugins/neosemantics-5.13.0.jar
+docker restart logos-hcg-neo4j
+
+# Wait for Neo4j to restart (10-15 seconds)
+sleep 15
+
+# 3. Verify n10s is loaded
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+  "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'n10s' RETURN name LIMIT 5"
+
+# 4. Load core ontology (if not already loaded)
+./infra/load_ontology.sh
+
+# 5. Run Neo4j SHACL validation tests
+RUN_NEO4J_SHACL=1 pytest tests/phase1/test_shacl_neo4j_validation.py -v
+```
+
+**What it validates**:
+- n10s plugin is loaded and working
+- SHACL shapes can be imported via n10s
+- Valid RDF data passes validation in Neo4j
+- Invalid RDF data fails validation with violations
+- Bad writes are rejected through Neo4j validation
+
+**When to use**: Integration testing, verifying Neo4j+n10s behavior, manual testing before releases.
+
+**Note**: These tests are skipped by default in CI. The workflow `.github/workflows/shacl-neo4j-validation.yml` can be triggered manually via workflow dispatch if needed.
+
 ## Plugin Notes
 
 ### APOC
