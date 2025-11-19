@@ -256,7 +256,7 @@ class TestM4SimulatedWorkflow:
         """
         returncode, stdout, stderr = run_cypher_query(verify_query)
         assert returncode == 0, f"Failed to verify goal state: {stderr}"
-        assert "true" in stdout, "Expected is_goal=true not found"
+        assert "true" in stdout.lower(), "Expected is_goal=true not found"
         assert "red block in bin" in stdout.lower(), "Expected goal description not found"
 
     def test_create_plan_processes(self, loaded_test_data):
@@ -419,7 +419,7 @@ class TestM4SimulatedWorkflow:
         returncode, stdout, stderr = run_cypher_query(grasp_state_query)
         assert returncode == 0, f"Failed to create grasp state: {stderr}"
         assert "TestRedBlockGrasped" in stdout, "Expected grasped state name not found"
-        assert "true" in stdout, "Expected is_grasped=true not found"
+        assert "true" in stdout.lower(), "Expected is_grasped=true not found"
 
         # Simulate release and placement state update
         release_state_query = """
@@ -441,7 +441,7 @@ class TestM4SimulatedWorkflow:
         returncode, stdout, stderr = run_cypher_query(release_state_query)
         assert returncode == 0, f"Failed to create release state: {stderr}"
         assert "TestRedBlockInBin" in stdout, "Expected in-bin state name not found"
-        assert "false" in stdout, "Expected is_grasped=false not found"
+        assert "false" in stdout.lower(), "Expected is_grasped=false not found"
         assert "TargetBin01" in stdout, "Expected bin name not found"
 
         # Verify final state properties
@@ -451,7 +451,7 @@ class TestM4SimulatedWorkflow:
         """
         returncode, stdout, stderr = run_cypher_query(verify_final_state_query)
         assert returncode == 0, f"Failed to verify final state: {stderr}"
-        assert "false" in stdout, "Expected final is_grasped=false not found"
+        assert "false" in stdout.lower(), "Expected final is_grasped=false not found"
         assert "0.5" in stdout, "Expected final position_x=0.5 not found"
 
         # Verify LOCATED_AT relationship
@@ -528,7 +528,7 @@ class TestM4StateVerification:
         returncode, stdout, stderr = run_cypher_query(query)
         assert returncode == 0, f"Failed to query red block initial state: {stderr}"
         assert "RedBlock01" in stdout, "Expected RedBlock01 name not found"
-        assert "false" in stdout, "Expected initial is_grasped=false not found"
+        assert "false" in stdout.lower(), "Expected initial is_grasped=false not found"
 
     def test_verify_process_causes_relationships(self, loaded_test_data):
         """Verify processes have CAUSES relationships to resulting states."""
@@ -734,7 +734,7 @@ class TestM4CompleteWorkflow:
         returncode, stdout, stderr = run_cypher_query(create_goal_query)
         assert returncode == 0, f"Failed to create goal state: {stderr}"
         assert "CompleteWorkflowGoal" in stdout, "Expected goal name not found"
-        assert "true" in stdout, "Expected is_goal=true not found"
+        assert "true" in stdout.lower(), "Expected is_goal=true not found"
 
         # Step 3: Create complete plan with all steps
         create_complete_plan_query = """
@@ -808,7 +808,7 @@ class TestM4CompleteWorkflow:
         """
         returncode, stdout, stderr = run_cypher_query(simulate_grasp_execution_query)
         assert returncode == 0, f"Failed to simulate grasp execution: {stderr}"
-        assert "true" in stdout, "Expected grasped state not found"
+        assert "true" in stdout.lower(), "Expected grasped state not found"
 
         # Step 5: Simulate final placement
         simulate_placement_execution_query = """
@@ -846,7 +846,7 @@ class TestM4CompleteWorkflow:
         assert returncode == 0, f"Failed to simulate placement execution: {stderr}"
         assert "RedBlock01" in stdout, "Expected block name in placement result"
         assert "TargetBin01" in stdout, "Expected bin name in placement result"
-        assert "false" in stdout, "Expected is_grasped=false in final state"
+        assert "false" in stdout.lower(), "Expected is_grasped=false in final state"
 
         # Step 6: Verify complete workflow results
         verify_final_workflow_query = """
@@ -868,6 +868,6 @@ class TestM4CompleteWorkflow:
         # Verify all expected elements are present
         assert "RedBlock01" in stdout, "Block name not found in final verification"
         assert "TargetBin01" in stdout, "Bin name not found in final verification"
-        assert "false" in stdout, "Expected final is_grasped=false not found"
+        assert "false" in stdout.lower(), "Expected final is_grasped=false not found"
         assert "0.5" in stdout, "Expected final position not found"
         assert "3" in stdout, "Expected 3 PRECEDES links (4 steps) not found"
