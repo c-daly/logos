@@ -76,6 +76,9 @@ docs/.doctrees/
 *.tmp
 /tmp/
 
+# E2E test logs
+logs/
+
 # Neo4j and Milvus data (local dev)
 .neo4j/
 .milvus/

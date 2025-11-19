@@ -1,0 +1,168 @@
+name: M4 End-to-End Demo
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+    inputs:
+      skip_e2e:
+        description: 'Skip E2E test (for quick validation)'
+        required: false
+        default: 'false'
+  schedule:
+    # Run weekly on Mondays at 10:00 AM UTC
+    - cron: '0 10 * * 1'
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  e2e-prototype-test:
+    name: End-to-End Prototype Demo
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest pytest-cov rdflib pyshacl
+      
+      - name: Start HCG infrastructure
+        run: |
+          cd infra
+          docker compose -f docker-compose.hcg.dev.yml up -d
+          echo "Waiting for Neo4j to be ready..."
+          sleep 30
+      
+      - name: Wait for Neo4j
+        run: |
+          # Wait up to 2 minutes for Neo4j to be ready
+          for i in {1..24}; do
+            if docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "RETURN 1;" > /dev/null 2>&1; then
+              echo "Neo4j is ready!"
+              break
+            fi
+            echo "Waiting for Neo4j... (attempt $i/24)"
+            sleep 5
+          done
+          
+          # Verify Neo4j is actually ready
+          docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "RETURN 1 AS test;"
+      
+      - name: Load ontology and test data
+        run: |
+          echo "Loading core ontology..."
+          cat ontology/core_ontology.cypher | docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p logosdev || true
+          
+          echo "Loading pick-and-place test data..."
+          cat ontology/test_data_pick_and_place.cypher | docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p logosdev || true
+          
+          echo "Verifying data loaded..."
+          docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "MATCH (c:Concept) RETURN count(c) AS concepts;"
+      
+      - name: Run M4 integration tests
+        id: m4_tests
+        run: |
+          echo "## M4: End-to-End Integration Tests" >> $GITHUB_STEP_SUMMARY
+          
+          # Run tests excluding the slow E2E script test unless explicitly requested
+          if [ "${{ github.event.inputs.skip_e2e }}" = "true" ]; then
+            echo "Skipping slow E2E script test (skip_e2e=true)" | tee -a $GITHUB_STEP_SUMMARY
+            pytest tests/phase1/test_m4_end_to_end.py -v --tb=short -m "not slow" 2>&1 | tee m4_output.txt
+          else
+            echo "Running full E2E tests including script execution" | tee -a $GITHUB_STEP_SUMMARY
+            pytest tests/phase1/test_m4_end_to_end.py -v --tb=short 2>&1 | tee m4_output.txt
+          fi
+          
+          if [ ${PIPESTATUS[0]} -eq 0 ]; then
+            echo "✅ **PASSED**: End-to-end integration working" >> $GITHUB_STEP_SUMMARY
+            echo "m4_status=passed" >> $GITHUB_OUTPUT
+          else
+            echo "❌ **FAILED**: End-to-end integration tests failed" >> $GITHUB_STEP_SUMMARY
+            echo "m4_status=failed" >> $GITHUB_OUTPUT
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+      
+      - name: Run E2E script (if not skipped)
+        if: github.event.inputs.skip_e2e != 'true'
+        run: |
+          echo "## E2E Script Execution" >> $GITHUB_STEP_SUMMARY
+          
+          # Make script executable
+          chmod +x scripts/e2e_prototype.sh
+          
+          # Run the E2E script
+          if ./scripts/e2e_prototype.sh 2>&1 | tee e2e_script_output.txt; then
+            echo "✅ **E2E Script PASSED**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **E2E Script FAILED**" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### E2E Script Summary" >> $GITHUB_STEP_SUMMARY
+          if [ -f logs/e2e/summary.txt ]; then
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat logs/e2e/summary.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+      
+      - name: Upload test outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m4-e2e-test-outputs
+          path: |
+            m4_output.txt
+            e2e_script_output.txt
+            logs/e2e/
+          retention-days: 30
+      
+      - name: Upload E2E logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m4-e2e-logs
+          path: logs/e2e/
+          retention-days: 30
+      
+      - name: Capture Neo4j logs
+        if: always()
+        run: |
+          echo "Capturing Neo4j logs..."
+          docker logs logos-hcg-neo4j > neo4j_container.log 2>&1 || true
+      
+      - name: Upload Neo4j logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: neo4j-logs
+          path: neo4j_container.log
+          retention-days: 7
+      
+      - name: Cleanup containers
+        if: always()
+        run: |
+          cd infra
+          docker compose -f docker-compose.hcg.dev.yml down -v || true
+      
+      - name: Fail if M4 tests failed
+        if: steps.m4_tests.outputs.m4_status == 'failed'
+        run: |
+          echo "::error::M4 end-to-end tests failed"
+          exit 1
