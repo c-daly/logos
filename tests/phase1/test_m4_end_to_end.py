@@ -260,22 +260,38 @@ class TestM4SimulatedWorkflow:
         assert "red block in bin" in stdout.lower(), "Expected goal description not found"
 
     def test_create_plan_processes(self, loaded_test_data):
-        """Simulate Sophia generating a plan (using direct Cypher)."""
-        query = """
-        CREATE (p1:Process {
-            uuid: 'process-test-' + randomUUID(),
-            name: 'TestGraspAction',
-            start_time: datetime(),
-            description: 'Test grasp action'
-        })
-        CREATE (p2:Process {
-            uuid: 'process-test-' + randomUUID(),
-            name: 'TestPlaceAction',
-            start_time: datetime(),
-            description: 'Test place action'
-        })
-        CREATE (p1)-[:PRECEDES]->(p2)
-        RETURN p1.name, p2.name;
+        """Simulate Sophia generating a plan with specific process ordering."""
+        # Use MERGE for resilience, create ordered plan
+        create_plan_query = """
+        MERGE (p1:Process {uuid: 'process-test-m4-move-pregrasp'})
+        ON CREATE SET
+            p1.name = 'TestMoveToPreGrasp',
+            p1.start_time = datetime(),
+            p1.description = 'Move robot arm to pre-grasp position'
+
+        MERGE (p2:Process {uuid: 'process-test-m4-grasp'})
+        ON CREATE SET
+            p2.name = 'TestGraspRedBlock',
+            p2.start_time = datetime(),
+            p2.description = 'Grasp red block with gripper'
+
+        MERGE (p3:Process {uuid: 'process-test-m4-move-place'})
+        ON CREATE SET
+            p3.name = 'TestMoveToPlace',
+            p3.start_time = datetime(),
+            p3.description = 'Move to placement position'
+
+        MERGE (p4:Process {uuid: 'process-test-m4-release'})
+        ON CREATE SET
+            p4.name = 'TestReleaseBlock',
+            p4.start_time = datetime(),
+            p4.description = 'Release block into bin'
+
+        MERGE (p1)-[:PRECEDES]->(p2)
+        MERGE (p2)-[:PRECEDES]->(p3)
+        MERGE (p3)-[:PRECEDES]->(p4)
+
+        RETURN p1.name, p2.name, p3.name, p4.name;
         """
         returncode, stdout, stderr = run_cypher_query(create_plan_query)
         assert returncode == 0, f"Failed to create plan processes: {stderr}"
