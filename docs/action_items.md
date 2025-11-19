@@ -192,10 +192,11 @@ Reference: Section 7.1 of the full specification
   - Prototype GNN-based node classification on HCG
   - Assess performance vs. symbolic methods
 
-- [ ] **R3: Multi-modal grounding**
+- [x] **R3: Multi-modal grounding**
   - Research sensor fusion techniques
   - Design architecture for vision + proprioception integration
   - Plan for Phase 2 implementation
+  - Document findings in `docs/research/multi_modal_grounding.md`
 
 ### 3.2 Outreach and Collaboration
 
