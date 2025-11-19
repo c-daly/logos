@@ -78,8 +78,9 @@ docs/.doctrees/
 
 # E2E test logs
 logs/
-# But keep M1 verification evidence
+# But keep M1 and M4 verification evidence
 !logs/m1-verification/
+!logs/m4-verification/
 
 # Neo4j and Milvus data (local dev)
 .neo4j/

@@ -1,0 +1,12 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.1, pluggy-1.6.0
+rootdir: /home/runner/work/logos/logos
+configfile: pyproject.toml
+plugins: anyio-4.11.0, cov-7.0.0
+collected 23 items
+
+tests/phase1/test_m4_end_to_end.py .........s.............               [100%]
+
+=========================== short test summary info ============================
+SKIPPED [1] tests/phase1/test_m4_end_to_end.py:331: Planner service not running
+=================== 22 passed, 1 skipped in 85.33s (0:01:25) ===================
