@@ -6,13 +6,66 @@
 
 ## Executive Summary
 
-This audit reviewed all test files in the repository to identify hardcoded parameters (connection strings, ports, credentials) and ensure they properly use environment variables with sensible defaults.
+This audit reviewed all test files in the repository to identify:
+1. Hardcoded parameters (connection strings, ports, credentials) 
+2. Hardcoded file paths, especially references to deprecated `docs/old/` files
 
-**Result:** ✅ All issues have been resolved. Tests now properly use environment variables.
+**Result:** ✅ All issues have been resolved. Tests and scripts now properly use environment variables and correct file paths.
+
+## Critical Finding: Tests Referenced Deprecated Files
+
+**Major Issue Discovered:** Multiple tests and scripts were referencing `docs/action_items.md` which has been moved to `docs/old/action_items.md` (archived). This was causing test failures.
+
+### Files Fixed:
+1. `tests/test_generate_issues.py` - Updated all 3 file path references
+2. `tests/test_create_issues_by_epoch.py` - Updated all 3 file path references  
+3. `logos_tools/generate_issues.py` - Updated script to use correct path
+4. `logos_tools/create_issues_by_epoch.py` - Updated script to use correct path
+
+**Impact:** Tests now pass and scripts correctly reference the archived action_items.md file in `docs/old/`.
 
 ## Findings and Resolutions
 
-### 1. ✅ FIXED: `tests/phase1/test_m4_end_to_end.py`
+### 1. ✅ FIXED: Hardcoded File Paths to docs/old/
+
+**Issue:** Tests and CLI tools referenced `docs/action_items.md` but file is in `docs/old/action_items.md`
+
+**Affected Files:**
+- `tests/test_generate_issues.py` (3 occurrences)
+- `tests/test_create_issues_by_epoch.py` (3 occurrences)
+- `logos_tools/generate_issues.py` (1 occurrence)
+- `logos_tools/create_issues_by_epoch.py` (1 occurrence)
+
+**Before:**
+```python
+doc_path = Path(__file__).parent.parent / "docs" / "action_items.md"
+```
+
+**After:**
+```python
+# action_items.md has been moved to docs/old/ (archived)
+doc_path = Path(__file__).parent.parent / "docs" / "old" / "action_items.md"
+```
+
+**Verification:**
+```bash
+$ pytest tests/test_generate_issues.py -v
+tests/test_generate_issues.py::test_task_parser_initialization PASSED
+tests/test_generate_issues.py::test_task_parser_parses_tasks PASSED
+tests/test_generate_issues.py::test_task_parser_identifies_components PASSED
+3 passed in 0.02s
+
+$ pytest tests/test_create_issues_by_epoch.py -v
+tests/test_create_issues_by_epoch.py::test_epochs_defined PASSED
+tests/test_create_issues_by_epoch.py::test_enhanced_task_parser_initialization PASSED
+tests/test_create_issues_by_epoch.py::test_enhanced_task_parser_parses_tasks_with_epochs PASSED
+tests/test_create_issues_by_epoch.py::test_epoch_assignment_logic PASSED
+4 passed in 0.02s
+```
+
+---
+
+### 2. ✅ FIXED: Hardcoded Connection Parameters in `tests/phase1/test_m4_end_to_end.py`
 
 **Issue:** Neo4j connection parameters were hardcoded without environment variable fallbacks.
 
@@ -36,7 +89,7 @@ NEO4J_CONTAINER = os.getenv("NEO4J_CONTAINER", "logos-hcg-neo4j")
 
 ---
 
-### 2. ✅ FIXED: `tests/infra/test_milvus_collections.py`
+### 3. ✅ FIXED: Hardcoded Connection Parameters in `tests/infra/test_milvus_collections.py`
 
 **Issue:** Milvus connection parameters were hardcoded in multiple places.
 
@@ -72,7 +125,7 @@ connections.connect(
 
 ---
 
-### 3. ✅ ACCEPTABLE: `tests/test_hcg_milvus_sync.py`
+### 4. ✅ ACCEPTABLE: `tests/test_hcg_milvus_sync.py`
 
 **Status:** No changes needed - This is a unit test with proper mocking.
 
@@ -95,7 +148,7 @@ mock_connections.connect.assert_called_once_with(
 
 ---
 
-### 4. ✅ ACCEPTABLE: `tests/infra/test_hcg_client.py`
+### 5. ✅ ACCEPTABLE: `tests/infra/test_hcg_client.py`
 
 **Status:** No changes needed - This is a negative test case.
 
@@ -112,7 +165,7 @@ HCGClient(uri="bolt://invalid:7687", user=NEO4J_USER, password=NEO4J_PASSWORD)
 
 ---
 
-### 5. ✅ VERIFIED: All Other Test Files
+### 6. ✅ VERIFIED: All Other Test Files
 
 The following test files were reviewed and already properly use environment variables:
 

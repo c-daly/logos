@@ -9,15 +9,17 @@ from logos_tools.generate_issues import TaskParser
 
 def test_task_parser_initialization():
     """Test that TaskParser can be initialized."""
-    doc_path = Path(__file__).parent.parent / "docs" / "action_items.md"
+    # action_items.md has been moved to docs/old/ (archived)
+    doc_path = Path(__file__).parent.parent / "docs" / "old" / "action_items.md"
     parser = TaskParser(doc_path)
     assert parser is not None
     assert parser.doc_path == doc_path
 
 
 def test_task_parser_parses_tasks():
-    """Test that TaskParser can parse tasks from action_items.md."""
-    doc_path = Path(__file__).parent.parent / "docs" / "action_items.md"
+    """Test that TaskParser can parse tasks from action_items.md (archived)."""
+    # action_items.md has been moved to docs/old/ (archived)
+    doc_path = Path(__file__).parent.parent / "docs" / "old" / "action_items.md"
     parser = TaskParser(doc_path)
     tasks = parser.parse()
 
@@ -34,7 +36,8 @@ def test_task_parser_parses_tasks():
 
 def test_task_parser_identifies_components():
     """Test that TaskParser correctly identifies components."""
-    doc_path = Path(__file__).parent.parent / "docs" / "action_items.md"
+    # action_items.md has been moved to docs/old/ (archived)
+    doc_path = Path(__file__).parent.parent / "docs" / "old" / "action_items.md"
     parser = TaskParser(doc_path)
     tasks = parser.parse()
 
