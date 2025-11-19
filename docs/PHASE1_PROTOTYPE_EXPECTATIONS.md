@@ -27,3 +27,15 @@ Scope: A working, demonstrable prototype for Phase 1 (Hybrid Cognitive Graph fou
 - Shapes catch invalid fixtures (pyshacl) and can be validated in Neo4j when enabled.
 - Goal → plan → (simulated) execution → state verification runs end to end in the M4 test/script without manual intervention.
 - Clear docs for how to run locally and how to enable the optional Neo4j/Milvus checks.
+
+## Tracking the remaining work
+The remaining polish and documentation needed before we call Phase 1 complete are tracked with the `phase 1 closers` label:
+
+- #200 Neo4j SHACL opt-in workflow + docs
+- #201 Sophia planner stub surface
+- #202 Executor/Talos shim updates
+- #203 Apollo CLI/API entrypoint
+- #204 Milvus smoke/health check
+- #205 Stronger M4 assertions using the RobotArm fixtures
+- #206 CI/test cleanup + docs about opt-in heavy tests
+- #208 Apollo CLI prototype wiring for the goal → plan → execute loop
