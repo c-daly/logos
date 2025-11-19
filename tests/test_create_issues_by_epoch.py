@@ -21,7 +21,7 @@ def test_epochs_defined():
 
 def test_enhanced_task_parser_initialization():
     """Test that EnhancedTaskParser can be initialized."""
-    doc_path = Path(__file__).parent.parent / "docs" / "action_items.md"
+    doc_path = Path(__file__).parent.parent / "docs" / "old" / "action_items.md"
     parser = EnhancedTaskParser(doc_path)
     assert parser is not None
     assert parser.doc_path == doc_path
@@ -29,7 +29,7 @@ def test_enhanced_task_parser_initialization():
 
 def test_enhanced_task_parser_parses_tasks_with_epochs():
     """Test that EnhancedTaskParser assigns epochs to tasks."""
-    doc_path = Path(__file__).parent.parent / "docs" / "action_items.md"
+    doc_path = Path(__file__).parent.parent / "docs" / "old" / "action_items.md"
     parser = EnhancedTaskParser(doc_path)
     tasks = parser.parse()
 
@@ -49,7 +49,7 @@ def test_enhanced_task_parser_parses_tasks_with_epochs():
 
 def test_epoch_assignment_logic():
     """Test that epoch assignment works for different task types."""
-    doc_path = Path(__file__).parent.parent / "docs" / "action_items.md"
+    doc_path = Path(__file__).parent.parent / "docs" / "old" / "action_items.md"
     parser = EnhancedTaskParser(doc_path)
     tasks = parser.parse()
 

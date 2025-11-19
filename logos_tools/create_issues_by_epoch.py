@@ -532,7 +532,8 @@ def main():
     args = parser.parse_args()
 
     # Parse tasks
-    doc_path = Path(__file__).parent.parent.parent / "docs" / "action_items.md"
+    # action_items.md has been moved to docs/old/ (archived)
+    doc_path = Path(__file__).parent.parent / "docs" / "old" / "action_items.md"
     parser_obj = EnhancedTaskParser(doc_path)
     tasks = parser_obj.parse()
 

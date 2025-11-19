@@ -35,11 +35,11 @@ pytestmark = pytest.mark.skipif(
 # Repository root
 REPO_ROOT = Path(__file__).parent.parent.parent
 
-# Neo4j configuration
-NEO4J_URI = "bolt://localhost:7687"
-NEO4J_USER = "neo4j"
-NEO4J_PASSWORD = "logosdev"
-NEO4J_CONTAINER = "logos-hcg-neo4j"
+# Neo4j configuration - use environment variables with defaults
+NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
+NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
+NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "logosdev")
+NEO4J_CONTAINER = os.getenv("NEO4J_CONTAINER", "logos-hcg-neo4j")
 
 
 def is_neo4j_available() -> bool:
