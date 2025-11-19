@@ -14,7 +14,6 @@ Reference: docs/PHASE1_VERIFY.md, Section M4
 """
 
 import subprocess
-import time
 from pathlib import Path
 
 import pytest
@@ -94,7 +93,7 @@ def run_cypher_query(query: str) -> tuple[int, str, str]:
 def load_cypher_file(file_path: Path) -> tuple[int, str, str]:
     """Load a Cypher file into Neo4j."""
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             result = subprocess.run(
                 [
                     "docker",
@@ -122,7 +121,7 @@ def neo4j_connection():
     """Ensure Neo4j is available for testing."""
     if not is_neo4j_available():
         pytest.skip(
-            f"Neo4j not available. Start with: docker compose -f infra/docker-compose.hcg.dev.yml up -d"
+            "Neo4j not available. Start with: docker compose -f infra/docker-compose.hcg.dev.yml up -d"
         )
     yield
     # Cleanup after tests (optional)
