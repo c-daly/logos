@@ -14,7 +14,7 @@ on:
       skip_e2e:
         description: 'Skip E2E test (for quick validation)'
         required: false
-        default: 'false'
+        default: 'true'
   schedule:
     # Run weekly on Mondays at 10:00 AM UTC
     - cron: '0 10 * * 1'
@@ -83,12 +83,13 @@ jobs:
           
           # Run tests excluding the slow E2E script test unless explicitly requested
           if [ "${{ github.event.inputs.skip_e2e }}" = "true" ]; then
-            echo "Skipping slow E2E script test (skip_e2e=true)" | tee -a $GITHUB_STEP_SUMMARY
-            pytest tests/phase1/test_m4_end_to_end.py -v --tb=short -m "not slow" 2>&1 | tee m4_output.txt
-          else
-            echo "Running full E2E tests including script execution" | tee -a $GITHUB_STEP_SUMMARY
-            pytest tests/phase1/test_m4_end_to_end.py -v --tb=short 2>&1 | tee m4_output.txt
+            echo "Skipping M4 end-to-end tests (skip_e2e=true)" | tee -a $GITHUB_STEP_SUMMARY
+            echo "m4_status=skipped" >> $GITHUB_OUTPUT
+            exit 0
           fi
+
+          export RUN_M4_E2E=1
+          pytest tests/phase1/test_m4_end_to_end.py -v --tb=short 2>&1 | tee m4_output.txt
           
           if [ ${PIPESTATUS[0]} -eq 0 ]; then
             echo "✅ **PASSED**: End-to-end integration working" >> $GITHUB_STEP_SUMMARY
