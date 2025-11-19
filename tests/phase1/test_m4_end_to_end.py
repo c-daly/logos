@@ -268,7 +268,7 @@ class TestM4SimulatedWorkflow:
         assert returncode == 0, f"Failed to create plan processes: {stderr}"
         assert "TestGraspAction" in stdout, "Expected grasp action to be created"
         assert "TestPlaceAction" in stdout, "Expected place action to be created"
-    
+
     @pytest.mark.skipif(
         not PLANNER_CLIENT_AVAILABLE,
         reason="Planner client not available"
@@ -276,7 +276,7 @@ class TestM4SimulatedWorkflow:
     def test_create_plan_via_planner_api(self, loaded_test_data):
         """
         Simulate Sophia generating a plan via planner API.
-        
+
         This test replaces direct Cypher plan generation with a call to the
         planner stub API, then stores the plan in Neo4j.
         """
@@ -284,12 +284,12 @@ class TestM4SimulatedWorkflow:
         client = PlannerClient()
         if not client.is_available(timeout=2.0):
             pytest.skip("Planner service not running")
-        
+
         # Generate plan via API
         response = client.generate_plan_for_scenario("pick_and_place")
         assert response.success is True, "Plan generation should succeed"
         assert len(response.plan) == 4, "Pick-and-place should have 4 steps"
-        
+
         # Store plan processes in Neo4j
         for i, step in enumerate(response.plan):
             query = f"""
@@ -305,12 +305,12 @@ class TestM4SimulatedWorkflow:
             returncode, stdout, stderr = run_cypher_query(query)
             assert returncode == 0, f"Failed to create process {step.process}: {stderr}"
             assert step.process in stdout, f"Expected {step.process} in output"
-        
+
         # Create PRECEDES relationships between sequential steps
         for i in range(len(response.plan) - 1):
             current_uuid = response.plan[i].uuid
             next_uuid = response.plan[i + 1].uuid
-            
+
             query = f"""
             MATCH (p1:Process {{uuid: '{current_uuid}'}})
             MATCH (p2:Process {{uuid: '{next_uuid}'}})
@@ -319,17 +319,17 @@ class TestM4SimulatedWorkflow:
             """
             returncode, stdout, stderr = run_cypher_query(query)
             assert returncode == 0, f"Failed to create PRECEDES relationship: {stderr}"
-        
+
         # Verify plan structure in Neo4j
         verify_query = """
         MATCH path = (start:Process)-[:PRECEDES*]->(end:Process)
         WHERE NOT EXISTS((start)<-[:PRECEDES]-())
-        RETURN length(path) AS path_length, 
+        RETURN length(path) AS path_length,
                [n IN nodes(path) | n.name] AS process_sequence;
         """
         returncode, stdout, stderr = run_cypher_query(verify_query)
         assert returncode == 0, f"Failed to verify plan structure: {stderr}"
-        
+
         print(f"✓ Created plan via planner API with {len(response.plan)} steps")
         print(f"  Processes: {[step.process for step in response.plan]}")
 

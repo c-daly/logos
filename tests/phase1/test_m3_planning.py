@@ -207,60 +207,60 @@ def planner_client():
     """Get planner client if available."""
     if not PLANNER_CLIENT_AVAILABLE:
         pytest.skip("Planner client not available")
-    
+
     client = PlannerClient()
     if not client.is_available(timeout=1.0):
         pytest.skip("Planner service not running")
-    
+
     return client
 
 
 @pytest.mark.skipif(not PLANNER_CLIENT_AVAILABLE, reason="Planner client not available")
 class TestPlannerAPIIntegration:
     """Tests that use the planner API instead of direct Cypher queries."""
-    
+
     def test_planner_service_available(self, planner_client):
         """Test that planner service is available and healthy."""
         health = planner_client.health_check()
         assert "status" in health
         assert health["status"] == "healthy"
         print("✓ Planner service is available and healthy")
-    
+
     def test_planner_api_simple_grasp(self, planner_client):
         """Test simple grasp plan generation via API."""
         response = planner_client.generate_plan_for_scenario("simple_grasp")
-        
+
         assert response.success is True
         assert response.scenario_name == "simple_grasp"
         assert len(response.plan) == 1
-        
+
         step = response.plan[0]
         assert step.process == "GraspAction"
         assert "gripper_open" in step.preconditions
         assert "object_grasped" in step.effects
         assert step.uuid is not None
-        
+
         print(f"✓ Generated simple grasp plan via API (process: {step.uuid})")
-    
+
     def test_planner_api_pick_and_place(self, planner_client):
         """Test pick-and-place plan generation via API."""
         response = planner_client.generate_plan_for_scenario("pick_and_place")
-        
+
         assert response.success is True
         assert response.scenario_name == "pick_and_place"
         assert len(response.plan) == 4
-        
+
         # Verify process sequence
         processes = [step.process for step in response.plan]
         assert processes == ["MoveAction", "GraspAction", "MoveAction", "ReleaseAction"]
-        
+
         # Verify all steps have UUIDs
         for step in response.plan:
             assert step.uuid is not None
             assert step.uuid.startswith("process-")
-        
+
         print(f"✓ Generated pick-and-place plan via API ({len(response.plan)} steps)")
-    
+
     def test_planner_api_with_states(self, planner_client):
         """Test plan generation with explicit initial and goal states."""
         response = planner_client.generate_plan(
@@ -268,39 +268,39 @@ class TestPlannerAPIIntegration:
             goal_state={"object_location": "bin", "object_grasped": False},
             scenario_name="pick_and_place"
         )
-        
+
         assert response.success is True
         assert len(response.plan) > 0
-        
+
         # Verify causal chain
         for i in range(len(response.plan) - 1):
             current_step = response.plan[i]
             next_step = response.plan[i + 1]
-            
+
             assert len(current_step.effects) > 0, f"Step {i} should have effects"
             assert len(next_step.preconditions) > 0, f"Step {i+1} should have preconditions"
-        
+
         print(f"✓ Generated plan with explicit states ({len(response.plan)} steps)")
-    
+
     def test_planner_api_plan_structure(self, planner_client):
         """Test that API-generated plans have proper structure for HCG storage."""
         response = planner_client.generate_plan_for_scenario("pick_and_place")
-        
+
         assert response.success is True
-        
+
         for i, step in enumerate(response.plan):
             # Each step should have a UUID suitable for HCG Process node
             assert step.uuid is not None
             assert isinstance(step.uuid, str)
             assert len(step.uuid) > 0
-            
+
             # Each step should have process name, preconditions, and effects
             assert step.process is not None
             assert isinstance(step.preconditions, list)
             assert isinstance(step.effects, list)
-            
+
             print(f"  Step {i+1}: {step.process} (uuid: {step.uuid})")
-        
+
         print("✓ API-generated plan has proper structure for HCG storage")
 
 
