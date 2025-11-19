@@ -88,7 +88,7 @@ def test_missing_uuid_fails(shapes_graph: Graph) -> None:
 def test_entity_round_trip(shapes_graph: Graph) -> None:
     """
     Test entity round-trip: create valid entity with relationships, validate it.
-    
+
     This test verifies M1 acceptance criteria:
     - Entity with valid UUID format (entity-* prefix)
     - IS_A relationship to Concept
@@ -124,6 +124,6 @@ def test_entity_round_trip(shapes_graph: Graph) -> None:
     """
     g = Graph()
     g.parse(data=ttl, format="turtle")
-    
+
     # Validate - should pass
     _assert_validation(g, shapes_graph, expect_conforms=True)

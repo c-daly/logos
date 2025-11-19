@@ -7,7 +7,7 @@ This script provides a deterministic way to bootstrap the HCG with:
 
 Usage:
     python -m logos_hcg.load_hcg --uri bolt://localhost:7687 --user neo4j --password logosdev
-    
+
     Or with environment variables:
     NEO4J_URI=bolt://localhost:7687 python -m logos_hcg.load_hcg
 
@@ -19,7 +19,6 @@ import argparse
 import logging
 import os
 import sys
-from datetime import datetime
 from pathlib import Path
 
 from neo4j import GraphDatabase
@@ -86,7 +85,7 @@ class HCGLoader:
         logger.info(f"Loading {description} from {file_path.name}...")
 
         try:
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 script_content = f.read()
 
             # Parse Cypher statements more carefully
@@ -99,7 +98,7 @@ class HCGLoader:
                 line = line.strip()
                 if line:
                     lines.append(line)
-            
+
             # Join lines and split by semicolons
             cleaned_script = " ".join(lines)
             statements = [s.strip() for s in cleaned_script.split(";") if s.strip()]
@@ -114,7 +113,7 @@ class HCGLoader:
                         result = session.run(statement)
                         # Consume result to ensure execution
                         summary = result.consume()
-                        
+
                         # Log meaningful operations
                         counters = summary.counters
                         if counters.constraints_added > 0:
@@ -125,11 +124,11 @@ class HCGLoader:
                             logger.info(f"  ✓ Created {counters.nodes_created} node(s)")
                         if counters.relationships_created > 0:
                             logger.info(f"  ✓ Created {counters.relationships_created} relationship(s)")
-                            
+
                     except Neo4jError as e:
                         # Some errors are expected (e.g., constraint already exists)
                         if "already exists" in str(e).lower() or "equivalent" in str(e).lower():
-                            logger.debug(f"  (skipped - already exists)")
+                            logger.debug("  (skipped - already exists)")
                         else:
                             logger.warning(f"  Warning on statement {i+1}: {e}")
                             # Continue with other statements
@@ -149,7 +148,7 @@ class HCGLoader:
             Dictionary with constraint counts
         """
         logger.info("Verifying constraints...")
-        
+
         with self.driver.session() as session:
             result = session.run("SHOW CONSTRAINTS")
             constraints = [record["name"] for record in result]
@@ -179,7 +178,7 @@ class HCGLoader:
             Dictionary with index counts
         """
         logger.info("Verifying indexes...")
-        
+
         with self.driver.session() as session:
             result = session.run("SHOW INDEXES")
             indexes = [record["name"] for record in result]
@@ -207,7 +206,7 @@ class HCGLoader:
             Number of concepts found
         """
         logger.info("Verifying concepts...")
-        
+
         with self.driver.session() as session:
             result = session.run("MATCH (c:Concept) RETURN count(c) AS count")
             count = result.single()["count"]
@@ -223,7 +222,7 @@ class HCGLoader:
             Number of entities found
         """
         logger.info("Verifying seed entities...")
-        
+
         with self.driver.session() as session:
             result = session.run("MATCH (e:Entity) RETURN count(e) AS count")
             count = result.single()["count"]
@@ -246,37 +245,37 @@ class HCGLoader:
             # Create Manipulator concept
             """
             MERGE (c:Concept {uuid: 'concept-manipulator'})
-            ON CREATE SET 
+            ON CREATE SET
                 c.name = 'Manipulator',
                 c.description = 'A robotic manipulator or arm capable of movement and grasping',
                 c.created_at = datetime()
             """,
-            
+
             # Create RobotArm entity
             """
             MERGE (e:Entity {uuid: 'entity-robot-arm-01'})
-            ON CREATE SET 
+            ON CREATE SET
                 e.name = 'RobotArm01',
                 e.description = 'Canonical six-axis robotic manipulator for M1 verification',
                 e.created_at = datetime()
             """,
-            
+
             # Create IS_A relationship
             """
             MATCH (e:Entity {uuid: 'entity-robot-arm-01'})
             MATCH (c:Concept {uuid: 'concept-manipulator'})
             MERGE (e)-[:IS_A]->(c)
             """,
-            
+
             # Create initial state for RobotArm
             """
             MERGE (s:State {uuid: 'state-robot-arm-01-initial'})
-            ON CREATE SET 
+            ON CREATE SET
                 s.name = 'RobotArm01-Idle',
                 s.description = 'Robot arm in idle state',
                 s.timestamp = datetime()
             """,
-            
+
             # Link state to entity
             """
             MATCH (e:Entity {uuid: 'entity-robot-arm-01'})
@@ -320,7 +319,7 @@ class HCGLoader:
         # Step 2: Verify ontology loaded correctly
         logger.info("")
         constraints = self.verify_constraints()
-        indexes = self.verify_indexes()
+        self.verify_indexes()
         concepts = self.verify_concepts()
 
         # Check if basic requirements are met

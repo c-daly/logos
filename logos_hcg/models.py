@@ -86,7 +86,7 @@ class Entity(BaseModel):
         extra='allow',
         arbitrary_types_allowed=True,
     )
-    
+
     @field_validator('created_at', mode='before')
     @classmethod
     def parse_neo4j_datetime(cls, v):
@@ -176,7 +176,7 @@ class State(BaseModel):
         extra='allow',
         arbitrary_types_allowed=True,
     )
-    
+
     @field_validator('timestamp', mode='before')
     @classmethod
     def parse_neo4j_datetime(cls, v):
@@ -219,7 +219,7 @@ class Process(BaseModel):
         extra='allow',
         arbitrary_types_allowed=True,
     )
-    
+
     @field_validator('start_time', mode='before')
     @classmethod
     def parse_neo4j_datetime(cls, v):

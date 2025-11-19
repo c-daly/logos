@@ -15,11 +15,9 @@ Reference: docs/PHASE1_VERIFY.md - M1 checklist
 """
 
 import argparse
-import json
 import logging
 import os
 import sys
-from pathlib import Path
 
 from logos_hcg.client import HCGClient, HCGConnectionError
 
@@ -66,13 +64,13 @@ def print_state(state):
 def demo_basic_retrieval(client: HCGClient):
     """
     Demonstrate basic entity retrieval by UUID and name.
-    
+
     M1 Criteria:
     - Can query entities by UUID
     - Can query entities by name
     """
     print_section("1. Basic Entity Retrieval")
-    
+
     # Retrieve by UUID
     print("\n1.1 Retrieve RobotArm by UUID:")
     entity = client.find_entity_by_uuid("entity-robot-arm-01")
@@ -100,13 +98,13 @@ def demo_basic_retrieval(client: HCGClient):
 def demo_relationship_traversal(client: HCGClient):
     """
     Demonstrate relationship traversal.
-    
+
     M1 Criteria:
     - Can traverse IS_A relationships to find entity types
     - Can traverse HAS_STATE relationships to find current states
     """
     print_section("2. Relationship Traversal")
-    
+
     # Get entity type via IS_A
     print("\n2.1 Get entity type (IS_A relationship):")
     entity_uuid = "entity-robot-arm-01"
@@ -145,31 +143,31 @@ def demo_relationship_traversal(client: HCGClient):
 def demo_counts_and_statistics(client: HCGClient):
     """
     Demonstrate node counts and statistics.
-    
+
     M1 Criteria:
     - Can query and aggregate node counts
     """
     print_section("3. Node Counts and Statistics")
-    
+
     counts = client.count_nodes_by_type()
     print("\n  Node counts in HCG:")
     print(f"    Entities:  {counts.get('entity_count', 0)}")
     print(f"    Concepts:  {counts.get('concept_count', 0)}")
     print(f"    States:    {counts.get('state_count', 0)}")
     print(f"    Processes: {counts.get('process_count', 0)}")
-    
+
     return True
 
 
 def demo_all_entities(client: HCGClient):
     """
     Demonstrate listing all entities.
-    
+
     M1 Criteria:
     - Can list all entities with pagination
     """
     print_section("4. List All Entities")
-    
+
     entities = client.find_all_entities(limit=10)
     if entities:
         print(f"\n  ✓ Found {len(entities)} entity(ies) (showing first 10):")
@@ -178,19 +176,19 @@ def demo_all_entities(client: HCGClient):
             print_entity(entity)
     else:
         print("  ℹ No entities found in HCG")
-    
+
     return True
 
 
 def demo_all_concepts(client: HCGClient):
     """
     Demonstrate listing all concepts.
-    
+
     M1 Criteria:
     - Can list all concepts
     """
     print_section("5. List All Concepts")
-    
+
     concepts = client.find_all_concepts()
     if concepts:
         print(f"\n  ✓ Found {len(concepts)} concept(s):")
@@ -199,7 +197,7 @@ def demo_all_concepts(client: HCGClient):
             print_concept(concept)
     else:
         print("  ℹ No concepts found in HCG")
-    
+
     return True
 
 

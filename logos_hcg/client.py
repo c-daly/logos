@@ -556,9 +556,8 @@ class HCGClient:
         Returns:
             List of dicts with 'process', 'state', and 'depth' keys
         """
-        state_uuid_str = state_uuid
         query = HCGQueries.traverse_causality_forward()
-        records = self._execute_read(query, {"state_uuid": uuid_str, "max_depth": max_depth})
+        records = self._execute_read(query, {"state_uuid": state_uuid, "max_depth": max_depth})
 
         results = []
         for record in records:
@@ -587,9 +586,8 @@ class HCGClient:
         Returns:
             List of dicts with 'state', 'process', and 'depth' keys
         """
-        state_uuid_str = state_uuid
         query = HCGQueries.traverse_causality_backward()
-        records = self._execute_read(query, {"state_uuid": uuid_str, "max_depth": max_depth})
+        records = self._execute_read(query, {"state_uuid": state_uuid, "max_depth": max_depth})
 
         results = []
         for record in records:
