@@ -24,6 +24,7 @@ Embodiment &amp; UX flexibility
 Documentation layout & phases
 - `docs/spec/LOGOS_SPEC_FLEXIBLE.md` is the living architecture spec.
 - `docs/phase1/`, `docs/phase2/`, … hold the active specs/checklists for each phase.
+- `docs/adr/` contains Architecture Decision Records documenting key technical decisions.
 - `docs/old/` preserves the original Phase 1 docs, action items, and research notes for reference.
 
 Phase roadmap (see `docs/phase*/` folders for details):
