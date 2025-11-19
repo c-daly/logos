@@ -33,15 +33,70 @@ Phase roadmap (see `docs/phase*/` folders for details):
 - **Phase 4 – Operational Autonomy**: Continuous learning with safety gates, observability/rollback tooling, production deployment patterns. Spec TBD (`docs/phase4/`).
 - **Phase 5 – Networked Agents / Swarm**: LOGOS instances collaborating, sharing HCG slices, coordinating Talos fleets. Spec TBD (`docs/phase5/`).
 
-How to run the HCG dev cluster (dev-only)
-1. From this repo run:
+Infrastructure Setup
+
+The LOGOS ecosystem requires a development infrastructure cluster consisting of:
+- **Neo4j 5.13.0**: Graph database for the Hybrid Causal Graph (HCG)
+- **Milvus v2.3.3**: Vector database for semantic search and embeddings
+- **SHACL Validation Service**: REST API for RDF/SHACL validation
+
+**Prerequisites**
+- Docker and Docker Compose installed and running
+- At least 4GB RAM allocated to Docker
+- Ports 7474, 7687, 19530, 9091, and 8081 available
+
+**Quick Start**
+
+1. **Start the HCG development cluster:**
+   ```bash
    docker compose -f infra/docker-compose.hcg.dev.yml up -d
-2. Neo4j will be reachable on ports 7474 (HTTP) and 7687 (Bolt). Milvus on 19530/9091.
-3. Load the core ontology:
+   ```
+
+2. **Verify services are running:**
+   ```bash
+   docker compose -f infra/docker-compose.hcg.dev.yml ps
+   ```
+   
+   Expected services: `logos-hcg-neo4j`, `logos-hcg-milvus`, `logos-shacl-validation`
+
+3. **Load the core ontology into Neo4j:**
+   ```bash
    ./infra/load_ontology.sh
-4. Initialize Milvus collections:
+   ```
+   
+   This creates constraints, indexes, and foundational HCG nodes.
+
+4. **Initialize Milvus collections:**
+   ```bash
    ./infra/init_milvus.sh
-5. See `infra/README.md` for detailed instructions and manual loading options.
+   ```
+   
+   This creates vector collections for Entity, Concept, State, and Process embeddings.
+
+5. **Verify the setup:**
+   - Neo4j Browser: http://localhost:7474 (credentials: `neo4j/logosdev`)
+   - SHACL Validation API: http://localhost:8081/docs
+   - Check health: `python3 infra/check_hcg_health.py`
+
+**Stopping the Cluster**
+```bash
+# Stop services (preserves data)
+docker compose -f infra/docker-compose.hcg.dev.yml down
+
+# Stop and remove all data (clean slate)
+docker compose -f infra/docker-compose.hcg.dev.yml down -v
+```
+
+**Detailed Documentation**
+
+For comprehensive documentation including:
+- Manual loading options
+- SHACL validation strategies (pyshacl vs Neo4j+n10s)
+- Backup and restore procedures
+- Troubleshooting and port configuration
+- Integration with LOGOS components
+
+See `infra/README.md` for complete infrastructure documentation.
 
 Python Tooling
 - This repository includes Python-based utilities for project management and artifact validation.
