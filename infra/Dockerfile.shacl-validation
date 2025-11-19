@@ -16,6 +16,7 @@ WORKDIR /build
 COPY pyproject.toml ./
 COPY setup.py ./
 COPY logos_tools ./logos_tools
+COPY README.md ./
 
 # Install dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
