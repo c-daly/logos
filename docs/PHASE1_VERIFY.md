@@ -14,6 +14,21 @@ Phase 1 ("Formalize HCG and Abstract Pipeline") has four key milestones over 8-1
 
 Each milestone must be verified through both manual demonstration and automated smoke tests before proceeding to Phase 2.
 
+### Phase 1 Readiness Delta (2025-11-19)
+
+Recent discovery work identified a handful of documentation/UX gaps between the existing milestone gates and what we want to call a Phase 1 prototype. These are tracked with the `phase 1 closers` label:
+
+- **#200** – Make the Neo4j SHACL smoke test/job opt-in but fully documented (how to enable via `RUN_NEO4J_SHACL` or workflow input).
+- **#201** – Planner stub that exposes the API Sophia will ship; feeds the M4 script/CLI without relying on mocks hidden in tests.
+- **#202** – Executor/Talos shim that updates the HCG deterministically so validation + retrieval demos stay consistent.
+- **#203** – Apollo entrypoint (CLI/API) with the goal/plan/execute verbs the docs describe.
+- **#204** – Milvus connectivity smoke to keep vector search healthy and documented for QA.
+- **#205** – Stronger M4 assertions that reference the RobotArm UUID/name used in fixtures (no stale Manipulator text).
+- **#206** – Cleanup/CI simplification so default test runs stay fast; heavy tests documented as opt-in.
+- **#208** – Apollo CLI prototype wiring that exercises the entire goal → plan → execute loop end to end.
+
+Until these issues close (and their doc updates merge), consider the Phase 1 gate “conditioned”—automation is green, but the UX/documentation surface still needs these finishing steps.
+
 ---
 
 ## M1: HCG Store and Retrieve Entities (Week 2)
@@ -753,9 +768,9 @@ In exceptional circumstances, the gate can be overridden with proper justificati
 
 ### Current Gate Status
 
-**Overall Status**: 🟢 **Automated Tests Passing** | ⏸️ **Manual Verification Pending**
+**Overall Status**: 🟢 **Automated Tests Passing** | ⏸️ **Manual/UX Readiness Pending**
 
-**Last Updated**: 2025-11-18
+**Last Updated**: 2025-11-19
 
 **Milestone Badge Status**:
 - **M1** (HCG Store/Retrieve): [![M1 Gate](https://github.com/c-daly/logos/actions/workflows/m1-neo4j-crud.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m1-neo4j-crud.yml) - 26 tests passing
@@ -767,6 +782,7 @@ In exceptional circumstances, the gate can be overridden with proper justificati
 1. Run M4 end-to-end script to verify prototype integration
 2. Complete M4 manual demonstration
 3. Test with real Apollo/Sophia/Talos components (optional for Phase 1)
+4. Close the remaining `phase 1 closers` tickets (#200, #201, #202, #203, #204, #205, #206, #208) and land the doc/CLI improvements they track
 
 ---
 

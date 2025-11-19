@@ -33,3 +33,12 @@ This document summarizes what the initial prototype delivers once the Phase 1 is
 ## Related Issues
 - Core Phase 1: #153, #154, #155, #167, #168, #169.
 - Prototype slice: #172 (Sophia API), #173 (Hermes embeddings), #174 (Talos shim), #175 (Apollo wiring), #176 (E2E script).
+- Phase 1 readiness polish (`phase 1 closers` label):
+  - #200 Neo4j SHACL opt-in job/docs
+  - #201 Planner stub API
+  - #202 Executor/Talos shim hardening
+  - #203 Apollo entrypoint (CLI/API)
+  - #204 Milvus smoke
+  - #205 Stronger M4 assertions
+  - #206 Test/CI cleanup
+  - #208 Apollo CLI prototype wiring
