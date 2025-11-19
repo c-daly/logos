@@ -83,3 +83,47 @@ def test_missing_uuid_fails(shapes_graph: Graph) -> None:
     g = Graph()
     g.parse(data=ttl, format="turtle")
     _assert_validation(g, shapes_graph, expect_conforms=False)
+
+
+def test_entity_round_trip(shapes_graph: Graph) -> None:
+    """
+    Test entity round-trip: create valid entity with relationships, validate it.
+
+    This test verifies M1 acceptance criteria:
+    - Entity with valid UUID format (entity-* prefix)
+    - IS_A relationship to Concept
+    - HAS_STATE relationship to State
+    - All nodes pass SHACL validation
+    """
+    ttl = """
+        @prefix logos: <http://logos.ontology/> .
+        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+        # Manipulator concept
+        logos:concept-manipulator a logos:Concept ;
+            logos:uuid "concept-manipulator" ;
+            logos:name "Manipulator" ;
+            logos:description "A robotic manipulator capable of movement and grasping" .
+
+        # RobotArm entity
+        logos:entity-robot-arm-01 a logos:Entity ;
+            logos:uuid "entity-robot-arm-01" ;
+            logos:name "RobotArm01" ;
+            logos:description "Six-axis robotic manipulator" .
+
+        # Initial state
+        logos:state-robot-arm-01-initial a logos:State ;
+            logos:uuid "state-robot-arm-01-initial" ;
+            logos:timestamp "2024-01-01T00:00:00Z"^^xsd:dateTime .
+
+        # Relationships (IS_A)
+        logos:entity-robot-arm-01 logos:isA logos:concept-manipulator .
+
+        # Relationships (HAS_STATE)
+        logos:entity-robot-arm-01 logos:hasState logos:state-robot-arm-01-initial .
+    """
+    g = Graph()
+    g.parse(data=ttl, format="turtle")
+
+    # Validate - should pass
+    _assert_validation(g, shapes_graph, expect_conforms=True)

@@ -1,0 +1,231 @@
+INFO - Connected to Neo4j at bolt://localhost:7687
+INFO - Closed Neo4j connection
+
+======================================================================
+  LOGOS HCG Retrieval Demonstration
+  M1 Milestone: HCG can store and retrieve entities
+======================================================================
+
+Connecting to Neo4j at bolt://localhost:7687...
+✓ Connected successfully
+
+
+======================================================================
+  1. Basic Entity Retrieval
+======================================================================
+
+1.1 Retrieve RobotArm by UUID:
+  ✓ Found entity:
+  UUID: entity-robot-arm-01
+  Name: RobotArm01
+  Description: Canonical six-axis robotic manipulator for M1 verification
+  Created: 2025-11-19 13:39:13.228000+00:00
+
+1.2 Retrieve RobotArm by name:
+  ✓ Found 1 entity(ies):
+  UUID: entity-robot-arm-01
+  Name: RobotArm01
+  Description: Canonical six-axis robotic manipulator for M1 verification
+  Created: 2025-11-19 13:39:13.228000+00:00
+
+======================================================================
+  2. Relationship Traversal
+======================================================================
+
+2.1 Get entity type (IS_A relationship):
+  ✓ Entity 'entity-robot-arm-01' is a:
+  UUID: concept-manipulator
+  Name: Manipulator
+  Description: A robotic manipulator or arm capable of movement and grasping
+
+2.2 Get entity states (HAS_STATE relationship):
+  ✓ Found 2 state(s):
+
+  State 1:
+  UUID: state-arm-home-01
+  Name: ArmHomeState
+  Timestamp: 2025-11-19 13:44:33.624000+00:00
+
+  State 2:
+  UUID: state-robot-arm-01-initial
+  Name: RobotArm01-Idle
+  Timestamp: 2025-11-19 13:39:13.442000+00:00
+
+2.3 Get current/most recent state:
+  ✓ Current state:
+  UUID: state-arm-home-01
+  Name: ArmHomeState
+  Timestamp: 2025-11-19 13:44:33.624000+00:00
+
+======================================================================
+  3. Node Counts and Statistics
+======================================================================
+
+  Node counts in HCG:
+    Entities:  10
+    Concepts:  16
+    States:    13
+    Processes: 4
+
+======================================================================
+  4. List All Entities
+======================================================================
+
+  ✓ Found 10 entity(ies) (showing first 10):
+
+  Entity 1:
+  UUID: entity-block-blue-01
+  Name: BlueBlock01
+  Description: Blue cubic block
+  Created: 2025-11-19 13:39:13.691000+00:00
+
+  Entity 2:
+  UUID: entity-cylinder-green-01
+  Name: GreenCylinder01
+  Description: Green cylindrical object
+  Created: 2025-11-19 13:39:13.750000+00:00
+
+  Entity 3:
+  UUID: entity-gripper-01
+  Name: Gripper01
+  Description: Two-finger parallel gripper
+  Created: 2025-11-19 13:44:32.876000+00:00
+
+  Entity 4:
+  UUID: entity-joint-01
+  Name: Joint01-Base
+  Created: 2025-11-19 13:44:32.907000+00:00
+
+  Entity 5:
+  UUID: entity-joint-02
+  Name: Joint02-Shoulder
+  Created: 2025-11-19 13:39:13.590000+00:00
+
+  Entity 6:
+  UUID: entity-joint-03
+  Name: Joint03-Elbow
+  Created: 2025-11-19 13:39:13.639000+00:00
+
+  Entity 7:
+  UUID: entity-block-red-01
+  Name: RedBlock01
+  Description: Red cubic block
+  Created: 2025-11-19 13:44:33.062000+00:00
+
+  Entity 8:
+  UUID: entity-robot-arm-01
+  Name: RobotArm01
+  Description: Canonical six-axis robotic manipulator for M1 verification
+  Created: 2025-11-19 13:39:13.228000+00:00
+
+  Entity 9:
+  UUID: entity-bin-01
+  Name: TargetBin01
+  Description: Target container for placement
+  Created: 2025-11-19 13:44:33.033000+00:00
+
+  Entity 10:
+  UUID: entity-table-01
+  Name: WorkTable01
+  Description: Main work surface
+  Created: 2025-11-19 13:44:32.997000+00:00
+
+======================================================================
+  5. List All Concepts
+======================================================================
+
+  ✓ Found 16 concept(s):
+
+  Concept 1:
+  UUID: concept-container
+  Name: Container
+  Description: Object that can hold other objects
+
+  Concept 2:
+  UUID: concept-free
+  Name: FreeState
+  Description: State where object is not grasped
+
+  Concept 3:
+  UUID: concept-grasp
+  Name: GraspAction
+  Description: Action of grasping an object
+
+  Concept 4:
+  UUID: concept-graspable
+  Name: GraspableObject
+  Description: Object that can be grasped by manipulator
+
+  Concept 5:
+  UUID: concept-grasped
+  Name: GraspedState
+  Description: State where object is held by gripper
+
+  Concept 6:
+  UUID: concept-gripper
+  Name: Gripper
+  Description: Abstract concept of end-effector for grasping
+
+  Concept 7:
+  UUID: concept-joint
+  Name: Joint
+  Description: Abstract concept of articulated joint
+
+  Concept 8:
+  UUID: concept-location
+  Name: Location
+  Description: Spatial position in workspace
+
+  Concept 9:
+  UUID: concept-manipulator
+  Name: Manipulator
+  Description: A robotic manipulator or arm capable of movement and grasping
+
+  Concept 10:
+  UUID: concept-move
+  Name: MoveAction
+  Description: Action of moving manipulator or object
+
+  Concept 11:
+  UUID: concept-place
+  Name: PlaceAction
+  Description: Action of placing object at location
+
+  Concept 12:
+  UUID: concept-positioned
+  Name: PositionedState
+  Description: State with specific spatial position
+
+  Concept 13:
+  UUID: concept-release
+  Name: ReleaseAction
+  Description: Action of releasing a grasped object
+
+  Concept 14:
+  UUID: concept-rigid-body
+  Name: RigidBody
+  Description: Physical object with fixed shape
+
+  Concept 15:
+  UUID: concept-surface
+  Name: Surface
+  Description: Planar surface for object placement
+
+  Concept 16:
+  UUID: concept-workspace
+  Name: Workspace
+  Description: Physical region accessible to manipulator
+
+======================================================================
+  ✅ M1 DEMONSTRATION COMPLETE
+======================================================================
+
+  All acceptance criteria verified:
+    ✓ Can query entities by UUID
+    ✓ Can query entities by name
+    ✓ Can traverse IS_A relationships
+    ✓ Can traverse HAS_STATE relationships
+    ✓ Can retrieve node counts and statistics
+
+  Reference: docs/PHASE1_VERIFY.md - M1 checklist
+

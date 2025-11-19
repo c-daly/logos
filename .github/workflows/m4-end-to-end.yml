@@ -41,7 +41,27 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e .
-          pip install pytest pytest-cov rdflib pyshacl
+          pip install pytest pytest-cov rdflib pyshacl httpx
+      
+      - name: Start planner stub service
+        run: |
+          echo "Starting planner stub service on port 8001..."
+          python -m planner_stub.app &
+          PLANNER_PID=$!
+          echo "PLANNER_PID=$PLANNER_PID" >> $GITHUB_ENV
+          
+          # Wait for service to be ready
+          for i in {1..30}; do
+            if curl -s http://localhost:8001/health > /dev/null 2>&1; then
+              echo "✓ Planner service is ready"
+              break
+            fi
+            echo "Waiting for planner service... (attempt $i/30)"
+            sleep 2
+          done
+          
+          # Verify service is running
+          curl -s http://localhost:8001/health | python -m json.tool
       
       - name: Start HCG infrastructure
         run: |
@@ -161,6 +181,12 @@ jobs:
       - name: Cleanup containers
         if: always()
         run: |
+          # Stop planner service
+          if [ ! -z "$PLANNER_PID" ]; then
+            kill $PLANNER_PID 2>/dev/null || true
+          fi
+          
+          # Stop Docker containers
           cd infra
           docker compose -f docker-compose.hcg.dev.yml down -v || true
       

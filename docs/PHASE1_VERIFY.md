@@ -72,20 +72,84 @@ Demonstrate that the HCG (Neo4j + Milvus hybrid system) can store and retrieve e
 
 ### Manual Demonstration Steps
 
+#### Option 1: Automated Bootstrap and Demo (Recommended)
+
+This is the quickest way to verify M1 functionality:
+
 1. **Start Infrastructure**
    ```bash
    cd infra
-   docker-compose -f docker-compose.hcg.dev.yml up -d
+   docker compose -f docker-compose.hcg.dev.yml up -d
+   # Wait for Neo4j to be ready (15-30 seconds)
+   ```
+
+2. **Load Ontology and Seed Data**
+   ```bash
+   # Loads core ontology + creates canonical RobotArm and Manipulator entities
+   python -m logos_hcg.load_hcg --uri bolt://localhost:7687 --user neo4j --password logosdev
+   ```
+
+   Expected output:
+   ```
+   ✓ Connected to Neo4j at bolt://localhost:7687
+   ✓ Loaded core ontology
+   ✓ Seed entities created
+   ✓ HCG Loading Complete
+     Concepts: 14+
+     Entities: 1+
+   ```
+
+3. **Run Retrieval Demonstration**
+   ```bash
+   # Demonstrates entity retrieval and relationship traversal
+   python -m logos_hcg.demo_retrieval --uri bolt://localhost:7687 --user neo4j --password logosdev
+   ```
+
+   Expected output:
+   ```
+   ✅ M1 DEMONSTRATION COMPLETE
+   
+   All acceptance criteria verified:
+     ✓ Can query entities by UUID
+     ✓ Can query entities by name
+     ✓ Can traverse IS_A relationships
+     ✓ Can traverse HAS_STATE relationships
+     ✓ Can retrieve node counts and statistics
+   ```
+
+4. **Verify in Neo4j Browser** (Optional)
+   - Open http://localhost:7474 in your browser
+   - Login with neo4j/logosdev
+   - Run queries to explore the data:
+     ```cypher
+     // View all entities
+     MATCH (e:Entity) RETURN e;
+     
+     // View entity with its type
+     MATCH (e:Entity)-[:IS_A]->(c:Concept)
+     RETURN e.name, c.name;
+     
+     // View entity with its states
+     MATCH (e:Entity)-[:HAS_STATE]->(s:State)
+     RETURN e.name, s.timestamp
+     ORDER BY s.timestamp DESC;
+     ```
+
+#### Option 2: Manual Step-by-Step (For detailed control)
+
+1. **Start Infrastructure**
+   ```bash
+   cd infra
+   docker compose -f docker-compose.hcg.dev.yml up -d
    # Wait for Neo4j to be ready (check localhost:7474)
    ```
 
-2. **Load Ontology**
+2. **Load Ontology via Shell Script**
    ```bash
-   # Using cypher-shell or Neo4j Browser at localhost:7474
-   cat ontology/core_ontology.cypher | docker exec -i <neo4j-container> cypher-shell -u neo4j -p <password>
+   ./infra/load_ontology.sh
    ```
 
-3. **Create Test Entity**
+3. **Create Test Entity via Neo4j Browser or cypher-shell**
    ```cypher
    // Create a test manipulator entity
    CREATE (e:Entity {uuid: 'entity-test-arm-001', name: 'TestArm', created_at: datetime()})
@@ -124,6 +188,8 @@ Demonstrate that the HCG (Neo4j + Milvus hybrid system) can store and retrieve e
 
 ### Automated Smoke Tests
 
+#### Primary Test Suite
+
 See: `tests/phase1/test_m1_neo4j_crud.py`
 
 The automated test verifies:
@@ -141,6 +207,118 @@ The automated test verifies:
 
 **Status**: ✅ Implemented - [![M1 Gate](https://github.com/c-daly/logos/actions/workflows/m1-neo4j-crud.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m1-neo4j-crud.yml) (26 tests passing)
 
+#### SHACL Round-Trip Test
+
+See: `tests/phase1/test_shacl_pyshacl.py -k entity_round_trip`
+
+The entity round-trip test verifies:
+- Entity with valid UUID format (entity-* prefix)
+- IS_A relationship to Concept
+- HAS_STATE relationship to State
+- All nodes pass SHACL validation
+
+Run with:
+```bash
+pytest tests/phase1/test_shacl_pyshacl.py -k entity_round_trip -v
+```
+
+### Python API Usage
+
+The HCG client library provides programmatic access:
+
+```python
+from logos_hcg.client import HCGClient
+
+# Connect to HCG
+with HCGClient("bolt://localhost:7687", "neo4j", "logosdev") as client:
+    # Find entity by UUID
+    entity = client.find_entity_by_uuid("entity-robot-arm-01")
+    print(f"Entity: {entity.name}")
+    
+    # Get entity type (IS_A relationship)
+    concept = client.get_entity_type("entity-robot-arm-01")
+    print(f"Type: {concept.name}")
+    
+    # Get entity states (HAS_STATE relationship)
+    states = client.get_entity_states("entity-robot-arm-01")
+    print(f"States: {len(states)}")
+    
+    # Get current state
+    current = client.get_entity_current_state("entity-robot-arm-01")
+    print(f"Current state timestamp: {current.timestamp}")
+```
+
+### Troubleshooting
+
+**Neo4j container not starting:**
+```bash
+# Check container status
+docker ps -a | grep neo4j
+
+# Check logs
+docker logs logos-hcg-neo4j
+
+# Restart container
+cd infra
+docker compose -f docker-compose.hcg.dev.yml restart neo4j
+```
+
+**Connection refused:**
+- Wait 15-30 seconds after starting for Neo4j to fully initialize
+- Check that port 7687 is not in use: `netstat -an | grep 7687`
+- Verify credentials: default is neo4j/logosdev
+
+**Ontology already loaded errors:**
+- This is expected if you run the loader multiple times
+- Constraints and indexes can only be created once
+- The loader handles this gracefully with warnings
+
+**No entities found:**
+```bash
+# Verify data is loaded
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+  "MATCH (e:Entity) RETURN e.name, e.uuid LIMIT 10;"
+
+# If empty, run the loader
+python -m logos_hcg.load_hcg
+```
+
+**Python import errors:**
+```bash
+# Ensure package is installed
+pip install -e .
+
+# Check installation
+python -c "from logos_hcg.client import HCGClient; print('OK')"
+```
+
+### Command Reference
+
+Quick reference for common operations:
+
+```bash
+# Start infrastructure
+cd infra && docker compose -f docker-compose.hcg.dev.yml up -d
+
+# Load ontology and seed data
+python -m logos_hcg.load_hcg
+
+# Run retrieval demo
+python -m logos_hcg.demo_retrieval
+
+# Run M1 tests
+pytest tests/phase1/test_m1_neo4j_crud.py -v
+
+# Run SHACL round-trip test
+pytest tests/phase1/test_shacl_pyshacl.py -k entity_round_trip -v
+
+# Stop infrastructure
+cd infra && docker compose -f docker-compose.hcg.dev.yml down
+
+# Stop and remove volumes (clean slate)
+cd infra && docker compose -f docker-compose.hcg.dev.yml down -v
+```
+
 ---
 
 ## M2: SHACL Validation Catches Errors (Week 4)
@@ -148,7 +326,25 @@ The automated test verifies:
 ### Objective
 Demonstrate that SHACL validation rules successfully catch malformed graph updates and enforce data quality.
 
-> Note: CI uses pyshacl for shape checks by default. Live Neo4j+n10s validation is opt-in; set `RUN_NEO4J_SHACL=1` and run `tests/phase1/test_shacl_neo4j_validation.py`, or enable a dedicated Neo4j validation job.
+### Validation Strategy (Two-Tier Approach)
+
+LOGOS uses a two-tier validation strategy:
+
+1. **Default CI Gate (pyshacl)** - Fast, connectionless validation
+   - Runs on every push/PR automatically
+   - No infrastructure dependencies
+   - Tests: `tests/phase1/test_shacl_pyshacl.py` and `tests/phase1/test_m2_shacl_validation.py`
+   - Workflow: `.github/workflows/m2-shacl-validation.yml`
+   - ✅ **This is the primary gate for CI**
+
+2. **Optional Integration Tests (Neo4j+n10s)** - Comprehensive, realistic validation
+   - Opt-in: Set `RUN_NEO4J_SHACL=1` to enable locally
+   - Requires Neo4j cluster with n10s plugin
+   - Tests: `tests/phase1/test_shacl_neo4j_validation.py`
+   - Workflow: `.github/workflows/shacl-neo4j-validation.yml` (manual/weekly)
+   - 🔧 **Use for development and integration testing**
+
+> **Quick Start**: Run `pytest tests/phase1/test_shacl_pyshacl.py -v` for fast validation without any setup. For full Neo4j integration testing, see the Neo4j n10s Integration Tests section below.
 
 ### Verification Checklist
 
@@ -312,9 +508,11 @@ The automated test verifies:
 
 **Status**: ✅ Implemented - [![M2 Gate](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml) (20 tests passing)
 
-#### Neo4j n10s Integration Tests
+#### Neo4j n10s Integration Tests (Opt-In)
 
-See: `.github/workflows/shacl-neo4j-validation.yml`
+> **Important**: Neo4j SHACL validation is **opt-in** and not required for CI to pass. The default pyshacl tests above are the primary gate. Neo4j validation provides comprehensive integration testing but requires infrastructure setup.
+
+See: `.github/workflows/shacl-neo4j-validation.yml` and `tests/phase1/test_shacl_neo4j_validation.py`
 
 The CI workflow verifies:
 - Neo4j starts successfully with n10s plugin
@@ -325,6 +523,68 @@ The CI workflow verifies:
 - Validation reports provide detailed violation information
 
 **Status**: ✅ Implemented - [![SHACL Neo4j Validation](https://github.com/c-daly/logos/actions/workflows/shacl-neo4j-validation.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/shacl-neo4j-validation.yml)
+
+**When to Run**:
+- Automatically: Manual workflow dispatch or weekly schedule (Monday 10:00 AM UTC)
+- Locally: Before making changes to SHACL shapes or Neo4j integration
+
+**How to Run Locally**:
+
+1. **Start the HCG development cluster** (if not already running):
+   ```bash
+   cd infra
+   docker compose -f docker-compose.hcg.dev.yml up -d
+   # Wait ~15 seconds for Neo4j to be ready
+   ```
+
+2. **Install the n10s plugin** (one-time setup):
+   ```bash
+   # Download n10s plugin
+   curl -L -o neosemantics-5.13.0.jar \
+     https://github.com/neo4j-labs/neosemantics/releases/download/5.13.0/neosemantics-5.13.0.jar
+   
+   # Copy to Neo4j container
+   docker cp neosemantics-5.13.0.jar logos-hcg-neo4j:/plugins/
+   
+   # Fix permissions and restart
+   docker exec logos-hcg-neo4j chown neo4j:neo4j /plugins/neosemantics-5.13.0.jar
+   docker restart logos-hcg-neo4j
+   
+   # Wait for Neo4j to restart (~15 seconds)
+   sleep 15
+   
+   # Verify plugin loaded
+   docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+     "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'n10s' RETURN name LIMIT 1"
+   ```
+
+3. **Load the core ontology**:
+   ```bash
+   ./infra/load_ontology.sh
+   # Or manually:
+   # cat ontology/core_ontology.cypher | docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p logosdev
+   ```
+
+4. **Run Neo4j SHACL validation tests**:
+   ```bash
+   # Set environment variables
+   export NEO4J_URI=bolt://localhost:7687
+   export NEO4J_USER=neo4j
+   export NEO4J_PASSWORD=logosdev
+   export RUN_NEO4J_SHACL=1
+   
+   # Run tests
+   pytest tests/phase1/test_shacl_neo4j_validation.py -v
+   ```
+
+   Expected output: 8 tests pass (connection, plugin, shapes, valid/invalid data, bad writes)
+
+**Without the Flag**: Tests are automatically skipped:
+```bash
+# Without RUN_NEO4J_SHACL=1, all tests skip
+pytest tests/phase1/test_shacl_neo4j_validation.py -v
+# Output: 8 skipped in 0.XX seconds
+```
 
 **Script**: `ontology/load_and_validate_shacl.py`
 

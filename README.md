@@ -59,14 +59,16 @@ CI/CD and Validation
 - See `.github/workflows/validate-artifacts.yml` for the complete validation pipeline.
 
 SHACL Validation Strategy
-- **Default CI (pyshacl)**: Fast, connectionless validation runs automatically on every push/PR
+- **Default CI Gate (pyshacl)**: Fast, connectionless validation runs automatically on every push/PR ✅
   - Tests in `tests/phase1/test_shacl_pyshacl.py` validate shapes against fixtures without requiring Neo4j
   - Ensures SHACL shapes are syntactically correct and fixtures conform to expectations
-- **Integration Tests (Neo4j+n10s)**: Opt-in validation for testing Neo4j integration
+  - **This is the primary gate** - PRs must pass these tests to merge
+- **Integration Tests (Neo4j+n10s)**: Opt-in validation for comprehensive testing 🔧
   - Tests in `tests/phase1/test_shacl_neo4j_validation.py` validate data using Neo4j's n10s plugin
   - Requires Neo4j with n10s plugin installed and `RUN_NEO4J_SHACL=1` environment variable
-  - Can be run manually or via workflow dispatch (see `infra/README.md` for local setup)
-  - Workflow: `.github/workflows/shacl-neo4j-validation.yml` (manual trigger only)
+  - Runs weekly or can be triggered manually via workflow dispatch
+  - For local setup instructions, see `docs/PHASE1_VERIFY.md` - M2 section "Neo4j n10s Integration Tests (Opt-In)"
+  - Workflow: `.github/workflows/shacl-neo4j-validation.yml`
 
 Phase 1 Verification and Gate
 - Phase 1 must be completed and verified before Phase 2 work can begin.
@@ -77,6 +79,7 @@ Phase 1 Verification and Gate
   - **M3** (Planning): [![M3 Gate](https://github.com/c-daly/logos/actions/workflows/m3-planning.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m3-planning.yml)
   - **M4** (End-to-End Demo): [![M4 Gate](https://github.com/c-daly/logos/actions/workflows/m4-end-to-end.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m4-end-to-end.yml)
 - **E2E Prototype Script**: Run `./scripts/e2e_prototype.sh` to test the complete flow (Apollo → Sophia → Talos → HCG)
+- **Planner Stub Service**: Run `./scripts/start_planner.sh` to start the planner API stub for M3/M4 testing (see `planner_stub/README.md`)
 - Phase 2 work is blocked until all milestone gates pass (automated tests green + manual verifications complete).
 - Final documentation/UX polish before calling Phase 1 “done” lives under the `phase 1 closers` label (issues #200, #201, #202, #203, #204, #205, #206, #208). These cover the opt-in Neo4j SHACL job, planner/executor shims, Apollo CLI entrypoint, Milvus smoke test, stronger M4 assertions, and CI/test cleanup.
 

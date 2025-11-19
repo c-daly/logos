@@ -1,0 +1,10 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.1, pluggy-1.6.0
+rootdir: /home/runner/work/logos/logos
+configfile: pyproject.toml
+plugins: anyio-4.11.0, cov-7.0.0
+collected 6 items / 5 deselected / 1 selected
+
+tests/phase1/test_shacl_pyshacl.py .                                     [100%]
+
+======================= 1 passed, 5 deselected in 0.09s ========================
