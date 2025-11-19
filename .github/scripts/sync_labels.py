@@ -8,15 +8,13 @@ import json
 import re
 import subprocess
 from pathlib import Path
-from typing import Dict, List
-
 
 LABEL_PATTERN = re.compile(r'-\s+name:\s+"(?P<name>[^"]+)"')
 
 
-def parse_labels_file(path: Path) -> List[Dict[str, str]]:
-    labels: List[Dict[str, str]] = []
-    current: Dict[str, str] = {}
+def parse_labels_file(path: Path) -> list[dict[str, str]]:
+    labels: list[dict[str, str]] = []
+    current: dict[str, str] = {}
 
     with path.open("r", encoding="utf-8") as fh:
         for raw_line in fh:
@@ -40,7 +38,7 @@ def parse_labels_file(path: Path) -> List[Dict[str, str]]:
     return labels
 
 
-def gh_json(args: List[str]) -> List[dict]:
+def gh_json(args: list[str]) -> list[dict]:
     completed = subprocess.run(
         ["gh"] + args,
         check=True,
@@ -50,7 +48,7 @@ def gh_json(args: List[str]) -> List[dict]:
     return json.loads(completed.stdout or "[]")
 
 
-def sync_labels(repo: str, labels: List[Dict[str, str]]) -> None:
+def sync_labels(repo: str, labels: list[dict[str, str]]) -> None:
     existing = {
         label["name"]: label
         for label in gh_json(["api", f"repos/{repo}/labels?per_page=100"])
