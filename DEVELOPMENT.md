@@ -50,6 +50,36 @@ pip install -e .
 
 **Note:** Development dependencies (pytest, ruff, mypy, etc.) are managed via Poetry and require `poetry install` for full setup.
 
+## Dependency Management
+
+The project uses Poetry for dependency management. The `poetry.lock` file is committed to the repository to ensure reproducible builds and to enable GitHub's dependency graph and security features.
+
+### Adding New Dependencies
+
+When adding new dependencies:
+
+1. Add the dependency to `pyproject.toml` under `[tool.poetry.dependencies]` or `[tool.poetry.group.dev.dependencies]`:
+```bash
+poetry add <package-name>  # Production dependency
+poetry add --group dev <package-name>  # Development dependency
+```
+
+2. The `poetry.lock` file will be automatically updated. Commit both `pyproject.toml` and `poetry.lock`:
+```bash
+git add pyproject.toml poetry.lock
+git commit -m "Add <package-name> dependency"
+```
+
+### Updating Dependencies
+
+To update dependencies to their latest compatible versions:
+```bash
+poetry update  # Update all dependencies
+poetry update <package-name>  # Update specific package
+```
+
+**Important**: Always commit the updated `poetry.lock` file to maintain dependency consistency across environments and enable GitHub's dependency graph and security alerts.
+
 ## Running Tests
 
 The project uses pytest for testing. Tests should be run via Poetry:
