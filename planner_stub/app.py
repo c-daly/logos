@@ -31,7 +31,7 @@ app = FastAPI(
 async def health_check():
     """
     Health check endpoint.
-    
+
     Returns service status and version.
     """
     return HealthResponse(
@@ -44,39 +44,39 @@ async def health_check():
 async def generate_plan(request: PlanRequest):
     """
     Generate a plan from initial state to goal state.
-    
+
     This stub implementation uses pre-defined scenarios from test fixtures.
     A full implementation would perform causal reasoning over the HCG.
-    
+
     Args:
         request: PlanRequest with initial_state, goal_state, and optional scenario_name
-        
+
     Returns:
         PlanResponse with the generated plan
-        
+
     Raises:
         HTTPException: If plan generation fails
     """
     try:
         planner = get_planner()
         response = planner.generate_plan(request)
-        
+
         if not response.success:
             # Return 422 for planning failures
             raise HTTPException(
                 status_code=422,
                 detail=response.message or "Plan generation failed"
             )
-        
+
         return response
-    
+
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=f"Internal error during plan generation: {str(e)}"
-        )
+        ) from e
 
 
 @app.get("/")
@@ -114,7 +114,7 @@ async def internal_error_handler(request, exc):
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     # Run with: python -m planner_stub.app
     uvicorn.run(
         "planner_stub.app:app",

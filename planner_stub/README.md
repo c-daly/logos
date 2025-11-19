@@ -71,14 +71,29 @@ Generate a plan from initial state to goal state.
 
 ## Running Locally
 
-### Start the service
+### Quick Start
+
+Use the provided script to start the service:
+
+```bash
+# From repository root
+./scripts/start_planner.sh
+```
+
+The service will start on `http://localhost:8001` with:
+- Health check: http://localhost:8001/health
+- API documentation: http://localhost:8001/docs
+- ReDoc: http://localhost:8001/redoc
+
+### Manual Start
 
 ```bash
 # From repository root
 python -m planner_stub.app
-```
 
-The service will start on `http://localhost:8001`.
+# Or using uvicorn directly
+python -m uvicorn planner_stub.app:app --host 0.0.0.0 --port 8001 --reload
+```
 
 ### Using Docker Compose
 
