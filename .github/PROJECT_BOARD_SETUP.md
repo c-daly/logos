@@ -1,269 +1,94 @@
-# Project Board and Issue Tracking Setup Guide
+# Project LOGOS — Project Board & Tracking Guide
 
-This guide provides instructions for setting up the GitHub Project Board and Issue Tracking system for Project LOGOS, as specified in section 1.2 of `docs/action_items.md`.
+This guide replaces the old Phase 1–specific instructions. It reflects the flexible specification: Talos is optional, Apollo must support CLI + browser + LLM surfaces, and the board should cover every phase while still allowing phase-scoped views.
 
-## Overview
+---
 
-The project tracking system consists of:
-- **GitHub Project Board**: For visual task management and progress tracking
-- **Milestones**: To group issues by project phase
-- **Labels**: To categorize and filter issues by component, priority, type, and workstream
-- **Issue Templates**: To standardize issue creation
-- **Automated Issue Generation**: Script to create issues from action items
+## 1. Labels
 
-## Prerequisites
+All labels live in `.github/labels.yml`.
 
-- GitHub account with admin access to the `c-daly/logos` repository
-- GitHub CLI (`gh`) installed and authenticated (optional, for automation)
+- **Sync automatically**
+  ```bash
+  python .github/scripts/sync_labels.py --repo c-daly/logos
+  ```
 
-## Step 1: Create Labels
+- **Manual fallback**: create/edit labels at <https://github.com/c-daly/logos/labels>.
 
-Labels are defined in `.github/labels.yml`. To apply them to the repository:
+**Label families**
+- `component:*` — sophia, hermes, talos, apollo, infrastructure, logos.
+- `surface:*` — cli, browser, llm.
+- `capability:*` — perception, actuation, explainability.
+- `domain:*` — hcg, planner, diagnostics.
+- `phase:*` — 1, 2, 3, … (attach to issues instead of project name).
+- Standard priority/type/status/workstream labels still apply.
 
-### Option A: Using GitHub CLI (Recommended)
+Default rule: Any issue without `capability:actuation` should work without Talos.
 
-```bash
-# Install gh-label extension if not already installed
-gh extension install heaths/gh-label
+---
 
-# Sync labels from the YAML file
-gh label sync --repo c-daly/logos --file .github/labels.yml
-```
+## 2. Milestones (optional)
 
-### Option B: Manual Creation
+If you want a coarse-grained sense of progress, keep three open milestones—no due dates needed:
+- **Phase 1 – HCG & Abstract Pipeline**: captures the remaining “phase 1 closers” (#200–#208) until that polish is merged.
+- **Phase 2 – Perception & Apollo UX**: browser interface, Talos-free perception demo, multimodal LLM co-processor, planner/executor hardening, diagnostics.
+- **Phase 3 – Learning & Embodiment Options**: episodic memory, probabilistic validation, alternative embodiments, multi-agent coordination.
 
-Navigate to: `https://github.com/c-daly/logos/labels`
+Attach issues to the milestone that matches their label (`phase:1`, `phase:2`, etc.), or skip milestones entirely if labels + board views provide enough signal.
 
-Create each label from `.github/labels.yml` with the specified name, color, and description.
+---
 
-## Step 2: Create Milestone
+## 3. Project Board (“Project LOGOS”)
 
-Create a milestone for Phase 1:
+1. Go to **Projects** → **New project** → choose **Board**.
+2. Name it **Project LOGOS** (covers all phases).
+3. Set the Status workflow to **Backlog → In Progress → Ready for Demo → Done**. Everything else (HCG, Sophia, perception, Talos, Apollo, diagnostics, docs) should be handled via saved views/filters instead of columns. Recommended saved board views:
+   - **Surfaced** – grouped by `surface:*` (CLI / browser / LLM).
+   - **Capabilities** – grouped by `capability:*` (perception / actuation / explainability).
+   - **Domains** – grouped by `domain:*` (HCG, planner, diagnostics, etc.).
+   - **Phase 1 / Phase 2 / …** – filtered by each `phase:*` label so you can focus on one gate at a time.
+   - **HCG & Validation**, **Sophia Planning & Execution**, **Perception / Talos-Free**, **Talos Capabilities**, **Apollo & UX**, **Diagnostics / Explainability**, **Docs / Governance** – create board views filtered on the appropriate label sets. This keeps the board uncluttered while still offering the swimlanes we care about.
+   - **Demo Tracker** – filtered by Status = Ready for Demo or `capability:explainability`.
 
-### Using GitHub CLI:
+### Automation tips
+- When an item doesn’t need Talos, drop it straight into Perception/Apollo columns.
+- Move items into *Ready for Demo* only after CLI + browser (and soon LLM) paths + diagnostics are verified.
+- Use `gh project` if you want to script column/view setup; the board layout above matches the flexible spec.
 
-```bash
-gh milestone create "Phase 1 - HCG and Abstract Pipeline" \
-  --repo c-daly/logos \
-  --description "Phase 1 deliverables: Formalize HCG and Abstract Pipeline. Includes Workstreams A, B, and C." \
-  --due-date "2026-02-15"
-```
+---
 
-### Using GitHub Web UI:
+## 4. Issue Creation
 
-1. Navigate to: `https://github.com/c-daly/logos/milestones`
-2. Click "New milestone"
-3. Enter:
-   - **Title**: Phase 1 - HCG and Abstract Pipeline
-   - **Due date**: February 15, 2026 (or as appropriate)
-   - **Description**: Phase 1 deliverables: Formalize HCG and Abstract Pipeline. Includes Workstreams A, B, and C.
-4. Click "Create milestone"
-
-## Step 3: Create GitHub Project Board
-
-### Using GitHub Web UI:
-
-1. Navigate to the repository: `https://github.com/c-daly/logos`
-2. Click on the "Projects" tab
-3. Click "New project"
-4. Choose "Board" template
-5. Name: "Project LOGOS - Phase 1"
-6. Set visibility: Private or Public as appropriate
-7. Click "Create"
-
-### Configure Board Views:
-
-Create the following views for the project board:
-
-#### View 1: By Workstream
-- Group by: Label (workstream:A, workstream:B, workstream:C)
-- Sort by: Priority
-
-#### View 2: By Component
-- Group by: Label (component:sophia, component:hermes, component:talos, component:apollo, component:infrastructure)
-- Sort by: Status
-
-#### View 3: By Priority
-- Filter: Priority labels
-- Sort by: Created date
-
-#### View 4: Weekly Progress (Table View)
-- Columns: Title, Status, Assignees, Labels, Updated
-- Filter: Updated in last 7 days
-
-### Set Up Board Columns (if using Classic Project):
-
-If using GitHub Projects (Classic):
-1. Create columns: "To Do", "In Progress", "Blocked", "In Review", "Done"
-2. Enable automation:
-   - Newly added → To Do
-   - Reopened → To Do
-   - Closed → Done
-
-## Step 4: Generate and Create Issues
-
-Use the provided script to generate issues from the action items document:
-
-### Generate GitHub CLI commands:
-
+Scripts remain available:
 ```bash
 python .github/scripts/generate_issues.py --format gh-cli --output create_issues.sh
-chmod +x create_issues.sh
-./create_issues.sh
+python .github/scripts/create_issues_by_epoch.py --help
 ```
+Always review the generated labels and add `surface:*` / `capability:*` as needed.
 
-### Alternative: Generate JSON for review:
+---
+
+## 5. Linking Issues to the Board
 
 ```bash
-python .github/scripts/generate_issues.py --format json --output issues.json
+PROJECT_NUMBER=$(gh project list --owner c-daly --format json | jq -r '.projects[] | select(.title=="Project LOGOS").number')
+gh project item-add $PROJECT_NUMBER --repo c-daly/logos --issue <ISSUE>
 ```
 
-Review `issues.json` and create issues manually or via API.
+Or use the UI: open Project LOGOS → “+ Add item”.
 
-### Alternative: Generate Markdown summaries:
+---
 
-```bash
-python .github/scripts/generate_issues.py --format markdown --output issues.md
-```
+## 6. Maintenance Rhythm
 
-## Step 5: Link Issues to Project Board
+Weekly (or at least bi-weekly):
+1. Review “Sophia Planning & Execution” and “Perception / Talos-Free” columns—ensure nothing is stale.
+2. Verify each `surface:*` combination has current work; move gaps into Backlog.
+3. Update phase labels so Phase views stay trustworthy.
+4. Record demo artifacts (logs, videos) before moving cards to Done.
 
-After creating issues:
+Optional: keep or discard the weekly progress GitHub Action. Many teams now rely on the board views + CLI reports instead.
 
-### Using GitHub CLI:
+---
 
-```bash
-# Get the project number (e.g., 1)
-gh project list --repo c-daly/logos
-
-# Add issues to project
-gh project item-add <PROJECT_NUMBER> --repo c-daly/logos --issue <ISSUE_NUMBER>
-```
-
-### Using GitHub Web UI:
-
-1. Open the Project Board
-2. Click "+ Add item"
-3. Search for and add each issue
-4. Organize issues into appropriate columns/statuses
-
-## Step 6: Set Up Weekly Progress Tracking
-
-Create a recurring task or calendar reminder to:
-
-1. Review all issues in "In Progress" status
-2. Update issue status and labels
-3. Comment on blocked issues with updates
-4. Close completed issues
-5. Create a weekly progress summary in Discussions or as a project note
-
-### Optional: Create a GitHub Action for Weekly Reports
-
-Create `.github/workflows/weekly-progress.yml`:
-
-```yaml
-name: Weekly Progress Report
-
-on:
-  schedule:
-    # Run every Monday at 9:00 AM UTC
-    - cron: '0 9 * * 1'
-  workflow_dispatch:
-
-jobs:
-  weekly-report:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Generate Weekly Report
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { data: issues } = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-              labels: 'status:in-progress',
-              sort: 'updated',
-              direction: 'desc'
-            });
-            
-            let report = '# Weekly Progress Report\n\n';
-            report += `**Generated:** ${new Date().toISOString()}\n\n`;
-            report += `## In Progress (${issues.length} issues)\n\n`;
-            
-            for (const issue of issues) {
-              report += `- #${issue.number}: ${issue.title}\n`;
-              report += `  - Assignees: ${issue.assignees.map(a => a.login).join(', ') || 'None'}\n`;
-              report += `  - Labels: ${issue.labels.map(l => l.name).join(', ')}\n\n`;
-            }
-            
-            console.log(report);
-            
-            // Optionally: Create a discussion post or issue comment with the report
-```
-
-## Step 7: Configure Issue Templates
-
-Issue templates are already created in `.github/ISSUE_TEMPLATE/`. They will automatically appear when users create new issues.
-
-Available templates:
-- **Sophia Task** - For Sophia cognitive core tasks
-- **Hermes Task** - For Hermes language utility tasks
-- **Talos Task** - For Talos hardware abstraction tasks
-- **Apollo Task** - For Apollo UI/client tasks
-- **Infrastructure Task** - For infrastructure, HCG, and CI/CD tasks
-- **Research Task** - For research sprints and investigations
-- **Documentation Task** - For documentation tasks
-
-## Maintenance and Best Practices
-
-### Issue Management:
-- Always assign issues to team members
-- Use labels consistently
-- Update issue status regularly
-- Link related issues using keywords (fixes #, relates to #)
-- Close issues only when acceptance criteria are met
-
-### Project Board Management:
-- Review board daily
-- Update issue statuses as work progresses
-- Use comments to track blockers and dependencies
-- Archive completed sprints/phases
-
-### Weekly Progress Tracking:
-- Schedule a weekly sync meeting (e.g., Monday mornings)
-- Review project board before the meeting
-- Update `docs/action_items.md` to reflect completed tasks
-- Adjust priorities based on current needs
-- Document decisions in meeting notes
-
-## Additional Resources
-
-- [GitHub Projects Documentation](https://docs.github.com/en/issues/planning-and-tracking-with-projects)
-- [GitHub Labels Documentation](https://docs.github.com/en/issues/using-labels-and-milestones-to-track-work/managing-labels)
-- [GitHub Milestones Documentation](https://docs.github.com/en/issues/using-labels-and-milestones-to-track-work/about-milestones)
-- [GitHub Issue Templates](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/about-issue-and-pull-request-templates)
-
-## Troubleshooting
-
-### Labels not syncing
-- Ensure you have admin permissions on the repository
-- Verify the YAML syntax in `.github/labels.yml`
-- Try using the GitHub web UI to create labels manually
-
-### Script errors
-- Ensure Python 3.6+ is installed
-- Verify the path to `docs/action_items.md` is correct
-- Check that the markdown syntax in action_items.md is valid
-
-### Issues not appearing in project
-- Verify the project is linked to the repository
-- Check that issues have the correct labels
-- Ensure automation rules are configured correctly
-
-## Support
-
-For questions or issues with the tracking system setup, please:
-1. Check this documentation
-2. Review existing issues and discussions
-3. Create a new issue with the `component:infrastructure` label
+With this setup, the board tracks the entire LOGOS program—from Phase 1 polish through Phase 2 browser/LLM work—without being locked to physical hardware or inaccurate due dates. Use labels + views to focus on whichever phase or surface matters right now, while keeping everything anchored to the flexible spec.

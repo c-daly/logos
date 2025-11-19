@@ -21,12 +21,17 @@ Embodiment &amp; UX flexibility
 - Talos exposes capabilities via APIs, not a fixed robot. A LOGOS deployment may plug in simulators, one robot, many robots, or no hardware at all without changing Sophia or the HCG.
 - Apollo is any interaction surface that drives the documented goal/plan/state APIs: today that is a CLI; future touch/voice interfaces or kiosks remain fully compliant as long as they use the same contracts.
 
-Phase 1 focus
-This repo is targeted at Phase 1 ("Formalize HCG and Abstract Pipeline") from Section 7.1. The main deliverables provided here are:
-- The HCG ontology scaffold (`ontology/core_ontology.cypher`) — Section 4.1.
-- The SHACL shapes used as Level 1 deterministic validation guardrails (`ontology/shacl_shapes.ttl`) — Section 4.3.1.
-- A canonical Hermes OpenAPI contract for the stateless linguistic tools (`contracts/hermes.openapi.yaml`) — Table 2 in Section 3.4.
-- Development docker-compose to run Neo4j (with neosemantics/SHACL support) and Milvus (vector store) as the hybrid HCG backend (`infra/docker-compose.hcg.dev.yml`) — Sections 4.1 &amp; 5.2.
+Documentation layout & phases
+- `docs/spec/LOGOS_SPEC_FLEXIBLE.md` is the living architecture spec.
+- `docs/phase1/`, `docs/phase2/`, … hold the active specs/checklists for each phase.
+- `docs/old/` preserves the original Phase 1 docs, action items, and research notes for reference.
+
+Phase roadmap (see `docs/phase*/` folders for details):
+- **Phase 1 – Formalize HCG & Abstract Pipeline**: Ontology, SHACL, Compose infra, CLI prototype. Spec: `docs/phase1/PHASE1_SPEC.md`.
+- **Phase 2 – Perception & Apollo UX**: Sophia/Hermes services, Apollo browser + CLI, perception pipeline, diagnostics/persona. Spec: `docs/phase2/PHASE2_SPEC.md`.
+- **Phase 3 – Learning & Embodiment Options**: Episodic memory, probabilistic validation, optional physical demos (manipulator, touchscreen), multi-agent prep. Spec TBD (`docs/phase3/`).
+- **Phase 4 – Operational Autonomy**: Continuous learning with safety gates, observability/rollback tooling, production deployment patterns. Spec TBD (`docs/phase4/`).
+- **Phase 5 – Networked Agents / Swarm**: LOGOS instances collaborating, sharing HCG slices, coordinating Talos fleets. Spec TBD (`docs/phase5/`).
 
 How to run the HCG dev cluster (dev-only)
 1. From this repo run:
@@ -70,9 +75,9 @@ SHACL Validation Strategy
   - For local setup instructions, see `docs/PHASE1_VERIFY.md` - M2 section "Neo4j n10s Integration Tests (Opt-In)"
   - Workflow: `.github/workflows/shacl-neo4j-validation.yml`
 
-Phase 1 Verification and Gate
+-Phase 1 Verification and Gate
 - Phase 1 must be completed and verified before Phase 2 work can begin.
-- **Verification Checklist**: See `docs/PHASE1_VERIFY.md` for complete Phase 1 verification criteria.
+- **Verification Checklist**: See `docs/old/PHASE1_VERIFY.md` (archival) alongside the living `docs/phase1/PHASE1_SPEC.md`.
 - **Milestone Gates**: Each milestone is verified through automated tests that produce individual badges:
   - **M1** (HCG Store/Retrieve): [![M1 Gate](https://github.com/c-daly/logos/actions/workflows/m1-neo4j-crud.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m1-neo4j-crud.yml)
   - **M2** (SHACL Validation): [![M2 Gate](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml)
@@ -86,4 +91,4 @@ Phase 1 Verification and Gate
 Notes and next steps
 - The `core_ontology.cypher` and `shacl_shapes.ttl` are intentionally minimal, syntactically valid, and contain comments indicating where the full ontology and constraints described in the spec will be extended.
 - This repo is the canonical place for future ontology updates, SHACL extensions, contract evolution, and HCG infra changes.
-- See `docs/action_items.md` for the complete task breakdown and current progress.
+- Historical action items and research notes now live under `docs/old/`; current planning lives in the phase-specific specs and GitHub Project board.

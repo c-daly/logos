@@ -19,9 +19,52 @@
   color: "d93f0b"
   description: "Related to Apollo UI/client (dashboard, visualization, command interface)"
 
+- name: "component:logos"
+  color: "444444"
+  description: "Related to the LOGOS meta-repo (specs, ontology, scripts, governance)"
+
 - name: "component:infrastructure"
   color: "5319e7"
   description: "Related to infrastructure, HCG, ontology, CI/CD, or repository setup"
+
+# Surface Labels - Track interaction layers
+- name: "surface:cli"
+  color: "0b4f6c"
+  description: "CLI experience (Apollo CLI, scripts, GH Action summaries)"
+
+- name: "surface:browser"
+  color: "1b998b"
+  description: "Browser-based UI/dashboard experience"
+
+- name: "surface:llm"
+  color: "ff9f1c"
+  description: "Multimodal LLM integration surface using LOGOS as a co-processor"
+
+# Capability Labels - Highlight functional slices
+- name: "capability:perception"
+  color: "c1292e"
+  description: "Perception, media ingestion, causal world model updates"
+
+- name: "capability:actuation"
+  color: "f6bd60"
+  description: "Execution via Talos capabilities (simulated or physical)"
+
+- name: "capability:explainability"
+  color: "5f0f40"
+  description: "Diagnostics, visualization, explainability tooling"
+
+# Domain Labels - Cross-cutting technical areas
+- name: "domain:hcg"
+  color: "264653"
+  description: "Hybrid Cognitive Graph data model, ontology, validation, storage"
+
+- name: "domain:planner"
+  color: "2a9d8f"
+  description: "Planning/execution logic, Sophia orchestrator, Talos capability registry"
+
+- name: "domain:diagnostics"
+  color: "e76f51"
+  description: "Observability, metrics, tracing, UX diagnostics panels"
 
 # Priority Labels - Indicate task urgency and importance
 - name: "priority:high"

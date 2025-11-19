@@ -18,12 +18,12 @@ gh extension install heaths/gh-label
 
 ### Step 2: Sync Labels
 
-**Option A: Using GitHub CLI (Recommended)**
+Run the helper script (requires GitHub CLI authentication):
 ```bash
-gh label sync --repo c-daly/logos --file .github/labels.yml
+python .github/scripts/sync_labels.py --repo c-daly/logos
 ```
 
-**Option B: Manual**
+**Manual fallback**
 - Go to https://github.com/c-daly/logos/labels
 - Create each label from `.github/labels.yml`
 
@@ -49,6 +49,26 @@ gh milestone create "Phase 1 - HCG and Abstract Pipeline" \
 3. Choose "Board" template
 4. Name: "Project LOGOS - Phase 1"
 5. Click "Create"
+
+#### Configure Columns/Views (New layout aligned with flexible spec)
+- Add board columns (or workflow states) named:
+  1. `Backlog`
+  2. `HCG & Validation`
+  3. `Sophia Planning & Execution`
+  4. `Perception / Talos-Free`
+  5. `Talos Capabilities` (optional—only for actuation-dependent tasks)
+  6. `Apollo & UX (CLI + Browser + LLM)`
+  7. `Diagnostics / Explainability`
+  8. `Docs / Governance`
+  9. `Ready for Demo`
+  10. `Done`
+- Create saved views:
+  - **Surface View** grouped by the new `surface:*` labels (`cli`, `browser`, `llm`).
+  - **Capability View** grouped by `capability:*` labels (`perception`, `actuation`, `explainability`).
+  - **Phase View** filtered by `phase:1`, `phase:2`, etc.
+  - **Demo Tracker** filtering issues tagged `Ready for Demo` column or label.
+
+This layout keeps Talos-free, perception, and multimodal work visible alongside the embodied track.
 
 ### Step 5: Generate and Create Issues
 

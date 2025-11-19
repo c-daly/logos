@@ -39,36 +39,36 @@ Demonstrate that the HCG (Neo4j + Milvus hybrid system) can store and retrieve e
 ### Verification Checklist
 
 #### Infrastructure
-- [ ] Neo4j development cluster is running (`docker-compose -f infra/docker-compose.hcg.dev.yml up -d`)
-- [ ] Milvus development cluster is running
-- [ ] Neo4j accessible on ports 7474 (HTTP) and 7687 (Bolt)
-- [ ] Milvus accessible on ports 19530 and 9091
-- [ ] Neo4j includes neosemantics (n10s) plugin for RDF/SHACL support
+- [✓] Neo4j development cluster is running (`docker-compose -f infra/docker-compose.hcg.dev.yml up -d`)
+- [✓] Milvus development cluster is running
+- [✓] Neo4j accessible on ports 7474 (HTTP) and 7687 (Bolt)
+- [✓] Milvus accessible on ports 19530 and 9091
+- [✓] Neo4j includes neosemantics (n10s) plugin for RDF/SHACL support
 
 #### Ontology Loading
-- [ ] `ontology/core_ontology.cypher` loads successfully into Neo4j without errors
-- [ ] All UUID constraints are created (entity, concept, state, process)
-- [ ] All indexes are created (entity name, state timestamp, process timestamp)
-- [ ] Concept name uniqueness constraint is active
+- [✓] `ontology/core_ontology.cypher` loads successfully into Neo4j without errors
+- [✓] All UUID constraints are created (entity, concept, state, process)
+- [✓] All indexes are created (entity name, state timestamp, process timestamp)
+- [✓] Concept name uniqueness constraint is active
 
 #### Entity Operations
-- [ ] Can create Entity nodes with required UUID format (`entity-*`)
-- [ ] Can create Concept nodes with required UUID format (`concept-*`)
-- [ ] Can create State nodes with required UUID format (`state-*`)
-- [ ] Can create Process nodes with required UUID format (`process-*`)
-- [ ] Can establish IS_A relationships between Entity and Concept
-- [ ] Can establish HAS_STATE relationships between Entity and State
-- [ ] Can establish CAUSES relationships between Process and State
-- [ ] Can establish PART_OF relationships between entities
+- [✓] Can create Entity nodes with required UUID format (`entity-*`)
+- [✓] Can create Concept nodes with required UUID format (`concept-*`)
+- [✓] Can create State nodes with required UUID format (`state-*`)
+- [✓] Can create Process nodes with required UUID format (`process-*`)
+- [✓] Can establish IS_A relationships between Entity and Concept
+- [✓] Can establish HAS_STATE relationships between Entity and State
+- [✓] Can establish CAUSES relationships between Process and State
+- [✓] Can establish PART_OF relationships between entities
 
 #### Retrieval Operations
-- [ ] Can query entities by UUID
-- [ ] Can query entities by name
-- [ ] Can query states by timestamp
-- [ ] Can query processes by start_time
-- [ ] Can traverse IS_A relationships to find entity types
-- [ ] Can traverse HAS_STATE relationships to find current states
-- [ ] Can traverse CAUSES relationships to trace causal chains
+- [✓] Can query entities by UUID
+- [✓] Can query entities by name
+- [✓] Can query states by timestamp
+- [✓] Can query processes by start_time
+- [✓] Can traverse IS_A relationships to find entity types
+- [✓] Can traverse HAS_STATE relationships to find current states
+- [✓] Can traverse CAUSES relationships to trace causal chains
 
 ### Manual Demonstration Steps
 
@@ -1009,10 +1009,10 @@ Phase 2 work **MUST NOT** begin until ALL of the following criteria are met:
 - [ ] M4 verification checklist 100% complete
 
 #### 2. Automated Tests Passing
-- [x] M1: [![M1 Gate](https://github.com/c-daly/logos/actions/workflows/m1-neo4j-crud.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m1-neo4j-crud.yml) `test_m1_neo4j_crud.py` passes (26 tests)
-- [x] M2: [![M2 Gate](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml) `test_m2_shacl_validation.py` passes
-- [x] M3: [![M3 Gate](https://github.com/c-daly/logos/actions/workflows/m3-planning.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m3-planning.yml) `test_m3_planning.py` passes
-- [x] M4: [![M4 Gate](https://github.com/c-daly/logos/actions/workflows/m4-end-to-end.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m4-end-to-end.yml) `test_m4_end_to_end.py` passes + E2E script
+- [✓] M1: [![M1 Gate](https://github.com/c-daly/logos/actions/workflows/m1-neo4j-crud.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m1-neo4j-crud.yml) `test_m1_neo4j_crud.py` passes (26 tests)
+- [✓] M2: [![M2 Gate](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml) `test_m2_shacl_validation.py` passes
+- [✓] M3: [![M3 Gate](https://github.com/c-daly/logos/actions/workflows/m3-planning.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m3-planning.yml) `test_m3_planning.py` passes
+- [✓] M4: [![M4 Gate](https://github.com/c-daly/logos/actions/workflows/m4-end-to-end.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m4-end-to-end.yml) `test_m4_end_to_end.py` passes + E2E script
 - [ ] All existing tests continue to pass
 - [ ] No security vulnerabilities in changed code (CodeQL clean)
 
