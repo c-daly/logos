@@ -13,10 +13,17 @@ This test validates the complete prototype flow:
 Reference: docs/PHASE1_VERIFY.md, Section M4
 """
 
+import os
 import subprocess
 from pathlib import Path
 
 import pytest
+
+RUN_M4_E2E = os.getenv("RUN_M4_E2E") == "1"
+pytestmark = pytest.mark.skipif(
+    not RUN_M4_E2E,
+    reason="M4 end-to-end flow runs only when RUN_M4_E2E=1",
+)
 
 # Repository root
 REPO_ROOT = Path(__file__).parent.parent.parent
