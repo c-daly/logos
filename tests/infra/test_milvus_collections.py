@@ -4,7 +4,8 @@ Tests for Milvus collection initialization
 Verifies that the init_milvus_collections.py script correctly creates
 and configures collections for HCG embeddings.
 
-These tests require a running Milvus instance on localhost:19530.
+These tests require a running Milvus instance. The host and port can be
+configured via MILVUS_HOST and MILVUS_PORT environment variables.
 If Milvus is not available, tests will be skipped.
 """
 
@@ -22,14 +23,19 @@ EXPECTED_COLLECTIONS = [
 # Expected schema fields
 EXPECTED_FIELDS = ["uuid", "embedding", "embedding_model", "last_sync"]
 
+# Test configuration - can be overridden with environment variables
+import os
+MILVUS_HOST = os.getenv("MILVUS_HOST", "localhost")
+MILVUS_PORT = os.getenv("MILVUS_PORT", "19530")
+
 
 def _check_milvus_available():
     """Check if Milvus is available for testing."""
     try:
         connections.connect(
             alias="test_connection",
-            host="localhost",
-            port="19530",
+            host=MILVUS_HOST,
+            port=MILVUS_PORT,
         )
         connections.disconnect("test_connection")
         return True
@@ -40,7 +46,7 @@ def _check_milvus_available():
 # Skip all tests in this module if Milvus is not available
 pytestmark = pytest.mark.skipif(
     not _check_milvus_available(),
-    reason="Milvus is not available on localhost:19530"
+    reason=f"Milvus is not available on {MILVUS_HOST}:{MILVUS_PORT}"
 )
 
 
@@ -50,8 +56,8 @@ def milvus_connection():
     try:
         connections.connect(
             alias="default",
-            host="localhost",
-            port="19530",
+            host=MILVUS_HOST,
+            port=MILVUS_PORT,
         )
         yield
     except MilvusException as e:
