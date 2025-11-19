@@ -89,13 +89,25 @@ class HCGLoader:
             with open(file_path, "r") as f:
                 script_content = f.read()
 
-            # Split into individual statements (separated by semicolons)
-            statements = [s.strip() for s in script_content.split(";") if s.strip()]
+            # Parse Cypher statements more carefully
+            # Remove single-line comments
+            lines = []
+            for line in script_content.split("\n"):
+                # Remove inline comments
+                if "//" in line:
+                    line = line[:line.index("//")]
+                line = line.strip()
+                if line:
+                    lines.append(line)
+            
+            # Join lines and split by semicolons
+            cleaned_script = " ".join(lines)
+            statements = [s.strip() for s in cleaned_script.split(";") if s.strip()]
 
             with self.driver.session() as session:
                 for i, statement in enumerate(statements):
-                    # Skip comments and empty lines
-                    if not statement or statement.startswith("//"):
+                    # Skip empty statements
+                    if not statement:
                         continue
 
                     try:

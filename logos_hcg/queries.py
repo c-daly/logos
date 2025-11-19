@@ -433,12 +433,12 @@ class HCGQueries:
         Returns: Counts for each node type
         """
         return """
-        MATCH (e:Entity)
+        OPTIONAL MATCH (e:Entity)
         WITH count(e) as entity_count
-        MATCH (c:Concept)
+        OPTIONAL MATCH (c:Concept)
         WITH entity_count, count(c) as concept_count
-        MATCH (s:State)
+        OPTIONAL MATCH (s:State)
         WITH entity_count, concept_count, count(s) as state_count
-        MATCH (p:Process)
+        OPTIONAL MATCH (p:Process)
         RETURN entity_count, concept_count, state_count, count(p) as process_count
         """

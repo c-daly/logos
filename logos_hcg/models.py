@@ -17,9 +17,8 @@ See Project LOGOS spec: Section 4.1 for ontology structure.
 
 from datetime import datetime
 from typing import Any
-from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class EmbeddingMetadata(BaseModel):
@@ -47,14 +46,14 @@ class Entity(BaseModel):
     Represents a concrete instance in the HCG.
 
     Properties:
-    - uuid: Unique identifier (required)
+    - uuid: Unique identifier (required, string with 'entity-' prefix)
     - name: Human-readable name
     - description: Optional description
     - created_at: Timestamp of creation
     - Additional properties for spatial/physical entities (width, height, depth, etc.)
     - Embedding metadata (Section 4.2): embedding_id, embedding_model, last_sync
     """
-    uuid: UUID
+    uuid: str
     name: str | None = None
     description: str | None = None
     created_at: datetime | None = None
@@ -84,11 +83,20 @@ class Entity(BaseModel):
     extra_properties: dict[str, Any] = Field(default_factory=dict)
 
     model_config = ConfigDict(
-        json_encoders={
-            UUID: str,
-            datetime: lambda v: v.isoformat() if v else None,
-        }
+        extra='allow',
+        arbitrary_types_allowed=True,
     )
+    
+    @field_validator('created_at', mode='before')
+    @classmethod
+    def parse_neo4j_datetime(cls, v):
+        """Convert Neo4j DateTime to Python datetime."""
+        if v is None:
+            return None
+        # Neo4j DateTime objects can be converted to Python datetime
+        if hasattr(v, 'to_native'):
+            return v.to_native()
+        return v
 
 
 class Concept(BaseModel):
@@ -96,12 +104,12 @@ class Concept(BaseModel):
     Represents an abstract category/type in the HCG.
 
     Properties:
-    - uuid: Unique identifier (required)
+    - uuid: Unique identifier (required, string with 'concept-' prefix)
     - name: Concept name (required, unique)
     - description: Optional description
     - Embedding metadata (Section 4.2): embedding_id, embedding_model, last_sync
     """
-    uuid: UUID
+    uuid: str
     name: str
     description: str | None = None
 
@@ -114,10 +122,8 @@ class Concept(BaseModel):
     extra_properties: dict[str, Any] = Field(default_factory=dict)
 
     model_config = ConfigDict(
-        json_encoders={
-            UUID: str,
-            datetime: lambda v: v.isoformat() if v else None,
-        }
+        extra='allow',
+        arbitrary_types_allowed=True,
     )
 
 
@@ -126,7 +132,7 @@ class State(BaseModel):
     Represents a temporal snapshot of entity properties.
 
     Properties:
-    - uuid: Unique identifier (required)
+    - uuid: Unique identifier (required, string with 'state-' prefix)
     - timestamp: Time of state snapshot (required)
     - name: Optional state name
     - Position: position_x, position_y, position_z
@@ -135,7 +141,7 @@ class State(BaseModel):
     - Physical: grasp_width, applied_force
     - Embedding metadata (Section 4.2): embedding_id, embedding_model, last_sync
     """
-    uuid: UUID
+    uuid: str
     timestamp: datetime
     name: str | None = None
 
@@ -167,11 +173,20 @@ class State(BaseModel):
     extra_properties: dict[str, Any] = Field(default_factory=dict)
 
     model_config = ConfigDict(
-        json_encoders={
-            UUID: str,
-            datetime: lambda v: v.isoformat() if v else None,
-        }
+        extra='allow',
+        arbitrary_types_allowed=True,
     )
+    
+    @field_validator('timestamp', mode='before')
+    @classmethod
+    def parse_neo4j_datetime(cls, v):
+        """Convert Neo4j DateTime to Python datetime."""
+        if v is None:
+            return None
+        # Neo4j DateTime objects can be converted to Python datetime
+        if hasattr(v, 'to_native'):
+            return v.to_native()
+        return v
 
 
 class Process(BaseModel):
@@ -179,14 +194,14 @@ class Process(BaseModel):
     Represents an action that causes state changes.
 
     Properties:
-    - uuid: Unique identifier (required)
+    - uuid: Unique identifier (required, string with 'process-' prefix)
     - start_time: Process start timestamp (required)
     - name: Optional process name
     - description: Optional description
     - duration_ms: Duration in milliseconds
     - Embedding metadata (Section 4.2): embedding_id, embedding_model, last_sync
     """
-    uuid: UUID
+    uuid: str
     start_time: datetime
     name: str | None = None
     description: str | None = None
@@ -201,8 +216,17 @@ class Process(BaseModel):
     extra_properties: dict[str, Any] = Field(default_factory=dict)
 
     model_config = ConfigDict(
-        json_encoders={
-            UUID: str,
-            datetime: lambda v: v.isoformat() if v else None,
-        }
+        extra='allow',
+        arbitrary_types_allowed=True,
     )
+    
+    @field_validator('start_time', mode='before')
+    @classmethod
+    def parse_neo4j_datetime(cls, v):
+        """Convert Neo4j DateTime to Python datetime."""
+        if v is None:
+            return None
+        # Neo4j DateTime objects can be converted to Python datetime
+        if hasattr(v, 'to_native'):
+            return v.to_native()
+        return v
