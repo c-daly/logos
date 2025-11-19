@@ -28,6 +28,11 @@ Scope: A working, demonstrable prototype for Phase 1 (Hybrid Cognitive Graph fou
 - Goal → plan → (simulated) execution → state verification runs end to end in the M4 test/script without manual intervention.
 - Clear docs for how to run locally and how to enable the optional Neo4j/Milvus checks.
 
+## Embodiment & UX assumptions
+- Hardware is **optional**. Talos must accept either simulated drivers or real actuators at runtime, but Sophia and the HCG behave identically in both cases. A “graph-only” deployment (no robot) still satisfies the Phase 1 goals if it exercises the same APIs.
+- Apollo is defined as an interaction surface, not a fixed UI. The current CLI proves the contract; future versions may be a touchscreen dashboard, a kiosk, or a multimodal/voice interface so long as they call the same goal/plan/state APIs.
+- Documentation and acceptance tests should avoid language that assumes a manipulator or headset exists; instead they should refer to “available Talos capabilities” or “configured Apollo client.”
+
 ## Tracking the remaining work
 The remaining polish and documentation needed before we call Phase 1 complete are tracked with the `phase 1 closers` label:
 

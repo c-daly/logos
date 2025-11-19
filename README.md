@@ -17,6 +17,10 @@ Repos in the LOGOS ecosystem
 - `c-daly/talos` — Talos: hardware abstraction layer (sensors/actuators, simulated interfaces for Phase 1). (See Section 3.5.)
 - `c-daly/apollo` — Apollo: thin client UI &amp; command layer. (See Section 3.5.)
 
+Embodiment &amp; UX flexibility
+- Talos exposes capabilities via APIs, not a fixed robot. A LOGOS deployment may plug in simulators, one robot, many robots, or no hardware at all without changing Sophia or the HCG.
+- Apollo is any interaction surface that drives the documented goal/plan/state APIs: today that is a CLI; future touch/voice interfaces or kiosks remain fully compliant as long as they use the same contracts.
+
 Phase 1 focus
 This repo is targeted at Phase 1 ("Formalize HCG and Abstract Pipeline") from Section 7.1. The main deliverables provided here are:
 - The HCG ontology scaffold (`ontology/core_ontology.cypher`) — Section 4.1.
