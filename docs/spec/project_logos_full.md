@@ -90,6 +90,8 @@ Hermes provides stateless linguistic services (Table 2):
 - **Talos**: Abstracts sensor/actuator hardware. In Phase 1, provides simulated interfaces for testing.
 - **Apollo**: Thin client UI providing command interface and visualization of agent state.
 
+> **Configuration flexibility:** LOGOS must support deployments that range from “pure software” (no hardware embodiment) to environments with multiple robots or other actuators. Talos therefore exposes a capability graph rather than hard-coded robot assumptions. If hardware is present, Talos brokers access; if not, Sophia still operates against the same APIs using simulators or mocked drivers. Likewise, Apollo is specified as an interaction surface, not a single UI. Today’s CLI and upcoming touchscreen/voice explorations are both valid bindings as long as they call the documented APIs. The spec intentionally decouples these surfaces so a deployment can choose the right mix of embodiment and UX without rewriting Sophia or the HCG.
+
 ## 4. HCG Ontology and Data Model
 
 ### 4.1 Core Ontology

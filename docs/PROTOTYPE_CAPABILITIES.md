@@ -10,11 +10,12 @@ This document summarizes what the initial prototype delivers once the Phase 1 is
 - **Talos Execution Shim**: Deterministic simulation accepts a plan, steps through it, and updates HCG state (e.g., `is_grasped`, positions) via Sophia.
 - **Apollo Thin Client**: CLI wiring to call Sophia (`send` → `/plan`, `state` → `/state`, `plans` → cached plan); text output is sufficient for the prototype. Web view is optional/minimal.
 - **End-to-End Script**: A scripted flow runs compose, loads ontology/shapes/test data, calls Apollo to request a plan, lets Talos shim execute, and shows the updated state.
+- **Embodiment-flexible**: The same flow works without any physical hardware attached; Talos exposes capability descriptions so a physical robot or other actuator can be swapped in later without changing Sophia or Apollo contracts.
 
 ## What It Does Not Do (Yet)
 - No full planner/search (plan can be template-based for the seeded scenario).
 - No real STT/TTS or advanced NLP; those endpoints may be thin stubs.
-- No rich Apollo visualization—graph UI can follow later.
+- No rich Apollo visualization—graph UI, touchscreen kiosk, or voice client can follow later as alternative bindings to the same API.
 - No real hardware; Talos remains simulated and deterministic.
 - Limited robustness: happy-path only, minimal error recovery.
 
