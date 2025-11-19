@@ -85,6 +85,8 @@ jobs:
           if [ "${{ github.event.inputs.skip_e2e }}" = "true" ]; then
             echo "Skipping M4 end-to-end tests (skip_e2e=true)" | tee -a $GITHUB_STEP_SUMMARY
             echo "m4_status=skipped" >> $GITHUB_OUTPUT
+            echo "M4 E2E skipped" > m4_output.txt
+            echo "M4 E2E skipped" > e2e_script_output.txt
             exit 0
           fi
 

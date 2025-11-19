@@ -133,6 +133,8 @@ The automated test verifies:
 ### Objective
 Demonstrate that SHACL validation rules successfully catch malformed graph updates and enforce data quality.
 
+> Note: CI uses pyshacl for shape checks by default. Live Neo4j+n10s validation is opt-in; set `RUN_NEO4J_SHACL=1` and run `tests/phase1/test_shacl_neo4j_validation.py`, or enable a dedicated Neo4j validation job.
+
 ### Verification Checklist
 
 #### SHACL Infrastructure
