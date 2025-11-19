@@ -9,6 +9,8 @@ configured via MILVUS_HOST and MILVUS_PORT environment variables.
 If Milvus is not available, tests will be skipped.
 """
 
+import os
+
 import pytest
 from pymilvus import Collection, MilvusException, connections, utility
 
@@ -24,7 +26,6 @@ EXPECTED_COLLECTIONS = [
 EXPECTED_FIELDS = ["uuid", "embedding", "embedding_model", "last_sync"]
 
 # Test configuration - can be overridden with environment variables
-import os
 MILVUS_HOST = os.getenv("MILVUS_HOST", "localhost")
 MILVUS_PORT = os.getenv("MILVUS_PORT", "19530")
 
