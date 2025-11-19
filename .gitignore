@@ -31,7 +31,6 @@ venv.bak/
 .venv/
 
 # Poetry
-poetry.lock
 .poetry/
 
 # Testing
