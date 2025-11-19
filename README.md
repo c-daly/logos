@@ -55,14 +55,16 @@ CI/CD and Validation
 - See `.github/workflows/validate-artifacts.yml` for the complete validation pipeline.
 
 SHACL Validation Strategy
-- **Default CI (pyshacl)**: Fast, connectionless validation runs automatically on every push/PR
+- **Default CI Gate (pyshacl)**: Fast, connectionless validation runs automatically on every push/PR ✅
   - Tests in `tests/phase1/test_shacl_pyshacl.py` validate shapes against fixtures without requiring Neo4j
   - Ensures SHACL shapes are syntactically correct and fixtures conform to expectations
-- **Integration Tests (Neo4j+n10s)**: Opt-in validation for testing Neo4j integration
+  - **This is the primary gate** - PRs must pass these tests to merge
+- **Integration Tests (Neo4j+n10s)**: Opt-in validation for comprehensive testing 🔧
   - Tests in `tests/phase1/test_shacl_neo4j_validation.py` validate data using Neo4j's n10s plugin
   - Requires Neo4j with n10s plugin installed and `RUN_NEO4J_SHACL=1` environment variable
-  - Can be run manually or via workflow dispatch (see `infra/README.md` for local setup)
-  - Workflow: `.github/workflows/shacl-neo4j-validation.yml` (manual trigger only)
+  - Runs weekly or can be triggered manually via workflow dispatch
+  - For local setup instructions, see `docs/PHASE1_VERIFY.md` - M2 section "Neo4j n10s Integration Tests (Opt-In)"
+  - Workflow: `.github/workflows/shacl-neo4j-validation.yml`
 
 Phase 1 Verification and Gate
 - Phase 1 must be completed and verified before Phase 2 work can begin.
