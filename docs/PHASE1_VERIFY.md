@@ -919,10 +919,63 @@ The automated test verifies:
 - Ontology and constraint loading
 - Pick-and-place test data loading
 - Simulated Apollo command (goal state creation)
+  - **Expected Outcome**: Goal state created with specific UUID and properties (is_goal=true, description contains target)
 - Simulated Sophia plan generation (process nodes with temporal ordering)
+  - **Expected Outcome**: 4-step plan created (MoveToPreGrasp → Grasp → MoveToPlace → Release)
+  - **Expected Outcome**: All processes have valid UUIDs and are connected by PRECEDES relationships
+  - **Expected Outcome**: Process chain length = 3 (connecting 4 processes)
 - Simulated Talos execution (state updates in HCG)
-- State verification queries (entity states, process ordering, causal relationships)
+  - **Expected Outcome**: Block state changes from is_grasped=false to is_grasped=true during grasp
+  - **Expected Outcome**: Block state changes to is_grasped=false after release
+  - **Expected Outcome**: Block entity has LOCATED_AT relationship to TargetBin01
+  - **Expected Outcome**: Gripper state changes from is_closed=false to is_closed=true during grasp
+  - **Expected Outcome**: Processes have CAUSES relationships to resulting states
+- State verification queries
+  - **Expected Outcome**: Specific entities exist with known UUIDs (entity-robot-arm-01, entity-block-red-01, entity-bin-01)
+  - **Expected Outcome**: Robot arm entity has name 'RobotArm01' (not generic 'Manipulator')
+  - **Expected Outcome**: Gripper is PART_OF robot arm
+  - **Expected Outcome**: Block has initial state with position coordinates and is_grasped=false
+  - **Expected Outcome**: Final state shows block at target position (0.5, 0.3, 0.8) in bin
 - E2E script execution (optional, marked as slow test)
+
+#### Test Resilience
+All M4 tests use MERGE with UUID guards to ensure:
+- Tests can be run multiple times without creating duplicate data
+- Idempotent operations allow CI re-runs without database cleanup
+- Specific UUIDs prevent conflicts between test runs
+
+#### Expected Data Assertions
+The M4 tests assert specific expected state after each workflow step:
+
+**After Goal Creation:**
+- State node exists with UUID 'state-goal-test-m4-redblock'
+- State has property is_goal=true
+- State description contains "red block in bin"
+
+**After Plan Generation:**
+- Four Process nodes exist with specific UUIDs
+- Processes are named: TestMoveToPreGrasp, TestGraspRedBlock, TestMoveToPlace, TestReleaseBlock
+- PRECEDES relationships form complete chain (length=3)
+- Each process has descriptive name and start_time
+
+**After Execution (Grasp Step):**
+- RedBlock01 entity (entity-block-red-01) has new state
+- State has is_grasped=true
+- Gripper01 entity (entity-gripper-01) has closed state
+- GraspRedBlock process has CAUSES relationships to both states
+
+**After Execution (Release Step):**
+- RedBlock01 has final state with is_grasped=false
+- Final state has position (0.5, 0.3, 0.8)
+- RedBlock01 has LOCATED_AT relationship to TargetBin01
+- ReleaseBlock process has CAUSES relationships to final states
+
+**Entity Verification:**
+- RobotArm01 exists with UUID entity-robot-arm-01
+- Gripper01 exists with UUID entity-gripper-01 and is PART_OF RobotArm01
+- RedBlock01 exists with UUID entity-block-red-01
+- TargetBin01 exists with UUID entity-bin-01
+- TargetBin01 is LOCATED_AT WorkTable01
 
 **E2E Script**: `scripts/e2e_prototype.sh`
 
