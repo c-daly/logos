@@ -47,7 +47,7 @@ class PersonaDiary:
     Manages persona diary entries in the HCG.
 
     Writes entries to Neo4j as (:PersonaEntry) nodes and provides
-    query methods for Apollo to retrieve relevant context.
+    query methods for client surfaces (Apollo or others) to retrieve relevant context.
     """
 
     def __init__(self, driver: Driver):

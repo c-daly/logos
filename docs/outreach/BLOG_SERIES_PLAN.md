@@ -519,10 +519,10 @@ Research prototypes often become trapped in their initial hardware choices, limi
 **Priority:** FUTURE
 
 **Abstract:**  
-Symbolic reasoning excels at structured knowledge but struggles with continuous physics. Neural networks predict physical dynamics but lack symbolic interpretability. Project LOGOS bridges this gap with dual causal world models: CWM-A for commonsense abstract reasoning and CWM-G for grounded physics prediction using Joint Embedding Predictive Architecture (JEPA). This post explores how Sophia maintains consistency between symbolic HCG updates and learned physical dynamics, enabling the agent to "imagine" action outcomes before executing them. An optional CWM-E layer adds social/emotional reasoning for human interaction scenarios.
+Symbolic reasoning excels at structured knowledge but struggles with continuous physics. Neural networks predict physical dynamics but lack symbolic interpretability. Project LOGOS bridges this gap with coordinated causal world models: CWM-A for commonsense abstract reasoning, CWM-G for grounded physics prediction using Joint Embedding Predictive Architecture (JEPA), and CWM-E for social/emotional reflections. This post explores how Sophia maintains consistency between symbolic HCG updates, learned physical dynamics, and persona context, enabling the agent to "imagine" action outcomes before executing them.
 
 **Key Messages:**
-- Dual world models: commonsense (CWM-A) + physics (CWM-G)
+- Multi-model world architecture: commonsense (CWM-A) + physics (CWM-G) + persona reflections (CWM-E)
 - JEPA-style learned models for grounded prediction
 - Validation requires both abstract and grounded consistency
 - Optional emotional layer (CWM-E) for social reasoning

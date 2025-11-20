@@ -32,7 +32,30 @@ This file captures ideas for how to evaluate the quality and observability of Ph
 - **Timeline accuracy**: Validate that the plan timeline reflects actual plan step timestamps from Sophia responses.
 - **Chat/LLM alignment**: If the chat panel uses an LLM, measure agreement between suggested actions and actual plan results (qualitative check).
 
-## 5. Next Steps
+## 5. Gullibility Factor (Grounded vs Reported Conflict)
+
+Measure how often Sophia prioritizes user-reported statements over the grounded latent state:
+
+- **Conflict detection rate**: Count cases where user claims contradict HCG facts/JEPA predictions. Track how many conflicts are caught before plans execute.
+- **Override thresholds**: Record confidence deltas when Sophia decides to trust the user despite contradictory evidence (e.g., CWM-A says entity is at location X but user says Y). Require explicit `assumptions` entries in `CWMState` to justify overrides.
+- **Recovery latency**: How long (or how many steps) it takes for the agent to course-correct when a trusted statement proves false.
+- **Trust decay curve**: Maintain a per-entity/user trust score based on recent accuracy; regression tests should ensure trust only increases when predictions and reports align.
+
+Visualization idea: a “gullibility gauge” in diagnostics showing current trust levels and recent conflict events. Evidence should include Neo4j exports of conflicting `CWMState` nodes, logs of conversational prompts, and planner decisions.
+
+## 6. Scenario Coverage “Have We Arrived?” Index
+
+Track whether LOGOS can execute representative scenarios end-to-end without regressions:
+
+- **Embodied loop**: Talos-driven manipulation (or Gazebo twin) with JEPA predictions recorded as `CWMState`.
+- **Talos-free perception**: Apollo web uploads media, CWM-G imagines futures, Sophia updates the HCG without actuation.
+- **CLI-only ops run**: Operator walks through goal→plan→diagnostics entirely from the CLI.
+- **Browser+LLM co-processor**: Apollo chat proposes actions, Sophia validates them, diagnostics stay consistent.
+- **Swappable hardware**: Same goal executed against two Talos adapters (simulated vs physical) with identical API outputs.
+
+Each scenario contributes a binary score (1 = demonstrated with attached logs/screenshots, 0 = missing). Sum to create the “Have we gotten there yet?” readiness metric; require ≥4/5 before calling the overall milestone complete. Archive evidence in `logs/scenario_coverage/` with timestamps and short narratives (Neo4j export, JEPA dump, persona log).
+
+## 7. Next Steps
 
 - [ ] Define scripts or notebooks to capture each metric idea.
 - [ ] Attach metric outputs to the relevant Phase 2 verification artifacts (`logs/p2-m*/metrics/`).

@@ -8,7 +8,7 @@ The `logos_persona` module provides:
 - **PersonaEntry nodes** in Neo4j for storing diary entries
 - **Sentiment tracking** for emotional context
 - **Process linking** to associate entries with HCG processes
-- **FastAPI endpoints** for Apollo to query entries
+- **FastAPI endpoints** for client surfaces (Apollo or others) to query entries
 
 ## Usage
 
@@ -70,7 +70,7 @@ Relationships:
 
 ## FastAPI Integration
 
-Create API endpoints for Apollo:
+Create API endpoints for any client surface (Apollo browser/CLI, partner UI, etc.):
 
 ```python
 from fastapi import FastAPI

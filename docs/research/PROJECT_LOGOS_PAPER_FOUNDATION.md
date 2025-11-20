@@ -23,7 +23,19 @@ This file captures the architectural decisions, experiments, and verification ev
 
 Update the table as new architectural commitments land (e.g., Milvus schema, OTel exporters).
 
-## 3. Evidence to Collect
+## 3. Holistic Architecture Narrative
+
+LOGOS should read as a single cognitive substrate rather than a set of siloed phases. Key storytelling threads:
+
+1. **Grounded intelligence goal** — a universal latent state (HCG + Milvus + SHACL) that every modality projects into before any action occurs.
+2. **Cooperating centers** — Sophia’s CWM-A/G/E layers, Hermes language utilities, Talos adapters, and Apollo surfaces operate as modular yet tightly coordinated components. Each center stays logically simple; emergent behavior comes from the cooperation.
+3. **Language stays at the edge** — reflections, plans, and emotions are encoded as symbols/relations, with Apollo/Hermes translating them for humans or LLM co-processors.
+4. **Deployment flexibility** — Talos is optional, Apollo is one of many possible UX layers, and the same contracts govern CLI demos, browser experiences, and embodied loops.
+5. **Governance & verification** — reproducible evidence, metrics, and SHACL validation keep the unified goal auditable regardless of which adapter is active.
+
+Use this section as the conceptual “spine” when drafting papers, blog posts, or talks so the audience hears the holistic story before any milestone-specific detail.
+
+## 4. Evidence to Collect
 
 - **Services**: API recordings (curl responses, Swagger screenshots), CI logs (`phase1-*` validation jobs, `phase2-sophia`, `phase2-hermes` workflows).
 - **Perception**: Sample media inputs, JEPA rollout clips, imagined-state Neo4j exports.
@@ -31,23 +43,23 @@ Update the table as new architectural commitments land (e.g., Milvus schema, OTe
 - **Diagnostics/Persona**: Screenshots of OTel dashboards, persona diary excerpts, demo capture artifacts.
 - **Verification**: Completed checklists from `docs/phase1/PHASE1_VERIFY.md` and `docs/phase2/VERIFY.md`, log bundles under `logs/p1-m*/` and `logs/p2-m*/`.
 
-## 4. Proposed Paper Structure
+## 5. Proposed Paper Structure
 
 1. **Abstract** — LOGOS as a causal assistant spanning ontology-driven reasoning, perception, and explainable surfaces.
-2. **Introduction** — Motivation for treating cognition as graph-first with Talos-optional pathways; recap Phase 1 outcomes and Phase 2 goals. *Talking point:* Large language models excel at pattern completion, but they lack grounded state, cannot guarantee causal consistency, and depend on probabilistic token predictions that drift without feedback. LOGOS fills that gap by anchoring every capability to the Hybrid Cognitive Graph (HCG), explicit world models (CWM-A/G/E), and verifiable perception/diagnostics loops. This architecture gives stakeholders deterministic audit trails, vision-backed simulations, and explainable reasoning even when LLMs are used as optional co-processors.
-3. **Related Work** — Place LOGOS relative to symbolic planners, LLM agents, robotics stacks, perception pipelines.
-4. **System Overview** — Architecture (HCG, CWM-A/G/E, Sophia/Hermes, Talos, Apollo) and unified `CWMState` contract.
-5. **Phase 1 Foundations** — Ontology + SHACL, Orchestrator/CWM-A/Planner, Hermes services, Apollo CLI evidence.
-6. **Perception & Imagination (Phase 2)** — Media ingest, JEPA runner, Milvus linkage, `/simulate`, Talos bridge.
-7. **Interaction Surfaces** — CLI + browser, shared SDK, explainability/diagnostics views, persona diary.
-8. **Diagnostics, Persona, and Governance** — CWM-E reflections, observability stack, verification/demonstration workflows.
-9. **Evaluation** — Phase 1 & 2 demos, Milvus smoke tests, JEPA metrics, user/maintainer feedback.
-10. **Discussion** — Lessons learned, Talos hardware roadmap, risks/limitations.
-11. **Conclusion & Future Work** — Phase 3 preview, research directions, open problems.
+2. **Introduction** — Motivation for treating cognition as graph-first with Talos-optional pathways; reiterate the “cooperating centers” philosophy. *Talking point:* Large language models excel at pattern completion, but they lack grounded state, cannot guarantee causal consistency, and depend on probabilistic token predictions that drift without feedback. LOGOS fills that gap by anchoring every capability to the Hybrid Cognitive Graph (HCG), explicit world models (CWM-A/G/E), and verifiable perception/diagnostics loops. This architecture gives stakeholders deterministic audit trails, vision-backed simulations, and explainable reasoning even when LLMs are used as optional co-processors.
+3. **Related Work** — Symbolic planners, LLM agents, robotics stacks, perception pipelines.
+4. **Architecture Overview** — HCG substrate, CWM layers, Sophia orchestration, Hermes/Talos/Apollo interfaces, unified `CWMState` contract.
+5. **Grounded Cognition Substrate** — Ontology, SHACL validation, Milvus linkage, probabilistic validation roadmap.
+6. **Perception, Imagination, and Embodiment Flexibility** — Media ingest, JEPA rollout, `/simulate`, Talos adapters, swappable hardware.
+7. **Interaction Surfaces & Narrative Layers** — CLI + browser, shared SDK, LLM co-processor, persona diary views.
+8. **Diagnostics, Persona, and Governance** — CWM-E reflections, observability stack, reproducible evidence bundles.
+9. **Evaluation** — Scenario coverage index, latency/availability metrics, Milvus/Neo4j integrity checks, user feedback.
+10. **Discussion** — Lessons, limitations, risks, future extensions (episodic memory, probabilistic validators, multi-agent coordination).
+11. **Conclusion & Future Work** — Summarize holistic impact and map next research questions.
 
 Keep a running list of figures/tables per section (e.g., `Figure 2: CWMState flow across services`, `Table 1: Phase 2 verification summary`).
 
-## 5. Next Steps
+## 6. Next Steps
 
 - [ ] Link each Phase 1 + Phase 2 issue to the relevant paper section so evidence flows automatically.
 - [ ] Capture architectural diagrams (CWM interactions, Apollo dataflow) as soon as they stabilize.

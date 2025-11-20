@@ -78,14 +78,14 @@ API/logging rules:
 - Stack: Python 3.11, FastAPI, Neo4j driver, SHACL loader, existing planner modules.
 - Authentication: token-based (GitHub PAT or local header) with middleware to enforce read/write scopes.
 - `/plan`: accepts goal struct, reads from Neo4j, runs planner, returns process graph + simulation predictions.
-- `/state`: returns latest entity states + persona/diagnostic metadata for Apollo.
+- `/state`: returns latest entity states + persona/diagnostic metadata for Apollo and other clients.
 - `/simulate`: triggers CWM-G to roll out short-horizon predictions; results tagged `imagined:true` in Neo4j.
 - Packaging: Dockerfile extending the repo’s base image; Compose service `sophia-api` linked to Neo4j/Milvus.
 - **CWM-E implementation**:
   - Backing store: reuse Neo4j (new labels `EmotionState`, `PersonaEntry`) plus Milvus for embedding/search if needed.
   - Reflection job: FastAPI background task (or separate worker) runs every N minutes, queries recent `PersonaEntry` + plan/state nodes, and computes sentiment/confidence/trust tags using a lightweight model (e.g., fine-tuned classifier or rule set derived from plan outcomes).
   - Writes `(:EmotionState { sentiment, confidence, caution, timestamp })` nodes linked to `(:Process)` and `(:PersonaEntry)` via `[:EMOTION_FOR]`.
-  - Planner/executor must read the latest emotion nodes to adjust strategy (e.g., avoid risky capability when `caution` high). Apollo/Hermes use the same nodes to shape persona tone.
+  - Planner/executor must read the latest emotion nodes to adjust strategy (e.g., avoid risky capability when `caution` high). Apollo, Hermes, or any interaction layer can use the same nodes to shape persona tone.
 - **Imagination / simulation pipeline**:
   - `/simulate` accepts `{ capability_id, context }` payloads. Context carries entity references, pointers to sensor frames, and optional Talos metadata (even in Talos-free scenarios, pass the perception sample ID).
   - CWM-G (JEPA runner) performs k-step rollout and returns predicted states plus confidence; create `(:ImaginedProcess)`/`(:ImaginedState)` nodes with `imagined:true`, linked to the triggering plan.
@@ -118,7 +118,7 @@ API/logging rules:
 ### Diagnostics & persona
 - Use OpenTelemetry to ship logs/metrics to a local collector; dashboards can be simple JSON/CLI at first.
 - Persona entries stored as `(:PersonaEntry {timestamp, summary, sentiment, related_process})` nodes; Apollo/Hermes query them to drive tone.
-- CWM-E reflection pass consumes persona entries + plan/state history to derive qualitative tags (confidence, caution, trust). Implement a periodic job (FastAPI background task or separate worker) that writes `(:EmotionState)` nodes linked to processes/entities. Planner/executor must read those tags when deciding strategies, and Apollo’s chat persona should reference them to adjust tone. Start with a rule-based classifier (e.g., degrade confidence after failed plan, increase caution after errors) and evolve toward a learned model once enough data exists.
+- CWM-E reflection pass consumes persona entries + plan/state history to derive qualitative tags (confidence, caution, trust). Implement a periodic job (FastAPI background task or separate worker) that writes `(:EmotionState)` nodes linked to processes/entities. Planner/executor must read those tags when deciding strategies, and any chat/UX surface (Apollo or partner UIs) should reference them to adjust tone. Start with a rule-based classifier (e.g., degrade confidence after failed plan, increase caution after errors) and evolve toward a learned model once enough data exists.
 
 ### Verification / CI
 - Add GitHub Actions workflows:
@@ -135,7 +135,7 @@ API/logging rules:
 | **P2-M1** — Services Online | Sophia/Hermes APIs running locally + in CI | `/plan`, `/state`, `/simulate`, `/embed_text`, `/simple_nlp`, `/stt`, `/tts` respond with healthy status; CI workflows green; docs updated |
 | **P2-M2** — Apollo Dual Surface | CLI refactored + browser app MVP | Shared SDK integrates with Sophia/Hermes, browser renders chat + plan viewer, CLI remains functional |
 | **P2-M3** — Perception & Imagination | CWM-G handles Talos-free media streams + `/simulate` exposed | Media pipeline stores embeddings, `/simulate` returns imagined states recorded in Neo4j, Milvus smoke tests pass |
-| **P2-M4** — Diagnostics & Persona | Observability stack + CWM-E reflection in place | EmotionState nodes produced, Apollo persona uses them, dashboards/log export ready, demo capture flows documented |
+| **P2-M4** — Diagnostics & Persona | Observability stack + CWM-E reflection in place | EmotionState nodes produced, interaction surfaces consume them, dashboards/log export ready, demo capture flows documented |
 
 ## Verification Checklist
 

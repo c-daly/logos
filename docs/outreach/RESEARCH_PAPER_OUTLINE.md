@@ -41,7 +41,7 @@
 ### 1.2 Contributions
 
 1. **Hybrid Causal Graph architecture:** Combining Neo4j (symbolic) + Milvus (semantic)
-2. **Dual world models:** Abstract commonsense (CWM-A) + Grounded physics (CWM-G)
+2. **Multi-model world architecture:** Abstract commonsense (CWM-A) + Grounded physics (CWM-G) + Persona reflections (CWM-E)
 3. **Formal validation framework:** SHACL constraints for autonomous systems
 4. **Practical demonstration:** End-to-end pick-and-place with verified milestones
 5. **Open-source implementation:** Reproducible research platform
@@ -143,7 +143,8 @@ Brief outline of remaining sections
 **3.3.2 Causal World Models**
 - CWM-A: Abstract commonsense layer
 - CWM-G: Grounded physics layer
-- Dual validation approach
+- CWM-E: Persona reflections and experiential memory
+- Multi-model validation approach
 
 **3.3.3 Planner**
 - Goal representation in HCG

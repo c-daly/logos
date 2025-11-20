@@ -1,7 +1,5 @@
 """
-FastAPI endpoints for persona diary queries.
-
-Provides REST API for Apollo to query persona entries.
+FastAPI endpoints for persona diary queries accessible to any client surface.
 """
 
 
