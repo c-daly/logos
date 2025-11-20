@@ -108,7 +108,6 @@ EOF
 record_metric() {
     local metric_name="$1"
     local metric_value="$2"
-    local metrics_file="${DEMO_RUN_DIR}/metrics/execution_metrics.json"
     
     # Simple append to metrics (in production, use jq for proper JSON manipulation)
     echo "  ${metric_name}: ${metric_value}" >> "${DEMO_RUN_DIR}/metrics/${metric_name}.txt"
@@ -153,7 +152,7 @@ run_e2e_script() {
         return 0
     else
         print_error "E2E script failed"
-        cat "${DEMO_RUN_DIR}/logs/e2e_output.log" | tail -20
+        tail -20 "${DEMO_RUN_DIR}/logs/e2e_output.log"
         return 1
     fi
 }
@@ -280,7 +279,7 @@ generate_summary_report() {
 ## Execution Summary
 
 ### Timeline
-- **Start Time:** $(cat "${DEMO_RUN_DIR}/metrics/execution_metrics.json" | grep start_time | cut -d'"' -f4)
+- **Start Time:** $(grep start_time "${DEMO_RUN_DIR}/metrics/execution_metrics.json" | cut -d'"' -f4)
 - **End Time:** $(date -Iseconds)
 - **Total Duration:** $([ -f "${DEMO_RUN_DIR}/metrics/e2e_execution_time.txt" ] && cat "${DEMO_RUN_DIR}/metrics/e2e_execution_time.txt" || echo "N/A")
 
