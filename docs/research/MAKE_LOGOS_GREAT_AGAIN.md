@@ -59,6 +59,8 @@ Use this as a reference when creating new benchmark bundles.
 - `milvus_dump.tar.gz`: `python scripts/export_milvus.py --collection scenario_embodied_loop --output logs/benchmarks/embodied_loop/milvus_dump.tar.gz`.
 Document deviations or additional files in the scenario README.
 
+See `logs/benchmarks/README.md` and the scenario-specific subfolder READMEs for detailed capture steps.
+
 ---
 
 ## 2. Automated Metrics
