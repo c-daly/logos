@@ -89,6 +89,8 @@ jobs:
         run: |
           # Unstage files so peter-evans/create-pull-request can handle them
           git reset
+          # Fix permissions before cleanup to avoid "Permission denied" errors
+          chmod -R u+w sdk/ sdk-web/ || true
           # Clean untracked files to avoid conflicts during branch operations
           git clean -fdx sdk/ sdk-web/
       
