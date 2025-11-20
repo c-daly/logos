@@ -101,8 +101,10 @@ jobs:
       - name: Regenerate SDKs for PR
         if: steps.check_changes.outputs.changes == 'true' && github.event_name == 'pull_request'
         run: |
-          # Regenerate SDKs so they exist as untracked files for the action
+          # Regenerate SDKs with fresh generation
           ./scripts/generate_sdks.sh
+          # Stage the regenerated files so they're not untracked during PR creation
+          git add -A sdk/ sdk-web/
       
       - name: Create pull request for SDK updates
         if: steps.check_changes.outputs.changes == 'true' && github.event_name == 'pull_request'
