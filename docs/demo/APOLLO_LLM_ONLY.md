@@ -2,7 +2,7 @@
 
 This guide captures the steps required to run the Apollo web experience in "LLM-only" mode—no Talos hardware or perception pipeline—so you can showcase the Phase 2 UI, shared SDKs, and Hermes integration while generating benchmark artifacts.
 
-> **Scope:** Sophia + Hermes services running locally, Apollo webapp calling Hermes for all language/LLM needs via the generated TypeScript SDKs.
+> **Scope:** Sophia + Hermes services running locally, Apollo webapp calling Hermes for all language/LLM needs via the generated TypeScript SDKs. Hermes’ `/llm` endpoint is pending issue #279; until it lands, configure the Apollo client with a temporary provider and plan to migrate once the Hermes implementation is complete.
 
 ## 1. Prerequisites
 
