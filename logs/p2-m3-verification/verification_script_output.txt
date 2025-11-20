@@ -1,0 +1,24 @@
+============================================================
+Media Ingestion Service - Quick Verification
+============================================================
+Testing imports...
+✅ All imports successful
+
+Testing JEPA runner...
+✅ JEPA runner works
+
+Testing API creation...
+✅ API created with 5 routes
+
+Testing app module...
+✅ App module exists: LOGOS Media Ingestion Service
+
+============================================================
+✅ All verification tests passed!
+============================================================
+
+Next steps:
+1. Start Neo4j: docker compose -f infra/docker-compose.hcg.dev.yml up -d neo4j
+2. Run service: uvicorn logos_perception.app:app --port 8002
+3. Test health: curl http://localhost:8002/health
+4. View docs: http://localhost:8002/docs
