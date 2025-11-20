@@ -18,6 +18,9 @@ COPY setup.py ./
 COPY logos_tools ./logos_tools
 COPY README.md ./
 COPY logos_hcg ./logos_hcg
+COPY logos_observability ./logos_observability
+COPY logos_persona ./logos_persona
+COPY logos_cwm_e ./logos_cwm_e
 
 # Install dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
