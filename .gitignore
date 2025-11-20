@@ -61,6 +61,10 @@ dmypy.json
 # Documentation builds
 docs/_build/
 docs/.doctrees/
+# Generated API documentation (built from OpenAPI specs)
+docs/api/*.html
+!docs/api/README.md
+!docs/api/GITHUB_PAGES_SETUP.md
 
 # Jupyter Notebook
 .ipynb_checkpoints

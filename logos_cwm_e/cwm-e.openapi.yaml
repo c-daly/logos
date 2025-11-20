@@ -1,0 +1,309 @@
+openapi: 3.1.0
+info:
+  title: CWM-E API
+  version: 1.0.0
+  description: |
+    Canonical CWM-E OpenAPI contract for Project LOGOS.
+    See Project LOGOS spec: Section 3.3 (CWM-E - Emotional/Social Layer).
+    
+    CWM-E (Causal World Model - Emotional/Social) is the third layer of
+    Sophia's world model, complementing:
+    - CWM-A: Abstract/commonsense reasoning in the HCG
+    - CWM-G: Grounded physics/perception (JEPA-style predictions)
+    - CWM-E: Affective/social signals derived from reflection
+    
+    CWM-E reflects on stored memories (persona entries) to infer confidence,
+    trust, or other affective signals. These emotion states are written back
+    to the HCG as tags on processes and entities, allowing planners and
+    Apollo to adjust behavior and tone.
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+
+paths:
+  /cwm-e/emotions:
+    post:
+      summary: Create Emotion State
+      description: |
+        Create a new EmotionState node in Neo4j representing an affective signal.
+        Emotion states can be tagged on processes and entities to influence
+        planning and interaction behavior.
+      operationId: createEmotionState
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                emotion_type:
+                  type: string
+                  description: Type of emotion (e.g., confident, cautious, curious)
+                  example: "confident"
+                  enum:
+                    - confident
+                    - cautious
+                    - curious
+                    - neutral
+                    - concerned
+                intensity:
+                  type: number
+                  format: float
+                  description: Confidence/strength of emotion (0.0 to 1.0)
+                  minimum: 0.0
+                  maximum: 1.0
+                  example: 0.85
+                context:
+                  type: string
+                  description: Optional description of what triggered this emotion
+                  example: "After successful task completion"
+              required:
+                - emotion_type
+                - intensity
+      responses:
+        '200':
+          description: Emotion state created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmotionStateResponse'
+        '400':
+          description: Invalid request (e.g., invalid intensity value)
+        '500':
+          description: Internal server error
+
+  /cwm-e/emotions/tag-process:
+    post:
+      summary: Tag Process with Emotion
+      description: |
+        Create a TAGGED_ON relationship between an EmotionState and a Process node.
+        This associates the affective signal with a specific action or plan.
+      operationId: tagProcess
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                emotion_uuid:
+                  type: string
+                  description: UUID of the EmotionState node
+                  example: "emotion-uuid-123"
+                process_uuid:
+                  type: string
+                  description: UUID of the Process node to tag
+                  example: "process-uuid-456"
+              required:
+                - emotion_uuid
+                - process_uuid
+      responses:
+        '200':
+          description: Process tagged successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Process tagged with emotion state"
+        '400':
+          description: Invalid request
+        '404':
+          description: Emotion or process not found
+        '500':
+          description: Internal server error
+
+  /cwm-e/emotions/tag-entity:
+    post:
+      summary: Tag Entity with Emotion
+      description: |
+        Create a TAGGED_ON relationship between an EmotionState and an Entity node.
+        This associates the affective signal with a specific object or agent.
+      operationId: tagEntity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                emotion_uuid:
+                  type: string
+                  description: UUID of the EmotionState node
+                  example: "emotion-uuid-123"
+                entity_uuid:
+                  type: string
+                  description: UUID of the Entity node to tag
+                  example: "entity-uuid-789"
+              required:
+                - emotion_uuid
+                - entity_uuid
+      responses:
+        '200':
+          description: Entity tagged successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Entity tagged with emotion state"
+        '400':
+          description: Invalid request
+        '404':
+          description: Emotion or entity not found
+        '500':
+          description: Internal server error
+
+  /cwm-e/reflect:
+    post:
+      summary: Run Reflection Job
+      description: |
+        Trigger a CWM-E reflection job that analyzes recent PersonaEntry nodes
+        and generates EmotionState nodes based on sentiment analysis.
+        
+        This is the core CWM-E inference mechanism that derives affective signals
+        from stored memories and writes them back to the HCG.
+      operationId: runReflection
+      parameters:
+        - name: limit
+          in: query
+          description: Number of recent persona entries to analyze
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+            example: 10
+      responses:
+        '200':
+          description: Reflection job completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  emotions_generated:
+                    type: integer
+                    description: Number of emotion states created
+                    example: 3
+                  emotions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EmotionStateResponse'
+        '500':
+          description: Reflection job failed
+
+  /cwm-e/emotions/process/{process_uuid}:
+    get:
+      summary: Get Emotions for Process
+      description: |
+        Retrieve all EmotionState nodes tagged on a specific Process.
+        Used by planners to check affective context before executing actions.
+      operationId: getEmotionsForProcess
+      parameters:
+        - name: process_uuid
+          in: path
+          required: true
+          description: UUID of the Process node
+          schema:
+            type: string
+            example: "process-uuid-456"
+      responses:
+        '200':
+          description: List of emotion states
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EmotionStateResponse'
+        '404':
+          description: Process not found
+        '500':
+          description: Internal server error
+
+  /cwm-e/emotions/entity/{entity_uuid}:
+    get:
+      summary: Get Emotions for Entity
+      description: |
+        Retrieve all EmotionState nodes tagged on a specific Entity.
+        Used to understand affective associations with objects or agents.
+      operationId: getEmotionsForEntity
+      parameters:
+        - name: entity_uuid
+          in: path
+          required: true
+          description: UUID of the Entity node
+          schema:
+            type: string
+            example: "entity-uuid-789"
+      responses:
+        '200':
+          description: List of emotion states
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EmotionStateResponse'
+        '404':
+          description: Entity not found
+        '500':
+          description: Internal server error
+
+components:
+  schemas:
+    EmotionStateResponse:
+      type: object
+      properties:
+        uuid:
+          type: string
+          description: Unique identifier for the emotion state
+          example: "emotion-uuid-123"
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp when the emotion was generated
+          example: "2024-01-15T10:30:00Z"
+        emotion_type:
+          type: string
+          description: Type of emotion
+          example: "confident"
+          enum:
+            - confident
+            - cautious
+            - curious
+            - neutral
+            - concerned
+        intensity:
+          type: number
+          format: float
+          description: Confidence/strength of emotion (0.0 to 1.0)
+          minimum: 0.0
+          maximum: 1.0
+          example: 0.85
+        context:
+          type: string
+          description: Optional description of what triggered this emotion
+          example: "After successful task completion"
+        source:
+          type: string
+          description: Source that generated this emotion
+          example: "cwm-e-reflection"
+      required:
+        - uuid
+        - timestamp
+        - emotion_type
+        - intensity
+        - source

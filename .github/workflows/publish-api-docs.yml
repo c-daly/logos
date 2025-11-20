@@ -6,11 +6,13 @@ on:
       - main
     paths:
       - 'contracts/**'
+      - 'logos_*/*.openapi.yaml'
       - 'scripts/generate-api-docs.sh'
       - '.github/workflows/publish-api-docs.yml'
   pull_request:
     paths:
       - 'contracts/**'
+      - 'logos_*/*.openapi.yaml'
       - 'scripts/generate-api-docs.sh'
       - '.github/workflows/publish-api-docs.yml'
   workflow_dispatch:
@@ -46,17 +48,37 @@ jobs:
           echo "Checking generated documentation files..."
           ls -lh docs/api/
           
+          # Check for index
           if [ ! -f "docs/api/index.html" ]; then
             echo "❌ Error: index.html not generated"
             exit 1
           fi
           
+          # Check for Hermes API docs
           if [ ! -f "docs/api/hermes.html" ]; then
             echo "❌ Error: hermes.html not generated"
             exit 1
           fi
           
-          echo "✅ Documentation generated successfully"
+          # Check for Sophia API docs
+          if [ ! -f "docs/api/sophia.html" ]; then
+            echo "❌ Error: sophia.html not generated"
+            exit 1
+          fi
+          
+          # Check for CWM-E API docs
+          if [ ! -f "docs/api/cwm-e.html" ]; then
+            echo "❌ Error: cwm-e.html not generated"
+            exit 1
+          fi
+          
+          # Check for Persona API docs
+          if [ ! -f "docs/api/persona.html" ]; then
+            echo "❌ Error: persona.html not generated"
+            exit 1
+          fi
+          
+          echo "✅ All documentation generated successfully"
       
       - name: Upload documentation artifact
         uses: actions/upload-artifact@v4
@@ -122,6 +144,9 @@ jobs:
           echo "API documentation is now available at:" >> $GITHUB_STEP_SUMMARY
           echo "- 🌐 **Main Index:** https://c-daly.github.io/logos/api/" >> $GITHUB_STEP_SUMMARY
           echo "- 📖 **Hermes API:** https://c-daly.github.io/logos/api/hermes.html" >> $GITHUB_STEP_SUMMARY
+          echo "- 📖 **Sophia API:** https://c-daly.github.io/logos/api/sophia.html" >> $GITHUB_STEP_SUMMARY
+          echo "- 📖 **CWM-E API:** https://c-daly.github.io/logos/api/cwm-e.html" >> $GITHUB_STEP_SUMMARY
+          echo "- 📖 **Persona API:** https://c-daly.github.io/logos/api/persona.html" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Documentation will be updated automatically when changes are pushed to the \`main\` branch." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY

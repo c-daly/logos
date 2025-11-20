@@ -30,8 +30,8 @@ if [ ! -d "${CONTRACTS_DIR}" ]; then
     exit 1
 fi
 
-# Find all OpenAPI specification files
-OPENAPI_FILES=$(find "${CONTRACTS_DIR}" -name "*.openapi.yaml" -o -name "*.openapi.yml" 2>/dev/null || true)
+# Find all OpenAPI specification files in contracts/ and component directories
+OPENAPI_FILES=$(find "${CONTRACTS_DIR}" "${REPO_ROOT}/logos_"* -name "*.openapi.yaml" -o -name "*.openapi.yml" 2>/dev/null || true)
 
 if [ -z "${OPENAPI_FILES}" ]; then
     echo -e "${YELLOW}No OpenAPI specifications found in ${CONTRACTS_DIR}${NC}"
@@ -189,13 +189,25 @@ cat > "${OUTPUT_DIR}/index.html" << 'EOF'
                     <div class="api-description">Stateless language & embedding utility (STT, TTS, NLP, text embeddings)</div>
                 </a>
             </li>
-            <!-- Future APIs will be added here as they become available:
             <li class="api-item">
                 <a href="sophia.html" class="api-link">
                     Sophia API
-                    <div class="api-description">Non-linguistic cognitive core with Orchestrator, CWM-A, CWM-G, Planner, and Executor</div>
+                    <div class="api-description">Non-linguistic cognitive core with k-step imagination simulation</div>
                 </a>
             </li>
+            <li class="api-item">
+                <a href="cwm-e.html" class="api-link">
+                    CWM-E API
+                    <div class="api-description">Emotional/social reflection layer for generating affective signals</div>
+                </a>
+            </li>
+            <li class="api-item">
+                <a href="persona.html" class="api-link">
+                    Persona Diary API
+                    <div class="api-description">Memory system for storing activity summaries and sentiments</div>
+                </a>
+            </li>
+            <!-- Future APIs will be added here as they become available:
             <li class="api-item">
                 <a href="talos.html" class="api-link">
                     Talos API
