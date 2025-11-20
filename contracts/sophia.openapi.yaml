@@ -1,0 +1,413 @@
+openapi: 3.1.0
+info:
+  title: Sophia API
+  version: 0.2.0
+  description: |
+    Canonical Sophia OpenAPI contract for Project LOGOS.
+    See Phase 2 specification (docs/phase2/PHASE2_SPEC.md) for behavioral details.
+
+    Sophia exposes planner and world-model endpoints backed by the Hybrid Cognitive Graph (HCG).
+    Responses share the unified `CWMState` envelope so CLI, browser, and SDK clients consume identical data.
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      description: Returns service status and dependency connectivity.
+      tags: [System]
+      operationId: healthCheck
+      security: []  # allow unauthenticated health probe
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '500':
+          description: Service unavailable
+
+  /plan:
+    post:
+      summary: Create plan
+      description: >
+        Generate a plan for the given goal/context and persist resulting CWM state updates.
+        Successful responses include identifiers plus any new CWM_A/CWM_G/CWM_E records.
+      tags: [Planning]
+      operationId: createPlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlanRequest'
+      responses:
+        '201':
+          description: Plan created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanResponse'
+        '400':
+          description: Invalid request payload
+        '401':
+          description: Unauthorized
+        '422':
+          description: Planning failed due to constraints/validation
+        '500':
+          description: Internal server error
+
+  /state:
+    get:
+      summary: Stream world-model state
+      description: >
+        Returns the latest persisted CWM states. Supports pagination cursors and optional filtering.
+      tags: [WorldModel]
+      operationId: getState
+      parameters:
+        - in: query
+          name: cursor
+          schema:
+            type: string
+          description: Opaque cursor returned by previous request (for pagination)
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 50
+          description: Maximum number of states to return
+        - in: query
+          name: model_type
+          schema:
+            type: string
+            enum: [CWM_A, CWM_G, CWM_E]
+          description: Filter by causal world model layer
+      responses:
+        '200':
+          description: List of CWM state records
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StateResponse'
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+
+  /simulate:
+    post:
+      summary: Run capability simulation
+      description: >
+        Performs JEPA/simulator rollouts for the requested capability using supplied context.
+        Imagined CWM states are persisted and returned to the caller.
+      tags: [Planning]
+      operationId: runSimulation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SimulationRequest'
+      responses:
+        '200':
+          description: Simulation completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimulationResponse'
+        '400':
+          description: Invalid request payload
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: healthy
+        neo4j:
+          type: string
+          example: connected
+        milvus:
+          type: string
+          example: connected
+        version:
+          type: string
+          example: 0.2.0
+
+    PlanRequest:
+      type: object
+      properties:
+        goal:
+          type: string
+          description: Natural-language goal or structured identifier
+        context:
+          type: object
+          additionalProperties: true
+          description: Optional context (entities, constraints, media references)
+        constraints:
+          type: array
+          items:
+            type: string
+          description: Hard constraints the planner must honor
+        priority:
+          type: string
+          description: Informational priority label (e.g., P0/P1/P2)
+          example: P1
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Arbitrary metadata for downstream audits
+      required:
+        - goal
+
+    PlanResponse:
+      type: object
+      properties:
+        plan_id:
+          type: string
+          format: uuid
+          description: Identifier of the persisted plan
+        status:
+          type: string
+          enum: [accepted, in_progress, completed, failed]
+          description: Planner status at response time
+        submitted_at:
+          type: string
+          format: date-time
+        diagnostics:
+          type: array
+          items:
+            type: string
+          description: Human-readable planning notes or warnings
+        states:
+          type: array
+          items:
+            $ref: '#/components/schemas/CWMState'
+          description: World-model states (observed + imagined) generated by this request
+
+    StateResponse:
+      type: object
+      properties:
+        states:
+          type: array
+          items:
+            $ref: '#/components/schemas/CWMState'
+        cursor:
+          type: string
+          nullable: true
+          description: Cursor for retrieving the next page
+        next_poll_after_ms:
+          type: integer
+          description: Suggested wait time before polling again
+      required:
+        - states
+
+    SimulationRequest:
+      type: object
+      properties:
+        capability_id:
+          type: string
+          description: Capability or Talos action identifier
+        context:
+          type: object
+          additionalProperties: true
+          description: Structured context (entity IDs, sensor frames, parameters)
+        horizon_steps:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 5
+        assumptions:
+          type: array
+          items:
+            type: string
+          description: Optional assumptions applied to the rollout
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Miscellaneous metadata for audit trails
+      required:
+        - capability_id
+        - context
+
+    SimulationResponse:
+      type: object
+      properties:
+        simulation_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [completed, failed]
+        duration_ms:
+          type: integer
+        states:
+          type: array
+          items:
+            $ref: '#/components/schemas/CWMState'
+      required:
+        - simulation_id
+        - status
+        - states
+
+    CWMState:
+      type: object
+      description: Unified causal world model state envelope.
+      properties:
+        state_id:
+          type: string
+          description: Globally unique identifier (`cwm_<model>_<uuid>`)
+        model_type:
+          type: string
+          enum: [CWM_A, CWM_G, CWM_E]
+        source:
+          type: string
+          description: Subsystem that emitted the record (e.g., orchestrator, jepa_runner)
+        timestamp:
+          type: string
+          format: date-time
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        status:
+          type: string
+          enum: [observed, imagined, reflected, ephemeral]
+        links:
+          $ref: '#/components/schemas/CWMStateLinks'
+        tags:
+          type: array
+          items:
+            type: string
+          description: Free-form labels for diagnostics filtering
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/CWMAGraphData'
+            - $ref: '#/components/schemas/CWMGImaginedData'
+            - $ref: '#/components/schemas/CWMESentimentData'
+          description: Model-specific payload
+      required:
+        - state_id
+        - model_type
+        - source
+        - timestamp
+        - confidence
+        - status
+        - links
+        - data
+
+    CWMStateLinks:
+      type: object
+      properties:
+        process_ids:
+          type: array
+          items:
+            type: string
+        plan_id:
+          type: string
+          nullable: true
+        entity_ids:
+          type: array
+          items:
+            type: string
+        media_sample_id:
+          type: string
+          nullable: true
+        persona_entry_id:
+          type: string
+          nullable: true
+        talos_run_id:
+          type: string
+          nullable: true
+
+    CWMAGraphData:
+      type: object
+      description: Payload for CWM-A (abstract reasoning) outputs.
+      properties:
+        entities:
+          type: array
+          items:
+            type: object
+          description: Normalized entity diffs
+        relations:
+          type: array
+          items:
+            type: object
+          description: Relationship diffs
+        violations:
+          type: array
+          items:
+            type: string
+          description: SHACL validation issues, if any
+        validation:
+          type: object
+          properties:
+            status:
+              type: string
+              enum: [passed, failed]
+            message:
+              type: string
+
+    CWMGImaginedData:
+      type: object
+      description: Payload for CWM-G (grounded/JEPA) outputs.
+      properties:
+        imagined:
+          type: boolean
+          default: true
+        horizon_steps:
+          type: integer
+        frames:
+          type: array
+          items:
+            type: string
+            format: uri
+          description: URIs or identifiers for imagined frames
+        embeddings:
+          type: array
+          items:
+            type: number
+            format: float
+        assumptions:
+          type: array
+          items:
+            type: string
+
+    CWMESentimentData:
+      type: object
+      description: Payload for CWM-E (persona/emotion) outputs.
+      properties:
+        sentiment:
+          type: string
+          description: e.g., confident, cautious
+        confidence_delta:
+          type: number
+          format: float
+        caution_delta:
+          type: number
+          format: float
+        narrative:
+          type: string
+          description: Short diary-style reflection
