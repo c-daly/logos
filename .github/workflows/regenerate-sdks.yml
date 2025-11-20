@@ -89,13 +89,15 @@ jobs:
         run: |
           # Unstage files so peter-evans/create-pull-request can handle them
           git reset
-          # Fix permissions and remove SDK directories to avoid conflicts
-          chmod -R u+w sdk/ sdk-web/ 2>/dev/null || true
-          rm -rf sdk/ sdk-web/ || true
+          # Aggressively fix permissions and remove SDK directories
+          find sdk/ sdk-web/ -type d -exec chmod u+rwx {} \; 2>/dev/null || true
+          find sdk/ sdk-web/ -type f -exec chmod u+w {} \; 2>/dev/null || true
+          rm -rf sdk/ sdk-web/
           # Verify directories are removed
           if [ -d "sdk" ] || [ -d "sdk-web" ]; then
-            echo "Warning: Could not remove SDK directories completely"
+            echo "ERROR: Could not remove SDK directories"
             ls -la sdk/ sdk-web/ 2>/dev/null || true
+            exit 1
           fi
       
       - name: Regenerate SDKs for PR
