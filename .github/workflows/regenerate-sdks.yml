@@ -89,10 +89,8 @@ jobs:
         run: |
           # Unstage files so peter-evans/create-pull-request can handle them
           git reset
-          # Aggressively fix permissions and remove SDK directories
-          find sdk/ sdk-web/ -type d -exec chmod u+rwx {} \; 2>/dev/null || true
-          find sdk/ sdk-web/ -type f -exec chmod u+w {} \; 2>/dev/null || true
-          rm -rf sdk/ sdk-web/
+          # Use sudo to remove Docker-generated files with root ownership
+          sudo rm -rf sdk/ sdk-web/
           # Verify directories are removed
           if [ -d "sdk" ] || [ -d "sdk-web" ]; then
             echo "ERROR: Could not remove SDK directories"
