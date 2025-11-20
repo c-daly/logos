@@ -8,7 +8,7 @@ running the canonical test suites.
 
 | Script | Description |
 | --- | --- |
-| `test_logos.sh` | Starts the LOGOS HCG stack (Milvus/etcd/MinIO) via `infra/docker-compose.hcg.dev.yml`, initializes the Milvus collections, and runs `poetry run pytest`. Pass additional arguments to forward them to pytest. |
+| `test_logos.sh` | Starts the LOGOS HCG stack (Milvus + Neo4j + SHACL validator) via `infra/docker-compose.hcg.dev.yml`, initializes Milvus collections, and runs `poetry run pytest`. Pass additional arguments to forward them to pytest. |
 | `test_hermes.sh` | Spins up Hermes' test-only stack (`docker-compose.test.yml`), installs dev/ML dependencies, and executes the Hermes pytest suite. |
 
 ### Usage

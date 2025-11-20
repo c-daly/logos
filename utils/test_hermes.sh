@@ -21,9 +21,26 @@ require_command() {
 }
 
 start_stack() {
-  echo "[hermes:test] Starting ${SERVICES[*]} via docker compose..."
-  docker compose -f "$COMPOSE_FILE" up -d "${SERVICES[@]}" >/dev/null
-  stack_started=1
+  echo "[hermes:test] Ensuring ${SERVICES[*]} are running via docker compose..."
+  if docker compose -f "$COMPOSE_FILE" ps "${SERVICES[@]}" >/dev/null 2>&1; then
+    already_running=1
+    for svc in "${SERVICES[@]}"; do
+      state=$(docker compose -f "$COMPOSE_FILE" ps -q "$svc" | xargs -r docker inspect -f '{{ .State.Running }}' 2>/dev/null || echo "false")
+      if [[ "$state" != "true" ]]; then
+        already_running=0
+      fi
+    done
+  else
+    already_running=0
+  fi
+
+  if [[ $already_running -eq 1 ]]; then
+    echo "[hermes:test] Services already running; skipping compose up."
+  else
+    docker compose -f "$COMPOSE_FILE" up -d "${SERVICES[@]}" >/dev/null
+    stack_started=1
+  fi
+
   echo "[hermes:test] Waiting for Milvus health endpoint..."
   timeout 180 bash -c 'until curl -sSf http://localhost:9091/healthz >/dev/null; do sleep 3; done'
 }
