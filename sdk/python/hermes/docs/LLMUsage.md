@@ -1,13 +1,14 @@
 # LLMUsage
 
+Token usage returned by the upstream provider.
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**prompt_tokens** | **int** |  | 
-**completion_tokens** | **int** |  | 
-**total_tokens** | **int** |  | 
+**prompt_tokens** | **int** | Prompt token count. | 
+**completion_tokens** | **int** | Completion token count. | 
+**total_tokens** | **int** | Total token count. | 
 
 ## Example
 

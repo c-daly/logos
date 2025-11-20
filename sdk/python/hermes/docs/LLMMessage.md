@@ -1,13 +1,14 @@
 # LLMMessage
 
+Chat completion message payload.
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **role** | **str** | Role associated with the message. | 
-**content** | **str** | Message text content. | 
-**name** | **str** | Optional identifier for tool/function responses. | [optional] 
+**content** | **str** | Text content of the message. | 
+**name** | **str** | Optional identifier for tool/function calls. | [optional] 
 
 ## Example
 

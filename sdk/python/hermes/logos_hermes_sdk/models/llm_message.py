@@ -24,11 +24,11 @@ from typing_extensions import Self
 
 class LLMMessage(BaseModel):
     """
-    LLMMessage
+    Chat completion message payload.
     """ # noqa: E501
     role: StrictStr = Field(description="Role associated with the message.")
-    content: StrictStr = Field(description="Message text content.")
-    name: Optional[StrictStr] = Field(default=None, description="Optional identifier for tool/function responses.")
+    content: StrictStr = Field(description="Text content of the message.")
+    name: Optional[StrictStr] = Field(default=None, description="Optional identifier for tool/function calls.")
     __properties: ClassVar[List[str]] = ["role", "content", "name"]
 
     @field_validator('role')

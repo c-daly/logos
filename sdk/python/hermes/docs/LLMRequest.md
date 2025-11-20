@@ -6,13 +6,13 @@ Request payload for Hermes LLM gateway.
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**prompt** | **str** | Shortcut for a single user message. | [optional] 
-**messages** | [**List[LLMMessage]**](LLMMessage.md) | Conversation history to send to the provider. | [optional] 
-**provider** | **str** | Override configured provider (e.g., &#x60;openai&#x60;, &#x60;echo&#x60;). | [optional] 
-**model** | **str** | Override provider model identifier. | [optional] 
-**temperature** | **float** | Sampling temperature passed to the provider. | [optional] [default to 0.7]
+**prompt** | **str** | Shortcut for a single user message when &#x60;messages&#x60; is omitted. | [optional] 
+**messages** | [**List[LLMMessage]**](LLMMessage.md) | Conversation history forwarded to the provider. | [optional] 
+**provider** | **str** | Override the configured provider (e.g., &#x60;openai&#x60;, &#x60;echo&#x60;, &#x60;local&#x60;). | [optional] 
+**model** | **str** | Provider-specific model identifier override. | [optional] 
+**temperature** | **float** | Sampling temperature forwarded to the provider. | [optional] [default to 0.7]
 **max_tokens** | **int** | Optional maximum number of tokens to generate. | [optional] 
-**metadata** | **Dict[str, object]** | Additional metadata to log with the request. | [optional] 
+**metadata** | **Dict[str, object]** | Additional metadata stored alongside the request. | [optional] 
 
 ## Example
 

@@ -1,15 +1,16 @@
 # LLMResponse
 
+Standardized completion response returned by Hermes.
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **str** | Provider response identifier. | 
-**provider** | **str** | Provider that generated the completion. | 
-**model** | **str** | Model identifier returned by the provider. | 
-**created** | **int** | Epoch timestamp when the completion was created. | 
-**choices** | [**List[LLMChoice]**](LLMChoice.md) |  | 
+**provider** | **str** | Provider used for this completion. | 
+**model** | **str** | Provider model identifier. | 
+**created** | **int** | Unix timestamp indicating when the provider generated the response. | 
+**choices** | [**List[LLMChoice]**](LLMChoice.md) | Choice payloads returned by the provider. | 
 **usage** | [**LLMUsage**](LLMUsage.md) |  | [optional] 
 **raw** | **Dict[str, object]** | Raw provider payload for diagnostics. | [optional] 
 

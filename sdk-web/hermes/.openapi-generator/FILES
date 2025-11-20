@@ -5,6 +5,11 @@ README.md
 docs/DefaultApi.md
 docs/EmbedText200Response.md
 docs/EmbedTextRequest.md
+docs/LLMChoice.md
+docs/LLMMessage.md
+docs/LLMRequest.md
+docs/LLMResponse.md
+docs/LLMUsage.md
 docs/SimpleNlp200Response.md
 docs/SimpleNlp200ResponseEntitiesInner.md
 docs/SimpleNlp200ResponsePosTagsInner.md
@@ -17,6 +22,11 @@ src/apis/index.ts
 src/index.ts
 src/models/EmbedText200Response.ts
 src/models/EmbedTextRequest.ts
+src/models/LLMChoice.ts
+src/models/LLMMessage.ts
+src/models/LLMRequest.ts
+src/models/LLMResponse.ts
+src/models/LLMUsage.ts
 src/models/SimpleNlp200Response.ts
 src/models/SimpleNlp200ResponseEntitiesInner.ts
 src/models/SimpleNlp200ResponsePosTagsInner.ts

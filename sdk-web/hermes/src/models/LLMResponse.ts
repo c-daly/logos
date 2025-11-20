@@ -29,7 +29,7 @@ import {
 } from './LLMUsage';
 
 /**
- * 
+ * Standardized completion response returned by Hermes.
  * @export
  * @interface LLMResponse
  */
@@ -41,25 +41,25 @@ export interface LLMResponse {
      */
     id: string;
     /**
-     * Provider that generated the completion.
+     * Provider used for this completion.
      * @type {string}
      * @memberof LLMResponse
      */
     provider: string;
     /**
-     * Model identifier returned by the provider.
+     * Provider model identifier.
      * @type {string}
      * @memberof LLMResponse
      */
     model: string;
     /**
-     * Epoch timestamp when the completion was created.
+     * Unix timestamp indicating when the provider generated the response.
      * @type {number}
      * @memberof LLMResponse
      */
     created: number;
     /**
-     * 
+     * Choice payloads returned by the provider.
      * @type {Array<LLMChoice>}
      * @memberof LLMResponse
      */

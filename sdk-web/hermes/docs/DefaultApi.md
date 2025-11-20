@@ -5,6 +5,7 @@ All URIs are relative to *http://localhost:8080*
 | Method | HTTP request | Description |
 |------------- | ------------- | -------------|
 | [**embedText**](DefaultApi.md#embedtextoperation) | **POST** /embed_text | Text Embedding Generation |
+| [**llmGenerate**](DefaultApi.md#llmgenerate) | **POST** /llm | LLM Gateway |
 | [**simpleNlp**](DefaultApi.md#simplenlpoperation) | **POST** /simple_nlp | Simple NLP Preprocessing |
 | [**speechToText**](DefaultApi.md#speechtotext) | **POST** /stt | Speech-to-Text |
 | [**textToSpeech**](DefaultApi.md#texttospeechoperation) | **POST** /tts | Text-to-Speech |
@@ -75,6 +76,77 @@ No authorization required
 |-------------|-------------|------------------|
 | **200** | Embedding generation successful |  -  |
 | **400** | Invalid request |  -  |
+| **500** | Internal server error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+
+## llmGenerate
+
+> LLMResponse llmGenerate(lLMRequest)
+
+LLM Gateway
+
+Proxy chat/completion requests through the configured provider (OpenAI, local, or echo fallback).
+
+### Example
+
+```ts
+import {
+  Configuration,
+  DefaultApi,
+} from '@logos/hermes-sdk';
+import type { LlmGenerateRequest } from '@logos/hermes-sdk';
+
+async function example() {
+  console.log("🚀 Testing @logos/hermes-sdk SDK...");
+  const api = new DefaultApi();
+
+  const body = {
+    // LLMRequest
+    lLMRequest: ...,
+  } satisfies LlmGenerateRequest;
+
+  try {
+    const data = await api.llmGenerate(body);
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+
+| Name | Type | Description  | Notes |
+|------------- | ------------- | ------------- | -------------|
+| **lLMRequest** | [LLMRequest](LLMRequest.md) |  | |
+
+### Return type
+
+[**LLMResponse**](LLMResponse.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+- **Content-Type**: `application/json`
+- **Accept**: `application/json`
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+| **200** | Completion generated successfully |  -  |
+| **400** | Invalid request (missing prompt/messages or schema violation) |  -  |
+| **502** | Provider returned an error response |  -  |
+| **503** | Provider not configured/available |  -  |
 | **500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)

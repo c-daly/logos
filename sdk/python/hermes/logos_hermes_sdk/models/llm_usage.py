@@ -17,18 +17,18 @@ import pprint
 import re  # noqa: F401
 import json
 
-from pydantic import BaseModel, ConfigDict, StrictInt
+from pydantic import BaseModel, ConfigDict, Field, StrictInt
 from typing import Any, ClassVar, Dict, List
 from typing import Optional, Set
 from typing_extensions import Self
 
 class LLMUsage(BaseModel):
     """
-    LLMUsage
+    Token usage returned by the upstream provider.
     """ # noqa: E501
-    prompt_tokens: StrictInt
-    completion_tokens: StrictInt
-    total_tokens: StrictInt
+    prompt_tokens: StrictInt = Field(description="Prompt token count.")
+    completion_tokens: StrictInt = Field(description="Completion token count.")
+    total_tokens: StrictInt = Field(description="Total token count.")
     __properties: ClassVar[List[str]] = ["prompt_tokens", "completion_tokens", "total_tokens"]
 
     model_config = ConfigDict(

@@ -14,7 +14,7 @@
 
 import { mapValues } from '../runtime';
 /**
- * 
+ * Chat completion message payload.
  * @export
  * @interface LLMMessage
  */
@@ -26,13 +26,13 @@ export interface LLMMessage {
      */
     role: LLMMessageRoleEnum;
     /**
-     * Message text content.
+     * Text content of the message.
      * @type {string}
      * @memberof LLMMessage
      */
     content: string;
     /**
-     * Optional identifier for tool/function responses.
+     * Optional identifier for tool/function calls.
      * @type {string}
      * @memberof LLMMessage
      */

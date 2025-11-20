@@ -18,18 +18,18 @@ import re  # noqa: F401
 import json
 
 from pydantic import BaseModel, ConfigDict, Field, StrictInt, StrictStr
-from typing import Any, ClassVar, Dict, List
+from typing import Any, ClassVar, Dict, List, Optional
 from logos_hermes_sdk.models.llm_message import LLMMessage
 from typing import Optional, Set
 from typing_extensions import Self
 
 class LLMChoice(BaseModel):
     """
-    LLMChoice
+    Individual choice returned by the provider.
     """ # noqa: E501
-    index: StrictInt = Field(description="Position of the choice in the provider response.")
+    index: StrictInt = Field(description="Choice index.")
     message: LLMMessage
-    finish_reason: StrictStr = Field(description="Why the provider stopped generating tokens.")
+    finish_reason: Optional[StrictStr] = Field(default=None, description="Reason generation finished (e.g., `stop`, `length`).")
     __properties: ClassVar[List[str]] = ["index", "message", "finish_reason"]
 
     model_config = ConfigDict(

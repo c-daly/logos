@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Hermes API
- * Canonical Hermes OpenAPI contract for Project LOGOS. See Project LOGOS spec: Table 2 in Section 3.4 (Hermes API endpoints).  Hermes is the stateless language & embedding utility providing: - Speech-to-text (STT) - Text-to-speech (TTS) - Simple NLP preprocessing - Text embedding generation  All endpoints are stateless and do not interact with the HCG directly. 
+ * Canonical Hermes OpenAPI contract for Project LOGOS. See Project LOGOS spec: Table 2 in Section 3.4 (Hermes API endpoints).  Hermes is the stateless language & embedding utility providing: - Speech-to-text (STT) - Text-to-speech (TTS) - Simple NLP preprocessing - Text embedding generation - LLM gateway proxy via `/llm`  All endpoints are stateless and do not interact with the HCG directly. 
  *
  * The version of the OpenAPI document: 1.0.0
  * 
@@ -17,6 +17,8 @@ import * as runtime from '../runtime';
 import type {
   EmbedText200Response,
   EmbedTextRequest,
+  LLMRequest,
+  LLMResponse,
   SimpleNlp200Response,
   SimpleNlpRequest,
   SpeechToText200Response,
@@ -27,6 +29,10 @@ import {
     EmbedText200ResponseToJSON,
     EmbedTextRequestFromJSON,
     EmbedTextRequestToJSON,
+    LLMRequestFromJSON,
+    LLMRequestToJSON,
+    LLMResponseFromJSON,
+    LLMResponseToJSON,
     SimpleNlp200ResponseFromJSON,
     SimpleNlp200ResponseToJSON,
     SimpleNlpRequestFromJSON,
@@ -39,6 +45,10 @@ import {
 
 export interface EmbedTextOperationRequest {
     embedTextRequest: EmbedTextRequest;
+}
+
+export interface LlmGenerateRequest {
+    lLMRequest: LLMRequest | null;
 }
 
 export interface SimpleNlpOperationRequest {
@@ -97,6 +107,47 @@ export class DefaultApi extends runtime.BaseAPI {
      */
     async embedText(requestParameters: EmbedTextOperationRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<EmbedText200Response> {
         const response = await this.embedTextRaw(requestParameters, initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * Proxy chat/completion requests through the configured provider (OpenAI, local, or echo fallback).
+     * LLM Gateway
+     */
+    async llmGenerateRaw(requestParameters: LlmGenerateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<LLMResponse>> {
+        if (requestParameters['lLMRequest'] == null) {
+            throw new runtime.RequiredError(
+                'lLMRequest',
+                'Required parameter "lLMRequest" was null or undefined when calling llmGenerate().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+
+        let urlPath = `/llm`;
+
+        const response = await this.request({
+            path: urlPath,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: LLMRequestToJSON(requestParameters['lLMRequest']),
+        }, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => LLMResponseFromJSON(jsonValue));
+    }
+
+    /**
+     * Proxy chat/completion requests through the configured provider (OpenAI, local, or echo fallback).
+     * LLM Gateway
+     */
+    async llmGenerate(requestParameters: LlmGenerateRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<LLMResponse> {
+        const response = await this.llmGenerateRaw(requestParameters, initOverrides);
         return await response.value();
     }
 

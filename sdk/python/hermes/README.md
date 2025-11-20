@@ -7,6 +7,7 @@ Hermes is the stateless language & embedding utility providing:
 - Text-to-speech (TTS)
 - Simple NLP preprocessing
 - Text embedding generation
+- LLM gateway proxy via `/llm`
 
 All endpoints are stateless and do not interact with the HCG directly.
 
@@ -96,6 +97,7 @@ All URIs are relative to *http://localhost:8080*
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
 *DefaultApi* | [**embed_text**](docs/DefaultApi.md#embed_text) | **POST** /embed_text | Text Embedding Generation
+*DefaultApi* | [**llm_generate**](docs/DefaultApi.md#llm_generate) | **POST** /llm | LLM Gateway
 *DefaultApi* | [**simple_nlp**](docs/DefaultApi.md#simple_nlp) | **POST** /simple_nlp | Simple NLP Preprocessing
 *DefaultApi* | [**speech_to_text**](docs/DefaultApi.md#speech_to_text) | **POST** /stt | Speech-to-Text
 *DefaultApi* | [**text_to_speech**](docs/DefaultApi.md#text_to_speech) | **POST** /tts | Text-to-Speech
@@ -105,6 +107,11 @@ Class | Method | HTTP request | Description
 
  - [EmbedText200Response](docs/EmbedText200Response.md)
  - [EmbedTextRequest](docs/EmbedTextRequest.md)
+ - [LLMChoice](docs/LLMChoice.md)
+ - [LLMMessage](docs/LLMMessage.md)
+ - [LLMRequest](docs/LLMRequest.md)
+ - [LLMResponse](docs/LLMResponse.md)
+ - [LLMUsage](docs/LLMUsage.md)
  - [SimpleNlp200Response](docs/SimpleNlp200Response.md)
  - [SimpleNlp200ResponseEntitiesInner](docs/SimpleNlp200ResponseEntitiesInner.md)
  - [SimpleNlp200ResponsePosTagsInner](docs/SimpleNlp200ResponsePosTagsInner.md)

@@ -26,13 +26,13 @@ from typing_extensions import Self
 
 class LLMResponse(BaseModel):
     """
-    LLMResponse
+    Standardized completion response returned by Hermes.
     """ # noqa: E501
     id: StrictStr = Field(description="Provider response identifier.")
-    provider: StrictStr = Field(description="Provider that generated the completion.")
-    model: StrictStr = Field(description="Model identifier returned by the provider.")
-    created: StrictInt = Field(description="Epoch timestamp when the completion was created.")
-    choices: List[LLMChoice]
+    provider: StrictStr = Field(description="Provider used for this completion.")
+    model: StrictStr = Field(description="Provider model identifier.")
+    created: StrictInt = Field(description="Unix timestamp indicating when the provider generated the response.")
+    choices: List[LLMChoice] = Field(description="Choice payloads returned by the provider.")
     usage: Optional[LLMUsage] = None
     raw: Optional[Dict[str, Any]] = Field(default=None, description="Raw provider payload for diagnostics.")
     __properties: ClassVar[List[str]] = ["id", "provider", "model", "created", "choices", "usage", "raw"]

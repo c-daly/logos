@@ -22,13 +22,13 @@ import {
 } from './LLMMessage';
 
 /**
- * 
+ * Individual choice returned by the provider.
  * @export
  * @interface LLMChoice
  */
 export interface LLMChoice {
     /**
-     * Position of the choice in the provider response.
+     * Choice index.
      * @type {number}
      * @memberof LLMChoice
      */
@@ -40,11 +40,11 @@ export interface LLMChoice {
      */
     message: LLMMessage;
     /**
-     * Why the provider stopped generating tokens.
+     * Reason generation finished (e.g., `stop`, `length`).
      * @type {string}
      * @memberof LLMChoice
      */
-    finishReason: string;
+    finishReason?: string;
 }
 
 /**
@@ -53,7 +53,6 @@ export interface LLMChoice {
 export function instanceOfLLMChoice(value: object): value is LLMChoice {
     if (!('index' in value) || value['index'] === undefined) return false;
     if (!('message' in value) || value['message'] === undefined) return false;
-    if (!('finishReason' in value) || value['finishReason'] === undefined) return false;
     return true;
 }
 
@@ -69,7 +68,7 @@ export function LLMChoiceFromJSONTyped(json: any, ignoreDiscriminator: boolean):
         
         'index': json['index'],
         'message': LLMMessageFromJSON(json['message']),
-        'finishReason': json['finish_reason'],
+        'finishReason': json['finish_reason'] == null ? undefined : json['finish_reason'],
     };
 }
 
