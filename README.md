@@ -14,7 +14,8 @@ Purpose
 - Host the canonical spec and design artifacts that bind all LOGOS components together (see Section 3.1: Overview and Core Principles).
 - Provide the HCG founding documents: `core_ontology.cypher` and `shacl_shapes.ttl` (see Section 4.1 and Section 4.3.1).
 - Provide the dev infrastructure (Neo4j + Milvus) used by Sophia, Hermes, Talos, and Apollo during Phase 1 (see Section 7.1 and Section 5.2).
-- Store the canonical API contracts (Hermes API per Table 2 in Section 3.4).
+- Store the canonical API contracts (Hermes and Sophia APIs per Section 3.4 and Phase 2 spec).
+- Generate and distribute client SDKs (Python + TypeScript) from OpenAPI contracts for Apollo CLI and browser usage.
 
 Repos in the LOGOS ecosystem
 - `c-daly/sophia` — Sophia: non-linguistic cognitive core (Orchestrator, CWM-A, CWM-G, Planner, Executor). (See Section 3.3.)
@@ -111,6 +112,17 @@ Python Tooling
 - CLI tools: `logos-generate-issues`, `logos-create-issues-by-epoch`
 - Run tests: `pytest`
 
+Client SDKs
+- **Python SDKs** (`sdk/`): Auto-generated from OpenAPI contracts for Apollo CLI and Python integrations
+  - `sdk/hermes_client/` - Hermes API client (STT, TTS, NLP, embeddings)
+  - `sdk/sophia_client/` - Sophia API client (planning, state, simulation)
+- **TypeScript SDKs** (`sdk-web/`): Auto-generated for Apollo browser and web applications
+  - `sdk-web/hermes-client/` - Hermes TypeScript client
+  - `sdk-web/sophia-client/` - Sophia TypeScript client
+- See `sdk/README.md` and `sdk-web/README.md` for installation and usage instructions
+- SDKs are regenerated automatically when OpenAPI contracts change via CI
+- Manual regeneration: `./scripts/generate_sdks.sh`
+
 Project Management
 - See `.github/PROJECT_BOARD_SETUP.md` for instructions on setting up the GitHub Project Board, labels, milestones, and issue tracking system.
 - Use `logos-generate-issues` or `.github/scripts/generate_issues.py` to automatically create issues from the action items document.
@@ -121,8 +133,9 @@ CI/CD and Validation
 - Automated validation of all canonical artifacts runs on every push and pull request.
 - **Cypher Ontology**: Syntax validation using Neo4j 5.13.0 (`ontology/core_ontology.cypher`)
 - **SHACL Shapes**: RDF/Turtle syntax validation using rdflib (`ontology/shacl_shapes.ttl`)
-- **OpenAPI Contract**: OpenAPI 3.1.0 specification validation using swagger-cli (`contracts/hermes.openapi.yaml`)
-- See `.github/workflows/validate-artifacts.yml` for the complete validation pipeline.
+- **OpenAPI Contracts**: OpenAPI 3.1.0 specification validation using swagger-cli (`contracts/*.openapi.yaml`)
+- **SDK Generation**: Automatic regeneration of Python and TypeScript SDKs when contracts change
+- See `.github/workflows/validate-artifacts.yml` and `.github/workflows/regenerate-sdks.yml` for the complete validation pipeline.
 
 SHACL Validation Strategy
 - **Default CI Gate (pyshacl)**: Fast, connectionless validation runs automatically on every push/PR ✅

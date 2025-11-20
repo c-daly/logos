@@ -1,0 +1,377 @@
+openapi: 3.1.0
+info:
+  title: Sophia API
+  version: 1.0.0
+  description: |
+    Canonical Sophia OpenAPI contract for Project LOGOS.
+    See Project LOGOS spec: Phase 2 Section - Sophia service deliverables.
+    
+    Sophia is the non-linguistic cognitive core providing:
+    - Plan generation and execution
+    - State management and queries
+    - Simulation and imagination capabilities
+    
+    All endpoints interact with the HCG (Neo4j + Milvus) and maintain causal coherence.
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+
+paths:
+  /plan:
+    post:
+      summary: Generate Plan
+      description: |
+        Accepts a goal structure, reads from Neo4j, runs the planner, and returns
+        a process graph with simulation predictions.
+      operationId: generatePlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                goal:
+                  type: string
+                  description: Goal description in natural language
+                goal_state:
+                  type: object
+                  description: Target state specification
+                  properties:
+                    entities:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          entity_id:
+                            type: string
+                          desired_state:
+                            type: string
+                context:
+                  type: object
+                  description: Additional context for planning
+                  additionalProperties: true
+              required:
+                - goal
+      responses:
+        '200':
+          description: Plan generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  plan_id:
+                    type: string
+                    description: Unique identifier for the generated plan
+                  processes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        process_id:
+                          type: string
+                        name:
+                          type: string
+                        capability_id:
+                          type: string
+                        preconditions:
+                          type: array
+                          items:
+                            type: string
+                        effects:
+                          type: array
+                          items:
+                            type: string
+                        estimated_duration:
+                          type: number
+                          format: float
+                  causal_links:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        from_process:
+                          type: string
+                        to_process:
+                          type: string
+                        condition:
+                          type: string
+                  cwm_states:
+                    type: array
+                    description: Newly created CWMState records from planning
+                    items:
+                      $ref: '#/components/schemas/CWMState'
+                  confidence:
+                    type: number
+                    format: float
+                    description: Overall plan confidence (0.0 to 1.0)
+        '400':
+          description: Invalid request (e.g., malformed goal)
+        '422':
+          description: Unprocessable entity (e.g., goal cannot be achieved)
+        '500':
+          description: Internal server error
+
+  /state:
+    get:
+      summary: Get Current State
+      description: |
+        Returns the latest entity states, persona metadata, and diagnostic information
+        for Apollo and other clients. Supports pagination via cursor.
+      operationId: getState
+      parameters:
+        - name: cursor
+          in: query
+          schema:
+            type: string
+          description: Pagination cursor from previous response
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 200
+          description: Maximum number of states to return
+        - name: model_type
+          in: query
+          schema:
+            type: string
+            enum: [CWM_A, CWM_G, CWM_E]
+          description: Filter by CWM model type
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [observed, imagined, reflected]
+          description: Filter by state status
+        - name: tags
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: false
+          description: Filter by tags (comma-separated)
+      responses:
+        '200':
+          description: State retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  states:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CWMState'
+                  cursor:
+                    type: string
+                    description: Cursor for next page (null if no more results)
+                  total:
+                    type: integer
+                    description: Total number of states matching filters
+        '400':
+          description: Invalid query parameters
+        '500':
+          description: Internal server error
+
+  /simulate:
+    post:
+      summary: Run Simulation
+      description: |
+        Triggers CWM-G to perform short-horizon predictions. Results are tagged
+        as imagined:true in Neo4j. Accepts capability_id and context with entity
+        references, sensor frames, and optional Talos metadata.
+      operationId: runSimulation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                capability_id:
+                  type: string
+                  description: Capability to simulate
+                context:
+                  type: object
+                  description: Simulation context
+                  properties:
+                    entity_ids:
+                      type: array
+                      items:
+                        type: string
+                      description: Entity references for simulation
+                    media_sample_id:
+                      type: string
+                      description: Reference to perception sample
+                    talos_metadata:
+                      type: object
+                      description: Optional Talos-specific context
+                      additionalProperties: true
+                    horizon_steps:
+                      type: integer
+                      default: 5
+                      description: Number of steps to simulate ahead
+                  required:
+                    - entity_ids
+              required:
+                - capability_id
+                - context
+      responses:
+        '200':
+          description: Simulation completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  simulation_id:
+                    type: string
+                    description: Unique identifier for this simulation run
+                  imagined_states:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CWMState'
+                  predicted_outcomes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        entity_id:
+                          type: string
+                        predicted_state:
+                          type: string
+                        confidence:
+                          type: number
+                          format: float
+                        timestep:
+                          type: integer
+                  metadata:
+                    type: object
+                    properties:
+                      model_version:
+                        type: string
+                      horizon:
+                        type: integer
+                      assumptions:
+                        type: array
+                        items:
+                          type: string
+        '400':
+          description: Invalid request
+        '422':
+          description: Simulation failed or capability not available
+        '500':
+          description: Internal server error
+
+  /health:
+    get:
+      summary: Health Check
+      description: Returns health status of Sophia service and its dependencies
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy, degraded, unhealthy]
+                  neo4j:
+                    type: object
+                    properties:
+                      connected:
+                        type: boolean
+                      latency_ms:
+                        type: number
+                  milvus:
+                    type: object
+                    properties:
+                      connected:
+                        type: boolean
+                      collections:
+                        type: array
+                        items:
+                          type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+        '503':
+          description: Service is unhealthy
+
+components:
+  schemas:
+    CWMState:
+      type: object
+      description: |
+        Unified Causal World Model State envelope. All world-model emissions
+        (CWM-A, CWM-G, CWM-E) serialize to this structure.
+      properties:
+        state_id:
+          type: string
+          description: Globally unique identifier (cwm_<model>_<uuid>)
+        model_type:
+          type: string
+          enum: [CWM_A, CWM_G, CWM_E]
+          description: Which CWM model produced this state
+        source:
+          type: string
+          description: Subsystem that produced the record (e.g., orchestrator, jepa_runner)
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO-8601 UTC time the state became valid
+        confidence:
+          type: number
+          format: float
+          minimum: 0.0
+          maximum: 1.0
+          description: Certainty score (JEPA probability, validation score, etc.)
+        status:
+          type: string
+          enum: [observed, imagined, reflected]
+          description: Distinguishes real-time telemetry from simulations/reflections
+        links:
+          type: object
+          description: References to related HCG entities
+          properties:
+            process_ids:
+              type: array
+              items:
+                type: string
+            plan_id:
+              type: string
+            entity_ids:
+              type: array
+              items:
+                type: string
+            media_sample_id:
+              type: string
+            persona_entry_id:
+              type: string
+            talos_run_id:
+              type: string
+        tags:
+          type: array
+          items:
+            type: string
+          description: Free-form labels for filtering (e.g., capability:perception)
+        data:
+          type: object
+          description: Model-specific payload
+          additionalProperties: true
+      required:
+        - state_id
+        - model_type
+        - source
+        - timestamp
+        - confidence
+        - status
