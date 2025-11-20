@@ -103,6 +103,19 @@ pytest -k "test_parser"
 
 Test configuration is defined in `pyproject.toml` under `[tool.pytest.ini_options]`.
 
+## SDK Generation
+
+Shared SDKs for Sophia and Hermes live under `sdk/` (Python) and `sdk-web/` (TypeScript). Whenever the OpenAPI contracts change, regenerate the clients via:
+
+```bash
+./scripts/generate-sdks.sh
+```
+
+Requirements:
+- Node.js/npm (the script uses `npx @openapitools/openapi-generator-cli`)
+
+The script removes existing SDK folders and re-generates them from `contracts/*.openapi.yaml`. Commit the resulting changes so downstream projects can consume the updated packages.
+
 ## Linting and Code Quality
 
 The project uses Ruff for linting and formatting, and mypy for type checking:
