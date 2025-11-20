@@ -6,11 +6,13 @@ on:
       - main
     paths:
       - 'contracts/**'
+      - 'logos_*/*.openapi.yaml'
       - 'scripts/generate-api-docs.sh'
       - '.github/workflows/publish-api-docs.yml'
   pull_request:
     paths:
       - 'contracts/**'
+      - 'logos_*/*.openapi.yaml'
       - 'scripts/generate-api-docs.sh'
       - '.github/workflows/publish-api-docs.yml'
   workflow_dispatch:

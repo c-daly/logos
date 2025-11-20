@@ -30,8 +30,8 @@ if [ ! -d "${CONTRACTS_DIR}" ]; then
     exit 1
 fi
 
-# Find all OpenAPI specification files
-OPENAPI_FILES=$(find "${CONTRACTS_DIR}" -name "*.openapi.yaml" -o -name "*.openapi.yml" 2>/dev/null || true)
+# Find all OpenAPI specification files in contracts/ and component directories
+OPENAPI_FILES=$(find "${CONTRACTS_DIR}" "${REPO_ROOT}/logos_"* -name "*.openapi.yaml" -o -name "*.openapi.yml" 2>/dev/null || true)
 
 if [ -z "${OPENAPI_FILES}" ]; then
     echo -e "${YELLOW}No OpenAPI specifications found in ${CONTRACTS_DIR}${NC}"
