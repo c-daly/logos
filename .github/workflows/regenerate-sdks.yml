@@ -103,6 +103,8 @@ jobs:
         run: |
           # Regenerate SDKs with fresh generation
           ./scripts/generate_sdks.sh
+          # Fix permissions on generated files to prevent git checkout issues
+          sudo chmod -R 777 sdk/ sdk-web/ 2>/dev/null || true
           # Clean any untracked files to prevent git conflicts
           git clean -fdx
       
