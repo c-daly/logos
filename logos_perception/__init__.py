@@ -9,6 +9,7 @@ This module provides:
 
 from .ingest import MediaIngestService
 from .jepa_runner import JEPAConfig, JEPARunner
+from .media_api import create_media_api
 from .models import (
     ImaginedProcess,
     ImaginedState,
@@ -26,4 +27,5 @@ __all__ = [
     "SimulationResult",
     "ImaginedState",
     "ImaginedProcess",
+    "create_media_api",
 ]
