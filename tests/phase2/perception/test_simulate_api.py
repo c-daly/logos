@@ -4,13 +4,13 @@ Integration tests for /simulate API endpoint.
 Tests the FastAPI endpoint for imagination simulations.
 """
 
+from unittest.mock import MagicMock, Mock
+
 import pytest
-from unittest.mock import Mock, MagicMock
-from fastapi.testclient import TestClient
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
 from logos_sophia import create_sophia_api
-from logos_perception import JEPAConfig
 
 
 @pytest.fixture
@@ -20,11 +20,11 @@ def mock_neo4j_driver():
     session = MagicMock()
     driver.session.return_value.__enter__ = Mock(return_value=session)
     driver.session.return_value.__exit__ = Mock(return_value=None)
-    
+
     result = Mock()
     result.single.return_value = {"process_uuid": "test-uuid"}
     session.run.return_value = result
-    
+
     return driver
 
 
@@ -34,14 +34,14 @@ def test_client(mock_neo4j_driver):
     app = FastAPI()
     sophia_router = create_sophia_api(mock_neo4j_driver)
     app.include_router(sophia_router)
-    
+
     return TestClient(app)
 
 
 def test_health_endpoint(test_client):
     """Test the /sophia/health endpoint."""
     response = test_client.get("/sophia/health")
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["status"] == "healthy"
@@ -55,12 +55,12 @@ def test_simulate_endpoint_success(test_client):
         "context": {"entity_id": "test-entity"},
         "k_steps": 5,
     }
-    
+
     response = test_client.post("/sophia/simulate", json=payload)
-    
+
     assert response.status_code == 200
     data = response.json()
-    
+
     assert "process_uuid" in data
     assert data["states_count"] == 5
     assert data["horizon"] == 5
@@ -75,9 +75,9 @@ def test_simulate_endpoint_with_frame_id(test_client):
         "k_steps": 3,
         "frame_id": "test-frame-123",
     }
-    
+
     response = test_client.post("/sophia/simulate", json=payload)
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["states_count"] == 3
@@ -90,9 +90,9 @@ def test_simulate_endpoint_minimal_steps(test_client):
         "context": {},
         "k_steps": 1,
     }
-    
+
     response = test_client.post("/sophia/simulate", json=payload)
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["states_count"] == 1
@@ -106,19 +106,19 @@ def test_simulate_endpoint_invalid_k_steps():
     session = MagicMock()
     driver.session.return_value.__enter__ = Mock(return_value=session)
     driver.session.return_value.__exit__ = Mock(return_value=None)
-    
+
     app = FastAPI()
     sophia_router = create_sophia_api(driver)
     app.include_router(sophia_router)
     client = TestClient(app)
-    
+
     # k_steps must be >= 1
     payload = {
         "capability_id": "test-capability",
         "context": {},
         "k_steps": 0,
     }
-    
+
     response = client.post("/sophia/simulate", json=payload)
     assert response.status_code == 422  # Validation error
 
@@ -129,17 +129,17 @@ def test_simulate_endpoint_missing_capability_id():
     session = MagicMock()
     driver.session.return_value.__enter__ = Mock(return_value=session)
     driver.session.return_value.__exit__ = Mock(return_value=None)
-    
+
     app = FastAPI()
     sophia_router = create_sophia_api(driver)
     app.include_router(sophia_router)
     client = TestClient(app)
-    
+
     payload = {
         "context": {},
         "k_steps": 3,
     }
-    
+
     response = client.post("/sophia/simulate", json=payload)
     assert response.status_code == 422  # Validation error
 
@@ -152,11 +152,11 @@ def test_get_simulation_endpoint(test_client, mock_neo4j_driver):
         "context": {"entity_id": "test-entity"},
         "k_steps": 3,
     }
-    
+
     create_response = test_client.post("/sophia/simulate", json=create_payload)
     assert create_response.status_code == 200
     process_uuid = create_response.json()["process_uuid"]
-    
+
     # Mock the retrieval to return proper result
     session = mock_neo4j_driver.session.return_value.__enter__.return_value
     result_mock = Mock()
@@ -165,10 +165,10 @@ def test_get_simulation_endpoint(test_client, mock_neo4j_driver):
         "states": [{"uuid": "state-1", "step": 0}],
     }
     session.run.return_value = result_mock
-    
+
     # Now retrieve it
     response = test_client.get(f"/sophia/simulate/{process_uuid}")
-    
+
     # Should now succeed with our mocked data
     assert response.status_code == 200
     data = response.json()
@@ -190,9 +190,9 @@ def test_simulate_endpoint_complex_context(test_client):
         },
         "k_steps": 10,
     }
-    
+
     response = test_client.post("/sophia/simulate", json=payload)
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["states_count"] == 10
@@ -204,9 +204,9 @@ def test_simulate_default_k_steps(test_client):
         "capability_id": "test-capability",
         "context": {},
     }
-    
+
     response = test_client.post("/sophia/simulate", json=payload)
-    
+
     assert response.status_code == 200
     data = response.json()
     assert data["horizon"] == 5  # default value
