@@ -11,6 +11,7 @@ from neo4j import Driver
 from pydantic import BaseModel
 
 from logos_perception import JEPAConfig, SimulationRequest
+
 from .simulation import SimulationService
 
 logger = logging.getLogger(__name__)
@@ -91,7 +92,7 @@ def create_sophia_api(
             logger.error(f"Simulation failed: {e}", exc_info=True)
             raise HTTPException(
                 status_code=500, detail=f"Simulation failed: {str(e)}"
-            )
+            ) from e
 
     @router.get("/simulate/{process_uuid}")
     def get_simulation(process_uuid: str):

@@ -8,13 +8,13 @@ This module provides:
 """
 
 from .ingest import MediaIngestService
-from .jepa_runner import JEPARunner, JEPAConfig
+from .jepa_runner import JEPAConfig, JEPARunner
 from .models import (
+    ImaginedProcess,
+    ImaginedState,
     MediaFrame,
     SimulationRequest,
     SimulationResult,
-    ImaginedState,
-    ImaginedProcess,
 )
 
 __all__ = [

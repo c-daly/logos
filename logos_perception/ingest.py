@@ -131,7 +131,7 @@ class MediaIngestService:
 
             # Insert embedding
             data = [[frame_id], [embedding]]
-            insert_result = collection.insert(data)
+            collection.insert(data)
 
             logger.info(
                 f"Stored embedding for frame {frame_id} in Milvus collection {self.milvus_collection_name}"

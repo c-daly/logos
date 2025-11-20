@@ -10,7 +10,7 @@ from typing import Any
 from neo4j import Driver
 from pymilvus import connections
 
-from logos_perception import JEPARunner, JEPAConfig, SimulationRequest, SimulationResult
+from logos_perception import JEPAConfig, JEPARunner, SimulationRequest, SimulationResult
 from logos_perception.models import ImaginedProcess, ImaginedState
 
 logger = logging.getLogger(__name__)
