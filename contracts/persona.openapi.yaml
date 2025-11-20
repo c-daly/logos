@@ -43,7 +43,6 @@ paths:
                 sentiment:
                   type: string
                   description: Optional emotional tone of the entry
-                  nullable: true
                   example: "confident"
                   enum:
                     - confident
@@ -54,7 +53,6 @@ paths:
                 related_process:
                   type: string
                   description: Optional UUID of related Process node
-                  nullable: true
                   example: "process-uuid-123"
               required:
                 - summary
@@ -91,7 +89,6 @@ paths:
           description: Optional sentiment filter
           schema:
             type: string
-            nullable: true
             example: "confident"
             enum:
               - confident
@@ -191,7 +188,6 @@ components:
           example: "Successfully completed pick-and-place task"
         sentiment:
           type: string
-          nullable: true
           description: Optional emotional tone of the entry
           example: "confident"
           enum:
@@ -202,7 +198,6 @@ components:
             - concerned
         related_process:
           type: string
-          nullable: true
           description: Optional UUID of related Process node
           example: "process-uuid-123"
       required:

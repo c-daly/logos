@@ -83,7 +83,6 @@ paths:
                 frame_id:
                   type: string
                   description: Optional ID of PerceptionFrame to link to this simulation
-                  nullable: true
                   example: "frame-uuid-123"
               required:
                 - capability_id

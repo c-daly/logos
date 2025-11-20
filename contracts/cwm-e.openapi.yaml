@@ -57,7 +57,6 @@ paths:
                 context:
                   type: string
                   description: Optional description of what triggered this emotion
-                  nullable: true
                   example: "After successful task completion"
               required:
                 - emotion_type
@@ -296,7 +295,6 @@ components:
           example: 0.85
         context:
           type: string
-          nullable: true
           description: Optional description of what triggered this emotion
           example: "After successful task completion"
         source:
