@@ -1,0 +1,185 @@
+openapi: 3.1.0
+info:
+  title: Sophia API
+  version: 1.0.0
+  description: |
+    Canonical Sophia OpenAPI contract for Project LOGOS.
+    See Project LOGOS spec: Section 3.3 (Sophia - Cognitive Core).
+    
+    Sophia is the non-linguistic cognitive core providing:
+    - Orchestrator for multi-layer causal world model coordination
+    - CWM-A (Abstract/commonsense reasoning)
+    - CWM-G (Grounded physics/perception with JEPA)
+    - Planner for goal-driven action sequencing
+    - Executor for plan execution and monitoring
+    
+    This API focuses on the imagination/simulation capabilities exposed
+    through the `/simulate` endpoint, allowing clients to trigger k-step
+    predictive rollouts before committing to real actions.
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+
+paths:
+  /sophia/health:
+    get:
+      summary: Health Check
+      description: Check if the Sophia service is running and healthy
+      operationId: sophiaHealthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Health status
+                    example: "healthy"
+                  service:
+                    type: string
+                    description: Service name
+                    example: "sophia"
+
+  /sophia/simulate:
+    post:
+      summary: Run K-Step Imagination Simulation
+      description: |
+        Trigger a k-step JEPA-based imagination rollout for a given capability
+        and context. This creates an ImaginedProcess and ImaginedState nodes
+        in Neo4j/Milvus representing predicted future states.
+        
+        Used by planners to "imagine" outcomes before executing real actions,
+        enabling safe exploration and what-if analysis.
+      operationId: runSimulation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                capability_id:
+                  type: string
+                  description: ID of the capability to simulate (e.g., "pick-and-place")
+                  example: "pick-and-place"
+                context:
+                  type: object
+                  description: Context dictionary with entity IDs, positions, or other parameters
+                  additionalProperties: true
+                  example:
+                    entity_id: "robot-arm-1"
+                    initial_position: [1.0, 2.0, 3.0]
+                k_steps:
+                  type: integer
+                  description: Number of prediction steps to roll out
+                  default: 5
+                  minimum: 1
+                  maximum: 20
+                  example: 5
+                frame_id:
+                  type: string
+                  description: Optional ID of PerceptionFrame to link to this simulation
+                  nullable: true
+                  example: "frame-uuid-123"
+              required:
+                - capability_id
+                - context
+      responses:
+        '200':
+          description: Simulation completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  process_uuid:
+                    type: string
+                    description: UUID of the created ImaginedProcess node
+                    example: "process-uuid-123"
+                  states_count:
+                    type: integer
+                    description: Number of ImaginedState nodes created
+                    example: 5
+                  horizon:
+                    type: integer
+                    description: Prediction horizon (k_steps value)
+                    example: 5
+                  model_version:
+                    type: string
+                    description: Version of the JEPA model used
+                    example: "jepa-v0.1"
+        '400':
+          description: Invalid request (e.g., missing required fields, invalid k_steps)
+        '500':
+          description: Simulation failed due to internal error
+
+  /sophia/simulate/{process_uuid}:
+    get:
+      summary: Retrieve Simulation Results
+      description: |
+        Retrieve the ImaginedProcess and associated ImaginedState nodes
+        for a previously completed simulation.
+      operationId: getSimulation
+      parameters:
+        - name: process_uuid
+          in: path
+          required: true
+          description: UUID of the ImaginedProcess to retrieve
+          schema:
+            type: string
+            example: "process-uuid-123"
+      responses:
+        '200':
+          description: Simulation results found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  process:
+                    type: object
+                    properties:
+                      uuid:
+                        type: string
+                        example: "process-uuid-123"
+                      capability_id:
+                        type: string
+                        example: "pick-and-place"
+                      imagined:
+                        type: boolean
+                        example: true
+                      horizon:
+                        type: integer
+                        example: 5
+                      model_version:
+                        type: string
+                        example: "jepa-v0.1"
+                  states:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        uuid:
+                          type: string
+                          example: "state-uuid-1"
+                        step:
+                          type: integer
+                          example: 0
+                        confidence:
+                          type: number
+                          format: float
+                          description: Prediction confidence (0.0 to 1.0)
+                          example: 0.95
+                        metadata:
+                          type: object
+                          additionalProperties: true
+                          description: Optional metadata for this state
+        '404':
+          description: Simulation process not found
+
+components:
+  schemas: {}
