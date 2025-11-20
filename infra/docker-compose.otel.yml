@@ -1,0 +1,73 @@
+# OpenTelemetry Observability Stack for LOGOS
+# Collector + Tempo + Grafana for distributed tracing and diagnostics
+# See docs/phase2/PHASE2_SPEC.md Section: Diagnostics & Persona toolchain
+
+services:
+  # OpenTelemetry Collector
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.91.0
+    container_name: logos-otel-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      - "8888:8888"   # Prometheus metrics for collector itself
+      - "13133:13133" # Health check
+    networks:
+      - logos-observability-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:13133/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Grafana Tempo - Distributed tracing backend
+  tempo:
+    image: grafana/tempo:2.3.1
+    container_name: logos-tempo
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./tempo-config.yaml:/etc/tempo.yaml:ro
+      - tempo-data:/tmp/tempo
+    ports:
+      - "3200:3200"   # Tempo query frontend
+      - "4319:4317"   # OTLP gRPC (exposed for direct access if needed)
+    networks:
+      - logos-observability-net
+    restart: unless-stopped
+
+  # Grafana - Visualization and dashboards
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: logos-grafana
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - ./grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
+      - ./grafana-dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml:ro
+      - ./dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3001:3000"   # Grafana UI (using 3001 to avoid conflict with Apollo on 3000)
+    networks:
+      - logos-observability-net
+    restart: unless-stopped
+    depends_on:
+      - tempo
+
+networks:
+  logos-observability-net:
+    driver: bridge
+
+volumes:
+  tempo-data:
+  grafana-data:

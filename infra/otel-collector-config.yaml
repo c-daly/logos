@@ -1,0 +1,57 @@
+# OpenTelemetry Collector Configuration for LOGOS
+# Receives traces/metrics/logs from LOGOS services and exports to Tempo/Grafana
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 10s
+    send_batch_size: 1024
+    send_batch_max_size: 2048
+
+  # Add resource attributes
+  resource:
+    attributes:
+      - key: deployment.environment
+        value: dev
+        action: insert
+
+  # Memory limiter to prevent OOM
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+
+exporters:
+  # Export traces to Tempo
+  otlp/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+
+  # Export metrics to Prometheus (future enhancement)
+  # prometheus:
+  #   endpoint: "0.0.0.0:8889"
+
+  # Debug exporter for development
+  logging:
+    loglevel: info
+    sampling_initial: 5
+    sampling_thereafter: 200
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, resource, batch]
+      exporters: [otlp/tempo, logging]
+
+  telemetry:
+    metrics:
+      address: 0.0.0.0:8888

@@ -15,6 +15,12 @@ from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
 
+try:
+    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+    OTLP_AVAILABLE = True
+except ImportError:
+    OTLP_AVAILABLE = False
+
 # Global tracer provider
 _tracer_provider: TracerProvider | None = None
 
@@ -151,6 +157,7 @@ class JsonFormatter(logging.Formatter):
 def setup_telemetry(
     service_name: str = "logos-service",
     export_to_console: bool = True,
+    otlp_endpoint: str | None = None,
 ) -> TracerProvider:
     """
     Setup OpenTelemetry tracer provider for the service.
@@ -158,6 +165,7 @@ def setup_telemetry(
     Args:
         service_name: Name of the service for trace identification
         export_to_console: If True, export spans to console (dev mode)
+        otlp_endpoint: Optional OTLP collector endpoint (e.g., "http://localhost:4317")
 
     Returns:
         Configured TracerProvider instance
@@ -174,6 +182,11 @@ def setup_telemetry(
     if export_to_console:
         console_exporter = ConsoleSpanExporter()
         _tracer_provider.add_span_processor(BatchSpanProcessor(console_exporter))
+
+    # Add OTLP exporter if endpoint provided and available
+    if otlp_endpoint and OTLP_AVAILABLE:
+        otlp_exporter = OTLPSpanExporter(endpoint=otlp_endpoint, insecure=True)
+        _tracer_provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
 
     # Set as global tracer provider
     trace.set_tracer_provider(_tracer_provider)
