@@ -8,6 +8,7 @@ import logging
 
 from fastapi import APIRouter, HTTPException
 from neo4j import Driver
+from opentelemetry import trace
 from pydantic import BaseModel
 
 from logos_perception import JEPAConfig, SimulationRequest
@@ -15,6 +16,7 @@ from logos_perception import JEPAConfig, SimulationRequest
 from .simulation import SimulationService
 
 logger = logging.getLogger(__name__)
+tracer = trace.get_tracer(__name__)
 
 
 class SimulateResponse(BaseModel):
@@ -74,25 +76,32 @@ def create_sophia_api(
         Returns:
             Simulation results summary
         """
-        try:
-            logger.info(
-                f"Received simulation request for capability {request.capability_id}"
-            )
+        with tracer.start_as_current_span("simulate") as span:
+            try:
+                logger.info(
+                    f"Received simulation request for capability {request.capability_id}"
+                )
 
-            result = simulation_service.run_simulation(request)
+                result = simulation_service.run_simulation(request)
 
-            return SimulateResponse(
-                process_uuid=result.process.uuid,
-                states_count=len(result.states),
-                horizon=result.process.horizon,
-                model_version=result.process.model_version,
-            )
+                # Link trace to plan ID
+                span.set_attribute("plan_id", result.process.uuid)
+                span.set_attribute("capability_id", request.capability_id)
+                span.set_attribute("horizon", result.process.horizon)
 
-        except Exception as e:
-            logger.error(f"Simulation failed: {e}", exc_info=True)
-            raise HTTPException(
-                status_code=500, detail=f"Simulation failed: {str(e)}"
-            ) from e
+                return SimulateResponse(
+                    process_uuid=result.process.uuid,
+                    states_count=len(result.states),
+                    horizon=result.process.horizon,
+                    model_version=result.process.model_version,
+                )
+
+            except Exception as e:
+                logger.error(f"Simulation failed: {e}", exc_info=True)
+                span.set_status(trace.Status(trace.StatusCode.ERROR, str(e)))
+                raise HTTPException(
+                    status_code=500, detail=f"Simulation failed: {str(e)}"
+                ) from e
 
     @router.get("/simulate/{process_uuid}")
     def get_simulation(process_uuid: str):

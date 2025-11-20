@@ -45,6 +45,12 @@ python capture_demo.py --mode cli --commands "logos-cli status" "logos-cli query
 python capture_demo.py --mode logs --log-dirs /tmp/logos_telemetry ./logs
 ```
 
+#### OpenTelemetry Metrics Only
+```bash
+# Captures OTel collector health, Tempo traces, and Grafana status
+python capture_demo.py --mode otel
+```
+
 ### Output
 
 All artifacts are saved to `./demo_output/` (configurable with `--output-dir`):
@@ -52,6 +58,7 @@ All artifacts are saved to `./demo_output/` (configurable with `--output-dir`):
 - `browser_demo_<timestamp>.mp4` - Screen recording of browser UI
 - `cli_demo_<timestamp>.log` - CLI session transcript
 - `logs_aggregated_<timestamp>.json` - Collected logs from all LOGOS components
+- `otel_metrics_<timestamp>.json` - OTel collector health, Tempo traces, Grafana status
 - `MANIFEST.json` - Manifest of all captured artifacts
 
 ### Demo Recording Tips
@@ -78,6 +85,31 @@ All artifacts are saved to `./demo_output/` (configurable with `--output-dir`):
 2. Show observability:
    ```bash
    tail -f /tmp/logos_telemetry/plan_update_*.jsonl
+   ```
+
+#### OpenTelemetry/Grafana Demo
+1. Start the observability stack:
+   ```bash
+   cd infra
+   docker-compose -f docker-compose.otel.yml up -d
+   ```
+
+2. Verify services are running:
+   ```bash
+   python capture_demo.py --mode otel
+   ```
+
+3. Open Grafana (http://localhost:3001):
+   - Navigate to Dashboards → LOGOS → LOGOS Key Signals
+   - View traces from Sophia, Hermes services
+   - Search for traces by plan_id
+   - Take screenshots for verification
+
+4. Query traces with TraceQL:
+   ```traceql
+   { resource.service.name="sophia" }
+   { span.plan_id != nil }
+   { span.name="/simulate" }
    ```
 
 ### Integration with Verification

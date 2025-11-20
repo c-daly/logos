@@ -16,8 +16,15 @@ The `logos_observability` module provides:
 ```python
 from logos_observability import setup_telemetry, get_logger
 
-# Initialize OpenTelemetry
+# Initialize OpenTelemetry with console export (dev mode)
 setup_telemetry(service_name="sophia", export_to_console=True)
+
+# Initialize with OTLP export to collector (production)
+setup_telemetry(
+    service_name="sophia", 
+    export_to_console=False,
+    otlp_endpoint="http://localhost:4317"
+)
 
 # Get a structured logger
 logger = get_logger("sophia.planner")
@@ -172,6 +179,33 @@ Environment variables for configuration:
 - `LOGOS_TELEMETRY_DIR` - Output directory for telemetry files (default: `/tmp/logos_telemetry`)
 - `LOGOS_TELEMETRY_CONSOLE` - Enable console output (default: `false`)
 - `LOGOS_SERVICE_NAME` - Service name for telemetry (default: `logos-service`)
+- `OTEL_EXPORTER_OTLP_ENDPOINT` - OTLP collector endpoint (default: none, e.g., `http://localhost:4317`)
+
+## OpenTelemetry Collector Integration
+
+For distributed tracing with Grafana/Tempo:
+
+1. Start the observability stack:
+   ```bash
+   cd infra
+   docker-compose -f docker-compose.otel.yml up -d
+   ```
+
+2. Configure your service:
+   ```python
+   import os
+   from logos_observability import setup_telemetry
+   
+   setup_telemetry(
+       service_name="sophia",
+       export_to_console=False,
+       otlp_endpoint=os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
+   )
+   ```
+
+3. Access Grafana dashboards at http://localhost:3001
+
+See `infra/OTEL_SETUP.md` for complete documentation.
 
 ## See Also
 
