@@ -190,6 +190,109 @@ class DemoCapture:
         print(f"✓ Logs aggregated: {output_file}")
         print(f"  Total log sources: {len(aggregated['logs'])}")
 
+    def capture_otel_metrics(self):
+        """
+        Capture OpenTelemetry metrics and traces from the observability stack.
+        
+        Queries the OTel collector and Tempo for recent traces and exports
+        summary data for verification.
+        """
+        print("[OTel Metrics] Capturing observability data...")
+        
+        output_file = self.output_dir / f"otel_metrics_{self.timestamp}.json"
+        otel_data = {
+            "timestamp": datetime.utcnow().isoformat(),
+            "collector_health": None,
+            "tempo_health": None,
+            "recent_traces": [],
+            "grafana_status": None,
+        }
+        
+        # Check OTel Collector health
+        try:
+            result = subprocess.run(
+                ["curl", "-s", "http://localhost:13133/"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            otel_data["collector_health"] = {
+                "status": "healthy" if result.returncode == 0 else "unhealthy",
+                "response": result.stdout,
+            }
+            print("  ✓ OTel Collector health checked")
+        except Exception as e:
+            otel_data["collector_health"] = {"status": "error", "error": str(e)}
+            print(f"  ✗ OTel Collector health check failed: {e}")
+        
+        # Check Tempo health
+        try:
+            result = subprocess.run(
+                ["curl", "-s", "http://localhost:3200/ready"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            otel_data["tempo_health"] = {
+                "status": "ready" if result.returncode == 0 else "not ready",
+                "response": result.stdout,
+            }
+            print("  ✓ Tempo health checked")
+        except Exception as e:
+            otel_data["tempo_health"] = {"status": "error", "error": str(e)}
+            print(f"  ✗ Tempo health check failed: {e}")
+        
+        # Check Grafana health
+        try:
+            result = subprocess.run(
+                ["curl", "-s", "http://localhost:3001/api/health"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            otel_data["grafana_status"] = {
+                "status": "healthy" if result.returncode == 0 else "unhealthy",
+                "response": result.stdout,
+            }
+            print("  ✓ Grafana health checked")
+        except Exception as e:
+            otel_data["grafana_status"] = {"status": "error", "error": str(e)}
+            print(f"  ✗ Grafana health check failed: {e}")
+        
+        # Query recent traces from Tempo (via TraceQL)
+        try:
+            # Simple query for recent traces (requires Tempo API)
+            result = subprocess.run(
+                ["curl", "-s", "http://localhost:3200/api/search?tags=service.name=sophia&limit=10"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode == 0 and result.stdout:
+                try:
+                    traces = json.loads(result.stdout)
+                    otel_data["recent_traces"] = traces.get("traces", [])[:10]
+                    print(f"  ✓ Retrieved {len(otel_data['recent_traces'])} recent traces")
+                except json.JSONDecodeError:
+                    otel_data["recent_traces"] = []
+                    print("  ⚠ Could not parse traces response")
+        except Exception as e:
+            print(f"  ⚠ Could not query traces: {e}")
+        
+        with open(output_file, "w") as f:
+            json.dump(otel_data, f, indent=2)
+        
+        print(f"✓ OTel metrics captured: {output_file}")
+        
+        # Provide instructions for Grafana dashboard screenshots
+        print("\n  📊 Manual Steps for Dashboard Verification:")
+        print("     1. Open http://localhost:3001 in your browser")
+        print("     2. Navigate to Dashboards → LOGOS → LOGOS Key Signals")
+        print("     3. Take a screenshot of the dashboard")
+        print(f"     4. Save it as: {self.output_dir}/grafana_dashboard_screenshot.png")
+        print("     5. Explore traces for plan_id attributes")
+
+
     def create_manifest(self):
         """Create a manifest of captured artifacts."""
         manifest = {
@@ -219,7 +322,7 @@ def main():
     )
     parser.add_argument(
         "--mode",
-        choices=["browser", "cli", "logs", "all"],
+        choices=["browser", "cli", "logs", "otel", "all"],
         default="all",
         help="Capture mode",
     )
@@ -264,6 +367,10 @@ def main():
 
     if args.mode in ["logs", "all"]:
         capture.aggregate_logs(log_dirs=args.log_dirs)
+        print()
+
+    if args.mode in ["otel", "all"]:
+        capture.capture_otel_metrics()
         print()
 
     capture.create_manifest()
