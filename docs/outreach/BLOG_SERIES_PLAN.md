@@ -1,11 +1,13 @@
 # Project LOGOS Blog Post Series
 
 **Status:** Active Planning  
-**Last Updated:** 2025-11-19
+**Last Updated:** 2025-11-20
 
 ## Overview
 
 Project LOGOS has rich technical depth and multiple interesting angles that warrant a series of blog posts rather than a single article. This document outlines a comprehensive blog post series covering architecture, implementation, results, and future directions.
+
+**📄 See also:** [BLOG_POST_ABSTRACTS.md](./BLOG_POST_ABSTRACTS.md) for complete abstracts of all posts including suggested additional articles.
 
 ## Blog Post Series Structure
 
@@ -15,12 +17,130 @@ A multi-part series exploring how Project LOGOS builds cognitive architecture wi
 
 ---
 
+## Post 0: "AI as Search: From Symbolic Trees to Neural Networks to Language Models" (FOUNDATIONAL)
+
+**Target Audience:** General technical readers, AI newcomers, history enthusiasts  
+**Length:** 2000-2500 words  
+**Status:** PLANNED  
+**Priority:** HIGH - Optional pre-launch context post
+
+**Abstract:**  
+At its core, artificial intelligence is about searching state spaces—exploring possible configurations to find solutions, make decisions, or generate outputs. This historical survey traces how different AI paradigms approached this fundamental challenge, from early symbolic AI's explicit tree searches through neural networks' weight space optimization to LLMs' probability distributions over token sequences. Understanding AI's history as evolving search strategies illuminates both the power and limitations of current approaches—and why Project LOGOS explores structured causal graphs as an alternative search space.
+
+**Key Messages:**
+- All AI approaches fundamentally involve searching state spaces
+- Each era's breakthroughs came from new ways to search
+- Choice of search space determines capabilities and limitations
+- LLMs search token sequences; LOGOS searches causal graphs
+
+**Outline:**
+
+1. **The Central Insight: AI as Search** (300 words)
+   - What is a state space? Configurations and transitions
+   - Search as exploration: finding solutions, making decisions, generating outputs
+   - Different AI paradigms = different search spaces and strategies
+   - Preview of the journey: symbolic → neural → linguistic → causal
+
+2. **The Symbolic Era: Searching Decision Trees (1950s-1980s)** (500 words)
+   - **Early foundations:**
+     - Newell & Simon's General Problem Solver (1957) - means-ends analysis
+     - McCarthy's Lisp and logical reasoning
+     - Chess programs: brute-force tree search
+   - **Search algorithms:**
+     - A* and heuristic search (Hart, Nilsson, Raphael, 1968)
+     - Minimax and game trees
+     - STRIPS planning (Stanford, 1971)
+   - **Expert systems:**
+     - MYCIN, DENDRAL: rule-based knowledge search
+     - Success in narrow domains
+   - **Limitations:**
+     - Combinatorial explosion
+     - Brittle knowledge representation
+     - "AI winter" after Minsky & Papert's critique
+
+3. **The Neural Revolution: Searching Weight Spaces (1980s-2010s)** (500 words)
+   - **Connectionism emerges:**
+     - Perceptrons and the first setback (1969)
+     - Backpropagation resurrects neural nets (1986)
+     - Search = optimization through gradient descent
+   - **Deep learning breakthrough:**
+     - ImageNet challenge and AlexNet (2012)
+     - Searching billions of parameters
+     - Convolutional networks for vision
+     - Recurrent networks for sequences
+   - **Hybrid approaches:**
+     - Deep Blue (1997): massive tree search + evaluation
+     - AlphaGo (2016): Monte Carlo Tree Search + neural value/policy networks
+   - **The shift:**
+     - From hand-crafted features to learned representations
+     - From explicit search trees to gradient-guided optimization
+
+4. **The Language Model Era: Searching Token Sequences (2010s-2020s)** (500 words)
+   - **Attention and transformers:**
+     - Sequence-to-sequence models
+     - "Attention is All You Need" (Vaswani et al., 2017)
+     - Self-attention as learned search over input
+   - **The LLM explosion:**
+     - BERT: bidirectional context search
+     - GPT series: next-token prediction at scale
+     - ChatGPT: searching probability distributions for human-like responses
+   - **Capabilities unlocked:**
+     - Few-shot learning
+     - Emergent abilities at scale
+     - Natural language as universal interface
+   - **The search space:**
+     - Tokens as atomic units
+     - Probability distributions as navigation
+     - Context window as search horizon
+
+5. **Patterns and Limitations** (400 words)
+   - **Common pattern:**
+     - Larger search spaces → more computational cost
+     - Better search strategies → breakthrough capabilities
+     - Search space determines what's easy vs. hard
+   - **Symbolic limitations:**
+     - Brittleness, combinatorial explosion
+     - Hard to handle uncertainty
+   - **Neural limitations:**
+     - Black-box reasoning, training data hunger
+     - Overfitting, adversarial brittleness
+   - **LLM limitations:**
+     - Hallucination: searching likely tokens ≠ searching truth
+     - No causal understanding: tokens encode correlation, not causation
+     - Temporal confusion: all tokens equally present
+   - **The lesson:**
+     - Search space choice matters as much as search algorithm
+
+6. **What's Next: Searching Causal Graphs** (300 words)
+   - LOGOS's approach: structured causal reasoning
+   - Graphs as search space: explicit relationships, temporal ordering
+   - Combining explicit structure (symbolic) with learned patterns (neural)
+   - Not replacing LLMs, but complementing them
+   - Preview of Post 1: why non-linguistic search matters
+
+**Diagrams/Visuals:**
+- Timeline of AI eras with key breakthroughs
+- State space visualization for each paradigm (tree, weight space, token sequence, causal graph)
+- Search strategy comparison table
+
+**Publishing Platforms:** Medium (broad reach), Dev.to, HackerNews (history posts do well)
+
+**Call to Action:** 
+- Understand AI's trajectory to appreciate LOGOS's contribution
+- Follow for Post 1: diving into non-linguistic cognition
+- What search space should AI explore next? Join the discussion
+
+---
+
 ## Post 1: "Non-Linguistic Cognition: Why Graphs Matter" (INTRODUCTORY)
 
 **Target Audience:** General AI/ML community, technical blog readers  
 **Length:** 1500-2000 words  
 **Status:** PLANNED  
 **Priority:** HIGH - Launch post
+
+**Abstract:**  
+Large language models have revolutionized AI, but they share a fundamental limitation: they think in words. Human cognition, by contrast, operates in non-linguistic structures—mental models, spatial reasoning, causal intuition—before language ever emerges. This post introduces Project LOGOS, an open-source cognitive architecture that uses graph-based knowledge representation instead of token sequences. We demonstrate these capabilities through a pick-and-place robotics scenario and explore why graphs, not words, are the natural substrate for machine cognition.
 
 **Key Messages:**
 - Language-first AI systems have fundamental limitations
@@ -74,6 +194,9 @@ A multi-part series exploring how Project LOGOS builds cognitive architecture wi
 **Length:** 2000-2500 words  
 **Status:** PLANNED  
 **Priority:** HIGH
+
+**Abstract:**  
+Combining symbolic reasoning with semantic search requires bridging two worlds: graph databases for explicit relationships and vector databases for similarity matching. This technical deep dive explores how Project LOGOS implements a Hybrid Causal Graph using Neo4j for symbolic knowledge and Milvus for vector embeddings. We detail the ontology design, UUID constraints, relationship patterns (IS_A, HAS_STATE, CAUSES, PRECEDES), validation with SHACL, and complete Docker Compose infrastructure setup.
 
 **Key Messages:**
 - How to combine symbolic reasoning (Neo4j) with vector search (Milvus)
@@ -136,6 +259,9 @@ A multi-part series exploring how Project LOGOS builds cognitive architecture wi
 **Length:** 2000-2500 words  
 **Status:** PLANNED  
 **Priority:** HIGH
+
+**Abstract:**  
+Can autonomous agents plan effectively without LLMs? Project LOGOS demonstrates that causal graph traversal provides reliable, explainable planning that complements—rather than competes with—large language models. This post explores Sophia, LOGOS's cognitive core, which generates action sequences by backward-chaining through the Hybrid Causal Graph using CAUSES relationships. Unlike prompt-engineered LLM planning, graph-based plans are formally validated with SHACL constraints. We walk through a pick-and-place scenario with full explainability and zero hallucination risk.
 
 **Key Messages:**
 - Planning can work without LLMs
@@ -201,6 +327,9 @@ A multi-part series exploring how Project LOGOS builds cognitive architecture wi
 **Status:** PLANNED  
 **Priority:** MEDIUM
 
+**Abstract:**  
+Research projects often suffer from scope creep and vague milestones. Project LOGOS took a different approach: four concrete milestones delivered over eight weeks, each with automated validation gates enforced through GitHub Actions badges. This post chronicles the journey from M1 (HCG foundation) through M4 (end-to-end demonstration). We share what worked—infrastructure-first development, continuous integration testing—and what didn't, including validation trade-offs and planning algorithm dead ends. These milestone-driven patterns provide a practical roadmap for turning ambitious vision into working code.
+
 **Key Messages:**
 - Practical roadmap for cognitive architecture development
 - Milestone-driven development approach
@@ -265,6 +394,9 @@ A multi-part series exploring how Project LOGOS builds cognitive architecture wi
 **Status:** PLANNED  
 **Priority:** MEDIUM
 
+**Abstract:**  
+Knowledge graphs often suffer from schema drift, invalid relationships, and missing required properties—problems that compound over time and break downstream reasoning. SHACL (Shapes Constraint Language) provides formal, declarative validation for RDF and graph data. This post demonstrates how Project LOGOS uses SHACL shapes to maintain Hybrid Causal Graph integrity, defining constraints on node types, relationship cardinality, and property datatypes. We compare PyShacl for fast CI/CD validation and Neo4j's n10s plugin for integrated graph validation.
+
 **Key Messages:**
 - SHACL provides formal validation for RDF/graph data
 - Essential for maintaining data integrity in knowledge graphs
@@ -322,6 +454,9 @@ A multi-part series exploring how Project LOGOS builds cognitive architecture wi
 **Length:** 1800-2200 words  
 **Status:** PLANNED  
 **Priority:** MEDIUM
+
+**Abstract:**  
+Research prototypes often become trapped in their initial hardware choices, limiting reusability. Project LOGOS inverts this problem: the cognitive architecture (Sophia + HCG) works identically whether deployed as a CLI-only assistant, perception-only vision system, simulated robot, physical manipulator, or drone fleet. This flexibility comes from treating embodiment as optional capability plugins. We explore five deployment modes and explain how Talos provides hardware abstraction without forcing hardware requirements, scaling from desktop assistants to multi-robot coordination.
 
 **Key Messages:**
 - LOGOS works from CLI-only to multi-robot fleets
@@ -383,6 +518,9 @@ A multi-part series exploring how Project LOGOS builds cognitive architecture wi
 **Status:** PLANNED (Phase 2+)  
 **Priority:** FUTURE
 
+**Abstract:**  
+Symbolic reasoning excels at structured knowledge but struggles with continuous physics. Neural networks predict physical dynamics but lack symbolic interpretability. Project LOGOS bridges this gap with dual causal world models: CWM-A for commonsense abstract reasoning and CWM-G for grounded physics prediction using Joint Embedding Predictive Architecture (JEPA). This post explores how Sophia maintains consistency between symbolic HCG updates and learned physical dynamics, enabling the agent to "imagine" action outcomes before executing them. An optional CWM-E layer adds social/emotional reasoning for human interaction scenarios.
+
 **Key Messages:**
 - Dual world models: commonsense (CWM-A) + physics (CWM-G)
 - JEPA-style learned models for grounded prediction
@@ -409,6 +547,9 @@ A multi-part series exploring how Project LOGOS builds cognitive architecture wi
 **Status:** PLANNED (Phase 2+)  
 **Priority:** FUTURE
 
+**Abstract:**  
+Large language models excel at language generation but lack grounded world understanding, causal reasoning, and formal validation. What if we could augment LLMs with a dedicated causal reasoning subsystem? This post presents LOGOS as a "causal co-processor" that provides grounded context, validates LLM outputs against the Hybrid Causal Graph, and augments perception with world model predictions. We demonstrate integration patterns through Apollo's chat interface and explore use cases from robotics to knowledge work assistants. The result is best-of-both-worlds AI: the fluency of language models with the reliability of formal methods.
+
 **Key Messages:**
 - LLMs + LOGOS = best of both worlds
 - LOGOS provides grounded context and causal validation
@@ -434,6 +575,9 @@ A multi-part series exploring how Project LOGOS builds cognitive architecture wi
 **Status:** PLANNED  
 **Priority:** LOW
 
+**Abstract:**  
+Academic research and open-source development have different cultures, expectations, and rhythms. Successfully bridging them requires intentional preparation, clear communication, and sustainable maintenance strategies. This post shares lessons from open-sourcing Project LOGOS: preparing codebases for public consumption, choosing licenses and contribution models, building documentation that serves both researchers and practitioners, managing community expectations, and balancing support requests with ongoing development. These lessons help navigate the intersection of academia and public code.
+
 **Key Messages:**
 - How to open-source academic research
 - Documentation, licensing, community building
@@ -447,6 +591,71 @@ A multi-part series exploring how Project LOGOS builds cognitive architecture wi
 4. **Community: Issues, PRs, Discussions** (300 words)
 5. **Maintenance: Balancing Research and Support** (300 words)
 6. **LOGOS Experience** (300 words)
+
+---
+
+## Additional Suggested Articles
+
+### Suggested Post A: "Vector Embeddings Meet Causal Graphs: Semantic Search with Structure"
+
+**Target Audience:** Search engineers, ML engineers, knowledge graph developers  
+**Length:** 2000-2500 words  
+**Status:** SUGGESTED  
+**Priority:** MEDIUM - Could fit between Posts 2 and 3
+
+**Abstract:**  
+Vector embeddings enable powerful semantic search, but they lose the explicit relationships that make knowledge useful. Pure graph traversal finds exact structural patterns but misses semantic similarity. Project LOGOS's Hybrid Causal Graph combines both: Milvus stores embeddings for semantic search while Neo4j maintains causal relationships for structured reasoning. This post explores practical patterns for hybrid search: finding semantically similar concepts with specific causal properties, discovering analogous action sequences, and maintaining synchronization between vector and graph stores. Real queries demonstrate how hybrid search enables questions like "find actions similar to grasping that cause state changes."
+
+**Why This Post:**
+- Bridges technical content of Posts 2 and 3
+- Practical implementation patterns for hybrid systems
+- Growing interest in combining embeddings with structured knowledge
+- Demonstrates unique advantages of LOGOS architecture
+
+**Publishing Timing:** Week 5 (between Posts 2 and 3)  
+**Platforms:** Dev.to, Medium, Pinecone/Weaviate/Milvus community blogs
+
+---
+
+### Suggested Post B: "Debugging Cognitive Architectures: Introspection and Observability"
+
+**Target Audience:** AI engineers, DevOps engineers, cognitive architecture researchers  
+**Length:** 1800-2200 words  
+**Status:** SUGGESTED  
+**Priority:** MEDIUM - After Post 4
+
+**Abstract:**  
+Traditional software debugging tools show code execution, not thought processes. When your AI agent makes unexpected decisions, how do you understand why? Project LOGOS builds introspection into the architecture: the Hybrid Causal Graph is queryable in real-time, SHACL validation reports explain constraint violations, plan generation is traceable through causal chains, and Apollo diagnostics expose internal state. This post presents debugging strategies for cognitive systems: visualizing reasoning paths with Neo4j Browser, analyzing validation failures, tracing plan generation, and monitoring world model predictions. These observability patterns apply to any AI system where understanding decisions matters as much as making them.
+
+**Why This Post:**
+- Practical debugging experience from Phase 1 development
+- Fills gap in cognitive architecture literature
+- Appeals to both AI researchers and DevOps engineers
+- Demonstrates transparency advantages of graph-based systems
+
+**Publishing Timing:** Week 9 (after Post 4)  
+**Platforms:** Medium, Dev.to, monitoring/observability blogs
+
+---
+
+### Suggested Post C: "From Prototype to Production: Scaling Graph-Based Cognition"
+
+**Target Audience:** DevOps engineers, SRE teams, system architects  
+**Length:** 2500-3000 words  
+**Status:** SUGGESTED  
+**Priority:** LOW - Future content after Phase 2
+
+**Abstract:**  
+Research prototypes demonstrate feasibility; production systems demand reliability, performance, and operational excellence. This post bridges the gap for graph-based cognitive architectures, covering Neo4j scaling strategies (causal clustering, read replicas, query optimization), Milvus performance tuning (index types, search parameters, memory management), HCG growth patterns (pruning, archiving, memory management), monitoring and alerting for graph operations, backup and disaster recovery, and CI/CD patterns for graph schema evolution. Drawing from LOGOS development experience, we share metrics, bottlenecks, and solutions for running cognitive architectures at scale.
+
+**Why This Post:**
+- Addresses practical deployment concerns
+- Valuable for teams moving from research to production
+- Fills gap between research papers and operational reality
+- Demonstrates maturity of LOGOS approach
+
+**Publishing Timing:** Month 6+ (after Phase 2 production experience)  
+**Platforms:** Medium, InfoQ, SRE/DevOps publications
 
 ---
 
@@ -516,6 +725,14 @@ A multi-part series exploring how Project LOGOS builds cognitive architecture wi
 
 ## Content Calendar
 
+**Foundational Post:**
+
+| Week | Post | Status | Author | Review | Publish |
+|------|------|--------|--------|--------|---------|
+| 0 or 1 | Post 0: AI as Search (History) | Planning | TBD | TBD | Optional Pre-Launch |
+
+**Core Series (Posts 1-9):**
+
 | Week | Post | Status | Author | Review | Publish |
 |------|------|--------|--------|--------|---------|
 | 1-2 | Post 1: Non-Linguistic Cognition | Planning | TBD | TBD | Week 2 |
@@ -527,6 +744,16 @@ A multi-part series exploring how Project LOGOS builds cognitive architecture wi
 | Future | Post 7: Causal World Models | Blocked on Phase 2 | TBD | TBD | TBD |
 | Future | Post 8: Causal Co-Processor | Blocked on Phase 2 | TBD | TBD | TBD |
 | Future | Post 9: Open-Source Lessons | Optional | TBD | TBD | TBD |
+
+**Additional Suggested Posts:**
+
+| Week | Post | Status | Author | Review | Publish |
+|------|------|--------|--------|--------|---------|
+| 5 | Post A: Vector Embeddings + Graphs | Suggested | TBD | TBD | Optional Week 5 |
+| 9 | Post B: Debugging Cognitive Arch | Suggested | TBD | TBD | Optional Week 9 |
+| Future | Post C: Prototype to Production | Suggested | TBD | TBD | After Phase 2 |
+
+**Note:** The suggested posts (A, B, C) can be written and published to fill gaps in the publishing schedule or when specific technical insights emerge during development. They are optional but would enhance the series coverage.
 
 ---
 
@@ -579,6 +806,8 @@ After each post:
 
 1. **Week 1:**
    - [x] Create blog series plan
+   - [x] Create abstracts for all posts (see BLOG_POST_ABSTRACTS.md)
+   - [x] Identify additional suggested articles
    - [ ] Create draft template
    - [ ] Assign Post 1 author
    - [ ] Start Post 1 outline
