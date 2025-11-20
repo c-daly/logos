@@ -66,28 +66,36 @@ After generation, open `docs/api/index.html` in your web browser to view the doc
 API documentation is automatically published to GitHub Pages via GitHub Actions:
 - **Workflow:** `.github/workflows/publish-api-docs.yml`
 - **Trigger:** On push to `main` branch when files in `contracts/` change
-- **Publication:** GitHub Pages serves from the `docs/` directory
+- **Deployment:** Automatically pushes to `gh-pages` branch, which GitHub Pages serves
 - **URL:** https://c-daly.github.io/logos/api/
+
+The workflow:
+1. Generates documentation from OpenAPI specs
+2. Deploys to the `gh-pages` branch
+3. GitHub Pages automatically serves the content
+
+**Setup**: See `GITHUB_PAGES_SETUP.md` for one-time configuration steps.
 
 ## Adding New API Documentation
 
 To add documentation for a new API component (e.g., Sophia, Talos, Apollo):
 
 1. Add the OpenAPI specification to `contracts/` with the naming pattern: `<component-name>.openapi.yaml`
-2. Run `./scripts/generate-api-docs.sh` to generate the documentation
-3. The new API will automatically appear in the index page
-4. Commit both the OpenAPI spec and generated documentation
-5. The GitHub Actions workflow will publish the updated documentation
+2. Commit and push to `main`
+3. The workflow automatically generates and publishes the documentation
+4. The new API appears in the index page
 
 Example:
 ```bash
 # Add a new OpenAPI spec
 cp sophia.openapi.yaml contracts/
 
-# Generate documentation
-./scripts/generate-api-docs.sh
+# Commit and push
+git add contracts/sophia.openapi.yaml
+git commit -m "Add Sophia API specification"
+git push
 
-# The docs/api/sophia.html file is created automatically
+# Documentation is automatically generated and published
 ```
 
 ## File Structure

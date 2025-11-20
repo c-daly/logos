@@ -16,9 +16,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pages: write
-  id-token: write
+  contents: read
 
 # Allow only one concurrent deployment
 concurrency:
@@ -93,9 +91,8 @@ jobs:
     needs: generate-docs
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: write
     
     steps:
       - name: Checkout repository
@@ -107,24 +104,26 @@ jobs:
           name: api-documentation
           path: docs/api/
       
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-      
-      - name: Upload to GitHub Pages
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: 'docs'
-      
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          publish_branch: gh-pages
+          force_orphan: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: 'Deploy API documentation'
       
       - name: Add deployment summary
         run: |
           echo "## 🚀 Deployed to GitHub Pages" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "API documentation is now available at:" >> $GITHUB_STEP_SUMMARY
-          echo "- 🌐 **Main Index:** ${{ steps.deployment.outputs.page_url }}api/" >> $GITHUB_STEP_SUMMARY
-          echo "- 📖 **Hermes API:** ${{ steps.deployment.outputs.page_url }}api/hermes.html" >> $GITHUB_STEP_SUMMARY
+          echo "- 🌐 **Main Index:** https://c-daly.github.io/logos/api/" >> $GITHUB_STEP_SUMMARY
+          echo "- 📖 **Hermes API:** https://c-daly.github.io/logos/api/hermes.html" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Documentation will be updated automatically when changes are pushed to the \`main\` branch." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** If this is the first deployment, enable GitHub Pages in repository settings:" >> $GITHUB_STEP_SUMMARY
+          echo "- Go to Settings → Pages → Source: Deploy from a branch → Branch: gh-pages" >> $GITHUB_STEP_SUMMARY

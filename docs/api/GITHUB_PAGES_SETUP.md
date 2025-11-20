@@ -2,51 +2,69 @@
 
 This guide walks through the steps to enable GitHub Pages for the LOGOS API documentation.
 
-## Quick Setup (Recommended)
+## Automated Setup (Recommended)
 
-The repository is configured to use GitHub Actions to deploy to GitHub Pages. This is the recommended approach as it provides better control and allows for custom build steps.
-
-### Steps:
-
-1. **Enable GitHub Pages with GitHub Actions**:
-   - Go to the repository on GitHub
-   - Navigate to **Settings** → **Pages**
-   - Under "Build and deployment":
-     - **Source**: Select "GitHub Actions"
-   - Click **Save**
-
-2. **Trigger the Workflow**:
-   - The workflow will automatically run on the next push to `main` that affects files in `contracts/` or the documentation scripts
-   - Or manually trigger it:
-     - Go to **Actions** → **Publish API Documentation**
-     - Click **Run workflow** → **Run workflow**
-
-3. **Access the Documentation**:
-   - After the workflow completes, the documentation will be available at:
-     - Main Index: `https://c-daly.github.io/logos/api/`
-     - Hermes API: `https://c-daly.github.io/logos/api/hermes.html`
-
-## Alternative Setup (Deploy from Branch)
-
-If you prefer to deploy from a branch instead of using GitHub Actions:
+The repository is now configured with a fully automated GitHub Actions workflow that deploys to the `gh-pages` branch. This approach requires minimal configuration and handles everything automatically.
 
 ### Steps:
 
-1. **Enable GitHub Pages**:
+1. **Merge the PR to `main`**:
+   - Once this PR is merged, the workflow will automatically run
+
+2. **Enable GitHub Pages (one-time setup)**:
    - Go to the repository on GitHub
    - Navigate to **Settings** → **Pages**
    - Under "Build and deployment":
      - **Source**: Select "Deploy from a branch"
-     - **Branch**: Select `main`
-     - **Folder**: Select `/docs`
+     - **Branch**: Select `gh-pages`
+     - **Folder**: Select `/ (root)`
+   - Click **Save**
+   
+   **Note**: The `gh-pages` branch will be automatically created by the workflow on first run.
+
+3. **Access the Documentation**:
+   - After the workflow completes and Pages is enabled, the documentation will be available at:
+     - Main Index: `https://c-daly.github.io/logos/api/`
+     - Hermes API: `https://c-daly.github.io/logos/api/hermes.html`
+
+### How It Works
+
+The workflow automatically:
+1. Generates API documentation from OpenAPI specs in `contracts/`
+2. Pushes the generated docs to the `gh-pages` branch
+3. GitHub Pages serves the content from the `gh-pages` branch
+
+Future updates happen automatically whenever:
+- OpenAPI specs in `contracts/` are modified
+- The generation script is updated
+- Changes are pushed to `main`
+
+## Manual Deployment (Alternative)
+
+If you prefer to deploy without the automated workflow:
+
+### Steps:
+
+1. **Generate documentation locally**:
+   ```bash
+   ./scripts/generate-api-docs.sh
+   ```
+
+2. **Commit and push**:
+   ```bash
+   git add docs/api/
+   git commit -m "Update API documentation"
+   git push origin main
+   ```
+
+3. **Enable GitHub Pages from main branch**:
+   - Go to **Settings** → **Pages**
+   - **Source**: Deploy from a branch
+   - **Branch**: `main`
+   - **Folder**: `/docs`
    - Click **Save**
 
-2. **Wait for Deployment**:
-   - GitHub Pages will automatically deploy from the `docs/` directory
-   - This may take a few minutes
-   - The site will be available at: `https://c-daly.github.io/logos/api/`
-
-3. **Note**: With this approach, you need to manually run `./scripts/generate-api-docs.sh` and commit the generated files before pushing to `main`.
+4. **Access**: `https://c-daly.github.io/logos/api/`
 
 ## Verifying the Setup
 
@@ -72,22 +90,29 @@ After enabling GitHub Pages:
 
 If the documentation doesn't appear after enabling GitHub Pages:
 
-1. **Check the deployment**:
+1. **Check the workflow**:
    - Go to **Actions** tab
-   - Look for "pages build and deployment" workflow runs
+   - Look for "Publish API Documentation" workflow runs
+   - Ensure it completed successfully
    - Check for any errors in the logs
 
-2. **Verify files exist**:
-   - Ensure `docs/api/index.html` and `docs/api/hermes.html` exist in the `main` branch
-   - If using GitHub Actions deployment, check that the workflow completed successfully
+2. **Verify gh-pages branch**:
+   - Check if the `gh-pages` branch exists
+   - Verify it contains the documentation files in the root directory
+   - The workflow creates this branch automatically on first run
 
-3. **Check the URL**:
-   - Make sure you're accessing the correct URL
-   - The base URL is `https://<username>.github.io/<repo>/`
-   - API docs are at `https://<username>.github.io/<repo>/api/`
+3. **Check Pages settings**:
+   - Go to **Settings** → **Pages**
+   - Ensure source is set to "Deploy from a branch"
+   - Ensure branch is set to `gh-pages` (not `main`)
+   - Ensure folder is set to `/ (root)` (not `/docs`)
 
-4. **Wait for propagation**:
-   - Sometimes it takes 5-10 minutes for GitHub Pages to update
+4. **Check the URL**:
+   - The API docs are at: `https://c-daly.github.io/logos/api/`
+   - Not at: `https://c-daly.github.io/logos/docs/api/`
+
+5. **Wait for propagation**:
+   - First deployment can take 5-10 minutes
    - Try clearing your browser cache or using an incognito window
 
 ### Workflow Failing
@@ -98,7 +123,7 @@ If the "Publish API Documentation" workflow fails:
    - Go to **Settings** → **Actions** → **General**
    - Scroll to "Workflow permissions"
    - Ensure "Read and write permissions" is enabled
-   - Check that "Allow GitHub Actions to create and approve pull requests" is enabled
+   - This allows the workflow to create/update the `gh-pages` branch
 
 2. **Check the error logs**:
    - Go to **Actions** → Find the failed run
