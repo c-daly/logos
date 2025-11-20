@@ -9,7 +9,7 @@ This guide captures the steps required to run the Apollo web experience in "LLM-
 1. **Latest repos**: pull `logos`, `sophia`, `hermes`, and `apollo` (main branches).
 2. **Dev dependencies**: Node.js 18+, Python 3.11+, Poetry, Docker (for the HCG cluster).
 3. **Shared SDKs**: from the `logos` repo run `./scripts/generate-sdks.sh` so `sdk-web/sophia` and `sdk-web/hermes` are up to date.
-4. **Hermes LLM provider**: set env vars for the provider you want to call (e.g., `HERMES_LLM_PROVIDER=openai`, `HERMES_LLM_API_KEY=...`). Hermes will expose an `/llm` endpoint per ADR-0006.
+4. **Hermes LLM provider**: set env vars for the provider you want to call (e.g., `HERMES_LLM_PROVIDER=openai`, `HERMES_LLM_API_KEY=...`). Hermes will expose an `/llm` endpoint per ADR-0006 (implementation tracked by issue #279).
 
 ## 2. Start Core Services
 
@@ -62,8 +62,8 @@ Workflow suggestions:
 
 After completing the demo, populate `logs/benchmarks/browser_llm/`:
 
-1. Save the `/plan` and `/state` HTTP transcripts (e.g., rerun the requests via `curl` and pipe to `plan.log`, `state.log`).
-2. Export CWM states via Cypher or an admin script (see issue #276 for upcoming helpers) and store as `cwm_state.jsonl`.
+1. Save the `/plan` and `/state` HTTP transcripts (e.g., rerun the requests via `curl` and pipe to `plan.log`, `state.log`). (Export helper scripts are being added via issue #276.)
+2. Export CWM states via Cypher or an admin script (see issue #276 for the forthcoming helper) and store as `cwm_state.jsonl`.
 3. Dump persona entries via the `logos_persona` API (`curl http://localhost:8000/persona/entries`) and save as `personas.jsonl`.
 4. Capture screenshots/video of the webapp and note paths in `README.md`.
 

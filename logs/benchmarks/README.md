@@ -11,4 +11,4 @@ Each folder under `logs/benchmarks/` captures the artifacts needed to replay a c
 - `jepe_frames/` — imagined frames (if applicable).
 - `talos_telemetry.jsonl` — actuator/sensor traces for embodied runs.
 
-Populate each bundle with real data before submitting verification evidence; placeholder files below describe the expectations.
+Populate each bundle with real data before submitting verification evidence; placeholder files below describe the expectations. Scenario helper scripts (issue #275) and artifact export utilities (issue #276) will automate these steps once they land; until then, follow the commands noted in each scenario README.
