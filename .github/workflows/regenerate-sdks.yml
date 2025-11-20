@@ -89,6 +89,14 @@ jobs:
         run: |
           # Unstage files so peter-evans/create-pull-request can handle them
           git reset
+          # Clean untracked files to avoid conflicts during branch operations
+          git clean -fdx sdk/ sdk-web/
+      
+      - name: Regenerate SDKs for PR
+        if: steps.check_changes.outputs.changes == 'true' && github.event_name == 'pull_request'
+        run: |
+          # Regenerate SDKs so they exist as untracked files for the action
+          ./scripts/generate_sdks.sh
       
       - name: Create pull request for SDK updates
         if: steps.check_changes.outputs.changes == 'true' && github.event_name == 'pull_request'
