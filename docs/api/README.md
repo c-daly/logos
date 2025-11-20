@@ -18,6 +18,9 @@ Hermes is the stateless language & embedding utility providing:
 - Text-to-speech (TTS)
 - Simple NLP preprocessing
 - Text embedding generation
+- LLM gateway proxy via `/llm`
+
+Configure the `/llm` gateway by setting `HERMES_LLM_PROVIDER` (`openai`, `local`, `echo`) and the corresponding credentials (e.g., `HERMES_LLM_API_KEY`). Apollo SDKs consume this contract so every surface calls the same endpoint.
 
 ### Sophia API
 **Status:** 🚧 Coming Soon  

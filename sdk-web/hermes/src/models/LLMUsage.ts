@@ -14,25 +14,25 @@
 
 import { mapValues } from '../runtime';
 /**
- * 
+ * Token usage returned by the upstream provider.
  * @export
  * @interface LLMUsage
  */
 export interface LLMUsage {
     /**
-     * 
+     * Prompt token count.
      * @type {number}
      * @memberof LLMUsage
      */
     promptTokens: number;
     /**
-     * 
+     * Completion token count.
      * @type {number}
      * @memberof LLMUsage
      */
     completionTokens: number;
     /**
-     * 
+     * Total token count.
      * @type {number}
      * @memberof LLMUsage
      */

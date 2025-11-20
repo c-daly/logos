@@ -1,6 +1,7 @@
 
 # LLMChoice
 
+Individual choice returned by the provider.
 
 ## Properties
 

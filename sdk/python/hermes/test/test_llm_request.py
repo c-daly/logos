@@ -44,7 +44,7 @@ class TestLLMRequest(unittest.TestCase):
                     ],
                 provider = '',
                 model = '',
-                temperature = 0.0,
+                temperature = 0,
                 max_tokens = 1,
                 metadata = { }
             )

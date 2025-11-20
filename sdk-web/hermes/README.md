@@ -51,6 +51,7 @@ All URIs are relative to *http://localhost:8080*
 | Class | Method | HTTP request | Description
 | ----- | ------ | ------------ | -------------
 *DefaultApi* | [**embedText**](docs/DefaultApi.md#embedtextoperation) | **POST** /embed_text | Text Embedding Generation
+*DefaultApi* | [**llmGenerate**](docs/DefaultApi.md#llmgenerate) | **POST** /llm | LLM Gateway
 *DefaultApi* | [**simpleNlp**](docs/DefaultApi.md#simplenlpoperation) | **POST** /simple_nlp | Simple NLP Preprocessing
 *DefaultApi* | [**speechToText**](docs/DefaultApi.md#speechtotext) | **POST** /stt | Speech-to-Text
 *DefaultApi* | [**textToSpeech**](docs/DefaultApi.md#texttospeechoperation) | **POST** /tts | Text-to-Speech
@@ -60,6 +61,11 @@ All URIs are relative to *http://localhost:8080*
 
 - [EmbedText200Response](docs/EmbedText200Response.md)
 - [EmbedTextRequest](docs/EmbedTextRequest.md)
+- [LLMChoice](docs/LLMChoice.md)
+- [LLMMessage](docs/LLMMessage.md)
+- [LLMRequest](docs/LLMRequest.md)
+- [LLMResponse](docs/LLMResponse.md)
+- [LLMUsage](docs/LLMUsage.md)
 - [SimpleNlp200Response](docs/SimpleNlp200Response.md)
 - [SimpleNlp200ResponseEntitiesInner](docs/SimpleNlp200ResponseEntitiesInner.md)
 - [SimpleNlp200ResponsePosTagsInner](docs/SimpleNlp200ResponsePosTagsInner.md)

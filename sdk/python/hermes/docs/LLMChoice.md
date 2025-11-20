@@ -1,13 +1,14 @@
 # LLMChoice
 
+Individual choice returned by the provider.
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**index** | **int** | Position of the choice in the provider response. | 
+**index** | **int** | Choice index. | 
 **message** | [**LLMMessage**](LLMMessage.md) |  | 
-**finish_reason** | **str** | Why the provider stopped generating tokens. | 
+**finish_reason** | **str** | Reason generation finished (e.g., &#x60;stop&#x60;, &#x60;length&#x60;). | [optional] 
 
 ## Example
 

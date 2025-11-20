@@ -7,6 +7,11 @@ README.md
 docs/DefaultApi.md
 docs/EmbedText200Response.md
 docs/EmbedTextRequest.md
+docs/LLMChoice.md
+docs/LLMMessage.md
+docs/LLMRequest.md
+docs/LLMResponse.md
+docs/LLMUsage.md
 docs/SimpleNlp200Response.md
 docs/SimpleNlp200ResponseEntitiesInner.md
 docs/SimpleNlp200ResponsePosTagsInner.md
@@ -24,6 +29,11 @@ logos_hermes_sdk/exceptions.py
 logos_hermes_sdk/models/__init__.py
 logos_hermes_sdk/models/embed_text200_response.py
 logos_hermes_sdk/models/embed_text_request.py
+logos_hermes_sdk/models/llm_choice.py
+logos_hermes_sdk/models/llm_message.py
+logos_hermes_sdk/models/llm_request.py
+logos_hermes_sdk/models/llm_response.py
+logos_hermes_sdk/models/llm_usage.py
 logos_hermes_sdk/models/simple_nlp200_response.py
 logos_hermes_sdk/models/simple_nlp200_response_entities_inner.py
 logos_hermes_sdk/models/simple_nlp200_response_pos_tags_inner.py
@@ -41,6 +51,11 @@ test/__init__.py
 test/test_default_api.py
 test/test_embed_text200_response.py
 test/test_embed_text_request.py
+test/test_llm_choice.py
+test/test_llm_message.py
+test/test_llm_request.py
+test/test_llm_response.py
+test/test_llm_usage.py
 test/test_simple_nlp200_response.py
 test/test_simple_nlp200_response_entities_inner.py
 test/test_simple_nlp200_response_pos_tags_inner.py

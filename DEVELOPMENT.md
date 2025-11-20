@@ -116,6 +116,17 @@ Requirements:
 
 The script removes existing SDK folders and re-generates them from `contracts/*.openapi.yaml`. Commit the resulting changes so downstream projects can consume the updated packages.
 
+## Hermes `/llm` Gateway Configuration
+
+Hermes proxies all chat/LLM traffic through the `/llm` endpoint defined in `contracts/hermes.openapi.yaml`. When running the Hermes service directly (e.g., during Apollo browser demos), configure the provider via environment variables:
+
+- `HERMES_LLM_PROVIDER` — Provider identifier (`openai`, `local`, `echo`). Defaults to `echo`, or `openai` automatically when an API key is present.
+- `HERMES_LLM_API_KEY` / `OPENAI_API_KEY` — Credential required for `openai`.
+- `HERMES_LLM_MODEL` — Optional override for the provider model (e.g., `gpt-4o-mini`).
+- `HERMES_LLM_BASE_URL` — Override the upstream base URL if routing through a proxy.
+
+Apollo’s SDKs assume the `/llm` contract is available; keep these variables in your shell or supervisor when launching `poetry run uvicorn hermes.api:app --reload`.
+
 ## Linting and Code Quality
 
 The project uses Ruff for linting and formatting, and mypy for type checking:

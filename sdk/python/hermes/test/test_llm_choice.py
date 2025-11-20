@@ -49,7 +49,6 @@ class TestLLMChoice(unittest.TestCase):
                     role = 'system', 
                     content = '', 
                     name = '', ),
-                finish_reason = '',
         )
         """
 

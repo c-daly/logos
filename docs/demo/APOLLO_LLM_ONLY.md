@@ -9,7 +9,7 @@ This guide captures the steps required to run the Apollo web experience in "LLM-
 1. **Latest repos**: pull `logos`, `sophia`, `hermes`, and `apollo` (main branches).
 2. **Dev dependencies**: Node.js 18+, Python 3.11+, Poetry, Docker (for the HCG cluster).
 3. **Shared SDKs**: from the `logos` repo run `./scripts/generate-sdks.sh` so `sdk-web/sophia` and `sdk-web/hermes` are up to date.
-4. **Hermes LLM provider**: set env vars for the provider you want to call (e.g., `HERMES_LLM_PROVIDER=openai`, `HERMES_LLM_API_KEY=...`). Hermes will expose an `/llm` endpoint per ADR-0006 (implementation tracked by issue #279).
+4. **Hermes LLM provider**: set env vars for the provider you want to call (e.g., `HERMES_LLM_PROVIDER=openai`, `HERMES_LLM_API_KEY=...`). Hermes already exposes the `/llm` gateway per ADR-0006 so Apollo can route every chat proposal through it.
 
 ## 2. Start Core Services
 

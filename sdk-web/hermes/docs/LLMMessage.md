@@ -1,6 +1,7 @@
 
 # LLMMessage
 
+Chat completion message payload.
 
 ## Properties
 

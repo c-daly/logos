@@ -28,31 +28,31 @@ import {
  */
 export interface LLMRequest {
     /**
-     * Shortcut for a single user message.
+     * Shortcut for a single user message when `messages` is omitted.
      * @type {string}
      * @memberof LLMRequest
      */
     prompt?: string;
     /**
-     * Conversation history to send to the provider.
+     * Conversation history forwarded to the provider.
      * @type {Array<LLMMessage>}
      * @memberof LLMRequest
      */
     messages?: Array<LLMMessage>;
     /**
-     * Override configured provider (e.g., `openai`, `echo`).
+     * Override the configured provider (e.g., `openai`, `echo`, `local`).
      * @type {string}
      * @memberof LLMRequest
      */
     provider?: string;
     /**
-     * Override provider model identifier.
+     * Provider-specific model identifier override.
      * @type {string}
      * @memberof LLMRequest
      */
     model?: string;
     /**
-     * Sampling temperature passed to the provider.
+     * Sampling temperature forwarded to the provider.
      * @type {number}
      * @memberof LLMRequest
      */
@@ -64,7 +64,7 @@ export interface LLMRequest {
      */
     maxTokens?: number;
     /**
-     * Additional metadata to log with the request.
+     * Additional metadata stored alongside the request.
      * @type {{ [key: string]: any; }}
      * @memberof LLMRequest
      */

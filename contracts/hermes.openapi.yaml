@@ -11,6 +11,7 @@ info:
     - Text-to-speech (TTS)
     - Simple NLP preprocessing
     - Text embedding generation
+    - LLM gateway proxy via `/llm`
     
     All endpoints are stateless and do not interact with the HCG directly.
 
@@ -216,5 +217,153 @@ paths:
         '500':
           description: Internal server error
 
+  /llm:
+    post:
+      summary: LLM Gateway
+      description: Proxy chat/completion requests through the configured provider (OpenAI, local, or echo fallback).
+      operationId: llmGenerate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LLMRequest'
+      responses:
+        '200':
+          description: Completion generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LLMResponse'
+        '400':
+          description: Invalid request (missing prompt/messages or schema violation)
+        '502':
+          description: Provider returned an error response
+        '503':
+          description: Provider not configured/available
+        '500':
+          description: Internal server error
+
 components:
-  schemas: {}
+  schemas:
+    LLMMessage:
+      type: object
+      description: Chat completion message payload.
+      required:
+        - role
+        - content
+      properties:
+        role:
+          type: string
+          description: Role associated with the message.
+          enum: [system, user, assistant, tool]
+        content:
+          type: string
+          description: Text content of the message.
+        name:
+          type: string
+          description: Optional identifier for tool/function calls.
+    LLMChoice:
+      type: object
+      description: Individual choice returned by the provider.
+      required:
+        - index
+        - message
+      properties:
+        index:
+          type: integer
+          description: Choice index.
+        message:
+          $ref: '#/components/schemas/LLMMessage'
+        finish_reason:
+          type: string
+          description: Reason generation finished (e.g., `stop`, `length`).
+    LLMUsage:
+      type: object
+      description: Token usage returned by the upstream provider.
+      required:
+        - prompt_tokens
+        - completion_tokens
+        - total_tokens
+      properties:
+        prompt_tokens:
+          type: integer
+          description: Prompt token count.
+        completion_tokens:
+          type: integer
+          description: Completion token count.
+        total_tokens:
+          type: integer
+          description: Total token count.
+    LLMResponse:
+      type: object
+      description: Standardized completion response returned by Hermes.
+      required:
+        - id
+        - provider
+        - model
+        - created
+        - choices
+      properties:
+        id:
+          type: string
+          description: Provider response identifier.
+        provider:
+          type: string
+          description: Provider used for this completion.
+        model:
+          type: string
+          description: Provider model identifier.
+        created:
+          type: integer
+          format: int64
+          description: Unix timestamp indicating when the provider generated the response.
+        choices:
+          type: array
+          description: Choice payloads returned by the provider.
+          items:
+            $ref: '#/components/schemas/LLMChoice'
+        usage:
+          $ref: '#/components/schemas/LLMUsage'
+          nullable: true
+        raw:
+          type: object
+          description: Raw provider payload for diagnostics.
+          additionalProperties: true
+          nullable: true
+    LLMRequest:
+      type: object
+      description: Request payload for Hermes LLM gateway.
+      properties:
+        prompt:
+          type: string
+          description: Shortcut for a single user message when `messages` is omitted.
+        messages:
+          type: array
+          description: Conversation history forwarded to the provider.
+          items:
+            $ref: '#/components/schemas/LLMMessage'
+        provider:
+          type: string
+          description: Override the configured provider (e.g., `openai`, `echo`, `local`).
+        model:
+          type: string
+          description: Provider-specific model identifier override.
+        temperature:
+          type: number
+          format: float
+          description: Sampling temperature forwarded to the provider.
+          minimum: 0
+          maximum: 2
+          default: 0.7
+        max_tokens:
+          type: integer
+          description: Optional maximum number of tokens to generate.
+          minimum: 1
+        metadata:
+          type: object
+          description: Additional metadata stored alongside the request.
+          additionalProperties: true
+      anyOf:
+        - required: [prompt]
+        - required: [messages]

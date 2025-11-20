@@ -18,7 +18,7 @@ Purpose
 
 Repos in the LOGOS ecosystem
 - `c-daly/sophia` — Sophia: non-linguistic cognitive core (Orchestrator, CWM-A, CWM-G, Planner, Executor). (See Section 3.3.)
-- `c-daly/hermes` — Hermes: stateless language &amp; embedding utility (stt, tts, simple_nlp, embed_text). (See Table 2, Section 3.4.)
+- `c-daly/hermes` — Hermes: stateless language &amp; embedding utility (stt, tts, simple_nlp, embed_text, llm). (See Table 2, Section 3.4.)
 - `c-daly/talos` — Talos: hardware abstraction layer (sensors/actuators, simulated interfaces for Phase 1). (See Section 3.5.)
 - `c-daly/apollo` — Apollo: thin client UI &amp; command layer. (See Section 3.5.)
 
@@ -120,7 +120,7 @@ Project Management
 API Documentation
 - **Interactive API Documentation**: Browse comprehensive API documentation at [c-daly.github.io/logos/api](https://c-daly.github.io/logos/api/)
 - **Available APIs**: 
-  - [Hermes API](https://c-daly.github.io/logos/api/hermes.html) - Language & embedding utility (STT, TTS, NLP, embeddings)
+  - [Hermes API](https://c-daly.github.io/logos/api/hermes.html) - Language & embedding utility (STT, TTS, NLP, embeddings, LLM gateway)
   - Sophia, Talos, and Apollo API docs will be added as specifications become available
 - **Local Generation**: Run `./scripts/generate-api-docs.sh` to build documentation locally
 - **Auto-Publishing**: Documentation is automatically rebuilt and published via GitHub Actions when OpenAPI specs change
@@ -228,4 +228,3 @@ A research paper is in preparation. Citation will be updated upon publication.
 ## Acknowledgments
 
 Project LOGOS builds on decades of cognitive architecture research and modern graph database technologies. We're grateful to the open-source community and the researchers who paved the way for non-linguistic AI systems.
-

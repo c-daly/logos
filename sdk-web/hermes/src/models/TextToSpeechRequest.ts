@@ -2,7 +2,7 @@
 /* eslint-disable */
 /**
  * Hermes API
- * Canonical Hermes OpenAPI contract for Project LOGOS. See Project LOGOS spec: Table 2 in Section 3.4 (Hermes API endpoints).  Hermes is the stateless language & embedding utility providing: - Speech-to-text (STT) - Text-to-speech (TTS) - Simple NLP preprocessing - Text embedding generation  All endpoints are stateless and do not interact with the HCG directly. 
+ * Canonical Hermes OpenAPI contract for Project LOGOS. See Project LOGOS spec: Table 2 in Section 3.4 (Hermes API endpoints).  Hermes is the stateless language & embedding utility providing: - Speech-to-text (STT) - Text-to-speech (TTS) - Simple NLP preprocessing - Text embedding generation - LLM gateway proxy via `/llm`  All endpoints are stateless and do not interact with the HCG directly. 
  *
  * The version of the OpenAPI document: 1.0.0
  * 

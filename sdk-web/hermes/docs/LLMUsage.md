@@ -1,6 +1,7 @@
 
 # LLMUsage
 
+Token usage returned by the upstream provider.
 
 ## Properties
 

@@ -1,6 +1,7 @@
 
 # LLMResponse
 
+Standardized completion response returned by Hermes.
 
 ## Properties
 

@@ -5,6 +5,7 @@ All URIs are relative to *http://localhost:8080*
 Method | HTTP request | Description
 ------------- | ------------- | -------------
 [**embed_text**](DefaultApi.md#embed_text) | **POST** /embed_text | Text Embedding Generation
+[**llm_generate**](DefaultApi.md#llm_generate) | **POST** /llm | LLM Gateway
 [**simple_nlp**](DefaultApi.md#simple_nlp) | **POST** /simple_nlp | Simple NLP Preprocessing
 [**speech_to_text**](DefaultApi.md#speech_to_text) | **POST** /stt | Speech-to-Text
 [**text_to_speech**](DefaultApi.md#text_to_speech) | **POST** /tts | Text-to-Speech
@@ -77,6 +78,79 @@ No authorization required
 |-------------|-------------|------------------|
 **200** | Embedding generation successful |  -  |
 **400** | Invalid request |  -  |
+**500** | Internal server error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **llm_generate**
+> LLMResponse llm_generate(llm_request)
+
+LLM Gateway
+
+Proxy chat/completion requests through the configured provider (OpenAI, local, or echo fallback).
+
+### Example
+
+
+```python
+import logos_hermes_sdk
+from logos_hermes_sdk.models.llm_request import LLMRequest
+from logos_hermes_sdk.models.llm_response import LLMResponse
+from logos_hermes_sdk.rest import ApiException
+from pprint import pprint
+
+# Defining the host is optional and defaults to http://localhost:8080
+# See configuration.py for a list of all supported configuration parameters.
+configuration = logos_hermes_sdk.Configuration(
+    host = "http://localhost:8080"
+)
+
+
+# Enter a context with an instance of the API client
+with logos_hermes_sdk.ApiClient(configuration) as api_client:
+    # Create an instance of the API class
+    api_instance = logos_hermes_sdk.DefaultApi(api_client)
+    llm_request = logos_hermes_sdk.LLMRequest() # LLMRequest | 
+
+    try:
+        # LLM Gateway
+        api_response = api_instance.llm_generate(llm_request)
+        print("The response of DefaultApi->llm_generate:\n")
+        pprint(api_response)
+    except Exception as e:
+        print("Exception when calling DefaultApi->llm_generate: %s\n" % e)
+```
+
+
+
+### Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **llm_request** | [**LLMRequest**](LLMRequest.md)|  | 
+
+### Return type
+
+[**LLMResponse**](LLMResponse.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+### HTTP response details
+
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+**200** | Completion generated successfully |  -  |
+**400** | Invalid request (missing prompt/messages or schema violation) |  -  |
+**502** | Provider returned an error response |  -  |
+**503** | Provider not configured/available |  -  |
 **500** | Internal server error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
