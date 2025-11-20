@@ -89,10 +89,14 @@ jobs:
         run: |
           # Unstage files so peter-evans/create-pull-request can handle them
           git reset
-          # Fix permissions before cleanup to avoid "Permission denied" errors
-          chmod -R u+w sdk/ sdk-web/ || true
-          # Clean untracked files to avoid conflicts during branch operations
-          git clean -fdx sdk/ sdk-web/
+          # Fix permissions and remove SDK directories to avoid conflicts
+          chmod -R u+w sdk/ sdk-web/ 2>/dev/null || true
+          rm -rf sdk/ sdk-web/ || true
+          # Verify directories are removed
+          if [ -d "sdk" ] || [ -d "sdk-web" ]; then
+            echo "Warning: Could not remove SDK directories completely"
+            ls -la sdk/ sdk-web/ 2>/dev/null || true
+          fi
       
       - name: Regenerate SDKs for PR
         if: steps.check_changes.outputs.changes == 'true' && github.event_name == 'pull_request'
