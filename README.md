@@ -149,6 +149,20 @@ SHACL Validation Strategy
 - Phase 2 work is blocked until all milestone gates pass (automated tests green + manual verifications complete).
 - Final documentation/UX polish before calling Phase 1 “done” lives under the `phase 1 closers` label (issues #200, #201, #202, #203, #204, #205, #206, #208). These cover the opt-in Neo4j SHACL job, planner/executor shims, Apollo CLI entrypoint, Milvus smoke test, stronger M4 assertions, and CI/test cleanup.
 
+
+M4 Pick-and-Place Demo
+- **Demo Overview**: See `docs/M4_DEMO_ASSETS.md` for comprehensive demo documentation
+- **Complete Walkthrough**: Follow `docs/PICK_AND_PLACE_WALKTHROUGH.md` for step-by-step instructions
+- **Quick Demo**: Run `./scripts/run_m4_demo.sh` to execute the full demo with metrics capture
+- **Demo Scenario**: Robotic manipulator picks a red block from a table and places it in a target bin
+- **What's Demonstrated**: 
+  - Apollo command simulation (goal state creation)
+  - Sophia plan generation (4-step causal plan)
+  - Talos execution simulation (state transitions)
+  - HCG state management (entities, states, processes, causal relationships)
+- **Verification**: All M4 success criteria validated per Section 7.1 of the specification
+- **Documentation**: Complete verification report available at `logs/m4-verification/M4_VERIFICATION_REPORT.md`
+
 Notes and next steps
 - The `core_ontology.cypher` and `shacl_shapes.ttl` are intentionally minimal, syntactically valid, and contain comments indicating where the full ontology and constraints described in the spec will be extended.
 - This repo is the canonical place for future ontology updates, SHACL extensions, contract evolution, and HCG infra changes.
