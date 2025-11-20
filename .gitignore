@@ -82,9 +82,11 @@ docs/api/*.html
 
 # E2E test logs
 logs/
-# But keep M1 and M4 verification evidence
+# But keep M1/M4 verification evidence and scenario benchmarks
 !logs/m1-verification/
 !logs/m4-verification/
+!logs/benchmarks/
+!logs/benchmarks/**
 
 # Neo4j and Milvus data (local dev)
 .neo4j/
