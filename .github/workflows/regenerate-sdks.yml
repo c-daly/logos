@@ -62,7 +62,8 @@ jobs:
       - name: Check for SDK changes
         id: check_changes
         run: |
-          git add sdk/ sdk-web/
+          # Add all changes in sdk/ and sdk-web/ directories
+          git add -A sdk/ sdk-web/
           if git diff --staged --quiet; then
             echo "No SDK changes detected"
             echo "changes=false" >> $GITHUB_OUTPUT
@@ -77,11 +78,17 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
       
-      - name: Commit and push SDK changes
+      - name: Commit SDK changes for direct push
         if: steps.check_changes.outputs.changes == 'true' && github.event_name == 'push'
         run: |
           git commit -m "chore: regenerate SDKs from updated OpenAPI contracts [skip ci]"
           git push
+      
+      - name: Reset staging area before PR creation
+        if: steps.check_changes.outputs.changes == 'true' && github.event_name == 'pull_request'
+        run: |
+          # Unstage files so peter-evans/create-pull-request can handle them
+          git reset
       
       - name: Create pull request for SDK updates
         if: steps.check_changes.outputs.changes == 'true' && github.event_name == 'pull_request'
@@ -107,6 +114,9 @@ jobs:
           branch: sdk-updates-${{ github.event.pull_request.number || github.sha }}
           base: ${{ github.event.pull_request.base.ref || github.ref_name || 'main' }}
           delete-branch: true
+          add-paths: |
+            sdk/
+            sdk-web/
       
       - name: SDK Generation Summary
         if: always()
