@@ -378,3 +378,141 @@ logos:CanPerformRelationshipShape
         rdfs:label "Can Perform" ;
         rdfs:comment "Entity can have capabilities defined by concepts" ;
     ] .
+
+# Phase 2 P2-M3: Perception and Imagination Shapes
+
+logos:PerceptionFrameShape
+    a sh:NodeShape ;
+    sh:targetClass logos:PerceptionFrame ;
+    rdfs:label "Perception Frame Shape" ;
+    rdfs:comment "Validates media frames from perception pipeline" ;
+    sh:property [
+        sh:path logos:uuid ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "UUID" ;
+        rdfs:comment "Unique identifier for perception frame" ;
+    ] ;
+    sh:property [
+        sh:path logos:timestamp ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        rdfs:label "Timestamp" ;
+        rdfs:comment "When the frame was captured" ;
+    ] ;
+    sh:property [
+        sh:path logos:format ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Format" ;
+        rdfs:comment "Media format (e.g., 'image/jpeg', 'video/mp4')" ;
+    ] ;
+    sh:property [
+        sh:path logos:metadata ;
+        sh:maxCount 1 ;
+        rdfs:label "Metadata" ;
+        rdfs:comment "Additional metadata about the frame" ;
+    ] .
+
+logos:ImaginedProcessShape
+    a sh:NodeShape ;
+    sh:targetClass logos:ImaginedProcess ;
+    rdfs:label "Imagined Process Shape" ;
+    rdfs:comment "Validates simulated processes from JEPA rollout" ;
+    sh:property [
+        sh:path logos:uuid ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "UUID" ;
+        rdfs:comment "Unique identifier for imagined process" ;
+    ] ;
+    sh:property [
+        sh:path logos:timestamp ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        rdfs:label "Timestamp" ;
+        rdfs:comment "When the simulation was run" ;
+    ] ;
+    sh:property [
+        sh:path logos:capability_id ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Capability ID" ;
+        rdfs:comment "ID of the capability being simulated" ;
+    ] ;
+    sh:property [
+        sh:path logos:imagined ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+        sh:hasValue true ;
+        rdfs:label "Imagined Flag" ;
+        rdfs:comment "Must be true to indicate this is simulated, not actual" ;
+    ] ;
+    sh:property [
+        sh:path logos:horizon ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 1 ;
+        rdfs:label "Horizon" ;
+        rdfs:comment "Number of steps predicted" ;
+    ] ;
+    sh:property [
+        sh:path logos:model_version ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Model Version" ;
+        rdfs:comment "Version of the JEPA model used" ;
+    ] .
+
+logos:ImaginedStateShape
+    a sh:NodeShape ;
+    sh:targetClass logos:ImaginedState ;
+    rdfs:label "Imagined State Shape" ;
+    rdfs:comment "Validates predicted future states from simulation" ;
+    sh:property [
+        sh:path logos:uuid ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "UUID" ;
+        rdfs:comment "Unique identifier for imagined state" ;
+    ] ;
+    sh:property [
+        sh:path logos:timestamp ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        rdfs:label "Timestamp" ;
+        rdfs:comment "When the state was predicted" ;
+    ] ;
+    sh:property [
+        sh:path logos:step ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 0 ;
+        rdfs:label "Step" ;
+        rdfs:comment "Step number in the simulation sequence" ;
+    ] ;
+    sh:property [
+        sh:path logos:confidence ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ;
+        sh:maxInclusive 1.0 ;
+        rdfs:label "Confidence" ;
+        rdfs:comment "Confidence score for this prediction (0.0 to 1.0)" ;
+    ] ;
+    sh:property [
+        sh:path logos:metadata ;
+        sh:maxCount 1 ;
+        rdfs:label "Metadata" ;
+        rdfs:comment "Additional metadata about the prediction" ;
+    ] .
