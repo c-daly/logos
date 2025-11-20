@@ -70,7 +70,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["logos_tools"]
+source = ["logos_tools", "logos_hcg", "logos_observability", "logos_persona", "logos_cwm_e"]
 omit = ["*/tests/*", "*/test_*.py"]
 
 [tool.coverage.report]
