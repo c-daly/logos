@@ -109,6 +109,7 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
+"logos_perception/media_api.py" = ["B008"]  # FastAPI dependency injection pattern
 
 [tool.mypy]
 python_version = "3.11"

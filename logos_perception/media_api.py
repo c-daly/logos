@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from neo4j import Driver
 from pydantic import BaseModel
@@ -167,8 +167,8 @@ def create_media_api(
 
             try:
                 metadata_dict = json.loads(metadata) if metadata != "{}" else {}
-            except json.JSONDecodeError:
-                raise HTTPException(status_code=400, detail="Invalid metadata JSON")
+            except json.JSONDecodeError as err:
+                raise HTTPException(status_code=400, detail="Invalid metadata JSON") from err
 
             # Determine format
             format_type = file.content_type or "application/octet-stream"
