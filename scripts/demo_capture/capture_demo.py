@@ -193,12 +193,12 @@ class DemoCapture:
     def capture_otel_metrics(self):
         """
         Capture OpenTelemetry metrics and traces from the observability stack.
-        
+
         Queries the OTel collector and Tempo for recent traces and exports
         summary data for verification.
         """
         print("[OTel Metrics] Capturing observability data...")
-        
+
         output_file = self.output_dir / f"otel_metrics_{self.timestamp}.json"
         otel_data = {
             "timestamp": datetime.utcnow().isoformat(),
@@ -207,7 +207,7 @@ class DemoCapture:
             "recent_traces": [],
             "grafana_status": None,
         }
-        
+
         # Check OTel Collector health
         try:
             result = subprocess.run(
@@ -224,7 +224,7 @@ class DemoCapture:
         except Exception as e:
             otel_data["collector_health"] = {"status": "error", "error": str(e)}
             print(f"  ✗ OTel Collector health check failed: {e}")
-        
+
         # Check Tempo health
         try:
             result = subprocess.run(
@@ -241,7 +241,7 @@ class DemoCapture:
         except Exception as e:
             otel_data["tempo_health"] = {"status": "error", "error": str(e)}
             print(f"  ✗ Tempo health check failed: {e}")
-        
+
         # Check Grafana health
         try:
             result = subprocess.run(
@@ -258,7 +258,7 @@ class DemoCapture:
         except Exception as e:
             otel_data["grafana_status"] = {"status": "error", "error": str(e)}
             print(f"  ✗ Grafana health check failed: {e}")
-        
+
         # Query recent traces from Tempo (via TraceQL)
         try:
             # Simple query for recent traces (requires Tempo API)
@@ -278,12 +278,12 @@ class DemoCapture:
                     print("  ⚠ Could not parse traces response")
         except Exception as e:
             print(f"  ⚠ Could not query traces: {e}")
-        
+
         with open(output_file, "w") as f:
             json.dump(otel_data, f, indent=2)
-        
+
         print(f"✓ OTel metrics captured: {output_file}")
-        
+
         # Provide instructions for Grafana dashboard screenshots
         print("\n  📊 Manual Steps for Dashboard Verification:")
         print("     1. Open http://localhost:3001 in your browser")
