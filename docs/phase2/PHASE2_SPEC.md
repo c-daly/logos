@@ -98,11 +98,17 @@ Phase 2 extends the Phase 1 prototype into a Talos-optional, perception-driven a
 | **P2-M3** — Perception & Imagination | CWM-G handles Talos-free media streams + `/simulate` exposed | Media pipeline stores embeddings, `/simulate` returns imagined states recorded in Neo4j, Milvus smoke tests pass |
 | **P2-M4** — Diagnostics & Persona | Observability stack + CWM-E reflection in place | EmotionState nodes produced, Apollo persona uses them, dashboards/log export ready, demo capture flows documented |
 
-## Verification Checklist (to be expanded in `docs/phase2/VERIFY.md`)
+## Verification Checklist
+
+**See:** `docs/phase2/VERIFY.md` for comprehensive verification criteria, demo instructions, evidence requirements, and CI workflow references.
+
+### Quick Reference
 - [ ] P2-M1 evidence: API test logs + screenshots of `/docs` for both services.
 - [ ] P2-M2 evidence: Video/screenshot of browser UI and CLI session, plus automated tests.
 - [ ] P2-M3 evidence: Recorded `/simulate` run with imagined nodes visible in Neo4j Browser.
 - [ ] P2-M4 evidence: Diagnostics dashboard snapshot, persona entry log, and demo capture artifact.
+
+All evidence should be uploaded to `logs/p2-m{1-4}-verification/` directories following the structure defined in VERIFY.md.
 
 ## Status Tracking
 - Issues labeled `phase:2` + relevant `surface:*`, `capability:*`, `domain:*` tags.
