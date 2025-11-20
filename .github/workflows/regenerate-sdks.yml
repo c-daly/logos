@@ -103,6 +103,8 @@ jobs:
         run: |
           # Regenerate SDKs with fresh generation
           ./scripts/generate_sdks.sh
+          # Clean any untracked files to prevent git conflicts
+          git clean -fdx
       
       - name: Create pull request for SDK updates
         if: steps.check_changes.outputs.changes == 'true' && github.event_name == 'pull_request'
