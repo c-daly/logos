@@ -117,6 +117,15 @@ Project Management
 - Weekly progress reports are automatically generated every Monday via GitHub Actions.
 - All project tracking infrastructure is documented in `.github/README.md`.
 
+API Documentation
+- **Interactive API Documentation**: Browse comprehensive API documentation at [c-daly.github.io/logos/api](https://c-daly.github.io/logos/api/)
+- **Available APIs**: 
+  - [Hermes API](https://c-daly.github.io/logos/api/hermes.html) - Language & embedding utility (STT, TTS, NLP, embeddings)
+  - Sophia, Talos, and Apollo API docs will be added as specifications become available
+- **Local Generation**: Run `./scripts/generate-api-docs.sh` to build documentation locally
+- **Auto-Publishing**: Documentation is automatically rebuilt and published via GitHub Actions when OpenAPI specs change
+- See `docs/api/README.md` for details on adding new API documentation
+
 CI/CD and Validation
 - Automated validation of all canonical artifacts runs on every push and pull request.
 - **Cypher Ontology**: Syntax validation using Neo4j 5.13.0 (`ontology/core_ontology.cypher`)
