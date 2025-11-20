@@ -40,6 +40,39 @@ Phase 2 extends the Phase 1 prototype into a Talos-optional, perception-driven a
   - New `docs/phase2/VERIFY.md` describing milestone gates, demo instructions, and evidence requirements.
   - CI workflows for the new services (unit tests, lint, Milvus smoke).
 
+### Unified Causal World Model State Contract
+
+Every world-model emission (CWM-A abstract snapshots, CWM-G imagined rollouts, CWM-E persona reflections) must serialize to the same envelope so clients, logs, and verification tooling consume a single structure. Unless otherwise noted, all APIs (`/state`, `/plan`, `/simulate`), log exporters, and Neo4j nodes share the following schema:
+
+| Field | Description |
+|-------|-------------|
+| `state_id` | Globally unique identifier (`cwm_<model>_<uuid>`). Maps to the Neo4j node `(:CWMState {state_id})`. |
+| `model_type` | One of `CWM_A`, `CWM_G`, `CWM_E` (future models can extend the enum). |
+| `source` | Which subsystem produced the record (`orchestrator`, `jepa_runner`, `reflection_job`, etc.). |
+| `timestamp` | ISO-8601 UTC time the state became valid. |
+| `confidence` | 0.0–1.0 float summarizing certainty (JEPA rollout probability, planner validation score, emotion classifier confidence). |
+| `status` | `observed`, `imagined`, or `reflected` to distinguish real-time telemetry from simulations/reflections. |
+| `links` | Object with IDs referencing related entities: `process_ids`, `plan_id`, `entity_ids`, `media_sample_id`, `persona_entry_id`, `talos_run_id`. Used to stitch records back to HCG nodes. |
+| `tags` | Free-form labels (e.g., `["capability:perception","surface:browser"]`) for filtering in diagnostics views. |
+| `data` | Model-specific payload (described below). Stored verbatim on the Neo4j node/Milvus document and exposed through APIs. |
+
+**Model payloads**
+- **CWM-A (`model_type="CWM_A"`)**: `data` contains normalized entity + relationship diffs (`entities`, `relations`, `violations`). Planner/executor updates must include the SHACL validation status in `data.validation`.
+- **CWM-G (`model_type="CWM_G"`)**: `data` carries JEPA rollout metadata (`imagined:true/false`, `horizon_steps`, `frames`, `embeddings`, `assumptions`). Media samples reference the stored upload via `links.media_sample_id`.
+- **CWM-E (`model_type="CWM_E"`)**: `data` records persona attributes (`sentiment`, `confidence_delta`, `caution_delta`, `narrative`). Each entry points back to the originating `PersonaEntry` via `links.persona_entry_id`.
+
+Storage rules:
+- Persist every record as `(:CWMState {state_id, model_type, ...})` with an additional label matching the model (e.g., `:CWM_A_STATE`).
+- Attach `(:CWMState)-[:DESCRIBES]->(:Process)` / `(:Entity)` edges using the IDs in `links`.
+- Mirror the envelope in Milvus documents so embeddings/similarities can be queried uniformly (`vector`, `metadata` derived from the same payload).
+
+API/logging rules:
+- `/state` returns `{"states": [<CWMState>], "cursor": ...}` so Apollo CLI/web consume the same contract.
+- `/plan` and `/simulate` responses append any newly created `CWMState` records (imagined outcomes, validation summaries).
+- Structured logging + OpenTelemetry spans must include `state_id`, `model_type`, and `status` so diagnostics dashboards correlate UI views with backend emissions.
+
+**See also:** `docs/phase2/CWM_STATE_CONTRACT_ROLLOUT.md` for the implementation plan, ownership, and timeline.
+
 ## Implementation Notes
 ### Sophia service
 - Stack: Python 3.11, FastAPI, Neo4j driver, SHACL loader, existing planner modules.
@@ -60,11 +93,17 @@ Phase 2 extends the Phase 1 prototype into a Talos-optional, perception-driven a
   - Provide both a CPU-friendly runner (for Talos-free deployments) and hooks to swap in Talos/Gazebo simulators when hardware is present.
 
 ### Hermes service
-- Stack: Python 3.11, FastAPI, sentence-transformer (or equivalent) for embeddings, optional Whisper/TTS backend.
+- Stack: Python 3.11, FastAPI.
+- Model backends:
+  - Embeddings: SentenceTransformers (default `all-MiniLM-L6-v2`, configurable via `HERMES_EMBED_MODEL`), with option to point at a remote API (OpenAI/Azure) via env vars.
+  - Simple NLP: spaCy pipeline selectable via `HERMES_NLP_MODEL`.
+  - STT: Whisper (small) by default, configurable (`HERMES_STT_MODEL`) and able to proxy to external APIs when `HERMES_STT_API_KEY` is provided.
+  - TTS: Torchaudio/Coqui local model or remote API (config via env vars).
 - `/embed_text`: writes to Milvus via pymilvus, tracks metadata in Neo4j (optional) and returns `embedding_id`.
-- `/simple_nlp`: tokenization, POS tagging using spaCy or similar.
-- STT/TTS endpoints can wrap CLI tools initially; interface defined in `contracts/hermes.openapi.yaml`.
-- Health check: `/health` returns Milvus connectivity + queue status.
+- `/simple_nlp`: tokenization, POS tagging using the configured spaCy pipeline.
+- `/stt` `/tts`: abstract over local model or remote API; config documented with examples.
+- Health check: `/health` returns Milvus connectivity + model backend status (e.g., verifying Whisper weights are available).
+- Configuration: `.env` file documents all model/env options so deployments can swap models without changing code.
 
 ### Apollo browser
 - Stack: Vite + React + TypeScript, Tailwind (or equivalent) for styling.
