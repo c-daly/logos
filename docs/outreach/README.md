@@ -12,7 +12,10 @@ This directory contains outreach materials for Project LOGOS, including blog pos
 
 ### Series Overview
 
-The "Building a Non-Linguistic Mind" series consists of **12 total posts**:
+The "Building a Non-Linguistic Mind" series consists of **13 total posts**:
+
+#### Foundational Post (Optional Pre-Launch)
+0. **AI as Search: From Symbolic Trees to Neural Networks to Language Models** - Historical context framing AI as different approaches to searching state spaces
 
 #### Core Series (Posts 1-9)
 1. **Non-Linguistic Cognition: Why Graphs Matter** - Launch post introducing LOGOS

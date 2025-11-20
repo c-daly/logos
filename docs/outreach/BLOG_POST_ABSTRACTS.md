@@ -7,6 +7,52 @@ This document provides concise abstracts (100-150 words each) for all blog posts
 
 ---
 
+## Foundational Post (Pre-Series)
+
+### Post 0: "AI as Search: From Symbolic Trees to Neural Networks to Language Models"
+
+**Abstract:**  
+At its core, artificial intelligence is about searching state spaces—exploring possible configurations to find solutions, make decisions, or generate outputs. This historical survey traces how different AI paradigms approached this fundamental challenge. Early symbolic AI (1950s-1980s) used explicit search algorithms—A*, minimax, logic programming—treating problems as discrete trees to traverse. Expert systems codified human knowledge into rule-based searches through decision spaces. The 1980s neural network renaissance reframed search as optimization in high-dimensional weight spaces, learning patterns through gradient descent. Decades later, deep learning's breakthrough transformed this into massive parallel searches through billions of parameters. Large language models represent the latest evolution: searching probability distributions over token sequences to generate human-like text. Understanding AI's history as evolving search strategies illuminates both the power and limitations of current approaches—and why Project LOGOS explores structured causal graphs as an alternative search space for machine cognition.
+
+**Target Audience:** General technical readers, AI newcomers, anyone interested in AI history  
+**Key Takeaways:**
+- All AI approaches fundamentally involve searching state spaces
+- Symbolic AI used explicit tree/graph search algorithms (A*, minimax, STRIPS planning)
+- Neural networks search weight spaces through gradient descent optimization
+- LLMs search probability distributions over token sequences
+- Different search spaces enable different capabilities and have different limitations
+
+**Historical Eras Covered:**
+- **1950s-1960s:** Early AI - logic theorem provers, chess programs, search algorithms
+- **1970s-1980s:** Expert systems, knowledge representation, STRIPS planning
+- **1980s-1990s:** Neural network renaissance (backpropagation, connectionism)
+- **2000s-2010s:** Deep learning breakthrough (ImageNet, AlexNet, attention mechanisms)
+- **2010s-2020s:** Transformer revolution and LLMs (BERT, GPT, ChatGPT)
+
+**Notable Developments to Feature:**
+- Newell & Simon's General Problem Solver (1957) - means-ends analysis
+- McCarthy's Lisp and symbolic reasoning (1958)
+- Minsky & Papert's "Perceptrons" and the first AI winter (1969)
+- Expert systems: MYCIN, DENDRAL (1970s)
+- Backpropagation algorithm (Rumelhart et al., 1986)
+- Deep Blue defeats Kasparov (1997) - massive tree search
+- ImageNet and AlexNet (2012) - deep learning breakthrough
+- AlphaGo defeats Lee Sedol (2016) - MCTS + neural networks
+- Attention mechanism and Transformers (Vaswani et al., 2017)
+- GPT-3 and ChatGPT (2020-2022) - LLM revolution
+
+**Why This Post:**
+- Provides historical context for the entire series
+- Frames LOGOS as the next evolution in search strategies
+- Makes the series accessible to readers less familiar with AI history
+- Shows how current limitations (LLM hallucination, lack of causal reasoning) stem from the search space choice
+- Sets up Post 1's critique of language-first approaches
+
+**Publishing Timing:** Week 0 (before Post 1) or Week 1 (simultaneous with Post 1)  
+**Platforms:** Medium, Dev.to, HackerNews (appeals to broad audience)
+
+---
+
 ## Phase 1 Posts (Ready to Write)
 
 ### Post 1: "Non-Linguistic Cognition: Why Graphs Matter"
@@ -192,6 +238,12 @@ Research prototypes demonstrate feasibility; production systems demand reliabili
 
 ## Publishing Recommendations
 
+### Foundational Post 0: "AI as Search"
+**Best Timing:** Week 0 (pre-launch) or Week 1 (simultaneous with Post 1)  
+**Platforms:** Medium (broad reach), Dev.to, HackerNews (history posts perform well)  
+**Promotion:** AI/ML Twitter, r/MachineLearning, r/ArtificialIntelligence, tech history communities  
+**Note:** Optional but recommended - provides historical context that makes the series more accessible
+
 ### Suggested Post A: "Vector Embeddings Meet Causal Graphs"
 **Best Timing:** Between Posts 2 and 3 (Week 5)  
 **Platforms:** Dev.to, Medium, Pinecone/Weaviate/Milvus community blogs  
@@ -211,12 +263,14 @@ Research prototypes demonstrate feasibility; production systems demand reliabili
 
 ## Series Summary
 
-The expanded series now includes **12 posts total**:
+The expanded series now includes **13 posts total**:
+- **Post 0:** Foundational history (AI as different search strategies - optional pre-launch)
 - **Posts 1-6:** Phase 1 content (non-linguistic cognition, HCG architecture, causal planning, project journey, SHACL validation, embodiment flexibility)
 - **Posts 7-9:** Phase 2+ content (world models, LLM integration, open-source lessons)
 - **Posts A-C:** Additional practical topics (hybrid search, debugging, production scaling)
 
 This structure provides:
+- **Historical foundation** (Post 0) for context and accessibility
 - **Introductory content** (Posts 1, 4) for general audience
 - **Technical deep dives** (Posts 2, 3, 5, A, B) for practitioners
 - **Architectural insights** (Posts 3, 6, 7, 8) for researchers
@@ -227,9 +281,9 @@ Each post stands alone while building on previous content, allowing readers to e
 ---
 
 **Next Steps:**
-1. Review and approve abstracts
-2. Select initial author assignments
-3. Create detailed outlines for first 2-3 posts
+1. Review and approve abstracts (including new Post 0)
+2. Decide whether to publish Post 0 as pre-launch or skip it
+3. Select initial author assignments
 4. Begin drafting Post 1 (launch post)
 5. Develop supporting diagrams and code examples
 6. Establish review process for technical accuracy

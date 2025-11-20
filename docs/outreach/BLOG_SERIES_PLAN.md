@@ -17,6 +17,121 @@ A multi-part series exploring how Project LOGOS builds cognitive architecture wi
 
 ---
 
+## Post 0: "AI as Search: From Symbolic Trees to Neural Networks to Language Models" (FOUNDATIONAL)
+
+**Target Audience:** General technical readers, AI newcomers, history enthusiasts  
+**Length:** 2000-2500 words  
+**Status:** PLANNED  
+**Priority:** HIGH - Optional pre-launch context post
+
+**Abstract:**  
+At its core, artificial intelligence is about searching state spaces—exploring possible configurations to find solutions, make decisions, or generate outputs. This historical survey traces how different AI paradigms approached this fundamental challenge, from early symbolic AI's explicit tree searches through neural networks' weight space optimization to LLMs' probability distributions over token sequences. Understanding AI's history as evolving search strategies illuminates both the power and limitations of current approaches—and why Project LOGOS explores structured causal graphs as an alternative search space.
+
+**Key Messages:**
+- All AI approaches fundamentally involve searching state spaces
+- Each era's breakthroughs came from new ways to search
+- Choice of search space determines capabilities and limitations
+- LLMs search token sequences; LOGOS searches causal graphs
+
+**Outline:**
+
+1. **The Central Insight: AI as Search** (300 words)
+   - What is a state space? Configurations and transitions
+   - Search as exploration: finding solutions, making decisions, generating outputs
+   - Different AI paradigms = different search spaces and strategies
+   - Preview of the journey: symbolic → neural → linguistic → causal
+
+2. **The Symbolic Era: Searching Decision Trees (1950s-1980s)** (500 words)
+   - **Early foundations:**
+     - Newell & Simon's General Problem Solver (1957) - means-ends analysis
+     - McCarthy's Lisp and logical reasoning
+     - Chess programs: brute-force tree search
+   - **Search algorithms:**
+     - A* and heuristic search (Hart, Nilsson, Raphael, 1968)
+     - Minimax and game trees
+     - STRIPS planning (Stanford, 1971)
+   - **Expert systems:**
+     - MYCIN, DENDRAL: rule-based knowledge search
+     - Success in narrow domains
+   - **Limitations:**
+     - Combinatorial explosion
+     - Brittle knowledge representation
+     - "AI winter" after Minsky & Papert's critique
+
+3. **The Neural Revolution: Searching Weight Spaces (1980s-2010s)** (500 words)
+   - **Connectionism emerges:**
+     - Perceptrons and the first setback (1969)
+     - Backpropagation resurrects neural nets (1986)
+     - Search = optimization through gradient descent
+   - **Deep learning breakthrough:**
+     - ImageNet challenge and AlexNet (2012)
+     - Searching billions of parameters
+     - Convolutional networks for vision
+     - Recurrent networks for sequences
+   - **Hybrid approaches:**
+     - Deep Blue (1997): massive tree search + evaluation
+     - AlphaGo (2016): Monte Carlo Tree Search + neural value/policy networks
+   - **The shift:**
+     - From hand-crafted features to learned representations
+     - From explicit search trees to gradient-guided optimization
+
+4. **The Language Model Era: Searching Token Sequences (2010s-2020s)** (500 words)
+   - **Attention and transformers:**
+     - Sequence-to-sequence models
+     - "Attention is All You Need" (Vaswani et al., 2017)
+     - Self-attention as learned search over input
+   - **The LLM explosion:**
+     - BERT: bidirectional context search
+     - GPT series: next-token prediction at scale
+     - ChatGPT: searching probability distributions for human-like responses
+   - **Capabilities unlocked:**
+     - Few-shot learning
+     - Emergent abilities at scale
+     - Natural language as universal interface
+   - **The search space:**
+     - Tokens as atomic units
+     - Probability distributions as navigation
+     - Context window as search horizon
+
+5. **Patterns and Limitations** (400 words)
+   - **Common pattern:**
+     - Larger search spaces → more computational cost
+     - Better search strategies → breakthrough capabilities
+     - Search space determines what's easy vs. hard
+   - **Symbolic limitations:**
+     - Brittleness, combinatorial explosion
+     - Hard to handle uncertainty
+   - **Neural limitations:**
+     - Black-box reasoning, training data hunger
+     - Overfitting, adversarial brittleness
+   - **LLM limitations:**
+     - Hallucination: searching likely tokens ≠ searching truth
+     - No causal understanding: tokens encode correlation, not causation
+     - Temporal confusion: all tokens equally present
+   - **The lesson:**
+     - Search space choice matters as much as search algorithm
+
+6. **What's Next: Searching Causal Graphs** (300 words)
+   - LOGOS's approach: structured causal reasoning
+   - Graphs as search space: explicit relationships, temporal ordering
+   - Combining explicit structure (symbolic) with learned patterns (neural)
+   - Not replacing LLMs, but complementing them
+   - Preview of Post 1: why non-linguistic search matters
+
+**Diagrams/Visuals:**
+- Timeline of AI eras with key breakthroughs
+- State space visualization for each paradigm (tree, weight space, token sequence, causal graph)
+- Search strategy comparison table
+
+**Publishing Platforms:** Medium (broad reach), Dev.to, HackerNews (history posts do well)
+
+**Call to Action:** 
+- Understand AI's trajectory to appreciate LOGOS's contribution
+- Follow for Post 1: diving into non-linguistic cognition
+- What search space should AI explore next? Join the discussion
+
+---
+
 ## Post 1: "Non-Linguistic Cognition: Why Graphs Matter" (INTRODUCTORY)
 
 **Target Audience:** General AI/ML community, technical blog readers  
@@ -609,6 +724,12 @@ Research prototypes demonstrate feasibility; production systems demand reliabili
 ---
 
 ## Content Calendar
+
+**Foundational Post:**
+
+| Week | Post | Status | Author | Review | Publish |
+|------|------|--------|--------|--------|---------|
+| 0 or 1 | Post 0: AI as Search (History) | Planning | TBD | TBD | Optional Pre-Launch |
 
 **Core Series (Posts 1-9):**
 
