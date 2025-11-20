@@ -7,6 +7,11 @@
 **Reviewer:** TBD  
 **Target Publish Date:** Q1 2025
 
+**Abstract:**  
+Large language models have revolutionized AI, but they share a fundamental limitation: they think in words. Human cognition, by contrast, operates in non-linguistic structures—mental models, spatial reasoning, causal intuition—before language ever emerges. This post introduces Project LOGOS, an open-source cognitive architecture that uses graph-based knowledge representation instead of token sequences. We demonstrate these capabilities through a pick-and-place robotics scenario and explore why graphs, not words, are the natural substrate for machine cognition.
+
+**See also:** [BLOG_POST_ABSTRACTS.md](../BLOG_POST_ABSTRACTS.md) for complete series abstracts.
+
 ---
 
 ## Title Options
