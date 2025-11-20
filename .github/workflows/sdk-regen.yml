@@ -1,0 +1,39 @@
+name: SDK Regeneration Check
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'contracts/**'
+      - 'scripts/generate-sdks.sh'
+      - 'openapitools.json'
+      - '.github/workflows/sdk-regen.yml'
+  pull_request:
+    paths:
+      - 'contracts/**'
+      - 'scripts/generate-sdks.sh'
+      - 'openapitools.json'
+      - '.github/workflows/sdk-regen.yml'
+
+jobs:
+  regen:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Regenerate SDKs
+        run: ./scripts/generate-sdks.sh
+
+      - name: Ensure no uncommitted changes
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            echo "::error::SDK outputs are stale. Run ./scripts/generate-sdks.sh and commit the changes." >&2
+            git status --short
+            exit 1
+          fi

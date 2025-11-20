@@ -77,4 +77,4 @@ Document published versions in release notes so downstream clients can pin known
 
 ## Continuous Integration
 
-Future work (Issue #256) will add a GitHub Actions workflow to regenerate SDKs when contracts change and fail if generated files are out of date. Until then, run `./scripts/generate-sdks.sh` manually before submitting PRs that touch `contracts/`.
+The `sdk-regen` GitHub Actions workflow runs `./scripts/generate-sdks.sh` on every PR/push that touches the contracts or generator inputs. If regenerated files differ from what is committed, the job fails with instructions to rerun the script locally and add the changes.
