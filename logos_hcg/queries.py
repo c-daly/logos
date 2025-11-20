@@ -269,7 +269,7 @@ class HCGQueries:
     # ========== Causal Traversal Queries ==========
 
     @staticmethod
-    def traverse_causality_forward() -> str:
+    def traverse_causality_forward(max_depth: int = 10) -> str:
         """
         Traverse causality chain forward from a state.
         Find all states that are caused (directly or indirectly) by processes
@@ -281,15 +281,15 @@ class HCGQueries:
 
         Returns: List of (Process, State) pairs showing causal chain
         """
-        return """
-        MATCH path = (s:State {uuid: $state_uuid})<-[:REQUIRES*0..1]-
-                     (p:Process)-[:CAUSES*1..$max_depth]->(result:State)
+        return f"""
+        MATCH path = (s:State {{uuid: $state_uuid}})<-[:REQUIRES*0..1]-
+                     (p:Process)-[:CAUSES*1..{max_depth}]->(result:State)
         RETURN p, result, length(path) as depth
         ORDER BY depth, result.timestamp
         """
 
     @staticmethod
-    def traverse_causality_backward() -> str:
+    def traverse_causality_backward(max_depth: int = 10) -> str:
         """
         Traverse causality chain backward from a state.
         Find all states that caused (directly or indirectly) the given state.
@@ -300,9 +300,9 @@ class HCGQueries:
 
         Returns: List of (State, Process) pairs showing causal history
         """
-        return """
-        MATCH path = (cause:State)<-[:CAUSES*1..$max_depth]-(p:Process)
-                     -[:REQUIRES*0..1]->(s:State {uuid: $state_uuid})
+        return f"""
+        MATCH path = (cause:State)<-[:CAUSES*1..{max_depth}]-(p:Process)
+                     -[:REQUIRES*0..1]->(s:State {{uuid: $state_uuid}})
         RETURN cause, p, length(path) as depth
         ORDER BY depth DESC, cause.timestamp DESC
         """

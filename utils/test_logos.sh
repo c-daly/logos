@@ -84,6 +84,14 @@ require_command poetry
 pushd "$REPO_ROOT" >/dev/null
 
 start_stack
+
+if [[ -n "${LOGOS_SKIP_ONTOLOGY_LOAD:-}" ]]; then
+  echo "[logos:test] Skipping ontology load (LOGOS_SKIP_ONTOLOGY_LOAD set)."
+else
+  echo "[logos:test] Loading core ontology into Neo4j..."
+  ./infra/load_ontology.sh
+fi
+
 ./infra/init_milvus.sh
 
 echo "[logos:test] Installing dependencies (poetry install --with dev)..."

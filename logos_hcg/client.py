@@ -11,6 +11,7 @@ import logging
 from contextlib import contextmanager
 from datetime import datetime
 from typing import Any
+from uuid import UUID
 
 from neo4j import Driver, GraphDatabase, Result, Session
 from neo4j.exceptions import (
@@ -213,20 +214,47 @@ class HCGClient:
 
         return props
 
+    @staticmethod
+    def _normalize_uuid(value: str | UUID, param_name: str = "uuid") -> str:
+        """
+        Ensure UUID values are serialized as strings before sending them to Neo4j.
+
+        Args:
+            value: UUID as string or uuid.UUID
+            param_name: Parameter name for clearer error messages
+
+        Returns:
+            String representation of the UUID
+        """
+        if value is None:
+            raise ValueError(f"{param_name} cannot be None")
+        if isinstance(value, UUID):
+            return str(value)
+        return str(value)
+
+    @staticmethod
+    def _sanitize_depth(max_depth: int | None, default: int = 10) -> int:
+        """Ensure traversal depth is a safe positive integer."""
+        depth = default if max_depth is None else int(max_depth)
+        if depth < 1:
+            depth = 1
+        return depth
+
     # ========== Entity Operations ==========
 
-    def find_entity_by_uuid(self, uuid: str) -> Entity | None:
+    def find_entity_by_uuid(self, uuid: str | UUID) -> Entity | None:
         """
         Find an entity by UUID.
 
         Args:
-            uuid: Entity UUID (string with 'entity-' prefix)
+            uuid: Entity UUID (string or uuid.UUID with 'entity-' prefix)
 
         Returns:
             Entity object or None if not found
         """
         query = HCGQueries.find_entity_by_uuid()
-        records = self._execute_read(query, {"uuid": uuid})
+        uuid_str = self._normalize_uuid(uuid, "uuid")
+        records = self._execute_read(query, {"uuid": uuid_str})
 
         if not records:
             return None
@@ -277,19 +305,19 @@ class HCGClient:
 
     # ========== Concept Operations ==========
 
-    def find_concept_by_uuid(self, uuid: str) -> Concept | None:
+    def find_concept_by_uuid(self, uuid: str | UUID) -> Concept | None:
         """
         Find a concept by UUID.
 
         Args:
-            uuid: Concept UUID (string or UUID object)
+            uuid: Concept UUID (string or uuid.UUID)
 
         Returns:
             Concept object or None if not found
         """
-        # uuid already a string
+        uuid_str = self._normalize_uuid(uuid, "uuid")
         query = HCGQueries.find_concept_by_uuid()
-        records = self._execute_read(query, {"uuid": uuid})
+        records = self._execute_read(query, {"uuid": uuid_str})
 
         if not records:
             return None
@@ -335,19 +363,19 @@ class HCGClient:
 
     # ========== State Operations ==========
 
-    def find_state_by_uuid(self, uuid: str) -> State | None:
+    def find_state_by_uuid(self, uuid: str | UUID) -> State | None:
         """
         Find a state by UUID.
 
         Args:
-            uuid: State UUID (string or UUID object)
+            uuid: State UUID (string or uuid.UUID)
 
         Returns:
             State object or None if not found
         """
-        # uuid already a string
+        uuid_str = self._normalize_uuid(uuid, "uuid")
         query = HCGQueries.find_state_by_uuid()
-        records = self._execute_read(query, {"uuid": uuid})
+        records = self._execute_read(query, {"uuid": uuid_str})
 
         if not records:
             return None
@@ -386,19 +414,19 @@ class HCGClient:
 
     # ========== Process Operations ==========
 
-    def find_process_by_uuid(self, uuid: str) -> Process | None:
+    def find_process_by_uuid(self, uuid: str | UUID) -> Process | None:
         """
         Find a process by UUID.
 
         Args:
-            uuid: Process UUID (string or UUID object)
+            uuid: Process UUID (string or uuid.UUID)
 
         Returns:
             Process object or None if not found
         """
-        # uuid already a string
+        uuid_str = self._normalize_uuid(uuid, "uuid")
         query = HCGQueries.find_process_by_uuid()
-        records = self._execute_read(query, {"uuid": uuid})
+        records = self._execute_read(query, {"uuid": uuid_str})
 
         if not records:
             return None
@@ -437,7 +465,7 @@ class HCGClient:
 
     # ========== Relationship Operations ==========
 
-    def get_entity_type(self, entity_uuid: str) -> Concept | None:
+    def get_entity_type(self, entity_uuid: str | UUID) -> Concept | None:
         """
         Get the concept/type of an entity.
 
@@ -447,7 +475,7 @@ class HCGClient:
         Returns:
             Concept object or None
         """
-        entity_uuid_str = entity_uuid
+        entity_uuid_str = self._normalize_uuid(entity_uuid, "entity_uuid")
         query = HCGQueries.get_entity_type()
         records = self._execute_read(query, {"entity_uuid": entity_uuid_str})
 
@@ -457,7 +485,7 @@ class HCGClient:
         node_props = self._parse_node_to_dict(records[0]["c"])
         return Concept(**node_props)
 
-    def get_entity_states(self, entity_uuid: str) -> list[State]:
+    def get_entity_states(self, entity_uuid: str | UUID) -> list[State]:
         """
         Get all states of an entity.
 
@@ -467,7 +495,7 @@ class HCGClient:
         Returns:
             List of State objects (ordered by timestamp, most recent first)
         """
-        entity_uuid_str = entity_uuid
+        entity_uuid_str = self._normalize_uuid(entity_uuid, "entity_uuid")
         query = HCGQueries.get_entity_states()
         records = self._execute_read(query, {"entity_uuid": entity_uuid_str})
 
@@ -478,7 +506,7 @@ class HCGClient:
 
         return states
 
-    def get_entity_current_state(self, entity_uuid: str) -> State | None:
+    def get_entity_current_state(self, entity_uuid: str | UUID) -> State | None:
         """
         Get the most recent state of an entity.
 
@@ -488,7 +516,7 @@ class HCGClient:
         Returns:
             State object or None
         """
-        entity_uuid_str = entity_uuid
+        entity_uuid_str = self._normalize_uuid(entity_uuid, "entity_uuid")
         query = HCGQueries.get_entity_current_state()
         records = self._execute_read(query, {"entity_uuid": entity_uuid_str})
 
@@ -498,7 +526,7 @@ class HCGClient:
         node_props = self._parse_node_to_dict(records[0]["s"])
         return State(**node_props)
 
-    def get_entity_parts(self, entity_uuid: str) -> list[Entity]:
+    def get_entity_parts(self, entity_uuid: str | UUID) -> list[Entity]:
         """
         Get all parts of an entity.
 
@@ -508,7 +536,7 @@ class HCGClient:
         Returns:
             List of Entity objects
         """
-        entity_uuid_str = entity_uuid
+        entity_uuid_str = self._normalize_uuid(entity_uuid, "entity_uuid")
         query = HCGQueries.get_entity_parts()
         records = self._execute_read(query, {"entity_uuid": entity_uuid_str})
 
@@ -519,7 +547,7 @@ class HCGClient:
 
         return entities
 
-    def get_entity_parent(self, entity_uuid: str) -> Entity | None:
+    def get_entity_parent(self, entity_uuid: str | UUID) -> Entity | None:
         """
         Get the parent entity.
 
@@ -529,7 +557,7 @@ class HCGClient:
         Returns:
             Entity object or None
         """
-        entity_uuid_str = entity_uuid
+        entity_uuid_str = self._normalize_uuid(entity_uuid, "entity_uuid")
         query = HCGQueries.get_entity_parent()
         records = self._execute_read(query, {"entity_uuid": entity_uuid_str})
 
@@ -543,7 +571,7 @@ class HCGClient:
 
     def traverse_causality_forward(
         self,
-        state_uuid: str,
+        state_uuid: str | UUID,
         max_depth: int = 10,
     ) -> list[dict[str, Any]]:
         """
@@ -556,8 +584,10 @@ class HCGClient:
         Returns:
             List of dicts with 'process', 'state', and 'depth' keys
         """
-        query = HCGQueries.traverse_causality_forward()
-        records = self._execute_read(query, {"state_uuid": state_uuid, "max_depth": max_depth})
+        state_uuid_str = self._normalize_uuid(state_uuid, "state_uuid")
+        depth = self._sanitize_depth(max_depth)
+        query = HCGQueries.traverse_causality_forward(depth)
+        records = self._execute_read(query, {"state_uuid": state_uuid_str})
 
         results = []
         for record in records:
@@ -573,7 +603,7 @@ class HCGClient:
 
     def traverse_causality_backward(
         self,
-        state_uuid: str,
+        state_uuid: str | UUID,
         max_depth: int = 10,
     ) -> list[dict[str, Any]]:
         """
@@ -586,8 +616,10 @@ class HCGClient:
         Returns:
             List of dicts with 'state', 'process', and 'depth' keys
         """
-        query = HCGQueries.traverse_causality_backward()
-        records = self._execute_read(query, {"state_uuid": state_uuid, "max_depth": max_depth})
+        state_uuid_str = self._normalize_uuid(state_uuid, "state_uuid")
+        depth = self._sanitize_depth(max_depth)
+        query = HCGQueries.traverse_causality_backward(depth)
+        records = self._execute_read(query, {"state_uuid": state_uuid_str})
 
         results = []
         for record in records:
@@ -601,7 +633,7 @@ class HCGClient:
 
         return results
 
-    def get_process_causes(self, process_uuid: str) -> list[State]:
+    def get_process_causes(self, process_uuid: str | UUID) -> list[State]:
         """
         Get all states caused by a process.
 
@@ -611,7 +643,7 @@ class HCGClient:
         Returns:
             List of State objects
         """
-        process_uuid_str = process_uuid
+        process_uuid_str = self._normalize_uuid(process_uuid, "process_uuid")
         query = HCGQueries.get_process_causes()
         records = self._execute_read(query, {"process_uuid": process_uuid_str})
 
@@ -622,7 +654,7 @@ class HCGClient:
 
         return states
 
-    def get_process_requirements(self, process_uuid: str) -> list[State]:
+    def get_process_requirements(self, process_uuid: str | UUID) -> list[State]:
         """
         Get all states required by a process (preconditions).
 
@@ -632,7 +664,7 @@ class HCGClient:
         Returns:
             List of State objects
         """
-        process_uuid_str = process_uuid
+        process_uuid_str = self._normalize_uuid(process_uuid, "process_uuid")
         query = HCGQueries.get_process_requirements()
         records = self._execute_read(query, {"process_uuid": process_uuid_str})
 
