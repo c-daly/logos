@@ -55,6 +55,32 @@ CREATE INDEX logos_emotion_state_timestamp IF NOT EXISTS
 FOR (es:EmotionState)
 ON (es.timestamp);
 
+//// Phase 2 P2-M3: Perception and Imagination node constraints
+CREATE CONSTRAINT logos_perception_frame_uuid IF NOT EXISTS
+FOR (pf:PerceptionFrame)
+REQUIRE pf.uuid IS UNIQUE;
+
+CREATE CONSTRAINT logos_imagined_process_uuid IF NOT EXISTS
+FOR (ip:ImaginedProcess)
+REQUIRE ip.uuid IS UNIQUE;
+
+CREATE CONSTRAINT logos_imagined_state_uuid IF NOT EXISTS
+FOR (is:ImaginedState)
+REQUIRE is.uuid IS UNIQUE;
+
+//// Phase 2 P2-M3: Indexes for perception and imagination
+CREATE INDEX logos_perception_frame_timestamp IF NOT EXISTS
+FOR (pf:PerceptionFrame)
+ON (pf.timestamp);
+
+CREATE INDEX logos_imagined_process_timestamp IF NOT EXISTS
+FOR (ip:ImaginedProcess)
+ON (ip.timestamp);
+
+CREATE INDEX logos_imagined_state_step IF NOT EXISTS
+FOR (is:ImaginedState)
+ON (is.step);
+
 //// Base relationship types (Section 4.1)
 //// - (:Entity)-[:IS_A]->(:Concept) — Type membership
 //// - (:Entity)-[:HAS_STATE]->(:State) — Current state
@@ -73,6 +99,11 @@ ON (es.timestamp);
 //// - (:EmotionState)-[:TAGGED_ON]->(:Process) — Emotion tag on process
 //// - (:EmotionState)-[:TAGGED_ON]->(:Entity) — Emotion tag on entity
 //// - (:EmotionState)-[:GENERATED_BY]->(:PersonaEntry) — Emotion derived from reflection
+
+//// Phase 2 P2-M3: Extended relationship types for perception and imagination
+//// - (:PerceptionFrame)-[:TRIGGERED_SIMULATION]->(:ImaginedProcess) — Frame that initiated simulation
+//// - (:ImaginedProcess)-[:PREDICTS]->(:ImaginedState) — Process predicting future state
+//// - (:ImaginedState)-[:PRECEDES]->(:ImaginedState) — Temporal ordering of imagined states
 
 //// Property Schemas by Node Type (see ontology/README_PICK_AND_PLACE.md for details)
 ////

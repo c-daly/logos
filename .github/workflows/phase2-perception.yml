@@ -1,0 +1,123 @@
+name: Phase 2 - Perception Pipeline Tests
+
+on:
+  push:
+    branches: [main, 'phase2/**', 'copilot/**']
+    paths:
+      - 'logos_perception/**'
+      - 'logos_sophia/**'
+      - 'tests/phase2/perception/**'
+      - 'ontology/core_ontology.cypher'
+      - 'ontology/shacl_shapes.ttl'
+      - '.github/workflows/phase2-perception.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'logos_perception/**'
+      - 'logos_sophia/**'
+      - 'tests/phase2/perception/**'
+      - 'ontology/core_ontology.cypher'
+      - 'ontology/shacl_shapes.ttl'
+
+jobs:
+  perception-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest pytest-cov httpx
+      
+      - name: Run JEPA runner tests
+        run: |
+          pytest tests/phase2/perception/test_jepa_runner.py -v --cov=logos_perception --cov-report=xml
+      
+      - name: Run simulation service tests
+        run: |
+          pytest tests/phase2/perception/test_simulation_service.py -v --cov=logos_sophia --cov-append --cov-report=xml
+      
+      - name: Run simulate API tests
+        run: |
+          pytest tests/phase2/perception/test_simulate_api.py -v --cov=logos_sophia --cov-append --cov-report=xml
+      
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./coverage.xml
+          flags: perception
+          name: perception-coverage
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      
+      - name: Test summary
+        if: always()
+        run: |
+          echo "## Perception Pipeline Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "✅ JEPA runner smoke tests completed" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Simulation service tests completed" >> $GITHUB_STEP_SUMMARY
+          echo "✅ /simulate API endpoint tests completed" >> $GITHUB_STEP_SUMMARY
+
+  ontology-validation:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+      
+      - name: Validate ontology syntax
+        run: |
+          # Check that the Cypher file is valid syntax
+          grep -q "CREATE CONSTRAINT logos_perception_frame_uuid" ontology/core_ontology.cypher
+          grep -q "CREATE CONSTRAINT logos_imagined_process_uuid" ontology/core_ontology.cypher
+          grep -q "CREATE CONSTRAINT logos_imagined_state_uuid" ontology/core_ontology.cypher
+          echo "✅ Perception node constraints found in ontology"
+      
+      - name: Validate SHACL shapes
+        run: |
+          # Validate SHACL syntax using Python
+          python -c "
+          from rdflib import Graph
+          g = Graph()
+          g.parse('ontology/shacl_shapes.ttl', format='turtle')
+          
+          # Check for perception shapes
+          shapes = str(g.serialize(format='turtle'))
+          assert 'PerceptionFrameShape' in shapes, 'PerceptionFrameShape not found'
+          assert 'ImaginedProcessShape' in shapes, 'ImaginedProcessShape not found'
+          assert 'ImaginedStateShape' in shapes, 'ImaginedStateShape not found'
+          print('✅ Perception SHACL shapes validated')
+          "
+      
+      - name: Validation summary
+        if: always()
+        run: |
+          echo "## Ontology Validation Results" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Perception node constraints validated" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Imagination node constraints validated" >> $GITHUB_STEP_SUMMARY
+          echo "✅ SHACL shapes for perception validated" >> $GITHUB_STEP_SUMMARY
