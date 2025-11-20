@@ -14,21 +14,23 @@ Prerequisites:
 - Both services connected to the HCG (Neo4j + Milvus)
 """
 
-from hermes_client import ApiClient as HermesClient, Configuration as HermesConfig
+from hermes_client import ApiClient as HermesClient
+from hermes_client import Configuration as HermesConfig
 from hermes_client.api import default_api as hermes_api
-from sophia_client import ApiClient as SophiaClient, Configuration as SophiaConfig
+from sophia_client import ApiClient as SophiaClient
+from sophia_client import Configuration as SophiaConfig
 from sophia_client.api import default_api as sophia_api
 
 
 def hermes_example():
     """Example usage of Hermes SDK."""
     print("\n=== Hermes SDK Example ===\n")
-    
+
     # Configure Hermes client
     hermes_config = HermesConfig(host="http://localhost:8080")
     hermes_client = HermesClient(configuration=hermes_config)
     api = hermes_api.DefaultApi(hermes_client)
-    
+
     # 1. Generate text embeddings
     print("1. Generating text embeddings...")
     embed_request = {
@@ -42,7 +44,7 @@ def hermes_example():
         print(f"   ✓ First 5 values: {embed_response.embedding[:5]}")
     except Exception as e:
         print(f"   ✗ Error: {e}")
-    
+
     # 2. Simple NLP processing
     print("\n2. Processing text with NLP...")
     nlp_request = {
@@ -56,7 +58,7 @@ def hermes_example():
             print(f"   ✓ POS tags: {[(t['token'], t['tag']) for t in nlp_response.pos_tags[:5]]}")
     except Exception as e:
         print(f"   ✗ Error: {e}")
-    
+
     # 3. Text-to-Speech (note: returns binary data)
     print("\n3. Text-to-Speech conversion...")
     tts_request = {
@@ -73,12 +75,12 @@ def hermes_example():
 def sophia_example():
     """Example usage of Sophia SDK."""
     print("\n=== Sophia SDK Example ===\n")
-    
+
     # Configure Sophia client
     sophia_config = SophiaConfig(host="http://localhost:8000")
     sophia_client = SophiaClient(configuration=sophia_config)
     api = sophia_api.DefaultApi(sophia_client)
-    
+
     # 1. Check health status
     print("1. Checking Sophia health...")
     try:
@@ -88,7 +90,7 @@ def sophia_example():
         print(f"   ✓ Milvus collections: {health.milvus.collections}")
     except Exception as e:
         print(f"   ✗ Error: {e}")
-    
+
     # 2. Generate a plan
     print("\n2. Generating a plan...")
     plan_request = {
@@ -111,28 +113,28 @@ def sophia_example():
         print(f"   ✓ Plan ID: {plan.plan_id}")
         print(f"   ✓ Number of processes: {len(plan.processes)}")
         print(f"   ✓ Confidence: {plan.confidence:.2f}")
-        
+
         if plan.processes:
-            print(f"\n   Processes:")
+            print("\n   Processes:")
             for i, proc in enumerate(plan.processes, 1):
                 print(f"     {i}. {proc.name} (capability: {proc.capability_id})")
     except Exception as e:
         print(f"   ✗ Error: {e}")
-    
+
     # 3. Query current state
     print("\n3. Querying current state...")
     try:
         state = api.get_state(limit=5, model_type="CWM_A", status="observed")
         print(f"   ✓ Retrieved {len(state.states)} states")
-        
+
         if state.states:
-            print(f"\n   Recent states:")
+            print("\n   Recent states:")
             for s in state.states[:3]:
                 print(f"     - {s.state_id}: {s.model_type} ({s.status})")
                 print(f"       Confidence: {s.confidence:.2f}, Source: {s.source}")
     except Exception as e:
         print(f"   ✗ Error: {e}")
-    
+
     # 4. Run simulation
     print("\n4. Running simulation...")
     sim_request = {
@@ -151,9 +153,9 @@ def sophia_example():
         print(f"   ✓ Simulation ID: {sim.simulation_id}")
         print(f"   ✓ Imagined states: {len(sim.imagined_states)}")
         print(f"   ✓ Predicted outcomes: {len(sim.predicted_outcomes)}")
-        
+
         if sim.metadata:
-            print(f"\n   Metadata:")
+            print("\n   Metadata:")
             print(f"     Model version: {sim.metadata.model_version}")
             print(f"     Horizon: {sim.metadata.horizon} steps")
     except Exception as e:
@@ -165,16 +167,16 @@ def main():
     print("\n" + "="*60)
     print("LOGOS SDK Examples")
     print("="*60)
-    
+
     print("\nNote: These examples require running Hermes and Sophia services.")
     print("If services are not available, you will see connection errors.\n")
-    
+
     # Run Hermes examples
     hermes_example()
-    
+
     # Run Sophia examples
     sophia_example()
-    
+
     print("\n" + "="*60)
     print("Examples complete!")
     print("="*60 + "\n")

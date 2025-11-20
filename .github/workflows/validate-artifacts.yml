@@ -133,13 +133,22 @@ jobs:
           
           swagger-cli validate contracts/hermes.openapi.yaml
           
-          echo "✅ OpenAPI validation passed"
+          echo "✅ Hermes OpenAPI validation passed"
       
-      - name: Bundle OpenAPI specification
+      - name: Validate sophia.openapi.yaml
         run: |
-          echo "Bundling OpenAPI specification..."
+          echo "Validating OpenAPI 3.1.0 specification for sophia.openapi.yaml..."
+          
+          swagger-cli validate contracts/sophia.openapi.yaml
+          
+          echo "✅ Sophia OpenAPI validation passed"
+      
+      - name: Bundle OpenAPI specifications
+        run: |
+          echo "Bundling OpenAPI specifications..."
           swagger-cli bundle contracts/hermes.openapi.yaml --outfile /tmp/hermes.bundled.yaml --type yaml
-          echo "✅ OpenAPI bundle created successfully"
+          swagger-cli bundle contracts/sophia.openapi.yaml --outfile /tmp/sophia.bundled.yaml --type yaml
+          echo "✅ OpenAPI bundles created successfully"
 
   summary:
     name: Validation Summary
@@ -172,6 +181,6 @@ jobs:
           echo "### Validated Artifacts:" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ Cypher Ontology (ontology/core_ontology.cypher)" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ SHACL Shapes (ontology/shacl_shapes.ttl)" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ OpenAPI Contract (contracts/hermes.openapi.yaml)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ OpenAPI Contracts (contracts/hermes.openapi.yaml, contracts/sophia.openapi.yaml)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "All canonical LOGOS artifacts are syntactically valid." >> $GITHUB_STEP_SUMMARY
