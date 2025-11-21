@@ -27,6 +27,45 @@ The LOGOS ecosystem consists of five components (all in separate repositories):
 4. **Apollo** (`c-daly/apollo`) - Thin client UI and command layer
 5. **LOGOS** (this repo) - Foundry and canonical source of truth
 
+## Workspace GitHub, Tickets, and Pull Request Rules
+
+The LOGOS ecosystem contains multiple repositories (`logos/`, `apollo/`, `sophia/`, `hermes/`, `talos/`). Use this section for cross-repo GitHub workflows, ticketing, and PR expectations.
+
+1) GitHub / Authentication issues
+- When a user reports auth problems, request: GitHub username, 2FA status, full error text or screenshot, repo URL, and whether they're using HTTPS or SSH.
+- Quick fixes:
+	- HTTPS: ensure Personal Access Token (PAT) has `repo` scope and is not expired; recommend credential helpers instead of embedding PATs in remotes.
+	- SSH: run `ssh -T git@github.com` and verify the public key is present on the user's GitHub account.
+	- CI secrets: confirm repository `Settings -> Secrets` contain the required keys and organization-level secrets are not blocked.
+- When escalating, include the exact git command used, timestamp, full error text, user account, and CI run URL if applicable.
+
+2) Issues / Tickets
+- Use the issue template or include these fields: Title (`[COMPONENT] short-summary`), Description, Reproduction steps, Expected vs Actual behavior, Proposed change, Acceptance criteria (testable), Environment/versions, Related artifacts (PRs, ADRs), and Assignee.
+
+3) Labels & status conventions
+- Minimal labels for each issue: `area/<component>`, `type/<type>`, `priority/<level>`, `status/<state>` (one of `status/todo`, `status/in-progress`, `status/in-review`, `status/done`).
+- Update `status/*` labels when moving project-board columns; do not rely on comments alone.
+
+4) Branches, commits, and PRs
+- Branch pattern: `{kind}/{issue-number}-{short-kebab}` (e.g. `feature/1234-llm-chat-with-dashboard`).
+- Commits: reference issue number when applicable (e.g., `Add dashboard chat panel (#1234)`).
+- PRs must reference the issue they resolve (use `Closes #<issue-number>`). PR descriptions should include summary, files changed, test steps, screenshots/logs, and an acceptance checklist mapping to the issue.
+
+5) Review & merge
+- Ensure CI passes (tests, lint, OpenAPI validation) before merging. If CI is flaky, link the workflow run and comment before force-merging.
+- Prefer squash merges and include the issue number in the final commit message; for large changes use descriptive merge commits.
+
+6) Project board & automation
+- Use the workspace Project Board per `.github/PROJECT_BOARD_SETUP.md`. Move issues between columns and keep `status/*` labels updated.
+- Use `logos/logos-generate-issues` or `.github/scripts/generate_issues.py` to create batched issues; reference generated issue IDs in PRs.
+
+Examples:
+- Good issue title: `[apollo] Add mock fixture for chat panel (#1234)`
+- Good PR checklist:
+	- Closes #1234
+	- Adds `webapp/src/fixtures/chat-fixture.ts`
+	- Manual test: `cd webapp && npm run dev:mock` and open `http://localhost:5173`
+
 ## General Guidelines
 
 ### Working with HCG Ontology
