@@ -36,7 +36,7 @@ LLM agent frameworks (e.g., ReAct, AutoGPT) showcase plan-language loops but lac
 ## 3 System Overview
 
 ### 3.1 Component Layout
-LOGOS consists of five collaborating systems (see `docs/architecture/LOGOS_SPEC_FLEXIBLE.md`):
+LOGOS consists of five collaborating systems (see `docs/spec/LOGOS_SPEC_FLEXIBLE.md`):
 1. **Sophia** — non-linguistic cognitive core orchestrating goals, planners, and executors that operate on the HCG.
 2. **Hermes** — stateless language services (STT, TTS, NLP preprocessing, embedding) that convert natural language into graph-compatible artifacts without mutating the HCG.
 3. **Talos** — capability bus/hardware abstraction; optional in deployments yet supported through shared contracts.

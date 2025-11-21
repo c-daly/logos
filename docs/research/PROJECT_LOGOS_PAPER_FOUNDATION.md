@@ -12,14 +12,14 @@ This file captures the architectural decisions, experiments, and verification ev
 
 | Decision | Rationale | Evidence / Links |
 |----------|-----------|------------------|
-| Hybrid Cognitive Graph (HCG) + SHACL validation baseline | Provide symbolic ground truth for all phases; ensure ontology integrity. | `docs/architecture/LOGOS_SPEC_FLEXIBLE.md`, `docs/phase1/PHASE1_SPEC.md`, SHACL tests. |
+| Hybrid Cognitive Graph (HCG) + SHACL validation baseline | Provide symbolic ground truth for all phases; ensure ontology integrity. | `docs/spec/LOGOS_SPEC_FLEXIBLE.md`, `docs/phase1/PHASE1_SPEC.md`, SHACL tests. |
 | Phase 1 workstreams (A: HCG, B: Sophia core, C: Hermes & Apollo CLI) | Build the minimal end-to-end loop before perception enhancements. | `docs/old/action_items.md`, `docs/phase1/PHASE1_VERIFY.md`, Phase 1 issue set (#200–#208). |
-| Unified `CWMState` envelope (CWM-A/G/E) | Align APIs, storage, and diagnostics; simplify reasoning across layers. | `docs/architecture/PHASE2_SPEC.md`, `docs/hcg/CWM_STATE_CONTRACT_ROLLOUT.md`. |
+| Unified `CWMState` envelope (CWM-A/G/E) | Align APIs, storage, and diagnostics; simplify reasoning across layers. | `docs/phase2/PHASE2_SPEC.md`, `docs/phase2/CWM_STATE_CONTRACT_ROLLOUT.md`. |
 | Talos-optional perception pipeline | Browser-first demo path, JEPA rollouts even without hardware; same hooks support Talos/Gazebo later. | `docs/phase2/perception/TALOS_INTEGRATION.md`, tickets #240-242. |
-| Dual Apollo surfaces with shared SDK | Browser UI as primary storytelling surface + CLI parity; ensures tests exercise end-to-end stack. | `apollo/docs/architecture/PHASE2_SPEC.md`, SDK generation scripts. |
-| Diagnostics + persona diary via CWM-E | Tie observability to agent tone/behavior; create auditable persona narrative. | `logos_persona/README.md`, `docs/operations/PHASE2_VERIFY.md` P2-M4 criteria. |
+| Dual Apollo surfaces with shared SDK | Browser UI as primary storytelling surface + CLI parity; ensures tests exercise end-to-end stack. | `apollo/docs/phase2/PHASE2_SPEC.md`, SDK generation scripts. |
+| Diagnostics + persona diary via CWM-E | Tie observability to agent tone/behavior; create auditable persona narrative. | `logos_persona/README.md`, `docs/phase2/VERIFY.md` P2-M4 criteria. |
 | JEPA-powered `/simulate` for imagination | Visual reasoning without physical hardware; standard context schema for Talos handoff. | `logos_perception/README.md`, JEPA runner module references. |
-| Open governance & verification artifacts | Reproducible demos, evidence bundles, and CI workflows for each milestone. | `docs/phase1/PHASE1_VERIFY.md`, `docs/operations/PHASE2_VERIFY.md`, logs directories. |
+| Open governance & verification artifacts | Reproducible demos, evidence bundles, and CI workflows for each milestone. | `docs/phase1/PHASE1_VERIFY.md`, `docs/phase2/VERIFY.md`, logs directories. |
 
 Update the table as new architectural commitments land (e.g., Milvus schema, OTel exporters).
 
@@ -41,7 +41,7 @@ Use this section as the conceptual “spine” when drafting papers, blog posts,
 - **Perception**: Sample media inputs, JEPA rollout clips, imagined-state Neo4j exports.
 - **Apollo UI**: Browser walkthrough video, CLI transcript showing shared SDK usage.
 - **Diagnostics/Persona**: Screenshots of OTel dashboards, persona diary excerpts, demo capture artifacts.
-- **Verification**: Completed checklists from `docs/phase1/PHASE1_VERIFY.md` and `docs/operations/PHASE2_VERIFY.md`, log bundles under `logs/p1-m*/` and `logs/p2-m*/`.
+- **Verification**: Completed checklists from `docs/phase1/PHASE1_VERIFY.md` and `docs/phase2/VERIFY.md`, log bundles under `logs/p1-m*/` and `logs/p2-m*/`.
 
 ## 5. Proposed Paper Structure
 

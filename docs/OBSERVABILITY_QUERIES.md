@@ -211,4 +211,4 @@ Use these as starting points and customize with the queries above.
 
 - [TraceQL Documentation](https://grafana.com/docs/tempo/latest/traceql/)
 - [OTEL_SETUP.md](../infra/OTEL_SETUP.md) - Complete setup guide
-- [Phase 2 Spec](../docs/architecture/PHASE2_SPEC.md) - Diagnostics requirements
+- [Phase 2 Spec](../docs/phase2/PHASE2_SPEC.md) - Diagnostics requirements

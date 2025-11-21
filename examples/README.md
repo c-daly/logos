@@ -68,8 +68,8 @@ cat /tmp/logos_telemetry/emotion_state_*.jsonl | jq
 
 ## See Also
 
-- `docs/operations/PHASE2_VERIFY.md` - Verification checklist for Phase 2
-- `docs/architecture/PHASE2_SPEC.md` - Phase 2 specification
+- `docs/phase2/VERIFY.md` - Verification checklist for Phase 2
+- `docs/phase2/PHASE2_SPEC.md` - Phase 2 specification
 - `logos_observability/` - Observability module
 - `logos_persona/` - Persona diary module
 - `logos_cwm_e/` - CWM-E reflection module

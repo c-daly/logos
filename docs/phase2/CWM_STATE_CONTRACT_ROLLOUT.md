@@ -25,7 +25,7 @@ Out of scope: fundamental planner/JEPA logic changes. The focus is serialization
 ## 4. Implementation Plan
 
 ### Phase A — Contract Finalization (Week 0–1)
-1. Freeze the schema in `docs/architecture/PHASE2_SPEC.md` (done).
+1. Freeze the schema in `docs/phase2/PHASE2_SPEC.md` (done).
 2. Create Pydantic models (`logos_sophia/api/models/cwm_state.py`) that represent the envelope plus model-specific payloads.
 3. Update Neo4j Cypher helpers to emit `(:CWMState)` nodes with the documented fields.
 
@@ -43,7 +43,7 @@ Out of scope: fundamental planner/JEPA logic changes. The focus is serialization
 
 ### Phase D — Verification (Week 3)
 1. Add integration tests that call `/state`, `/plan`, `/simulate` and validate the new structure.
-2. Update `docs/operations/PHASE2_VERIFY.md` evidence checklists to point at the new artifacts.
+2. Update `docs/phase2/VERIFY.md` evidence checklists to point at the new artifacts.
 3. Record demo capture showing the browser rendering mixed CWM-A/G/E timelines from the shared envelope.
 
 ## 5. Timeline + Ownership

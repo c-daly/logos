@@ -50,6 +50,6 @@ See `logos_perception/jepa_runner.py` for implementation details.
 
 ## References
 
-- Phase 2 Spec: `docs/architecture/PHASE2_SPEC.md` (Perception Workflows section)
+- Phase 2 Spec: `docs/phase2/PHASE2_SPEC.md` (Perception Workflows section)
 - JEPA Runner: `logos_perception/jepa_runner.py`
 - Simulation Service: `logos_sophia/simulation.py`

@@ -1,6 +1,6 @@
 # logos-sophia-sdk
 Canonical Sophia OpenAPI contract for Project LOGOS.
-See Phase 2 specification (docs/architecture/PHASE2_SPEC.md) for behavioral details.
+See Phase 2 specification (docs/phase2/PHASE2_SPEC.md) for behavioral details.
 
 Sophia exposes planner and world-model endpoints backed by the Hybrid Cognitive Graph (HCG).
 Responses share the unified `CWMState` envelope so CLI, browser, and SDK clients consume identical data.

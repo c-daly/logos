@@ -1,6 +1,6 @@
 # OpenTelemetry Observability Stack for LOGOS
 # Collector + Tempo + Grafana for distributed tracing and diagnostics
-# See docs/architecture/PHASE2_SPEC.md Section: Diagnostics & Persona toolchain
+# See docs/phase2/PHASE2_SPEC.md Section: Diagnostics & Persona toolchain
 
 services:
   # OpenTelemetry Collector

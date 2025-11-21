@@ -218,7 +218,7 @@ This module satisfies **P2-M3: Perception & Imagination**:
 
 ## References
 
-- Phase 2 Spec: `docs/architecture/PHASE2_SPEC.md`
+- Phase 2 Spec: `docs/phase2/PHASE2_SPEC.md`
 - Talos Integration: `docs/phase2/perception/TALOS_INTEGRATION.md`
 - Ontology: `ontology/core_ontology.cypher`
 - SHACL Shapes: `ontology/shacl_shapes.ttl`

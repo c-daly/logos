@@ -27,14 +27,14 @@ Embodiment &amp; UX flexibility
 - Apollo is any interaction surface that drives the documented goal/plan/state APIs: today that is a CLI; future touch/voice interfaces or kiosks remain fully compliant as long as they use the same contracts.
 
 Documentation layout & phases
-- `docs/architecture/LOGOS_SPEC_FLEXIBLE.md` is the living architecture spec.
+- `docs/spec/LOGOS_SPEC_FLEXIBLE.md` is the living architecture spec.
 - `docs/phase1/`, `docs/phase2/`, … hold the active specs/checklists for each phase.
 - `docs/adr/` contains Architecture Decision Records documenting key technical decisions.
 - `docs/old/` preserves the original Phase 1 docs, action items, and research notes for reference.
 
 Phase roadmap (see `docs/phase*/` folders for details):
 - **Phase 1 – Formalize HCG & Abstract Pipeline**: Ontology, SHACL, Compose infra, CLI prototype. Spec: `docs/phase1/PHASE1_SPEC.md`.
-- **Phase 2 – Perception & Apollo UX**: Sophia/Hermes services, Apollo browser + CLI, perception pipeline, diagnostics/persona. Spec: `docs/architecture/PHASE2_SPEC.md` | Verification: `docs/operations/PHASE2_VERIFY.md`.
+- **Phase 2 – Perception & Apollo UX**: Sophia/Hermes services, Apollo browser + CLI, perception pipeline, diagnostics/persona. Spec: `docs/phase2/PHASE2_SPEC.md` | Verification: `docs/phase2/VERIFY.md`.
 - **Phase 3 – Learning & Embodiment Options**: Episodic memory, probabilistic validation, optional physical demos (manipulator, touchscreen), multi-agent prep. Spec TBD (`docs/phase3/`).
 - **Phase 4 – Operational Autonomy**: Continuous learning with safety gates, observability/rollback tooling, production deployment patterns. Spec TBD (`docs/phase4/`).
 - **Phase 5 – Networked Agents / Swarm**: LOGOS instances collaborating, sharing HCG slices, coordinating Talos fleets. Spec TBD (`docs/phase5/`).

@@ -209,6 +209,6 @@ See `infra/OTEL_SETUP.md` for complete documentation.
 
 ## See Also
 
-- `docs/operations/PHASE2_VERIFY.md` - P2-M4 verification checklist
-- `docs/architecture/PHASE2_SPEC.md` - Phase 2 specification (Diagnostics section)
+- `docs/phase2/VERIFY.md` - P2-M4 verification checklist
+- `docs/phase2/PHASE2_SPEC.md` - Phase 2 specification (Diagnostics section)
 - `examples/p2_m4_demo.py` - Example usage

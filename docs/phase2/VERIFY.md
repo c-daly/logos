@@ -10,7 +10,7 @@ Phase 2 extends the LOGOS ecosystem with:
 - **P2-M3: Perception & Imagination** - CWM-G handles media streams + `/simulate` endpoint
 - **P2-M4: Diagnostics & Persona** - Observability stack + CWM-E reflection + demo capture
 
-**Reference:** `docs/architecture/PHASE2_SPEC.md` - Full Phase 2 Specification
+**Reference:** `docs/phase2/PHASE2_SPEC.md` - Full Phase 2 Specification
 
 ---
 
@@ -1235,8 +1235,8 @@ Use this checklist to track overall Phase 2 completion:
 
 ## References
 
-- **Phase 2 Specification:** `docs/architecture/PHASE2_SPEC.md`
-- **LOGOS Full Specification:** `docs/architecture/LOGOS_SPEC_FLEXIBLE.md`
+- **Phase 2 Specification:** `docs/phase2/PHASE2_SPEC.md`
+- **LOGOS Full Specification:** `docs/spec/LOGOS_SPEC_FLEXIBLE.md`
 - **Phase 1 Verification:** `docs/old/PHASE1_VERIFY.md`
 - **HCG Ontology:** `ontology/core_ontology.cypher`
 - **Hermes API Contract:** `contracts/hermes.openapi.yaml`

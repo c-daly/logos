@@ -4,7 +4,7 @@ LOGOS Observability Module
 Provides OpenTelemetry instrumentation, structured logging, and telemetry export
 for Sophia, Hermes, Apollo, and other LOGOS components.
 
-See docs/architecture/PHASE2_SPEC.md for Phase 2 observability requirements.
+See docs/phase2/PHASE2_SPEC.md for Phase 2 observability requirements.
 """
 
 from .exporter import TelemetryExporter
