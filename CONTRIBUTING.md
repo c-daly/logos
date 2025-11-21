@@ -243,16 +243,25 @@ pytest --cov=logos_hcg --cov=logos_tools
 - Use clear, concise language
 - Include code examples where appropriate
 - Reference specification sections explicitly
-- Update the README if your changes affect setup or usage
+- Update the relevant service README if your changes affect setup or usage and link back to the canonical doc in `docs/`
 - Add Architecture Decision Records (ADRs) for significant design choices
+- Avoid creating standalone files that only restate tickets—keep substantive content in the consolidated doc tree
 
 ### Documentation Locations
 
-- **User documentation**: `README.md`, `DEVELOPMENT.md`
-- **API contracts**: `contracts/`
-- **Architecture specs**: `docs/spec/`
-- **Phase specs**: `docs/phase1/`, `docs/phase2/`
-- **Ontology docs**: `ontology/README_PICK_AND_PLACE.md`
+- **Documentation guide**: `docs/README.md` (authoritative structure + navigation links)
+- **Architecture overviews**: `docs/architecture/`
+- **HCG ontology & CWM specs**: `docs/hcg/`
+- **Service-specific docs**: `docs/services/<service>/`
+- **Operations / verification**: `docs/operations/`
+- **Reference contracts & SDK notes**: `docs/reference/` (linked from `contracts/` and `sdk/`)
+
+When adding or updating documentation:
+
+1. Pick the appropriate directory from the list above (or propose a new one via issue if it truly does not fit).
+2. Link the new doc from the local `index.md`/README and, if applicable, the service README in the owning repo.
+3. Remove or update older files that duplicated the same content.
+4. Mention the doc changes in your PR so reviewers can verify navigation updates.
 
 ## Community
 
