@@ -110,6 +110,22 @@ Python Tooling
 - Install tools via: `pip install -e ".[dev]"`
 - CLI tools: `logos-generate-issues`, `logos-create-issues-by-epoch`
 - Run tests: `pytest`
+- The shared reusable CI workflow defined here also powers the Sophia/Hermes/Talos/Apollo repos.
+
+## Local Testing (CI Parity)
+
+The LOGOS meta repo is the source of `.github/workflows/reusable-standard-ci.yml`. Run the same commands locally to mirror the CI signal:
+
+```bash
+python -m pip install --upgrade pip
+pip install -e ".[dev]"
+ruff check src tests
+black --check src tests
+mypy src
+pytest --cov --cov-report=term --cov-report=xml
+```
+
+Keeping these commands green ensures the `test.yml` workflow (and any downstream repos using the reusable template) stay healthy.
 
 Project Management
 - See `.github/PROJECT_BOARD_SETUP.md` for instructions on setting up the GitHub Project Board, labels, milestones, and issue tracking system.
