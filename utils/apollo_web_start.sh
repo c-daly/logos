@@ -67,7 +67,9 @@ APOLLO_LOG="${LOG_DIR}/apollo-web.log"
 pkill -f "vite" >/dev/null 2>&1 || true
 (
   cd "${APOLLO_WEB_DIR}"
-  nohup npm run dev -- --host 0.0.0.0 \
+  VITE_HERMES_API_URL="http://localhost:8080" \
+    VITE_HERMES_LLM_ENABLED="${VITE_HERMES_LLM_ENABLED:-true}" \
+    nohup npm run dev -- --host 0.0.0.0 \
     >"${APOLLO_LOG}" 2>&1 &
 )
 echo "    Apollo web running (logs: ${APOLLO_LOG})"
