@@ -42,9 +42,9 @@ A curated list of papers, talks, and videos that inform the architecture, world 
 - **Google Cloud Vertex AI** webinars on knowledge graphs + vector search.
 
 ## Useful Links
-- LOGOS flexible spec: `docs/spec/LOGOS_SPEC_FLEXIBLE.md`
+- LOGOS flexible spec: `docs/architecture/LOGOS_SPEC_FLEXIBLE.md`
 - Phase 1 spec: `docs/phase1/PHASE1_SPEC.md`
-- Phase 2 spec: `docs/phase2/PHASE2_SPEC.md`
+- Phase 2 spec: `docs/architecture/PHASE2_SPEC.md`
 - GitHub Project LOGOS board: https://github.com/users/c-daly/projects/10
 
 Additions welcome—PRs or issues referencing new papers/talks keep this list current.

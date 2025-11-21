@@ -4,7 +4,7 @@ LOGOS Persona Diary Module
 Provides persona diary entries stored in the HCG for client surfaces (Apollo or others)
 to query and use when shaping interaction tone/behavior.
 
-See docs/phase2/PHASE2_SPEC.md for persona requirements.
+See docs/architecture/PHASE2_SPEC.md for persona requirements.
 """
 
 from .api import create_persona_api
