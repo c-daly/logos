@@ -288,7 +288,7 @@ The demo capture script will:
 
 ## References
 
-- Phase 2 Spec: `docs/phase2/PHASE2_SPEC.md` (Diagnostics section)
+- Phase 2 Spec: `docs/architecture/PHASE2_SPEC.md` (Diagnostics section)
 - OpenTelemetry Docs: https://opentelemetry.io/docs/
 - Grafana Tempo: https://grafana.com/docs/tempo/
 - TraceQL Guide: https://grafana.com/docs/tempo/latest/traceql/
@@ -297,4 +297,4 @@ The demo capture script will:
 
 - `logos_observability/README.md` - Python instrumentation library
 - `tests/phase2/test_observability.py` - Unit tests
-- `docs/phase2/VERIFY.md` - P2-M4 acceptance criteria
+- `docs/operations/PHASE2_VERIFY.md` - P2-M4 acceptance criteria

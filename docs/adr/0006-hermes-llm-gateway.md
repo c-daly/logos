@@ -65,5 +65,5 @@ Chosen option: "Hermes exposes an `/llm` endpoint with pluggable providers". Her
 
 ## References
 
-* `docs/spec/LOGOS_SPEC_FLEXIBLE.md` – Section 3.4 (Hermes).
+* `docs/architecture/LOGOS_SPEC_FLEXIBLE.md` – Section 3.4 (Hermes).
 * `docs/research/MAKE_LOGOS_GREAT_AGAIN.md` – Scenario coverage + SDK discussions.

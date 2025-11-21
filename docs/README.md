@@ -20,8 +20,10 @@ Existing directories (`phase1/`, `phase2/`, `spec/`, etc.) remain in place tempo
 
 | Current Location | Target Folder | Notes / Action |
 | --- | --- | --- |
-| `docs/phase2/PHASE2_SPEC.md`, `VERIFY.md`, `APOLLO_WEB_PROTOTYPE_SPRINT.md` | `docs/architecture/` + `docs/services/apollo/` | Split high-level specs from service guidance; remove ticket-style TODOs during migration. |
-| `docs/phase2/CWM_STATE_CONTRACT_ROLLOUT.md`, `METRICS_IDEAS.md` | `docs/hcg/` & `docs/operations/metrics/` | Fold into the consolidated HCG + telemetry sections. |
+| `docs/phase2/PHASE2_SPEC.md`, `docs/spec/LOGOS_SPEC_FLEXIBLE.md` | ✔️ migrated to `docs/architecture/` | Highest-level specs now live under `docs/architecture/`. Update any remaining references to the new paths. |
+| `docs/phase2/VERIFY.md`, `docs/phase2/METRICS_IDEAS.md` | ✔️ migrated to `docs/operations/` | Verification guides and metrics ideation now live in `docs/operations/`. |
+| `docs/phase2/APOLLO_WEB_PROTOTYPE_SPRINT.md` | ✔️ migrated to `docs/services/apollo/` | Service-specific notes should live under the corresponding service folder. |
+| `docs/phase2/CWM_STATE_CONTRACT_ROLLOUT.md` | ✔️ migrated to `docs/hcg/` | All CWM/HCG schema docs should consolidate here (see issue #288 for further work). |
 | `docs/spec/*`, `docs/api/*`, `docs/sdk/*` | `docs/reference/` & `docs/services/*` | Move per-service parts into their folders; keep shared contracts under reference. |
 | `docs/phase1/*` | `docs/history/phase1/` (optional) or archive | Retain for posterity but clearly mark as historical. |
 | `docs/issues/*`, `docs/demo/*`, standalone ticket-description files | Remove or convert into proper guides in `operations/` or service folders. |
@@ -43,7 +45,7 @@ Use this checklist when migrating a document:
 
 ## Next Steps
 
-1. Migrate Phase 2 specs and verification notes into the `architecture/` and `operations/` folders.
+1. Migrate the remaining Phase 2 perception/demo docs (e.g., `docs/phase2/perception/*`, `docs/demo/*`) into the appropriate `architecture/`, `services/`, or `operations/` folders.
 2. Draft the CWM-A/G/E schema in `docs/hcg/` (tracked by issue #288) and link it from the capability catalog (#284).
 3. Convert scenario/benchmark docs to `docs/operations/scenarios/` and delete redundant issue-only files.
 4. Update each service README to point to its `docs/services/<service>/` entry.

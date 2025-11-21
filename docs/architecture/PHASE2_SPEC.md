@@ -37,7 +37,7 @@ Phase 2 extends the Phase 1 prototype into a Talos-optional, perception-driven a
   - Persona diary stored as HCG nodes that Apollo/Hermes can query for voice/tone.
   - Demo capture script (record browser session + logs) for verification evidence.
 - **Verification**
-  - New `docs/phase2/VERIFY.md` describing milestone gates, demo instructions, and evidence requirements.
+  - New `docs/operations/PHASE2_VERIFY.md` describing milestone gates, demo instructions, and evidence requirements.
   - CI workflows for the new services (unit tests, lint, Milvus smoke).
 
 ### Unified Causal World Model State Contract
@@ -71,7 +71,7 @@ API/logging rules:
 - `/plan` and `/simulate` responses append any newly created `CWMState` records (imagined outcomes, validation summaries).
 - Structured logging + OpenTelemetry spans must include `state_id`, `model_type`, and `status` so diagnostics dashboards correlate UI views with backend emissions.
 
-**See also:** `docs/phase2/CWM_STATE_CONTRACT_ROLLOUT.md` for the implementation plan, ownership, and timeline.
+**See also:** `docs/hcg/CWM_STATE_CONTRACT_ROLLOUT.md` for the implementation plan, ownership, and timeline.
 
 ## Implementation Notes
 ### Sophia service
@@ -126,7 +126,7 @@ API/logging rules:
   - `phase2-hermes-service.yml` – run embedding tests, Milvus smoke.
   - `phase2-apollo-web.yml` – npm lint/build/test.
   - `phase2-perception.yml` – run JEPA sim smoke tests (optional).
-- Document manual demo steps in `docs/phase2/VERIFY.md` (CLI + browser + perception).
+- Document manual demo steps in `docs/operations/PHASE2_VERIFY.md` (CLI + browser + perception).
 
 ## Milestones & Acceptance Criteria
 
@@ -139,7 +139,7 @@ API/logging rules:
 
 ## Verification Checklist
 
-**See:** `docs/phase2/VERIFY.md` for comprehensive verification criteria, demo instructions, evidence requirements, and CI workflow references.
+**See:** `docs/operations/PHASE2_VERIFY.md` for comprehensive verification criteria, demo instructions, evidence requirements, and CI workflow references.
 
 ### Quick Reference
 - [ ] P2-M1 evidence: API test logs + screenshots of `/docs` for both services.
