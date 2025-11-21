@@ -1,7 +1,6 @@
 
 # LLMRequest
 
-Request payload for Hermes LLM gateway.
 
 ## Properties
 

@@ -1,220 +1,580 @@
 openapi: 3.1.0
 info:
   title: Hermes API
-  version: 1.0.0
-  description: |
-    Canonical Hermes OpenAPI contract for Project LOGOS.
-    See Project LOGOS spec: Table 2 in Section 3.4 (Hermes API endpoints).
-    
-    Hermes is the stateless language & embedding utility providing:
-    - Speech-to-text (STT)
-    - Text-to-speech (TTS)
-    - Simple NLP preprocessing
-    - Text embedding generation
-    
-    All endpoints are stateless and do not interact with the HCG directly.
-
-servers:
-  - url: http://localhost:8080
-    description: Local development server
-
+  description: Stateless language & embedding tools for Project LOGOS
+  version: 0.1.0
 paths:
+  /:
+    get:
+      summary: Root
+      description: Root endpoint with API information.
+      operationId: root__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Root  Get
+  /health:
+    get:
+      summary: Health
+      description: 'Health check endpoint with detailed service status.
+
+
+        Returns the overall health status and availability of ML services,
+
+        Milvus connectivity, and internal queue status.
+
+        This is useful for monitoring and integration with other LOGOS components.'
+      operationId: health_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
   /stt:
     post:
-      summary: Speech-to-Text
-      description: Convert audio input to text transcription
-      operationId: speechToText
+      summary: Speech To Text
+      description: "Convert audio input to text transcription.\n\nArgs:\n    audio:\
+        \ Audio file to transcribe\n    language: Optional language hint (e.g., \"\
+        en-US\")\n\nReturns:\n    STTResponse with transcribed text and confidence\
+        \ score"
+      operationId: speech_to_text_stt_post
+      parameters:
+      - name: language
+        in: query
+        required: false
+        schema:
+          type: string
+          default: en-US
+          title: Language
       requestBody:
         required: true
         content:
           multipart/form-data:
             schema:
-              type: object
-              properties:
-                audio:
-                  type: string
-                  format: binary
-                  description: Audio file to transcribe
-                language:
-                  type: string
-                  description: Optional language hint (e.g., "en-US")
-                  default: "en-US"
-              required:
-                - audio
+              $ref: '#/components/schemas/Body_speech_to_text_stt_post'
       responses:
         '200':
-          description: Transcription successful
+          description: Successful Response
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  text:
-                    type: string
-                    description: Transcribed text
-                  confidence:
-                    type: number
-                    format: float
-                    description: Confidence score (0.0 to 1.0)
-        '400':
-          description: Invalid request (e.g., unsupported audio format)
-        '500':
-          description: Internal server error
-
+                $ref: '#/components/schemas/STTResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /tts:
     post:
-      summary: Text-to-Speech
-      description: Convert text to synthesized speech audio
-      operationId: textToSpeech
+      summary: Text To Speech
+      description: "Convert text to synthesized speech audio.\n\nArgs:\n    request:\
+        \ TTSRequest with text, voice, and language\n\nReturns:\n    Audio file in\
+        \ WAV format"
+      operationId: text_to_speech_tts_post
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                text:
-                  type: string
-                  description: Text to synthesize
-                voice:
-                  type: string
-                  description: Optional voice identifier
-                  default: "default"
-                language:
-                  type: string
-                  description: Language code (e.g., "en-US")
-                  default: "en-US"
-              required:
-                - text
+              $ref: '#/components/schemas/TTSRequest'
+        required: true
       responses:
         '200':
-          description: Speech synthesis successful
+          description: Successful Response
           content:
-            audio/wav:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
               schema:
-                type: string
-                format: binary
-        '400':
-          description: Invalid request
-        '500':
-          description: Internal server error
-
+                $ref: '#/components/schemas/HTTPValidationError'
   /simple_nlp:
     post:
-      summary: Simple NLP Preprocessing
-      description: Perform basic NLP preprocessing (tokenization, POS tagging, etc.)
-      operationId: simpleNlp
+      summary: Simple Nlp
+      description: "Perform basic NLP preprocessing.\n\nArgs:\n    request: SimpleNLPRequest\
+        \ with text and operations\n\nReturns:\n    SimpleNLPResponse with requested\
+        \ NLP results"
+      operationId: simple_nlp_simple_nlp_post
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                text:
-                  type: string
-                  description: Text to process
-                operations:
-                  type: array
-                  items:
-                    type: string
-                    enum: [tokenize, pos_tag, lemmatize, ner]
-                  description: List of NLP operations to perform
-                  default: [tokenize]
-              required:
-                - text
+              $ref: '#/components/schemas/SimpleNLPRequest'
+        required: true
       responses:
         '200':
-          description: NLP processing successful
+          description: Successful Response
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  tokens:
-                    type: array
-                    items:
-                      type: string
-                    description: Tokenized text (if requested)
-                  pos_tags:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        token:
-                          type: string
-                        tag:
-                          type: string
-                    description: POS tags (if requested)
-                  lemmas:
-                    type: array
-                    items:
-                      type: string
-                    description: Lemmatized tokens (if requested)
-                  entities:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        text:
-                          type: string
-                        label:
-                          type: string
-                        start:
-                          type: integer
-                        end:
-                          type: integer
-                    description: Named entities (if requested)
-        '400':
-          description: Invalid request
-        '500':
-          description: Internal server error
-
+                $ref: '#/components/schemas/SimpleNLPResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /embed_text:
     post:
-      summary: Text Embedding Generation
-      description: Generate vector embeddings for input text
-      operationId: embedText
+      summary: Embed Text
+      description: "Generate vector embeddings for input text.\n\nArgs:\n    request:\
+        \ EmbedTextRequest with text and model\n\nReturns:\n    EmbedTextResponse\
+        \ with embedding vector"
+      operationId: embed_text_embed_text_post
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                text:
-                  type: string
-                  description: Text to embed
-                model:
-                  type: string
-                  description: Optional embedding model identifier
-                  default: "default"
-              required:
-                - text
+              $ref: '#/components/schemas/EmbedTextRequest'
+        required: true
       responses:
         '200':
-          description: Embedding generation successful
+          description: Successful Response
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  embedding:
-                    type: array
-                    items:
-                      type: number
-                      format: float
-                    description: Vector embedding
-                  dimension:
-                    type: integer
-                    description: Embedding dimension
-                  model:
-                    type: string
-                    description: Model used for embedding
-        '400':
-          description: Invalid request
-        '500':
-          description: Internal server error
-
+                $ref: '#/components/schemas/EmbedTextResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /llm:
+    post:
+      summary: Llm Generate
+      description: Proxy language model completions through Hermes.
+      operationId: llm_generate_llm_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LLMRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LLMResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
 components:
-  schemas: {}
+  schemas:
+    Body_speech_to_text_stt_post:
+      properties:
+        audio:
+          type: string
+          format: binary
+          title: Audio
+      type: object
+      required:
+      - audio
+      title: Body_speech_to_text_stt_post
+    EmbedTextRequest:
+      properties:
+        text:
+          type: string
+          title: Text
+          description: Text to embed
+        model:
+          type: string
+          title: Model
+          description: Optional embedding model identifier
+          default: default
+      type: object
+      required:
+      - text
+      title: EmbedTextRequest
+    EmbedTextResponse:
+      properties:
+        embedding:
+          items:
+            type: number
+          type: array
+          title: Embedding
+          description: Vector embedding
+        dimension:
+          type: integer
+          title: Dimension
+          description: Embedding dimension
+        model:
+          type: string
+          title: Model
+          description: Model used for embedding
+        embedding_id:
+          type: string
+          title: Embedding Id
+          description: Unique identifier for this embedding
+      type: object
+      required:
+      - embedding
+      - dimension
+      - model
+      - embedding_id
+      title: EmbedTextResponse
+    Entity:
+      properties:
+        text:
+          type: string
+          title: Text
+        label:
+          type: string
+          title: Label
+        start:
+          type: integer
+          title: Start
+        end:
+          type: integer
+          title: End
+      type: object
+      required:
+      - text
+      - label
+      - start
+      - end
+      title: Entity
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    HealthResponse:
+      properties:
+        status:
+          type: string
+          title: Status
+          description: Overall health status
+        version:
+          type: string
+          title: Version
+          description: API version
+        services:
+          additionalProperties:
+            type: string
+          type: object
+          title: Services
+          description: Status of individual services
+        milvus:
+          additionalProperties: true
+          type: object
+          title: Milvus
+          description: Milvus connectivity status
+        queue:
+          additionalProperties: true
+          type: object
+          title: Queue
+          description: Internal queue status
+        llm:
+          additionalProperties: true
+          type: object
+          title: Llm
+          description: LLM provider configuration status
+      type: object
+      required:
+      - status
+      - version
+      - services
+      - milvus
+      - queue
+      - llm
+      title: HealthResponse
+    LLMChoice:
+      properties:
+        index:
+          type: integer
+          title: Index
+          description: Choice index.
+        message:
+          $ref: '#/components/schemas/LLMMessage'
+          description: Assistant message payload.
+        finish_reason:
+          type: string
+          title: Finish Reason
+          description: Reason generation completed.
+          default: stop
+      type: object
+      required:
+      - index
+      - message
+      title: LLMChoice
+    LLMMessage:
+      properties:
+        role:
+          type: string
+          enum:
+          - system
+          - user
+          - assistant
+          - tool
+          title: Role
+          description: Role of the message.
+        content:
+          type: string
+          title: Content
+          description: Text content of the message.
+        name:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Name
+          description: Optional identifier for tool/function calls.
+      type: object
+      required:
+      - role
+      - content
+      title: LLMMessage
+    LLMRequest:
+      properties:
+        prompt:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Prompt
+          description: Convenience field converted to a single user message.
+        messages:
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/LLMMessage'
+            type: array
+          - type: 'null'
+          title: Messages
+          description: Conversation history to send to the provider.
+        provider:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Provider
+          description: Override configured provider (e.g., `openai`, `echo`).
+        model:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Model
+          description: Override provider model for this request.
+        temperature:
+          anyOf:
+          - type: number
+            maximum: 2.0
+            minimum: 0.0
+          - type: 'null'
+          title: Temperature
+          description: Sampling temperature to forward to the provider.
+          default: 0.7
+        max_tokens:
+          anyOf:
+          - type: integer
+            minimum: 1.0
+          - type: 'null'
+          title: Max Tokens
+          description: Optional maximum tokens for the completion.
+        metadata:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Metadata
+          description: Additional metadata stored alongside the request.
+      type: object
+      title: LLMRequest
+    LLMResponse:
+      properties:
+        id:
+          type: string
+          title: Id
+          description: Provider response identifier.
+        provider:
+          type: string
+          title: Provider
+          description: Provider used for the completion.
+        model:
+          type: string
+          title: Model
+          description: Provider model identifier.
+        created:
+          type: integer
+          title: Created
+          description: Epoch timestamp when created.
+        choices:
+          items:
+            $ref: '#/components/schemas/LLMChoice'
+          type: array
+          title: Choices
+          description: Choices returned by provider.
+        usage:
+          anyOf:
+          - $ref: '#/components/schemas/LLMUsage'
+          - type: 'null'
+          description: Token usage metadata if returned by provider.
+        raw:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Raw
+          description: Raw provider response for diagnostics.
+      type: object
+      required:
+      - id
+      - provider
+      - model
+      - created
+      - choices
+      title: LLMResponse
+    LLMUsage:
+      properties:
+        prompt_tokens:
+          type: integer
+          title: Prompt Tokens
+          description: Prompt token count.
+        completion_tokens:
+          type: integer
+          title: Completion Tokens
+          description: Completion token count.
+        total_tokens:
+          type: integer
+          title: Total Tokens
+          description: Total token count.
+      type: object
+      required:
+      - prompt_tokens
+      - completion_tokens
+      - total_tokens
+      title: LLMUsage
+    POSTag:
+      properties:
+        token:
+          type: string
+          title: Token
+        tag:
+          type: string
+          title: Tag
+      type: object
+      required:
+      - token
+      - tag
+      title: POSTag
+    STTResponse:
+      properties:
+        text:
+          type: string
+          title: Text
+          description: Transcribed text
+        confidence:
+          type: number
+          title: Confidence
+          description: Confidence score (0.0 to 1.0)
+      type: object
+      required:
+      - text
+      - confidence
+      title: STTResponse
+    SimpleNLPRequest:
+      properties:
+        text:
+          type: string
+          title: Text
+          description: Text to process
+        operations:
+          items:
+            type: string
+          type: array
+          title: Operations
+          description: List of NLP operations to perform
+          default:
+          - tokenize
+      type: object
+      required:
+      - text
+      title: SimpleNLPRequest
+    SimpleNLPResponse:
+      properties:
+        tokens:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Tokens
+        pos_tags:
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/POSTag'
+            type: array
+          - type: 'null'
+          title: Pos Tags
+        lemmas:
+          anyOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+          title: Lemmas
+        entities:
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/Entity'
+            type: array
+          - type: 'null'
+          title: Entities
+      type: object
+      title: SimpleNLPResponse
+    TTSRequest:
+      properties:
+        text:
+          type: string
+          title: Text
+          description: Text to synthesize
+        voice:
+          type: string
+          title: Voice
+          description: Optional voice identifier
+          default: default
+        language:
+          type: string
+          title: Language
+          description: Language code
+          default: en-US
+      type: object
+      required:
+      - text
+      title: TTSRequest
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError

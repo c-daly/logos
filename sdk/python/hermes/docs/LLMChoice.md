@@ -5,9 +5,9 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**index** | **int** | Position of the choice in the provider response. | 
-**message** | [**LLMMessage**](LLMMessage.md) |  | 
-**finish_reason** | **str** | Why the provider stopped generating tokens. | 
+**index** | **int** | Choice index. | 
+**message** | [**LLMMessage**](LLMMessage.md) | Assistant message payload. | 
+**finish_reason** | **str** | Reason generation completed. | [optional] [default to 'stop']
 
 ## Example
 

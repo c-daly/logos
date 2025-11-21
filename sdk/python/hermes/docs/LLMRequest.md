@@ -1,18 +1,17 @@
 # LLMRequest
 
-Request payload for Hermes LLM gateway.
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**prompt** | **str** | Shortcut for a single user message. | [optional] 
-**messages** | [**List[LLMMessage]**](LLMMessage.md) | Conversation history to send to the provider. | [optional] 
-**provider** | **str** | Override configured provider (e.g., &#x60;openai&#x60;, &#x60;echo&#x60;). | [optional] 
-**model** | **str** | Override provider model identifier. | [optional] 
-**temperature** | **float** | Sampling temperature passed to the provider. | [optional] [default to 0.7]
-**max_tokens** | **int** | Optional maximum number of tokens to generate. | [optional] 
-**metadata** | **Dict[str, object]** | Additional metadata to log with the request. | [optional] 
+**prompt** | **str** |  | [optional] 
+**messages** | [**List[LLMMessage]**](LLMMessage.md) |  | [optional] 
+**provider** | **str** |  | [optional] 
+**model** | **str** |  | [optional] 
+**temperature** | **float** |  | [optional] 
+**max_tokens** | **int** |  | [optional] 
+**metadata** | **Dict[str, object]** |  | [optional] 
 
 ## Example
 

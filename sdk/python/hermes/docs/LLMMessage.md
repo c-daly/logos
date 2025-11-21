@@ -5,9 +5,9 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**role** | **str** | Role associated with the message. | 
-**content** | **str** | Message text content. | 
-**name** | **str** | Optional identifier for tool/function responses. | [optional] 
+**role** | **str** | Role of the message. | 
+**content** | **str** | Text content of the message. | 
+**name** | **str** |  | [optional] 
 
 ## Example
 

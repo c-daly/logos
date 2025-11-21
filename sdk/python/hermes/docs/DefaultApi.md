@@ -1,36 +1,45 @@
 # logos_hermes_sdk.DefaultApi
 
-All URIs are relative to *http://localhost:8080*
+All URIs are relative to *http://localhost*
 
 Method | HTTP request | Description
 ------------- | ------------- | -------------
-[**embed_text**](DefaultApi.md#embed_text) | **POST** /embed_text | Text Embedding Generation
-[**simple_nlp**](DefaultApi.md#simple_nlp) | **POST** /simple_nlp | Simple NLP Preprocessing
-[**speech_to_text**](DefaultApi.md#speech_to_text) | **POST** /stt | Speech-to-Text
-[**text_to_speech**](DefaultApi.md#text_to_speech) | **POST** /tts | Text-to-Speech
+[**embed_text_embed_text_post**](DefaultApi.md#embed_text_embed_text_post) | **POST** /embed_text | Embed Text
+[**health_health_get**](DefaultApi.md#health_health_get) | **GET** /health | Health
+[**llm_generate_llm_post**](DefaultApi.md#llm_generate_llm_post) | **POST** /llm | Llm Generate
+[**root_get**](DefaultApi.md#root_get) | **GET** / | Root
+[**simple_nlp_simple_nlp_post**](DefaultApi.md#simple_nlp_simple_nlp_post) | **POST** /simple_nlp | Simple Nlp
+[**speech_to_text_stt_post**](DefaultApi.md#speech_to_text_stt_post) | **POST** /stt | Speech To Text
+[**text_to_speech_tts_post**](DefaultApi.md#text_to_speech_tts_post) | **POST** /tts | Text To Speech
 
 
-# **embed_text**
-> EmbedText200Response embed_text(embed_text_request)
+# **embed_text_embed_text_post**
+> EmbedTextResponse embed_text_embed_text_post(embed_text_request)
 
-Text Embedding Generation
+Embed Text
 
-Generate vector embeddings for input text
+Generate vector embeddings for input text.
+
+Args:
+    request: EmbedTextRequest with text and model
+
+Returns:
+    EmbedTextResponse with embedding vector
 
 ### Example
 
 
 ```python
 import logos_hermes_sdk
-from logos_hermes_sdk.models.embed_text200_response import EmbedText200Response
 from logos_hermes_sdk.models.embed_text_request import EmbedTextRequest
+from logos_hermes_sdk.models.embed_text_response import EmbedTextResponse
 from logos_hermes_sdk.rest import ApiException
 from pprint import pprint
 
-# Defining the host is optional and defaults to http://localhost:8080
+# Defining the host is optional and defaults to http://localhost
 # See configuration.py for a list of all supported configuration parameters.
 configuration = logos_hermes_sdk.Configuration(
-    host = "http://localhost:8080"
+    host = "http://localhost"
 )
 
 
@@ -41,12 +50,12 @@ with logos_hermes_sdk.ApiClient(configuration) as api_client:
     embed_text_request = logos_hermes_sdk.EmbedTextRequest() # EmbedTextRequest | 
 
     try:
-        # Text Embedding Generation
-        api_response = api_instance.embed_text(embed_text_request)
-        print("The response of DefaultApi->embed_text:\n")
+        # Embed Text
+        api_response = api_instance.embed_text_embed_text_post(embed_text_request)
+        print("The response of DefaultApi->embed_text_embed_text_post:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling DefaultApi->embed_text: %s\n" % e)
+        print("Exception when calling DefaultApi->embed_text_embed_text_post: %s\n" % e)
 ```
 
 
@@ -60,7 +69,7 @@ Name | Type | Description  | Notes
 
 ### Return type
 
-[**EmbedText200Response**](EmbedText200Response.md)
+[**EmbedTextResponse**](EmbedTextResponse.md)
 
 ### Authorization
 
@@ -75,33 +84,35 @@ No authorization required
 
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Embedding generation successful |  -  |
-**400** | Invalid request |  -  |
-**500** | Internal server error |  -  |
+**200** | Successful Response |  -  |
+**422** | Validation Error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **simple_nlp**
-> SimpleNlp200Response simple_nlp(simple_nlp_request)
+# **health_health_get**
+> HealthResponse health_health_get()
 
-Simple NLP Preprocessing
+Health
 
-Perform basic NLP preprocessing (tokenization, POS tagging, etc.)
+Health check endpoint with detailed service status.
+
+Returns the overall health status and availability of ML services,
+Milvus connectivity, and internal queue status.
+This is useful for monitoring and integration with other LOGOS components.
 
 ### Example
 
 
 ```python
 import logos_hermes_sdk
-from logos_hermes_sdk.models.simple_nlp200_response import SimpleNlp200Response
-from logos_hermes_sdk.models.simple_nlp_request import SimpleNlpRequest
+from logos_hermes_sdk.models.health_response import HealthResponse
 from logos_hermes_sdk.rest import ApiException
 from pprint import pprint
 
-# Defining the host is optional and defaults to http://localhost:8080
+# Defining the host is optional and defaults to http://localhost
 # See configuration.py for a list of all supported configuration parameters.
 configuration = logos_hermes_sdk.Configuration(
-    host = "http://localhost:8080"
+    host = "http://localhost"
 )
 
 
@@ -109,15 +120,80 @@ configuration = logos_hermes_sdk.Configuration(
 with logos_hermes_sdk.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = logos_hermes_sdk.DefaultApi(api_client)
-    simple_nlp_request = logos_hermes_sdk.SimpleNlpRequest() # SimpleNlpRequest | 
 
     try:
-        # Simple NLP Preprocessing
-        api_response = api_instance.simple_nlp(simple_nlp_request)
-        print("The response of DefaultApi->simple_nlp:\n")
+        # Health
+        api_response = api_instance.health_health_get()
+        print("The response of DefaultApi->health_health_get:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling DefaultApi->simple_nlp: %s\n" % e)
+        print("Exception when calling DefaultApi->health_health_get: %s\n" % e)
+```
+
+
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+[**HealthResponse**](HealthResponse.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+### HTTP response details
+
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+**200** | Successful Response |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **llm_generate_llm_post**
+> LLMResponse llm_generate_llm_post(llm_request)
+
+Llm Generate
+
+Proxy language model completions through Hermes.
+
+### Example
+
+
+```python
+import logos_hermes_sdk
+from logos_hermes_sdk.models.llm_request import LLMRequest
+from logos_hermes_sdk.models.llm_response import LLMResponse
+from logos_hermes_sdk.rest import ApiException
+from pprint import pprint
+
+# Defining the host is optional and defaults to http://localhost
+# See configuration.py for a list of all supported configuration parameters.
+configuration = logos_hermes_sdk.Configuration(
+    host = "http://localhost"
+)
+
+
+# Enter a context with an instance of the API client
+with logos_hermes_sdk.ApiClient(configuration) as api_client:
+    # Create an instance of the API class
+    api_instance = logos_hermes_sdk.DefaultApi(api_client)
+    llm_request = logos_hermes_sdk.LLMRequest() # LLMRequest | 
+
+    try:
+        # Llm Generate
+        api_response = api_instance.llm_generate_llm_post(llm_request)
+        print("The response of DefaultApi->llm_generate_llm_post:\n")
+        pprint(api_response)
+    except Exception as e:
+        print("Exception when calling DefaultApi->llm_generate_llm_post: %s\n" % e)
 ```
 
 
@@ -127,11 +203,11 @@ with logos_hermes_sdk.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **simple_nlp_request** | [**SimpleNlpRequest**](SimpleNlpRequest.md)|  | 
+ **llm_request** | [**LLMRequest**](LLMRequest.md)|  | 
 
 ### Return type
 
-[**SimpleNlp200Response**](SimpleNlp200Response.md)
+[**LLMResponse**](LLMResponse.md)
 
 ### Authorization
 
@@ -146,32 +222,30 @@ No authorization required
 
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | NLP processing successful |  -  |
-**400** | Invalid request |  -  |
-**500** | Internal server error |  -  |
+**200** | Successful Response |  -  |
+**422** | Validation Error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **speech_to_text**
-> SpeechToText200Response speech_to_text(audio, language=language)
+# **root_get**
+> Dict[str, object] root_get()
 
-Speech-to-Text
+Root
 
-Convert audio input to text transcription
+Root endpoint with API information.
 
 ### Example
 
 
 ```python
 import logos_hermes_sdk
-from logos_hermes_sdk.models.speech_to_text200_response import SpeechToText200Response
 from logos_hermes_sdk.rest import ApiException
 from pprint import pprint
 
-# Defining the host is optional and defaults to http://localhost:8080
+# Defining the host is optional and defaults to http://localhost
 # See configuration.py for a list of all supported configuration parameters.
 configuration = logos_hermes_sdk.Configuration(
-    host = "http://localhost:8080"
+    host = "http://localhost"
 )
 
 
@@ -179,16 +253,86 @@ configuration = logos_hermes_sdk.Configuration(
 with logos_hermes_sdk.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = logos_hermes_sdk.DefaultApi(api_client)
-    audio = None # bytearray | Audio file to transcribe
-    language = 'en-US' # str | Optional language hint (e.g., \\\"en-US\\\") (optional) (default to 'en-US')
 
     try:
-        # Speech-to-Text
-        api_response = api_instance.speech_to_text(audio, language=language)
-        print("The response of DefaultApi->speech_to_text:\n")
+        # Root
+        api_response = api_instance.root_get()
+        print("The response of DefaultApi->root_get:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling DefaultApi->speech_to_text: %s\n" % e)
+        print("Exception when calling DefaultApi->root_get: %s\n" % e)
+```
+
+
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+**Dict[str, object]**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+### HTTP response details
+
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+**200** | Successful Response |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **simple_nlp_simple_nlp_post**
+> SimpleNLPResponse simple_nlp_simple_nlp_post(simple_nlp_request)
+
+Simple Nlp
+
+Perform basic NLP preprocessing.
+
+Args:
+    request: SimpleNLPRequest with text and operations
+
+Returns:
+    SimpleNLPResponse with requested NLP results
+
+### Example
+
+
+```python
+import logos_hermes_sdk
+from logos_hermes_sdk.models.simple_nlp_request import SimpleNLPRequest
+from logos_hermes_sdk.models.simple_nlp_response import SimpleNLPResponse
+from logos_hermes_sdk.rest import ApiException
+from pprint import pprint
+
+# Defining the host is optional and defaults to http://localhost
+# See configuration.py for a list of all supported configuration parameters.
+configuration = logos_hermes_sdk.Configuration(
+    host = "http://localhost"
+)
+
+
+# Enter a context with an instance of the API client
+with logos_hermes_sdk.ApiClient(configuration) as api_client:
+    # Create an instance of the API class
+    api_instance = logos_hermes_sdk.DefaultApi(api_client)
+    simple_nlp_request = logos_hermes_sdk.SimpleNLPRequest() # SimpleNLPRequest | 
+
+    try:
+        # Simple Nlp
+        api_response = api_instance.simple_nlp_simple_nlp_post(simple_nlp_request)
+        print("The response of DefaultApi->simple_nlp_simple_nlp_post:\n")
+        pprint(api_response)
+    except Exception as e:
+        print("Exception when calling DefaultApi->simple_nlp_simple_nlp_post: %s\n" % e)
 ```
 
 
@@ -198,12 +342,89 @@ with logos_hermes_sdk.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **audio** | **bytearray**| Audio file to transcribe | 
- **language** | **str**| Optional language hint (e.g., \\\&quot;en-US\\\&quot;) | [optional] [default to &#39;en-US&#39;]
+ **simple_nlp_request** | [**SimpleNLPRequest**](SimpleNLPRequest.md)|  | 
 
 ### Return type
 
-[**SpeechToText200Response**](SpeechToText200Response.md)
+[**SimpleNLPResponse**](SimpleNLPResponse.md)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+### HTTP response details
+
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+**200** | Successful Response |  -  |
+**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **speech_to_text_stt_post**
+> STTResponse speech_to_text_stt_post(audio, language=language)
+
+Speech To Text
+
+Convert audio input to text transcription.
+
+Args:
+    audio: Audio file to transcribe
+    language: Optional language hint (e.g., "en-US")
+
+Returns:
+    STTResponse with transcribed text and confidence score
+
+### Example
+
+
+```python
+import logos_hermes_sdk
+from logos_hermes_sdk.models.stt_response import STTResponse
+from logos_hermes_sdk.rest import ApiException
+from pprint import pprint
+
+# Defining the host is optional and defaults to http://localhost
+# See configuration.py for a list of all supported configuration parameters.
+configuration = logos_hermes_sdk.Configuration(
+    host = "http://localhost"
+)
+
+
+# Enter a context with an instance of the API client
+with logos_hermes_sdk.ApiClient(configuration) as api_client:
+    # Create an instance of the API class
+    api_instance = logos_hermes_sdk.DefaultApi(api_client)
+    audio = None # bytearray | 
+    language = 'en-US' # str |  (optional) (default to 'en-US')
+
+    try:
+        # Speech To Text
+        api_response = api_instance.speech_to_text_stt_post(audio, language=language)
+        print("The response of DefaultApi->speech_to_text_stt_post:\n")
+        pprint(api_response)
+    except Exception as e:
+        print("Exception when calling DefaultApi->speech_to_text_stt_post: %s\n" % e)
+```
+
+
+
+### Parameters
+
+
+Name | Type | Description  | Notes
+------------- | ------------- | ------------- | -------------
+ **audio** | **bytearray**|  | 
+ **language** | **str**|  | [optional] [default to &#39;en-US&#39;]
+
+### Return type
+
+[**STTResponse**](STTResponse.md)
 
 ### Authorization
 
@@ -218,32 +439,37 @@ No authorization required
 
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Transcription successful |  -  |
-**400** | Invalid request (e.g., unsupported audio format) |  -  |
-**500** | Internal server error |  -  |
+**200** | Successful Response |  -  |
+**422** | Validation Error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **text_to_speech**
-> bytearray text_to_speech(text_to_speech_request)
+# **text_to_speech_tts_post**
+> object text_to_speech_tts_post(tts_request)
 
-Text-to-Speech
+Text To Speech
 
-Convert text to synthesized speech audio
+Convert text to synthesized speech audio.
+
+Args:
+    request: TTSRequest with text, voice, and language
+
+Returns:
+    Audio file in WAV format
 
 ### Example
 
 
 ```python
 import logos_hermes_sdk
-from logos_hermes_sdk.models.text_to_speech_request import TextToSpeechRequest
+from logos_hermes_sdk.models.tts_request import TTSRequest
 from logos_hermes_sdk.rest import ApiException
 from pprint import pprint
 
-# Defining the host is optional and defaults to http://localhost:8080
+# Defining the host is optional and defaults to http://localhost
 # See configuration.py for a list of all supported configuration parameters.
 configuration = logos_hermes_sdk.Configuration(
-    host = "http://localhost:8080"
+    host = "http://localhost"
 )
 
 
@@ -251,15 +477,15 @@ configuration = logos_hermes_sdk.Configuration(
 with logos_hermes_sdk.ApiClient(configuration) as api_client:
     # Create an instance of the API class
     api_instance = logos_hermes_sdk.DefaultApi(api_client)
-    text_to_speech_request = logos_hermes_sdk.TextToSpeechRequest() # TextToSpeechRequest | 
+    tts_request = logos_hermes_sdk.TTSRequest() # TTSRequest | 
 
     try:
-        # Text-to-Speech
-        api_response = api_instance.text_to_speech(text_to_speech_request)
-        print("The response of DefaultApi->text_to_speech:\n")
+        # Text To Speech
+        api_response = api_instance.text_to_speech_tts_post(tts_request)
+        print("The response of DefaultApi->text_to_speech_tts_post:\n")
         pprint(api_response)
     except Exception as e:
-        print("Exception when calling DefaultApi->text_to_speech: %s\n" % e)
+        print("Exception when calling DefaultApi->text_to_speech_tts_post: %s\n" % e)
 ```
 
 
@@ -269,11 +495,11 @@ with logos_hermes_sdk.ApiClient(configuration) as api_client:
 
 Name | Type | Description  | Notes
 ------------- | ------------- | ------------- | -------------
- **text_to_speech_request** | [**TextToSpeechRequest**](TextToSpeechRequest.md)|  | 
+ **tts_request** | [**TTSRequest**](TTSRequest.md)|  | 
 
 ### Return type
 
-**bytearray**
+**object**
 
 ### Authorization
 
@@ -282,15 +508,14 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
- - **Accept**: audio/wav
+ - **Accept**: application/json
 
 ### HTTP response details
 
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-**200** | Speech synthesis successful |  -  |
-**400** | Invalid request |  -  |
-**500** | Internal server error |  -  |
+**200** | Successful Response |  -  |
+**422** | Validation Error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

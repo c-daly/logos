@@ -6,12 +6,12 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **str** | Provider response identifier. | 
-**provider** | **str** | Provider that generated the completion. | 
-**model** | **str** | Model identifier returned by the provider. | 
-**created** | **int** | Epoch timestamp when the completion was created. | 
-**choices** | [**List[LLMChoice]**](LLMChoice.md) |  | 
+**provider** | **str** | Provider used for the completion. | 
+**model** | **str** | Provider model identifier. | 
+**created** | **int** | Epoch timestamp when created. | 
+**choices** | [**List[LLMChoice]**](LLMChoice.md) | Choices returned by provider. | 
 **usage** | [**LLMUsage**](LLMUsage.md) |  | [optional] 
-**raw** | **Dict[str, object]** | Raw provider payload for diagnostics. | [optional] 
+**raw** | **Dict[str, object]** |  | [optional] 
 
 ## Example
 
