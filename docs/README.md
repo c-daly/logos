@@ -11,7 +11,7 @@ The `docs/` tree is organized by concern rather than chronology. Each folder sho
 | `docs/architecture/` | End-to-end system overviews, diagrams, ADR summaries. | System maps, glossary, non-repo-specific ADRs. |
 | `docs/hcg/` | Hybrid Cognitive Graph ontology, SHACL specs, CWM schemas, capability catalog. | Ontology diagrams, CWM-A/G/E schema (see issue #288), fact/capability definitions. |
 | `docs/services/` | Service-specific behavior for Sophia, Hermes, Apollo, Talos. One subfolder per repo. | API surface summaries, deployment notes, SDK usage instructions. |
-| `docs/operations/` | CI/CD, verification procedures, scenario scripts, observability/metrics guides. | Scenario tooling (#278–#276), verification checklists, Otel dashboards. |
+| `docs/operations/` | CI/CD, verification procedures, scenario scripts, observability/metrics guides. | Scenario tooling (#278–#276), verification checklists, OTel dashboards. |
 | `docs/reference/` | Contracts, API docs, and generated artifacts that must live in the repo (`contracts/` can link here). | OpenAPI pointers, SDK regeneration how-tos. |
 
 Existing directories (`phase1/`, `phase2/`, `spec/`, etc.) remain in place temporarily but should be migrated into this structure as we consolidate content.
