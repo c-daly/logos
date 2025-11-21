@@ -1,0 +1,259 @@
+name: Reusable Standard CI
+
+on:
+  workflow_call:
+    inputs:
+      enable_python:
+        description: 'Run the Python lint/test job'
+        required: false
+        type: boolean
+        default: true
+      python_versions:
+        description: 'JSON array of Python versions for the matrix'
+        required: false
+        type: string
+        default: '["3.11"]'
+      python_package_manager:
+        description: 'Dependency installer (pip or poetry)'
+        required: false
+        type: string
+        default: 'pip'
+      python_install_command:
+        description: 'Command used to install Python dependencies when using pip'
+        required: false
+        type: string
+        default: 'python -m pip install --upgrade pip && pip install -e .[dev]'
+      python_requirements_path:
+        description: 'Requirements/lock files used for caching when using pip'
+        required: false
+        type: string
+        default: 'pyproject.toml\nrequirements.txt'
+      python_command_prefix:
+        description: 'Prefix such as "poetry run " to execute Python tooling'
+        required: false
+        type: string
+        default: ''
+      poetry_install_args:
+        description: 'Arguments forwarded to `poetry install`'
+        type: string
+        default: '--with dev'
+      run_ruff:
+        description: 'Run Ruff linting'
+        type: boolean
+        default: true
+      run_black:
+        description: 'Run Black formatting check'
+        type: boolean
+        default: true
+      run_mypy:
+        description: 'Run mypy type checking'
+        type: boolean
+        default: true
+      run_pytest:
+        description: 'Run pytest'
+        type: boolean
+        default: true
+      python_lint_paths:
+        description: 'Paths supplied to Ruff/Black'
+        type: string
+        default: 'src tests'
+      mypy_targets:
+        description: 'Targets passed to mypy'
+        type: string
+        default: 'src'
+      pytest_command:
+        description: 'Pytest invocation'
+        type: string
+        default: 'pytest --cov --cov-report=term --cov-report=xml'
+      upload_coverage:
+        description: 'Upload coverage results to Codecov'
+        type: boolean
+        default: true
+      coverage_python_version:
+        description: 'Python version responsible for uploading coverage'
+        type: string
+        default: '3.11'
+      enable_node:
+        description: 'Run the Node/Vite job'
+        type: boolean
+        default: false
+      node_version:
+        description: 'Node.js version'
+        type: string
+        default: '18'
+      node_working_directory:
+        description: 'Directory that contains package.json'
+        type: string
+        default: 'webapp'
+      node_cache_path:
+        description: 'Dependency file used for npm cache'
+        type: string
+        default: 'webapp/package-lock.json'
+      node_lint_command:
+        description: 'Lint command for Node project'
+        type: string
+        default: 'npm run lint'
+      node_typecheck_command:
+        description: 'Type-check command for Node project'
+        type: string
+        default: 'npm run type-check'
+      node_test_command:
+        description: 'Test command for Node project'
+        type: string
+        default: 'npm test -- --run'
+      node_build_command:
+        description: 'Build command for Node project'
+        type: string
+        default: 'npm run build'
+      enable_integration_job:
+        description: 'Run an optional integration/smoke job'
+        type: boolean
+        default: false
+      integration_name:
+        description: 'Display name for the integration job'
+        type: string
+        default: 'Integration tests'
+      integration_command:
+        description: 'Command executed inside the integration job'
+        type: string
+        default: ''
+      integration_needs_python:
+        description: 'Wait for python-ci to finish before running integration tests'
+        type: boolean
+        default: true
+      working_directory:
+        description: 'Root working directory for Python commands'
+        type: string
+        default: '.'
+    secrets:
+      CODECOV_TOKEN:
+        required: false
+
+jobs:
+  python-ci:
+    if: ${{ inputs.enable_python == 'true' }}
+    name: Python lint & tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working_directory }}
+    strategy:
+      matrix:
+        python-version: ${{ fromJson(inputs.python_versions) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: ${{ inputs.python_package_manager == 'pip' && 'pip' || '' }}
+          cache-dependency-path: ${{ inputs.python_package_manager == 'pip' && inputs.python_requirements_path || '' }}
+
+      - name: Install Poetry
+        if: inputs.python_package_manager == 'poetry'
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Configure Poetry
+        if: inputs.python_package_manager == 'poetry'
+        run: |
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project true
+
+      - name: Cache Poetry virtualenv
+        if: inputs.python_package_manager == 'poetry'
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: poetry-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('poetry.lock') }}
+
+      - name: Install dependencies
+        run: |
+          if [ "${{ inputs.python_package_manager }}" = "poetry" ]; then
+            poetry install ${{ inputs.poetry_install_args }}
+          else
+            ${{ inputs.python_install_command }}
+          fi
+
+      - name: Run Ruff lint
+        if: ${{ inputs.run_ruff == 'true' }}
+        run: ${{ inputs.python_command_prefix }}ruff check ${{ inputs.python_lint_paths }}
+
+      - name: Run Black check
+        if: ${{ inputs.run_black == 'true' }}
+        run: ${{ inputs.python_command_prefix }}black --check ${{ inputs.python_lint_paths }}
+
+      - name: Run mypy
+        if: ${{ inputs.run_mypy == 'true' }}
+        run: ${{ inputs.python_command_prefix }}mypy ${{ inputs.mypy_targets }}
+
+      - name: Run pytest
+        if: ${{ inputs.run_pytest == 'true' }}
+        run: ${{ inputs.python_command_prefix }}${{ inputs.pytest_command }}
+
+      - name: Upload coverage to Codecov
+        if: ${{ inputs.upload_coverage == 'true' && inputs.run_pytest == 'true' && matrix.python-version == inputs.coverage_python_version }}
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ${{ inputs.working_directory }}/coverage.xml
+          fail_ci_if_error: false
+
+  node-ci:
+    if: ${{ inputs.enable_node == 'true' }}
+    name: Node lint & tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.node_working_directory }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
+          cache: 'npm'
+          cache-dependency-path: ${{ inputs.node_cache_path }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: ${{ inputs.node_lint_command }}
+
+      - name: Type check
+        run: ${{ inputs.node_typecheck_command }}
+
+      - name: Test
+        run: ${{ inputs.node_test_command }}
+
+      - name: Build
+        run: ${{ inputs.node_build_command }}
+
+  integration:
+    if: ${{ inputs.enable_integration_job == 'true' && inputs.integration_needs_python == 'true' }}
+    name: ${{ inputs.integration_name }}
+    runs-on: ubuntu-latest
+    needs: python-ci
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run integration command
+        run: ${{ inputs.integration_command }}
+
+  integration-standalone:
+    if: ${{ inputs.enable_integration_job == 'true' && inputs.integration_needs_python != 'true' }}
+    name: ${{ inputs.integration_name }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run integration command
+        run: ${{ inputs.integration_command }}
