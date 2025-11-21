@@ -114,7 +114,7 @@ All artifacts are saved to `./demo_output/` (configurable with `--output-dir`):
 
 ### Integration with Verification
 
-Captured artifacts should be referenced in `docs/phase2/VERIFY.md` as evidence for:
+Captured artifacts should be referenced in `docs/operations/PHASE2_VERIFY.md` as evidence for:
 - P2-M4 acceptance criteria
 - Observability stack functionality
 - Persona diary API usage
@@ -131,5 +131,5 @@ If `ffmpeg` or `script` are not available:
 
 ## See Also
 
-- `docs/phase2/VERIFY.md` - Verification checklist for Phase 2
-- `docs/phase2/PHASE2_SPEC.md` - Phase 2 specification
+- `docs/operations/PHASE2_VERIFY.md` - Verification checklist for Phase 2
+- `docs/architecture/PHASE2_SPEC.md` - Phase 2 specification

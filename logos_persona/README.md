@@ -171,7 +171,7 @@ RETURN pe, p
 
 ## See Also
 
-- `docs/phase2/VERIFY.md` - P2-M4 verification checklist
-- `docs/phase2/PHASE2_SPEC.md` - Phase 2 specification (Persona section)
+- `docs/operations/PHASE2_VERIFY.md` - P2-M4 verification checklist
+- `docs/architecture/PHASE2_SPEC.md` - Phase 2 specification (Persona section)
 - `logos_cwm_e/` - CWM-E reflection module
 - `examples/p2_m4_demo.py` - Example usage

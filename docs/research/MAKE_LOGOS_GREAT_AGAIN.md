@@ -75,7 +75,7 @@ See `logs/benchmarks/README.md` and the scenario-specific subfolder READMEs for 
    - Compute scenario coverage scores.
 2. Emit JSON summaries into `logs/metrics/<timestamp>/` and persist trends (graphs/tables).
 3. Add CI workflow (`.github/workflows/metrics.yml`) to run the suite nightly or on demand.
-4. Update `docs/phase2/METRICS_IDEAS.md` to reference actual scripts + sample output.
+4. Update `docs/operations/METRICS_IDEAS.md` to reference actual scripts + sample output.
 
 ### Why it matters
 Quantitative evidence turns the architecture from “interesting idea” into “proven improvement.” Automated runs also guard against regressions.
