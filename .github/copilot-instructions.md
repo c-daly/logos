@@ -58,6 +58,7 @@ The LOGOS ecosystem contains multiple repositories (`logos/`, `apollo/`, `sophia
 6) Project board & automation
 - Use the workspace Project Board per `.github/PROJECT_BOARD_SETUP.md`. Move issues between columns and keep `status/*` labels updated.
 - Use `logos/logos-generate-issues` or `.github/scripts/generate_issues.py` to create batched issues; reference generated issue IDs in PRs.
+- When you start working on an issue that lives on Project LOGOS, immediately move its card to *In Progress* (and update the `status/*` label). When the PR merges or the work is complete, move it to *Done* so the board stays accurate.
 
 Examples:
 - Good issue title: `[apollo] Add mock fixture for chat panel (#1234)`
