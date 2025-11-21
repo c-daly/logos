@@ -161,6 +161,19 @@ For feature requests or enhancements:
 - Address any requested changes
 - Once approved, a maintainer will merge your PR
 
+### Issue & PR Templates (enforced)
+
+This repository provides templates to standardize issue reports and pull requests. Use them to ensure fast triage and smoother reviews.
+
+- Issue template: `logos/.github/ISSUE_TEMPLATE.md` — includes sections for a short, bracketed title (`[COMPONENT] short-summary`), reproduction steps, proposed change, acceptance criteria, environment, and suggested labels.
+- PR template: `logos/.github/PULL_REQUEST_TEMPLATE.md` — includes a required link to the related issue (use `Closes #<issue-number>` when the PR resolves it), a checklist for tests/lint/docs, and exact commands to run locally.
+
+Examples:
+- Issue title: `[apollo] Add mock fixture for chat panel (#1234)`
+- PR description: include `Closes #1234`, a short summary, files changed list, and a `How to run / test locally` section with copyable commands.
+
+Maintainers will expect the checklist in the PR template to be completed before merging. Use the workspace `logos/.github/copilot-instructions.md` for full GitHub/ticketing rules (labels, branch naming, status labels, etc.).
+
 ## Coding Standards
 
 ### Python Code
