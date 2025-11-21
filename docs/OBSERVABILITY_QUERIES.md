@@ -1,5 +1,9 @@
 # LOGOS Observability Query Snippets
 
+> **Status:** 🟢 Active reference  
+> **Progress:** 70% (TraceQL cheat sheet; dashboards TBD)  
+> **Last updated:** 2025-11-21 — keep adding new signals as they land in OTel
+
 This document contains useful TraceQL queries and examples for exploring LOGOS traces in Grafana Tempo.
 
 ## Basic Queries

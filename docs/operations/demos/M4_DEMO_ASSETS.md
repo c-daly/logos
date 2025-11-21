@@ -1,12 +1,16 @@
 # M4 Pick-and-Place Demo Assets
 
+> **Status:** ✅ Complete (Phase 1 – Milestone 4)  
+> **Progress:** 100% (automation + verification scripts checked in)  
+> **Last validated:** 2025-11-19 (`logs/m4-verification/M4_VERIFICATION_REPORT.md`)
+
 This directory contains all assets for running and demonstrating the M4 milestone: end-to-end pick-and-place scenario.
 
 ## Quick Links
 
-- **📖 [Complete Walkthrough](../docs/PICK_AND_PLACE_WALKTHROUGH.md)** - Step-by-step guide for running the demo
+- **📖 [Complete Walkthrough](./PICK_AND_PLACE_WALKTHROUGH.md)** - Step-by-step guide for running the demo
 - **🚀 [Quick Start](#quick-start)** - Get running in 2 minutes
-- **📊 [Verification Report](../logs/m4-verification/M4_VERIFICATION_REPORT.md)** - Complete verification documentation
+- **📊 [Verification Report](../../logs/m4-verification/M4_VERIFICATION_REPORT.md)** - Complete verification documentation
 - **🎯 [Success Criteria](#success-criteria)** - M4 milestone requirements
 
 ## Quick Start
@@ -427,7 +431,7 @@ After running the demo:
 
 2. **Explore Documentation:**
    - [Complete Walkthrough](../docs/PICK_AND_PLACE_WALKTHROUGH.md)
-   - [Verification Report](../logs/m4-verification/M4_VERIFICATION_REPORT.md)
+   - [Verification Report](../../logs/m4-verification/M4_VERIFICATION_REPORT.md)
    - [Ontology Details](../ontology/README_PICK_AND_PLACE.md)
 
 3. **Phase 2 Preparation:**
@@ -441,7 +445,7 @@ After running the demo:
 For issues or questions:
 - Review troubleshooting section above
 - Check GitHub Actions logs
-- See [M4 Verification Report](../logs/m4-verification/M4_VERIFICATION_REPORT.md)
+- See [M4 Verification Report](../../logs/m4-verification/M4_VERIFICATION_REPORT.md)
 
 ## References
 

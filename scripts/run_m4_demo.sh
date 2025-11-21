@@ -394,7 +394,7 @@ main() {
     echo "  1. Review summary report: cat ${DEMO_RUN_DIR}/DEMO_SUMMARY.md"
     echo "  2. Examine query results: ls ${DEMO_RUN_DIR}/queries/"
     echo "  3. Check metrics: ls ${DEMO_RUN_DIR}/metrics/"
-    echo "  4. View full walkthrough: docs/PICK_AND_PLACE_WALKTHROUGH.md"
+    echo "  4. View full walkthrough: docs/operations/demos/PICK_AND_PLACE_WALKTHROUGH.md"
     echo ""
     
     return 0

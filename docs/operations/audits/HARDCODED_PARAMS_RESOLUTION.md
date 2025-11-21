@@ -1,9 +1,8 @@
 # Resolution: Hardcoded Parameters in Tests
 
-**Issue:** [Infra] I need to understand what tests are using hard coded parameters and why  
-**Priority:** High  
-**Status:** ✅ RESOLVED  
-**Date:** 2025-11-19  
+> **Status:** ✅ Complete (Infra audit)  
+> **Progress:** 100% (file path + env var fixes landed)  
+> **Last validated:** 2025-11-19  
 
 ## Problem Statement
 

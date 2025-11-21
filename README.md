@@ -160,8 +160,8 @@ SHACL Validation Strategy
 
 
 M4 Pick-and-Place Demo
-- **Demo Overview**: See `docs/M4_DEMO_ASSETS.md` for comprehensive demo documentation
-- **Complete Walkthrough**: Follow `docs/PICK_AND_PLACE_WALKTHROUGH.md` for step-by-step instructions
+- **Demo Overview**: See `docs/operations/demos/M4_DEMO_ASSETS.md` for comprehensive demo documentation
+- **Complete Walkthrough**: Follow `docs/operations/demos/PICK_AND_PLACE_WALKTHROUGH.md` for step-by-step instructions
 - **Quick Demo**: Run `./scripts/run_m4_demo.sh` to execute the full demo with metrics capture
 - **Demo Scenario**: Robotic manipulator picks a red block from a table and places it in a target bin
 - **What's Demonstrated**: 

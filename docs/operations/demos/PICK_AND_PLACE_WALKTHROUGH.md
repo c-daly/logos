@@ -1,5 +1,9 @@
 # Pick-and-Place Demo Walkthrough
 
+> **Status:** ✅ Complete (Phase 1 – Milestone 4)  
+> **Progress:** 100% (workflow + verification scripts)  
+> **Last validated:** 2025-11-19 (`logs/m4-verification/M4_VERIFICATION_REPORT.md`)
+
 This walkthrough guides you through running the complete end-to-end pick-and-place demonstration for Project LOGOS Milestone M4. This demonstration validates the Phase 1 success criteria outlined in Section 7.1 of the specification.
 
 ## Overview
