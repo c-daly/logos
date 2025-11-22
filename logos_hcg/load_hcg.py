@@ -215,10 +215,11 @@ class HCGLoader:
 
         with self.driver.session() as session:
             result = session.run("MATCH (c:Concept) RETURN count(c) AS count")
-            count = result.single()["count"]
+            record = result.single()
+            count = record["count"] if record else 0
 
         logger.info(f"  ✓ Found {count} concept(s)")
-        return count
+        return int(count)
 
     def verify_entities(self) -> int:
         """
@@ -231,10 +232,11 @@ class HCGLoader:
 
         with self.driver.session() as session:
             result = session.run("MATCH (e:Entity) RETURN count(e) AS count")
-            count = result.single()["count"]
+            record = result.single()
+            count = record["count"] if record else 0
 
         logger.info(f"  ✓ Found {count} entity(ies)")
-        return count
+        return int(count)
 
     def create_seed_entities(self) -> bool:
         """

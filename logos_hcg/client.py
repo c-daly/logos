@@ -10,7 +10,7 @@ See Project LOGOS spec: Section 4.1 (Core Ontology and Data Model)
 import logging
 from contextlib import contextmanager
 from datetime import datetime
-from typing import Any
+from typing import Any, Iterator
 from uuid import UUID
 
 from neo4j import Driver, GraphDatabase, Result, Session
@@ -120,14 +120,14 @@ class HCGClient:
         self.close()
 
     @contextmanager
-    def _session(self) -> Session:
+    def _session(self) -> Iterator[Session]:
         """
         Create a session with proper resource management.
 
         Yields:
             Neo4j session
         """
-        session = None
+        session: Session | None = None
         try:
             session = self.driver.session(database=self.database)
             yield session
@@ -140,7 +140,7 @@ class HCGClient:
         query: str,
         parameters: dict[str, Any] | None = None,
         retry_count: int = 0,
-    ) -> Result:
+    ) -> list[Any]:
         """
         Execute a Cypher query with retry logic.
 
@@ -150,7 +150,7 @@ class HCGClient:
             retry_count: Current retry attempt
 
         Returns:
-            Neo4j Result object
+            List of records
 
         Raises:
             HCGQueryError: On query execution failure

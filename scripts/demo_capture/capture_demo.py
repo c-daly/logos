@@ -17,6 +17,7 @@ import json
 import subprocess
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List, Union
 
 
 class DemoCapture:
@@ -155,7 +156,7 @@ class DemoCapture:
             ]
 
         output_file = self.output_dir / f"logs_aggregated_{self.timestamp}.json"
-        aggregated = {
+        aggregated: Dict[str, Any] = {
             "timestamp": datetime.utcnow().isoformat(),
             "logs": [],
         }
@@ -173,13 +174,13 @@ class DemoCapture:
                 try:
                     with open(log_file) as f:
                         lines = f.readlines()
-                        aggregated["logs"].append(
-                            {
-                                "file": str(log_file),
-                                "lines": len(lines),
-                                "content": lines[-100:],  # Last 100 lines
-                            }
-                        )
+                        log_entry = {
+                            "file": str(log_file),
+                            "lines": len(lines),
+                            "content": lines[-100:],  # Last 100 lines
+                        }
+                        if isinstance(aggregated["logs"], list):
+                            aggregated["logs"].append(log_entry)
                 except Exception as e:
                     print(f"    ERROR reading {log_file}: {e}")
 
@@ -188,13 +189,13 @@ class DemoCapture:
                 try:
                     with open(jsonl_file) as f:
                         events = [json.loads(line) for line in f]
-                        aggregated["logs"].append(
-                            {
-                                "file": str(jsonl_file),
-                                "events": len(events),
-                                "content": events[-50:],  # Last 50 events
-                            }
-                        )
+                        telemetry_entry = {
+                            "file": str(jsonl_file),
+                            "events": len(events),
+                            "content": events[-50:],  # Last 50 events
+                        }
+                        if isinstance(aggregated["logs"], list):
+                            aggregated["logs"].append(telemetry_entry)
                 except Exception as e:
                     print(f"    ERROR reading {jsonl_file}: {e}")
 

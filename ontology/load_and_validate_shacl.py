@@ -45,7 +45,11 @@ class Neo4jSHACLValidator:
                     "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'n10s' "
                     "RETURN count(name) AS count"
                 )
-                count = result.single()["count"]
+                record = result.single()
+                if not record:
+                    print("✗ Failed to check n10s availability")
+                    return False
+                count = record["count"]
                 if count == 0:
                     print("✗ n10s plugin not available in Neo4j")
                     print(
@@ -61,7 +65,8 @@ class Neo4jSHACLValidator:
                 result = session.run(
                     "CALL n10s.graphconfig.show() YIELD param, value RETURN count(*) AS count"
                 )
-                config_exists = result.single()["count"] > 0
+                record = result.single()
+                config_exists = record["count"] > 0 if record else False
 
                 if config_exists:
                     print("✓ n10s graph configuration already exists")
@@ -122,6 +127,10 @@ class Neo4jSHACLValidator:
                     rdf=shapes_ntriples,
                 )
                 record = result.single()
+                if not record:
+                    print("✗ Failed to get import result")
+                    return False
+
                 status = record["terminationStatus"]
                 triples = record["triplesLoaded"]
 
@@ -173,6 +182,10 @@ class Neo4jSHACLValidator:
                     rdf=data_ntriples,
                 )
                 record = result.single()
+                if not record:
+                    print("✗ Failed to get import result")
+                    return False
+
                 status = record["terminationStatus"]
                 triples = record["triplesLoaded"]
 

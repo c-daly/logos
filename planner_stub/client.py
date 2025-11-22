@@ -5,6 +5,7 @@ Client utility for calling the planner stub API from tests and other services.
 """
 
 import os
+from typing import Any, cast
 
 import httpx
 
@@ -24,7 +25,7 @@ class PlannerClient:
         """
         self.base_url = base_url or os.getenv("PLANNER_URL", "http://localhost:8001")
 
-    def health_check(self, timeout: float = 5.0) -> dict:
+    def health_check(self, timeout: float = 5.0) -> dict[str, Any]:
         """
         Check if the planner service is healthy.
 
@@ -40,7 +41,7 @@ class PlannerClient:
         with httpx.Client(timeout=timeout) as client:
             response = client.get(f"{self.base_url}/health")
             response.raise_for_status()
-            return response.json()
+            return cast(dict[str, Any], response.json())
 
     def is_available(self, timeout: float = 2.0) -> bool:
         """
