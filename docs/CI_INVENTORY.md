@@ -5,6 +5,8 @@ This document outlines the state of CI/CD workflows across the LOGOS repositorie
 ## Goal
 Establish consistent testing and linting standards across all repositories using a shared reusable workflow, while accommodating specific integration testing needs.
 
+For detailed guidelines on writing tests, see [TESTING_STANDARDS.md](TESTING_STANDARDS.md).
+
 ## Shared Infrastructure
 All repositories now utilize the reusable workflow defined in `c-daly/logos/.github/workflows/reusable-standard-ci.yml`. This workflow provides:
 - Python setup and dependency installation (Poetry or Pip)
