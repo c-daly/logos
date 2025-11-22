@@ -39,7 +39,7 @@ def test_task_parser_identifies_components():
     tasks = parser.parse()
 
     # Find tasks with different components
-    components = {task['component'] for task in tasks}
+    components = {task["component"] for task in tasks}
 
     # Should have various components
     assert len(components) > 0

@@ -25,6 +25,7 @@ class PersonaEntry:
         sentiment: Emotional tone (e.g., "confident", "cautious", "neutral")
         related_process: Optional UUID of related Process node
     """
+
     uuid: str
     timestamp: str
     summary: str

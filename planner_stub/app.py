@@ -23,7 +23,7 @@ app = FastAPI(
     description="Minimal planner stub for LOGOS Phase 1 testing",
     version=__version__,
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
 )
 
 
@@ -34,10 +34,7 @@ async def health_check():
 
     Returns service status and version.
     """
-    return HealthResponse(
-        status="healthy",
-        version=__version__
-    )
+    return HealthResponse(status="healthy", version=__version__)
 
 
 @app.post("/plan", response_model=PlanResponse)
@@ -64,8 +61,7 @@ async def generate_plan(request: PlanRequest):
         if not response.success:
             # Return 422 for planning failures
             raise HTTPException(
-                status_code=422,
-                detail=response.message or "Plan generation failed"
+                status_code=422, detail=response.message or "Plan generation failed"
             )
 
         return response
@@ -74,8 +70,7 @@ async def generate_plan(request: PlanRequest):
         raise
     except Exception as e:
         raise HTTPException(
-            status_code=500,
-            detail=f"Internal error during plan generation: {str(e)}"
+            status_code=500, detail=f"Internal error during plan generation: {str(e)}"
         ) from e
 
 
@@ -85,11 +80,7 @@ async def root():
     return {
         "service": "LOGOS Planner Stub",
         "version": __version__,
-        "endpoints": {
-            "health": "/health",
-            "plan": "/plan",
-            "docs": "/docs"
-        }
+        "endpoints": {"health": "/health", "plan": "/plan", "docs": "/docs"},
     }
 
 
@@ -97,28 +88,17 @@ async def root():
 @app.exception_handler(404)
 async def not_found_handler(request, exc):
     """Handle 404 errors."""
-    return JSONResponse(
-        status_code=404,
-        content={"detail": "Endpoint not found"}
-    )
+    return JSONResponse(status_code=404, content={"detail": "Endpoint not found"})
 
 
 @app.exception_handler(500)
 async def internal_error_handler(request, exc):
     """Handle 500 errors."""
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Internal server error"}
-    )
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 
 if __name__ == "__main__":
     import uvicorn
 
     # Run with: python -m planner_stub.app
-    uvicorn.run(
-        "planner_stub.app:app",
-        host="0.0.0.0",
-        port=8001,
-        reload=True
-    )
+    uvicorn.run("planner_stub.app:app", host="0.0.0.0", port=8001, reload=True)

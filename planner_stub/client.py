@@ -63,7 +63,7 @@ class PlannerClient:
         initial_state: dict[str, bool | str],
         goal_state: dict[str, bool | str],
         scenario_name: str | None = None,
-        timeout: float = 10.0
+        timeout: float = 10.0,
     ) -> PlanResponse:
         """
         Generate a plan from initial state to goal state.
@@ -83,21 +83,16 @@ class PlannerClient:
         request = PlanRequest(
             initial_state=StateDescription(properties=initial_state),
             goal_state=StateDescription(properties=goal_state),
-            scenario_name=scenario_name
+            scenario_name=scenario_name,
         )
 
         with httpx.Client(timeout=timeout) as client:
-            response = client.post(
-                f"{self.base_url}/plan",
-                json=request.model_dump()
-            )
+            response = client.post(f"{self.base_url}/plan", json=request.model_dump())
             response.raise_for_status()
             return PlanResponse(**response.json())
 
     def generate_plan_for_scenario(
-        self,
-        scenario_name: str,
-        timeout: float = 10.0
+        self, scenario_name: str, timeout: float = 10.0
     ) -> PlanResponse:
         """
         Generate a plan for a named scenario.
@@ -118,7 +113,7 @@ class PlannerClient:
             initial_state={},
             goal_state={},
             scenario_name=scenario_name,
-            timeout=timeout
+            timeout=timeout,
         )
 
 

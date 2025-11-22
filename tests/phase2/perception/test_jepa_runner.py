@@ -4,7 +4,6 @@ Unit tests for JEPA runner.
 Tests the k-step imagination rollout simulation logic.
 """
 
-
 from logos_perception import JEPAConfig, JEPARunner
 
 

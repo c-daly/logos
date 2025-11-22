@@ -8,7 +8,9 @@ import yaml
 
 
 def _load_hermes_contract() -> dict:
-    contract_path = Path(__file__).resolve().parent.parent / "contracts" / "hermes.openapi.yaml"
+    contract_path = (
+        Path(__file__).resolve().parent.parent / "contracts" / "hermes.openapi.yaml"
+    )
     return yaml.safe_load(contract_path.read_text(encoding="utf-8"))
 
 

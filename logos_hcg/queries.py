@@ -11,7 +11,6 @@ See Project LOGOS spec: Section 4.1 for relationship types.
 """
 
 
-
 class HCGQueries:
     """Collection of common Cypher queries for HCG operations."""
 

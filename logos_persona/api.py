@@ -2,7 +2,6 @@
 FastAPI endpoints for persona diary queries accessible to any client surface.
 """
 
-
 from fastapi import APIRouter
 from neo4j import Driver
 from pydantic import BaseModel
@@ -12,6 +11,7 @@ from .diary import PersonaDiary
 
 class PersonaEntryResponse(BaseModel):
     """Response model for persona entries."""
+
     uuid: str
     timestamp: str
     summary: str
@@ -21,6 +21,7 @@ class PersonaEntryResponse(BaseModel):
 
 class CreatePersonaEntryRequest(BaseModel):
     """Request model for creating persona entries."""
+
     summary: str
     sentiment: str | None = None
     related_process: str | None = None
@@ -28,6 +29,7 @@ class CreatePersonaEntryRequest(BaseModel):
 
 class SentimentSummaryResponse(BaseModel):
     """Response model for sentiment summary."""
+
     sentiments: dict
 
 
@@ -80,7 +82,9 @@ def create_persona_api(driver: Driver) -> APIRouter:
         entries = diary.get_recent_entries(limit=limit, sentiment=sentiment)
         return [PersonaEntryResponse(**entry.to_dict()) for entry in entries]
 
-    @router.get("/entries/process/{process_uuid}", response_model=list[PersonaEntryResponse])
+    @router.get(
+        "/entries/process/{process_uuid}", response_model=list[PersonaEntryResponse]
+    )
     def get_entries_for_process(process_uuid: str):
         """
         Get all persona entries related to a specific process.

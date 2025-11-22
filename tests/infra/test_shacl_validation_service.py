@@ -74,12 +74,7 @@ logos:entity-test-001 a logos:Entity ;
 """
 
     response = client.post(
-        "/validate",
-        json={
-            "data": valid_data,
-            "format": "turtle",
-            "inference": "none"
-        }
+        "/validate", json={"data": valid_data, "format": "turtle", "inference": "none"}
     )
 
     assert response.status_code == 200
@@ -101,11 +96,7 @@ logos:entity-test-001 a logos:Entity ;
 
     response = client.post(
         "/validate",
-        json={
-            "data": invalid_data,
-            "format": "turtle",
-            "inference": "none"
-        }
+        json={"data": invalid_data, "format": "turtle", "inference": "none"},
     )
 
     assert response.status_code == 200
@@ -127,11 +118,7 @@ logos:entity-test-001 a logos:Entity ;
 
     response = client.post(
         "/validate",
-        json={
-            "data": invalid_data,
-            "format": "turtle",
-            "inference": "none"
-        }
+        json={"data": invalid_data, "format": "turtle", "inference": "none"},
     )
 
     assert response.status_code == 200
@@ -152,13 +139,7 @@ logos:concept-test-001 a logos:Concept ;
     logos:description "A valid test concept" .
 """
 
-    response = client.post(
-        "/validate",
-        json={
-            "data": valid_data,
-            "format": "turtle"
-        }
-    )
+    response = client.post("/validate", json={"data": valid_data, "format": "turtle"})
 
     assert response.status_code == 200
     data = response.json()
@@ -176,13 +157,7 @@ logos:concept-test-001 a logos:Concept ;
     logos:uuid "concept-test-001" .
 """
 
-    response = client.post(
-        "/validate",
-        json={
-            "data": invalid_data,
-            "format": "turtle"
-        }
-    )
+    response = client.post("/validate", json={"data": invalid_data, "format": "turtle"})
 
     assert response.status_code == 200
     data = response.json()
@@ -197,11 +172,7 @@ This is not valid RDF data at all!
 """
 
     response = client.post(
-        "/validate",
-        json={
-            "data": malformed_data,
-            "format": "turtle"
-        }
+        "/validate", json={"data": malformed_data, "format": "turtle"}
     )
 
     assert response.status_code == 400
@@ -220,12 +191,7 @@ logos:entity-test-001 a logos:Entity ;
 """
 
     response = client.post(
-        "/validate",
-        json={
-            "data": valid_data,
-            "format": "turtle",
-            "inference": "rdfs"
-        }
+        "/validate", json={"data": valid_data, "format": "turtle", "inference": "rdfs"}
     )
 
     assert response.status_code == 200
@@ -247,11 +213,7 @@ logos:entity-2 a logos:Entity ;
 
     response = client.post(
         "/validate",
-        json={
-            "data": invalid_data,
-            "format": "turtle",
-            "abort_on_first": True
-        }
+        json={"data": invalid_data, "format": "turtle", "abort_on_first": True},
     )
 
     assert response.status_code == 200
@@ -274,13 +236,7 @@ logos:entity-cube-001 a logos:Entity ;
     logos:mass "0.5"^^xsd:decimal .
 """
 
-    response = client.post(
-        "/validate",
-        json={
-            "data": valid_data,
-            "format": "turtle"
-        }
-    )
+    response = client.post("/validate", json={"data": valid_data, "format": "turtle"})
 
     assert response.status_code == 200
     data = response.json()
@@ -301,13 +257,7 @@ logos:entity-cube-001 a logos:Entity ;
     logos:height "0.1"^^xsd:decimal .
 """
 
-    response = client.post(
-        "/validate",
-        json={
-            "data": invalid_data,
-            "format": "turtle"
-        }
-    )
+    response = client.post("/validate", json={"data": invalid_data, "format": "turtle"})
 
     assert response.status_code == 200
     data = response.json()

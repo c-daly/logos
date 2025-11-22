@@ -36,6 +36,7 @@ NodeType = Literal["Entity", "Concept", "State", "Process"]
 
 class MilvusSyncError(Exception):
     """Raised when synchronization with Milvus fails."""
+
     pass
 
 
@@ -447,9 +448,7 @@ class HCGMilvusSync:
             return report
 
         except Exception as e:
-            raise MilvusSyncError(
-                f"Failed to verify sync for {node_type}: {e}"
-            ) from e
+            raise MilvusSyncError(f"Failed to verify sync for {node_type}: {e}") from e
 
     def health_check(self) -> dict[str, Any]:
         """

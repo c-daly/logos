@@ -22,8 +22,7 @@ from rdflib import Graph
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -56,7 +55,9 @@ def load_shacl_shapes():
     try:
         shacl_shapes_graph = Graph()
         shacl_shapes_graph.parse(shapes_file, format="turtle")
-        logger.info(f"Loaded {len(shacl_shapes_graph)} SHACL triples from {shapes_file}")
+        logger.info(
+            f"Loaded {len(shacl_shapes_graph)} SHACL triples from {shapes_file}"
+        )
     except Exception as e:
         logger.error(f"Failed to load SHACL shapes: {e}")
         raise
@@ -82,7 +83,7 @@ app = FastAPI(
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 
@@ -101,49 +102,41 @@ class ValidationRequest(BaseModel):
                 '    logos:uuid "entity-test-001" ;\n'
                 '    logos:name "Test Entity" .\n'
             )
-        }
+        },
     )
 
     format: str = Field(
         default="turtle",
         description="RDF format of the data (turtle, n3, xml, etc.)",
-        json_schema_extra={"example": "turtle"}
+        json_schema_extra={"example": "turtle"},
     )
 
     inference: str = Field(
         default="none",
         description="Inference mode: none, rdfs, owlrl, or both",
-        json_schema_extra={"example": "rdfs"}
+        json_schema_extra={"example": "rdfs"},
     )
 
     abort_on_first: bool = Field(
         default=False,
         description="Stop validation on first error",
-        json_schema_extra={"example": False}
+        json_schema_extra={"example": False},
     )
 
 
 class ValidationResult(BaseModel):
     """Response model for validation results."""
 
-    conforms: bool = Field(
-        ...,
-        description="True if data conforms to SHACL shapes"
-    )
+    conforms: bool = Field(..., description="True if data conforms to SHACL shapes")
 
     violations_count: int = Field(
-        ...,
-        description="Number of validation violations found"
+        ..., description="Number of validation violations found"
     )
 
-    report_text: str = Field(
-        ...,
-        description="Human-readable validation report"
-    )
+    report_text: str = Field(..., description="Human-readable validation report")
 
     report_graph: dict[str, Any] | None = Field(
-        None,
-        description="Detailed validation report as RDF triples (optional)"
+        None, description="Detailed validation report as RDF triples (optional)"
     )
 
 
@@ -163,7 +156,7 @@ async def root():
         "service": "LOGOS SHACL Validation Service",
         "version": "1.0.0",
         "docs": "/docs",
-        "health": "/health"
+        "health": "/health",
     }
 
 
@@ -173,17 +166,13 @@ async def health():
     if shacl_shapes_graph is None:
         return JSONResponse(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            content={
-                "status": "unhealthy",
-                "shapes_loaded": False,
-                "shapes_count": 0
-            }
+            content={"status": "unhealthy", "shapes_loaded": False, "shapes_count": 0},
         )
 
     return {
         "status": "healthy",
         "shapes_loaded": True,
-        "shapes_count": len(shacl_shapes_graph)
+        "shapes_count": len(shacl_shapes_graph),
     }
 
 
@@ -208,7 +197,7 @@ async def validate_data(request: ValidationRequest):
     if shacl_shapes_graph is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="SHACL shapes not loaded"
+            detail="SHACL shapes not loaded",
         )
 
     try:
@@ -223,7 +212,7 @@ async def validate_data(request: ValidationRequest):
             shacl_graph=shacl_shapes_graph,
             inference=request.inference,
             abort_on_first=request.abort_on_first,
-            allow_warnings=True
+            allow_warnings=True,
         )
 
         # Count violations by parsing the report text
@@ -232,20 +221,22 @@ async def validate_data(request: ValidationRequest):
             # Count "Constraint Violation" occurrences in report
             violations_count = results_text.count("Constraint Violation")
 
-        logger.info(f"Validation complete: conforms={conforms}, violations={violations_count}")
+        logger.info(
+            f"Validation complete: conforms={conforms}, violations={violations_count}"
+        )
 
         return ValidationResult(
             conforms=conforms,
             violations_count=violations_count,
             report_text=results_text,
-            report_graph=None  # Can be extended to return structured report
+            report_graph=None,  # Can be extended to return structured report
         )
 
     except Exception as e:
         logger.error(f"Validation error: {e}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Validation failed: {str(e)}"
+            detail=f"Validation failed: {str(e)}",
         ) from e
 
 
@@ -260,7 +251,7 @@ async def get_shapes_info():
     if shacl_shapes_graph is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="SHACL shapes not loaded"
+            detail="SHACL shapes not loaded",
         )
 
     # Count different types of shapes
@@ -273,16 +264,11 @@ async def get_shapes_info():
         "total_triples": len(shacl_shapes_graph),
         "node_shapes": node_shapes,
         "property_shapes": property_shapes,
-        "shapes_file": "shacl_shapes.ttl"
+        "shapes_file": "shacl_shapes.ttl",
     }
 
 
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=8081,
-        log_level="info"
-    )
+    uvicorn.run(app, host="0.0.0.0", port=8081, log_level="info")

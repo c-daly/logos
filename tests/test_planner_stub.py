@@ -16,7 +16,9 @@ class TestPlannerModels:
 
     def test_state_description_model(self):
         """Test StateDescription model."""
-        state = StateDescription(properties={"gripper": "open", "object_grasped": False})
+        state = StateDescription(
+            properties={"gripper": "open", "object_grasped": False}
+        )
         assert "gripper" in state.properties
         assert state.properties["gripper"] == "open"
 
@@ -25,7 +27,7 @@ class TestPlannerModels:
         request = PlanRequest(
             initial_state=StateDescription(properties={"gripper": "open"}),
             goal_state=StateDescription(properties={"object_grasped": True}),
-            scenario_name="simple_grasp"
+            scenario_name="simple_grasp",
         )
         assert request.scenario_name == "simple_grasp"
         assert request.initial_state.properties["gripper"] == "open"
@@ -47,7 +49,7 @@ class TestSimplePlanner:
         request = PlanRequest(
             initial_state=StateDescription(properties={}),
             goal_state=StateDescription(properties={}),
-            scenario_name="simple_grasp"
+            scenario_name="simple_grasp",
         )
 
         response = planner.generate_plan(request)
@@ -63,7 +65,7 @@ class TestSimplePlanner:
         request = PlanRequest(
             initial_state=StateDescription(properties={"gripper": "open"}),
             goal_state=StateDescription(properties={"object_location": "bin"}),
-            scenario_name="pick_and_place"
+            scenario_name="pick_and_place",
         )
 
         response = planner.generate_plan(request)
@@ -86,7 +88,7 @@ class TestSimplePlanner:
         request = PlanRequest(
             initial_state=StateDescription(properties={"gripper": "open"}),
             goal_state=StateDescription(properties={"object_grasped": True}),
-            scenario_name=None  # No explicit scenario
+            scenario_name=None,  # No explicit scenario
         )
 
         response = planner.generate_plan(request)
@@ -100,7 +102,7 @@ class TestSimplePlanner:
         request = PlanRequest(
             initial_state=StateDescription(properties={}),
             goal_state=StateDescription(properties={"unknown_goal": True}),
-            scenario_name=None
+            scenario_name=None,
         )
 
         response = planner.generate_plan(request)
@@ -110,7 +112,7 @@ class TestSimplePlanner:
 
 @pytest.mark.skipif(
     not pytest.importorskip("httpx"),
-    reason="httpx not installed - planner client tests require httpx"
+    reason="httpx not installed - planner client tests require httpx",
 )
 class TestPlannerClient:
     """Test the PlannerClient (requires running planner service)."""
@@ -127,7 +129,7 @@ class TestPlannerClient:
 
     @pytest.mark.skipif(
         not PlannerClient().is_available(timeout=1.0),
-        reason="Planner service not available"
+        reason="Planner service not available",
     )
     def test_health_check(self, client):
         """Test health check endpoint."""
@@ -138,14 +140,14 @@ class TestPlannerClient:
 
     @pytest.mark.skipif(
         not PlannerClient().is_available(timeout=1.0),
-        reason="Planner service not available"
+        reason="Planner service not available",
     )
     def test_generate_plan_via_client(self, client):
         """Test plan generation via client."""
         response = client.generate_plan(
             initial_state={"gripper": "open"},
             goal_state={"object_grasped": True},
-            scenario_name="simple_grasp"
+            scenario_name="simple_grasp",
         )
 
         assert response.success is True
@@ -154,7 +156,7 @@ class TestPlannerClient:
 
     @pytest.mark.skipif(
         not PlannerClient().is_available(timeout=1.0),
-        reason="Planner service not available"
+        reason="Planner service not available",
     )
     def test_generate_plan_for_scenario(self, client):
         """Test convenience method for scenario-based planning."""

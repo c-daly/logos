@@ -58,7 +58,9 @@ class TaskParser:
                 task_text = line[6:].strip()
 
                 # Extract task ID if present (e.g., **A1:** or **B2:**)
-                task_id_match = re.match(r"\*\*([A-Z]\d+):\s*(.+?)\*\*\s*(?:\((.+?)\))?", task_text)
+                task_id_match = re.match(
+                    r"\*\*([A-Z]\d+):\s*(.+?)\*\*\s*(?:\((.+?)\))?", task_text
+                )
 
                 if task_id_match:
                     task_id = task_id_match.group(1)
@@ -75,7 +77,11 @@ class TaskParser:
 
                     # Determine component and labels
                     component, labels = self._determine_component_and_labels(
-                        task_id, task_title, current_section, current_subsection, current_workstream
+                        task_id,
+                        task_title,
+                        current_section,
+                        current_subsection,
+                        current_workstream,
                     )
 
                     task = {
@@ -100,7 +106,9 @@ class TaskParser:
                         "section": current_section,
                         "subsection": current_subsection,
                         "workstream": current_workstream,
-                        "component": self._infer_component(task_text, current_subsection),
+                        "component": self._infer_component(
+                            task_text, current_subsection
+                        ),
                         "labels": self._infer_labels(
                             task_text, current_section, current_subsection
                         ),
@@ -138,7 +146,9 @@ class TaskParser:
                 labels.extend(["component:apollo", "workstream:C", "priority:medium"])
             else:
                 component = "infrastructure"
-                labels.extend(["component:infrastructure", "workstream:C", "priority:medium"])
+                labels.extend(
+                    ["component:infrastructure", "workstream:C", "priority:medium"]
+                )
         elif task_id and task_id.startswith("R"):
             component = "research"
             labels.extend(["type:research", "priority:low"])
@@ -269,7 +279,9 @@ def format_as_gh_cli(tasks: list[dict[str, Any]]) -> str:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate GitHub issues from action_items.md")
+    parser = argparse.ArgumentParser(
+        description="Generate GitHub issues from action_items.md"
+    )
     parser.add_argument(
         "--format",
         choices=["json", "markdown", "gh-cli"],

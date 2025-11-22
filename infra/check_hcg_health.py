@@ -96,7 +96,9 @@ def check_sync_consistency(
 
     try:
         # Get UUIDs from Neo4j for each node type
-        with HCGClient(uri=neo4j_uri, user=neo4j_user, password=neo4j_password) as client:
+        with HCGClient(
+            uri=neo4j_uri, user=neo4j_user, password=neo4j_password
+        ) as client:
             # Entity UUIDs
             entities = client.find_all_entities()
             entity_uuids = {str(e.uuid) for e in entities}
@@ -138,7 +140,7 @@ def print_status(status: dict[str, Any], service_name: str) -> bool:
     """
     print(f"\n{'=' * 60}")
     print(f"{service_name} Health Check")
-    print('=' * 60)
+    print("=" * 60)
 
     if status.get("error"):
         print(f"❌ Error: {status['error']}")
@@ -184,7 +186,7 @@ def print_sync_status(sync_reports: dict[str, Any]) -> bool:
     """Print sync consistency status."""
     print(f"\n{'=' * 60}")
     print("Synchronization Consistency")
-    print('=' * 60)
+    print("=" * 60)
 
     if "error" in sync_reports:
         print(f"❌ Error: {sync_reports['error']}")
@@ -204,7 +206,9 @@ def print_sync_status(sync_reports: dict[str, Any]) -> bool:
         if not report["in_sync"]:
             all_in_sync = False
             if report["orphaned_embeddings"]:
-                print(f"   ⚠ {len(report['orphaned_embeddings'])} orphaned embeddings in Milvus")
+                print(
+                    f"   ⚠ {len(report['orphaned_embeddings'])} orphaned embeddings in Milvus"
+                )
             if report["missing_embeddings"]:
                 print(f"   ⚠ {len(report['missing_embeddings'])} missing embeddings")
 
@@ -284,7 +288,7 @@ def main():
     # Summary
     print(f"\n{'=' * 60}")
     print("Summary")
-    print('=' * 60)
+    print("=" * 60)
 
     overall_status = neo4j_ok and milvus_ok and sync_ok
 

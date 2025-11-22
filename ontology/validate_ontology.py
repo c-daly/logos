@@ -23,13 +23,13 @@ def validate_cypher_file(filepath: Path) -> tuple[bool, list[str]]:
         return False, [f"Failed to read file: {e}"]
 
     # Check for balanced braces
-    if content.count('{') != content.count('}'):
+    if content.count("{") != content.count("}"):
         issues.append("Unbalanced curly braces")
 
-    if content.count('(') != content.count(')'):
+    if content.count("(") != content.count(")"):
         issues.append("Unbalanced parentheses")
 
-    if content.count('[') != content.count(']'):
+    if content.count("[") != content.count("]"):
         issues.append("Unbalanced square brackets")
 
     # Check for required statements
@@ -54,7 +54,9 @@ def validate_cypher_file(filepath: Path) -> tuple[bool, list[str]]:
             break
 
     if not found_uuids and "MERGE" in content:
-        issues.append("Warning: No properly formatted UUIDs found (should start with entity-, concept-, state-, or process-)")
+        issues.append(
+            "Warning: No properly formatted UUIDs found (should start with entity-, concept-, state-, or process-)"
+        )
 
     return len(issues) == 0, issues
 
@@ -74,31 +76,39 @@ def validate_ttl_file(filepath: Path) -> tuple[bool, list[str]]:
         return False, [f"Failed to read file: {e}"]
 
     # Check for required prefixes
-    required_prefixes = ['@prefix sh:', '@prefix logos:']
+    required_prefixes = ["@prefix sh:", "@prefix logos:"]
     for prefix in required_prefixes:
         if prefix not in content:
             issues.append(f"Missing required prefix: {prefix}")
 
     # Check for balanced brackets
-    if content.count('[') != content.count(']'):
+    if content.count("[") != content.count("]"):
         issues.append("Unbalanced square brackets")
 
     # Check for SHACL shapes
-    if 'sh:NodeShape' not in content:
+    if "sh:NodeShape" not in content:
         issues.append("No SHACL shapes (sh:NodeShape) found")
 
     # Check for proper termination of statements
-    lines = content.split('\n')
+    lines = content.split("\n")
     in_shape = False
     for i, line in enumerate(lines, 1):
         stripped = line.strip()
-        if 'sh:NodeShape' in stripped:
+        if "sh:NodeShape" in stripped:
             in_shape = True
-        if in_shape and stripped and not stripped.startswith('#'):
+        if in_shape and stripped and not stripped.startswith("#"):
             # Shapes should end with . or ;
-            if stripped[-1] not in ['.', ';', '[', ']', ','] and not stripped.startswith('@'):
+            if stripped[-1] not in [
+                ".",
+                ";",
+                "[",
+                "]",
+                ",",
+            ] and not stripped.startswith("@"):
                 if i < len(lines):  # Not last line
-                    issues.append(f"Line {i} may be missing proper termination: {stripped[:50]}")
+                    issues.append(
+                        f"Line {i} may be missing proper termination: {stripped[:50]}"
+                    )
 
     return len(issues) == 0, issues
 

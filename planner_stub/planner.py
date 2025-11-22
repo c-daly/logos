@@ -57,7 +57,9 @@ class SimplePlanner:
             return self._build_response_from_scenario(scenario)
 
         # Try to match based on goal state
-        matched_scenario = self._match_scenario(request.initial_state, request.goal_state)
+        matched_scenario = self._match_scenario(
+            request.initial_state, request.goal_state
+        )
         if matched_scenario:
             return self._build_response_from_scenario(matched_scenario)
 
@@ -65,9 +67,7 @@ class SimplePlanner:
         return self._generate_simple_plan(request)
 
     def _match_scenario(
-        self,
-        initial_state: StateDescription,
-        goal_state: StateDescription
+        self, initial_state: StateDescription, goal_state: StateDescription
     ) -> dict | None:
         """Match request to a known scenario based on goal state."""
         for scenario in self.scenarios.values():
@@ -90,18 +90,20 @@ class SimplePlanner:
             # Generate UUID for each process step
             process_uuid = f"process-{step['process'].lower()}-{uuid.uuid4().hex[:8]}"
 
-            plan_steps.append(ProcessStep(
-                process=step["process"],
-                preconditions=step["preconditions"],
-                effects=step["effects"],
-                uuid=process_uuid
-            ))
+            plan_steps.append(
+                ProcessStep(
+                    process=step["process"],
+                    preconditions=step["preconditions"],
+                    effects=step["effects"],
+                    uuid=process_uuid,
+                )
+            )
 
         return PlanResponse(
             plan=plan_steps,
             success=True,
             message=f"Plan generated for scenario: {scenario['name']}",
-            scenario_name=scenario["name"]
+            scenario_name=scenario["name"],
         )
 
     def _generate_simple_plan(self, request: PlanRequest) -> PlanResponse:
@@ -118,14 +120,14 @@ class SimplePlanner:
                     process="GraspAction",
                     preconditions=["gripper_open", "arm_at_pre_grasp"],
                     effects=["object_grasped"],
-                    uuid=process_uuid
+                    uuid=process_uuid,
                 )
             ]
             return PlanResponse(
                 plan=plan_steps,
                 success=True,
                 message="Generated simple grasp plan",
-                scenario_name=None
+                scenario_name=None,
             )
 
         # No plan could be generated
@@ -133,7 +135,7 @@ class SimplePlanner:
             plan=[],
             success=False,
             message="Could not generate plan for given initial and goal states",
-            scenario_name=None
+            scenario_name=None,
         )
 
 

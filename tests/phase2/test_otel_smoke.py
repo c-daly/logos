@@ -42,7 +42,7 @@ def test_telemetry_setup_with_otlp_endpoint():
     provider = setup_telemetry(
         service_name="test-service",
         export_to_console=False,
-        otlp_endpoint="http://nonexistent:4317"
+        otlp_endpoint="http://nonexistent:4317",
     )
     assert provider is not None
 
@@ -80,16 +80,14 @@ def test_structured_logger_with_otel():
 
     # These should not raise exceptions
     logger.log_plan_update(
-        plan_uuid="test-plan-456",
-        action="created",
-        details={"test": "data"}
+        plan_uuid="test-plan-456", action="created", details={"test": "data"}
     )
 
     logger.log_state_change(
         entity_uuid="test-entity-789",
         state_uuid="test-state-101",
         old_state="idle",
-        new_state="active"
+        new_state="active",
     )
 
 
@@ -153,10 +151,7 @@ def test_multiple_services():
     services = ["sophia", "hermes", "apollo"]
 
     for service in services:
-        provider = setup_telemetry(
-            service_name=service,
-            export_to_console=False
-        )
+        provider = setup_telemetry(service_name=service, export_to_console=False)
         assert provider is not None
 
         tracer = get_tracer(service)

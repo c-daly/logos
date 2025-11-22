@@ -17,34 +17,26 @@ def test_structured_logger():
 
     # Test logging methods don't raise exceptions
     logger.log_plan_update(
-        plan_uuid="test-plan-123",
-        action="created",
-        details={"test": "data"}
+        plan_uuid="test-plan-123", action="created", details={"test": "data"}
     )
 
     logger.log_state_change(
         entity_uuid="test-entity-123",
         state_uuid="test-state-456",
         old_state="idle",
-        new_state="active"
+        new_state="active",
     )
 
     logger.log_process_execution(
-        process_uuid="test-process-789",
-        status="completed",
-        duration_ms=100.5
+        process_uuid="test-process-789", status="completed", duration_ms=100.5
     )
 
     logger.log_persona_entry(
-        entry_uuid="test-entry-111",
-        summary="Test entry",
-        sentiment="neutral"
+        entry_uuid="test-entry-111", summary="Test entry", sentiment="neutral"
     )
 
     logger.log_emotion_state(
-        emotion_uuid="test-emotion-222",
-        emotion_type="confident",
-        intensity=0.8
+        emotion_uuid="test-emotion-222", emotion_type="confident", intensity=0.8
     )
 
 
@@ -56,7 +48,7 @@ def test_telemetry_exporter(tmp_path):
     event = {
         "timestamp": datetime.utcnow().isoformat(),
         "event_type": "test_event",
-        "data": "test"
+        "data": "test",
     }
     exporter.export_event(event)
 
@@ -83,7 +75,7 @@ def test_telemetry_exporter_batch(tmp_path):
         {
             "timestamp": datetime.utcnow().isoformat(),
             "event_type": "batch_event",
-            "index": i
+            "index": i,
         }
         for i in range(5)
     ]

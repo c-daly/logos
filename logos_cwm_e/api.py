@@ -4,7 +4,6 @@ FastAPI endpoints for CWM-E reflection and emotion queries.
 Provides REST API for triggering reflection jobs and querying emotion states.
 """
 
-
 from fastapi import APIRouter
 from neo4j import Driver
 from pydantic import BaseModel
@@ -14,6 +13,7 @@ from .reflection import CWMEReflector
 
 class EmotionStateResponse(BaseModel):
     """Response model for emotion states."""
+
     uuid: str
     timestamp: str
     emotion_type: str
@@ -24,6 +24,7 @@ class EmotionStateResponse(BaseModel):
 
 class CreateEmotionStateRequest(BaseModel):
     """Request model for creating emotion states."""
+
     emotion_type: str
     intensity: float
     context: str | None = None
@@ -31,18 +32,21 @@ class CreateEmotionStateRequest(BaseModel):
 
 class TagProcessRequest(BaseModel):
     """Request model for tagging a process."""
+
     emotion_uuid: str
     process_uuid: str
 
 
 class TagEntityRequest(BaseModel):
     """Request model for tagging an entity."""
+
     emotion_uuid: str
     entity_uuid: str
 
 
 class ReflectionResponse(BaseModel):
     """Response model for reflection job."""
+
     emotions_generated: int
     emotions: list[EmotionStateResponse]
 
@@ -123,7 +127,9 @@ def create_cwm_e_api(driver: Driver) -> APIRouter:
             emotions=[EmotionStateResponse(**e.to_dict()) for e in emotions],
         )
 
-    @router.get("/emotions/process/{process_uuid}", response_model=list[EmotionStateResponse])
+    @router.get(
+        "/emotions/process/{process_uuid}", response_model=list[EmotionStateResponse]
+    )
     def get_emotions_for_process(process_uuid: str):
         """
         Get all emotion states tagged on a process.
@@ -137,7 +143,9 @@ def create_cwm_e_api(driver: Driver) -> APIRouter:
         emotions = reflector.get_emotions_for_process(process_uuid)
         return [EmotionStateResponse(**e.to_dict()) for e in emotions]
 
-    @router.get("/emotions/entity/{entity_uuid}", response_model=list[EmotionStateResponse])
+    @router.get(
+        "/emotions/entity/{entity_uuid}", response_model=list[EmotionStateResponse]
+    )
     def get_emotions_for_entity(entity_uuid: str):
         """
         Get all emotion states tagged on an entity.

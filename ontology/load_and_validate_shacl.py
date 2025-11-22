@@ -218,7 +218,9 @@ class Neo4jSHACLValidator:
                     for i, violation in enumerate(violations, 1):
                         report_lines.append(f"Violation {i}:")
                         report_lines.append(f"  Focus Node: {violation['focusNode']}")
-                        report_lines.append(f"  Property Shape: {violation['propertyShape']}")
+                        report_lines.append(
+                            f"  Property Shape: {violation['propertyShape']}"
+                        )
                         report_lines.append(f"  Severity: {violation['severity']}")
                         report_lines.append(f"  Message: {violation['resultMessage']}")
                         report_lines.append("")

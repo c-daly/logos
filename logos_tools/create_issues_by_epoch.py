@@ -108,7 +108,9 @@ class EnhancedTaskParser:
                 task_text = line[6:].strip()
 
                 # Extract task ID if present (e.g., **A1:**, **B2:**, **M1:**)
-                task_id_match = re.match(r"\*\*([A-Z]\d+):\s*(.+?)\*\*\s*(?:\((.+?)\))?", task_text)
+                task_id_match = re.match(
+                    r"\*\*([A-Z]\d+):\s*(.+?)\*\*\s*(?:\((.+?)\))?", task_text
+                )
 
                 if task_id_match:
                     task_id = task_id_match.group(1)
@@ -130,9 +132,15 @@ class EnhancedTaskParser:
                             break
 
                     # Determine component, labels, and epoch
-                    component = self._determine_component(task_id, task_title, current_subsection)
+                    component = self._determine_component(
+                        task_id, task_title, current_subsection
+                    )
                     labels = self._determine_labels(
-                        task_id, task_title, current_section, current_subsection, current_workstream
+                        task_id,
+                        task_title,
+                        current_section,
+                        current_subsection,
+                        current_workstream,
                     )
                     epoch = self._assign_epoch(task_id, task_title, current_workstream)
 
@@ -156,9 +164,14 @@ class EnhancedTaskParser:
                 else:
                     # Regular task without ID
                     component = self._infer_component(task_text, current_subsection)
-                    labels = self._infer_labels(task_text, current_section, current_subsection)
+                    labels = self._infer_labels(
+                        task_text, current_section, current_subsection
+                    )
                     epoch = self._assign_epoch_for_regular_task(
-                        task_text, current_section, current_subsection, current_workstream
+                        task_text,
+                        current_section,
+                        current_subsection,
+                        current_workstream,
                     )
 
                     task = {
@@ -177,7 +190,9 @@ class EnhancedTaskParser:
 
         return self.tasks
 
-    def _assign_epoch(self, task_id: str, title: str, workstream: str | None) -> Epoch | None:
+    def _assign_epoch(
+        self, task_id: str, title: str, workstream: str | None
+    ) -> Epoch | None:
         """Assign epoch based on functionality (task ID and content)."""
         prefix = task_id[0] if task_id else ""
         title_lower = title.lower()
@@ -275,7 +290,9 @@ class EnhancedTaskParser:
         # Default to Epoch 1 for infrastructure
         return EPOCHS[0]
 
-    def _determine_component(self, task_id: str, title: str, subsection: str | None) -> str:
+    def _determine_component(
+        self, task_id: str, title: str, subsection: str | None
+    ) -> str:
         """Determine component based on task ID and context."""
         if task_id.startswith("A") or task_id.startswith("M"):
             return "infrastructure"
@@ -300,7 +317,12 @@ class EnhancedTaskParser:
         return "infrastructure"
 
     def _determine_labels(
-        self, task_id: str, title: str, section: str, subsection: str, workstream: str | None
+        self,
+        task_id: str,
+        title: str,
+        section: str,
+        subsection: str,
+        workstream: str | None,
     ) -> list[str]:
         """Determine labels for a task."""
         labels = ["phase:1"]
@@ -526,7 +548,9 @@ def main():
     )
     parser.add_argument("--output", type=str, help="Output file (default: stdout)")
     parser.add_argument(
-        "--dry-run", action="store_true", help="Show what would be created without executing"
+        "--dry-run",
+        action="store_true",
+        help="Show what would be created without executing",
     )
 
     args = parser.parse_args()
