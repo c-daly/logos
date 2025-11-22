@@ -20,7 +20,7 @@ Repos in the LOGOS ecosystem
 - `c-daly/sophia` — Sophia: non-linguistic cognitive core (Orchestrator, CWM-A, CWM-G, Planner, Executor). (See Section 3.3.)
 - `c-daly/hermes` — Hermes: stateless language &amp; embedding utility (stt, tts, simple_nlp, embed_text, llm). (See Table 2, Section 3.4.)
 - `c-daly/talos` — Talos: hardware abstraction layer (sensors/actuators, simulated interfaces for Phase 1). (See Section 3.5.)
-- `c-daly/apollo` — Apollo: thin client UI &amp; command layer. (See Section 3.5.)
+- `c-daly/apollo` — Apollo: smart presentation layer. (See Section 3.5.)
 
 Embodiment &amp; UX flexibility
 - Talos exposes capabilities via APIs, not a fixed robot. A LOGOS deployment may plug in simulators, one robot, many robots, or no hardware at all without changing Sophia or the HCG.

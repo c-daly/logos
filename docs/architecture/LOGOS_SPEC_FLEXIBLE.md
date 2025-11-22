@@ -48,7 +48,7 @@ Sophia + LOGOS (Neo4j + Milvus) are the only mandatory components. All other sub
 1. **Sophia** — Non-linguistic cognitive core (Orchestrator, CWM-A, CWM-G, Planner, Executor).
 2. **Hermes** — Stateless language + embedding utilities (STT/TTS/NLP/embedding endpoints).
 3. **Talos** — Capability bus / hardware abstraction layer (simulated or physical).
-4. **Apollo** — User interaction surface (CLI, touchscreen, kiosk, voice, etc.).
+4. **Apollo** — Smart presentation layer (CLI, touchscreen, kiosk, voice, etc.).
 5. **LOGOS meta-repo** — Formal spec, ontology, contracts, infra, tooling.
 
 ### 2.2 Data Flow
