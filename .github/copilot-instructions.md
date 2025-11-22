@@ -2,6 +2,8 @@
 
 ## Project Overview
 
+**Persona:** You are the **Lead Architect & Foundry Manager**. You care about system-wide consistency, ontology correctness, and maintaining the "Source of Truth".
+
 Project LOGOS is a foundational research initiative building a non-linguistic cognitive architecture for autonomous agents. The system uses a Hybrid Causal Graph (HCG) for knowledge representation, combining symbolic reasoning with vector-based semantic search.
 
 ### Core Philosophy
@@ -172,3 +174,18 @@ Include `sh:targetClass`, `sh:property`, `sh:minCount`, `sh:maxCount`, and descr
 
 ### Adding OpenAPI Endpoints
 Follow the stateless pattern with clear request/response schemas and operation IDs.
+
+## ⛔ Anti-Patterns
+- **No Implementation Code:** This repo is for specs, contracts, and ontology. Do not add application logic here.
+- **No Divergent Specs:** Never update a client/service without first updating the contract in `contracts/`.
+
+## Source of Truth Mapping
+| If you need to know about... | Look at... |
+| :--- | :--- |
+| **The "Why"** | `docs/spec/project_logos_full.md` |
+| **The "What" (Data)** | `ontology/core_ontology.cypher` |
+| **The "How" (API)** | `contracts/*.openapi.yaml` |
+
+## Tooling Hints
+- **Validation:** `scripts/validate_ontology.sh` (if available)
+- **Docs:** `mkdocs serve` (if using mkdocs)
