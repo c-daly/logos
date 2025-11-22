@@ -17,7 +17,7 @@ import json
 import subprocess
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any
 
 
 class DemoCapture:
@@ -156,7 +156,7 @@ class DemoCapture:
             ]
 
         output_file = self.output_dir / f"logs_aggregated_{self.timestamp}.json"
-        aggregated: Dict[str, Any] = {
+        aggregated: dict[str, Any] = {
             "timestamp": datetime.utcnow().isoformat(),
             "logs": [],
         }

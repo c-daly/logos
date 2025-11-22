@@ -11,7 +11,6 @@ Tests that SHACL validation via Neo4j n10s correctly validates data:
 Reference: Phase 1 Gate c-daly/logos#163
 """
 
-import sys
 import os
 from pathlib import Path
 
@@ -84,7 +83,7 @@ def _ensure_shapes(session, procedures):
         pass
 
     shapes_file = Path(__file__).parent.parent.parent / "ontology" / "shacl_shapes.ttl"
-    
+
     if not shapes_file.exists():
         print(f"DEBUG: Shapes file not found at {shapes_file}")
         return

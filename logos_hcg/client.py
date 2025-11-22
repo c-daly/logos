@@ -8,12 +8,13 @@ See Project LOGOS spec: Section 4.1 (Core Ontology and Data Model)
 """
 
 import logging
+from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import datetime
-from typing import Any, Iterator
+from typing import Any
 from uuid import UUID
 
-from neo4j import Driver, GraphDatabase, Result, Session
+from neo4j import Driver, GraphDatabase, Session
 from neo4j.exceptions import (
     Neo4jError,
     ServiceUnavailable,
