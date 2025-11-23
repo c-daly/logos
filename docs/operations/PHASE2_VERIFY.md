@@ -696,18 +696,20 @@ CWM-G (JEPA) simulation is fully functional with CPU-friendly mode operational. 
 **Status:** ⚠️ **FOUNDATIONS IN PLACE** (Infrastructure Ready, Full System Phase 3)
 
 **Phase 2 Scope (Foundations):**
-- EmotionState and PersonaEntry schemas with `trigger` field
+- EmotionState schema in logos
+- PersonaEntry basic schema (uuid, timestamp, summary, sentiment, related_process) in logos
+- Apollo PersonaEntry extended schema includes `trigger` field (in apollo repo)
 - API endpoints for creating/querying emotions and diary entries
 - Basic reflection infrastructure (hooks, data models)
-- PersonaEntry sentiment tracking
 
 **Implementation Evidence:**
 - [x] ✅ CWM-E module: `logos/logos_cwm_e/reflection.py`, `logos/logos_cwm_e/api.py`
-- [x] ✅ EmotionState schema defined
-- [x] ✅ PersonaEntry schema includes optional `trigger` field (free-form text)
-- [x] ✅ API endpoints for creating/querying emotions and diary entries
-- [x] ✅ PersonaEntry sentiment field tracks emotional tone
+- [x] ✅ EmotionState schema defined in `logos/ontology/core_ontology.cypher`
+- [x] ✅ PersonaEntry schema in `logos/ontology/core_ontology.cypher` (uuid, timestamp, summary, sentiment, related_process)
+- [x] ✅ PersonaEntry schema in `logos_persona/api.py` matches ontology
+- [x] ✅ Apollo repo extends PersonaEntry with optional `trigger` field (see apollo PR #81)
 - [x] ✅ Apollo CLI accepts `--trigger` parameter for diary entries
+- [x] ✅ Apollo API endpoints handle trigger field
 - [x] ✅ Apollo chat and diary consume persona context
 - [ ] ⚠️ **Event-driven reflection NOT implemented** - Phase 3 feature
 - [ ] ⚠️ **Planner/executor NOT consuming EmotionState** - Phase 3 integration
@@ -715,9 +717,10 @@ CWM-G (JEPA) simulation is fully functional with CPU-friendly mode operational. 
 
 **Clarification:**
 Original Phase 2 spec mentioned "FastAPI background task runs every N minutes" but architectural discussion revealed event-driven reflection is more appropriate. Phase 2 provides the **data model and infrastructure foundations**:
-- `trigger` field enables categorization of reflections (error, user_request, self_model, meta, etc.)
-- PersonaEntry schema supports `entry_type="reflection"` 
-- EmotionState nodes can be created and linked
+- Logos PersonaEntry schema is minimal (Phase 2 scope)
+- Apollo PersonaEntry extended with `trigger` field for reflection categorization (foundation for Phase 3)
+- PersonaEntry schema supports `entry_type="reflection"` in Apollo
+- EmotionState nodes can be created and linked in logos
 
 **Phase 3 will deliver:**
 - Event-driven reflection triggers (errors, user corrections, session boundaries)
