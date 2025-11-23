@@ -25,8 +25,7 @@ from neo4j import GraphDatabase
 from neo4j.exceptions import Neo4jError, ServiceUnavailable
 
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -94,7 +93,7 @@ class HCGLoader:
             for line in script_content.split("\n"):
                 # Remove inline comments
                 if "//" in line:
-                    line = line[:line.index("//")]
+                    line = line[: line.index("//")]
                 line = line.strip()
                 if line:
                     lines.append(line)
@@ -117,17 +116,24 @@ class HCGLoader:
                         # Log meaningful operations
                         counters = summary.counters
                         if counters.constraints_added > 0:
-                            logger.info(f"  ✓ Added {counters.constraints_added} constraint(s)")
+                            logger.info(
+                                f"  ✓ Added {counters.constraints_added} constraint(s)"
+                            )
                         if counters.indexes_added > 0:
                             logger.info(f"  ✓ Added {counters.indexes_added} index(es)")
                         if counters.nodes_created > 0:
                             logger.info(f"  ✓ Created {counters.nodes_created} node(s)")
                         if counters.relationships_created > 0:
-                            logger.info(f"  ✓ Created {counters.relationships_created} relationship(s)")
+                            logger.info(
+                                f"  ✓ Created {counters.relationships_created} relationship(s)"
+                            )
 
                     except Neo4jError as e:
                         # Some errors are expected (e.g., constraint already exists)
-                        if "already exists" in str(e).lower() or "equivalent" in str(e).lower():
+                        if (
+                            "already exists" in str(e).lower()
+                            or "equivalent" in str(e).lower()
+                        ):
                             logger.debug("  (skipped - already exists)")
                         else:
                             logger.warning(f"  Warning on statement {i+1}: {e}")
@@ -209,10 +215,11 @@ class HCGLoader:
 
         with self.driver.session() as session:
             result = session.run("MATCH (c:Concept) RETURN count(c) AS count")
-            count = result.single()["count"]
+            record = result.single()
+            count = record["count"] if record else 0
 
         logger.info(f"  ✓ Found {count} concept(s)")
-        return count
+        return int(count)
 
     def verify_entities(self) -> int:
         """
@@ -225,10 +232,11 @@ class HCGLoader:
 
         with self.driver.session() as session:
             result = session.run("MATCH (e:Entity) RETURN count(e) AS count")
-            count = result.single()["count"]
+            record = result.single()
+            count = record["count"] if record else 0
 
         logger.info(f"  ✓ Found {count} entity(ies)")
-        return count
+        return int(count)
 
     def create_seed_entities(self) -> bool:
         """
@@ -250,7 +258,6 @@ class HCGLoader:
                 c.description = 'A robotic manipulator or arm capable of movement and grasping',
                 c.created_at = datetime()
             """,
-
             # Create RobotArm entity
             """
             MERGE (e:Entity {uuid: 'entity-robot-arm-01'})
@@ -259,14 +266,12 @@ class HCGLoader:
                 e.description = 'Canonical six-axis robotic manipulator for M1 verification',
                 e.created_at = datetime()
             """,
-
             # Create IS_A relationship
             """
             MATCH (e:Entity {uuid: 'entity-robot-arm-01'})
             MATCH (c:Concept {uuid: 'concept-manipulator'})
             MERGE (e)-[:IS_A]->(c)
             """,
-
             # Create initial state for RobotArm
             """
             MERGE (s:State {uuid: 'state-robot-arm-01-initial'})
@@ -275,7 +280,6 @@ class HCGLoader:
                 s.description = 'Robot arm in idle state',
                 s.timestamp = datetime()
             """,
-
             # Link state to entity
             """
             MATCH (e:Entity {uuid: 'entity-robot-arm-01'})
@@ -324,7 +328,9 @@ class HCGLoader:
 
         # Check if basic requirements are met
         if not all(constraints.values()):
-            logger.warning("⚠ Some constraints are missing - they may have been created previously")
+            logger.warning(
+                "⚠ Some constraints are missing - they may have been created previously"
+            )
 
         # Step 3: Create seed entities
         logger.info("")
@@ -370,23 +376,23 @@ def main():
     parser.add_argument(
         "--uri",
         default=os.getenv("NEO4J_URI", "bolt://localhost:7687"),
-        help="Neo4j connection URI (default: bolt://localhost:7687)"
+        help="Neo4j connection URI (default: bolt://localhost:7687)",
     )
     parser.add_argument(
         "--user",
         default=os.getenv("NEO4J_USER", "neo4j"),
-        help="Neo4j username (default: neo4j)"
+        help="Neo4j username (default: neo4j)",
     )
     parser.add_argument(
         "--password",
         default=os.getenv("NEO4J_PASSWORD", "logosdev"),
-        help="Neo4j password (default: logosdev)"
+        help="Neo4j password (default: logosdev)",
     )
     parser.add_argument(
         "--repo-root",
         type=Path,
         default=Path(__file__).parent.parent,
-        help="Repository root path (default: auto-detected)"
+        help="Repository root path (default: auto-detected)",
     )
 
     args = parser.parse_args()

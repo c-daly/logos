@@ -30,6 +30,7 @@ class EmbeddingMetadata(BaseModel):
     - embedding_model: Model used to generate the embedding
     - last_sync: Timestamp of last synchronization with Milvus
     """
+
     embedding_id: str | None = None
     embedding_model: str | None = None
     last_sync: datetime | None = None
@@ -53,6 +54,7 @@ class Entity(BaseModel):
     - Additional properties for spatial/physical entities (width, height, depth, etc.)
     - Embedding metadata (Section 4.2): embedding_id, embedding_model, last_sync
     """
+
     uuid: str
     name: str | None = None
     description: str | None = None
@@ -83,18 +85,18 @@ class Entity(BaseModel):
     extra_properties: dict[str, Any] = Field(default_factory=dict)
 
     model_config = ConfigDict(
-        extra='allow',
+        extra="allow",
         arbitrary_types_allowed=True,
     )
 
-    @field_validator('created_at', mode='before')
+    @field_validator("created_at", mode="before")
     @classmethod
     def parse_neo4j_datetime(cls, v):
         """Convert Neo4j DateTime to Python datetime."""
         if v is None:
             return None
         # Neo4j DateTime objects can be converted to Python datetime
-        if hasattr(v, 'to_native'):
+        if hasattr(v, "to_native"):
             return v.to_native()
         return v
 
@@ -109,6 +111,7 @@ class Concept(BaseModel):
     - description: Optional description
     - Embedding metadata (Section 4.2): embedding_id, embedding_model, last_sync
     """
+
     uuid: str
     name: str
     description: str | None = None
@@ -122,7 +125,7 @@ class Concept(BaseModel):
     extra_properties: dict[str, Any] = Field(default_factory=dict)
 
     model_config = ConfigDict(
-        extra='allow',
+        extra="allow",
         arbitrary_types_allowed=True,
     )
 
@@ -141,6 +144,7 @@ class State(BaseModel):
     - Physical: grasp_width, applied_force
     - Embedding metadata (Section 4.2): embedding_id, embedding_model, last_sync
     """
+
     uuid: str
     timestamp: datetime
     name: str | None = None
@@ -173,18 +177,18 @@ class State(BaseModel):
     extra_properties: dict[str, Any] = Field(default_factory=dict)
 
     model_config = ConfigDict(
-        extra='allow',
+        extra="allow",
         arbitrary_types_allowed=True,
     )
 
-    @field_validator('timestamp', mode='before')
+    @field_validator("timestamp", mode="before")
     @classmethod
     def parse_neo4j_datetime(cls, v):
         """Convert Neo4j DateTime to Python datetime."""
         if v is None:
             return None
         # Neo4j DateTime objects can be converted to Python datetime
-        if hasattr(v, 'to_native'):
+        if hasattr(v, "to_native"):
             return v.to_native()
         return v
 
@@ -201,6 +205,7 @@ class Process(BaseModel):
     - duration_ms: Duration in milliseconds
     - Embedding metadata (Section 4.2): embedding_id, embedding_model, last_sync
     """
+
     uuid: str
     start_time: datetime
     name: str | None = None
@@ -216,17 +221,17 @@ class Process(BaseModel):
     extra_properties: dict[str, Any] = Field(default_factory=dict)
 
     model_config = ConfigDict(
-        extra='allow',
+        extra="allow",
         arbitrary_types_allowed=True,
     )
 
-    @field_validator('start_time', mode='before')
+    @field_validator("start_time", mode="before")
     @classmethod
     def parse_neo4j_datetime(cls, v):
         """Convert Neo4j DateTime to Python datetime."""
         if v is None:
             return None
         # Neo4j DateTime objects can be converted to Python datetime
-        if hasattr(v, 'to_native'):
+        if hasattr(v, "to_native"):
             return v.to_native()
         return v

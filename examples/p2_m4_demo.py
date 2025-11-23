@@ -37,8 +37,7 @@ def main():
     print("2. Connecting to Neo4j...")
     try:
         driver = GraphDatabase.driver(
-            "bolt://localhost:7687",
-            auth=("neo4j", "logosdev")
+            "bolt://localhost:7687", auth=("neo4j", "logosdev")
         )
         print("   ✓ Connected to Neo4j")
     except Exception as e:
@@ -90,7 +89,9 @@ def main():
             intensity=emotion.intensity,
             context=emotion.context,
         )
-        print(f"   ✓ Generated emotion: {emotion.emotion_type} (intensity: {emotion.intensity})")
+        print(
+            f"   ✓ Generated emotion: {emotion.emotion_type} (intensity: {emotion.intensity})"
+        )
 
     print()
 

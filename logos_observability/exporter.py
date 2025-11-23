@@ -126,7 +126,7 @@ class TelemetryExporter:
         if not self.enable_file_export:
             return {"status": "file export disabled"}
 
-        summary = {
+        summary: dict[str, Any] = {
             "output_dir": str(self.output_dir),
             "event_types": {},
             "total_files": 0,

@@ -27,18 +27,37 @@ def test_core_ontology_structure():
 
     # Check for core concepts
     concepts = [
-        "Manipulator", "Gripper", "Joint",
-        "GraspableObject", "Container", "RigidBody",
-        "Surface", "Workspace", "Location",
-        "GraspAction", "ReleaseAction", "MoveAction", "PlaceAction",
-        "GraspedState", "FreeState", "PositionedState"
+        "Manipulator",
+        "Gripper",
+        "Joint",
+        "GraspableObject",
+        "Container",
+        "RigidBody",
+        "Surface",
+        "Workspace",
+        "Location",
+        "GraspAction",
+        "ReleaseAction",
+        "MoveAction",
+        "PlaceAction",
+        "GraspedState",
+        "FreeState",
+        "PositionedState",
     ]
 
     for concept in concepts:
         assert concept in content, f"Missing concept: {concept}"
 
     # Check for relationship documentation
-    relationships = ["IS_A", "HAS_STATE", "CAUSES", "PART_OF", "LOCATED_AT", "PRECEDES", "REQUIRES"]
+    relationships = [
+        "IS_A",
+        "HAS_STATE",
+        "CAUSES",
+        "PART_OF",
+        "LOCATED_AT",
+        "PRECEDES",
+        "REQUIRES",
+    ]
     for rel in relationships:
         assert rel in content, f"Missing relationship documentation: {rel}"
 
@@ -47,7 +66,9 @@ def test_core_ontology_structure():
 
 def test_test_data_structure():
     """Test that test_data_pick_and_place.cypher has expected entities."""
-    test_data_file = Path(__file__).parent.parent / "ontology" / "test_data_pick_and_place.cypher"
+    test_data_file = (
+        Path(__file__).parent.parent / "ontology" / "test_data_pick_and_place.cypher"
+    )
     content = test_data_file.read_text()
 
     # Check for robot entities
@@ -102,7 +123,7 @@ def test_shacl_shapes_structure():
         "logos:EntityShape",
         "logos:ConceptShape",
         "logos:StateShape",
-        "logos:ProcessShape"
+        "logos:ProcessShape",
     ]
 
     for shape in shapes:
@@ -112,7 +133,7 @@ def test_shacl_shapes_structure():
     domain_shapes = [
         "logos:SpatialPropertiesShape",
         "logos:GripperPropertiesShape",
-        "logos:JointPropertiesShape"
+        "logos:JointPropertiesShape",
     ]
 
     for shape in domain_shapes:
@@ -122,7 +143,7 @@ def test_shacl_shapes_structure():
     rel_shapes = [
         "logos:IsARelationshipShape",
         "logos:HasStateRelationshipShape",
-        "logos:CausesRelationshipShape"
+        "logos:CausesRelationshipShape",
     ]
 
     for shape in rel_shapes:
@@ -139,7 +160,9 @@ def test_shacl_shapes_structure():
 
 def test_uuid_consistency():
     """Test that UUIDs in test data follow the patterns defined in SHACL."""
-    test_data_file = Path(__file__).parent.parent / "ontology" / "test_data_pick_and_place.cypher"
+    test_data_file = (
+        Path(__file__).parent.parent / "ontology" / "test_data_pick_and_place.cypher"
+    )
     content = test_data_file.read_text()
 
     # Extract all UUIDs
@@ -147,16 +170,23 @@ def test_uuid_consistency():
 
     # Check patterns
     for uuid in entity_uuids:
-        assert uuid.startswith(('entity-', 'concept-', 'state-', 'process-')), \
-            f"UUID doesn't follow pattern: {uuid}"
+        assert uuid.startswith(
+            ("entity-", "concept-", "state-", "process-")
+        ), f"UUID doesn't follow pattern: {uuid}"
 
     # Check for specific expected UUIDs
-    expected_entities = ["entity-robot-arm-01", "entity-gripper-01", "entity-block-red-01"]
+    expected_entities = [
+        "entity-robot-arm-01",
+        "entity-gripper-01",
+        "entity-block-red-01",
+    ]
     expected_concepts = ["concept-manipulator", "concept-gripper", "concept-graspable"]
     expected_states = ["state-arm-home-01", "state-gripper-open-01"]
     expected_processes = ["process-move-pregrasp-01", "process-grasp-red-01"]
 
-    for uuid in expected_entities + expected_concepts + expected_states + expected_processes:
+    for uuid in (
+        expected_entities + expected_concepts + expected_states + expected_processes
+    ):
         assert uuid in entity_uuids, f"Expected UUID not found: {uuid}"
 
     print("✓ UUID consistency verified")
@@ -165,14 +195,22 @@ def test_uuid_consistency():
 def test_property_definitions():
     """Test that properties mentioned in SHACL are used in test data."""
     shacl_file = Path(__file__).parent.parent / "ontology" / "shacl_shapes.ttl"
-    test_data_file = Path(__file__).parent.parent / "ontology" / "test_data_pick_and_place.cypher"
+    test_data_file = (
+        Path(__file__).parent.parent / "ontology" / "test_data_pick_and_place.cypher"
+    )
 
     shacl_content = shacl_file.read_text()
     test_content = test_data_file.read_text()
 
     # Properties that should appear in test data
-    spatial_props = ["position_x", "position_y", "position_z",
-                    "orientation_roll", "orientation_pitch", "orientation_yaw"]
+    spatial_props = [
+        "position_x",
+        "position_y",
+        "position_z",
+        "orientation_roll",
+        "orientation_pitch",
+        "orientation_yaw",
+    ]
 
     for prop in spatial_props:
         # Should be in SHACL

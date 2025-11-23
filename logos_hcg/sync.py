@@ -16,7 +16,7 @@ See Project LOGOS spec: Section 4.2 (Vector Integration)
 
 import logging
 from datetime import datetime, timezone
-from typing import Any, Literal
+from typing import Any, Literal, cast
 from uuid import UUID
 
 from pymilvus import Collection, connections, utility
@@ -36,6 +36,7 @@ NodeType = Literal["Entity", "Concept", "State", "Process"]
 
 class MilvusSyncError(Exception):
     """Raised when synchronization with Milvus fails."""
+
     pass
 
 
@@ -380,7 +381,7 @@ class HCGMilvusSync:
             if not results:
                 return None
 
-            return results[0]
+            return cast(dict[str, Any], results[0])
 
         except Exception as e:
             raise MilvusSyncError(
@@ -447,9 +448,7 @@ class HCGMilvusSync:
             return report
 
         except Exception as e:
-            raise MilvusSyncError(
-                f"Failed to verify sync for {node_type}: {e}"
-            ) from e
+            raise MilvusSyncError(f"Failed to verify sync for {node_type}: {e}") from e
 
     def health_check(self) -> dict[str, Any]:
         """
@@ -465,7 +464,7 @@ class HCGMilvusSync:
                 }
             }
         """
-        status = {
+        status: dict[str, Any] = {
             "connected": self._connected,
             "collections": {},
         }

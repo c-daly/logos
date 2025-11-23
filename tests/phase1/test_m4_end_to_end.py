@@ -22,6 +22,7 @@ import pytest
 # Try to import planner client for API-based planning
 try:
     from planner_stub.client import PlannerClient
+
     PLANNER_CLIENT_AVAILABLE = True
 except ImportError:
     PLANNER_CLIENT_AVAILABLE = False
@@ -193,7 +194,9 @@ class TestM4OntologyLoading:
 
     def test_concepts_loaded(self, loaded_ontology):
         """Verify core concepts are loaded."""
-        returncode, stdout, stderr = run_cypher_query("MATCH (c:Concept) RETURN count(c) AS count;")
+        returncode, stdout, stderr = run_cypher_query(
+            "MATCH (c:Concept) RETURN count(c) AS count;"
+        )
         assert returncode == 0, f"Failed to query concepts: {stderr}"
         # Should have at least the core concepts
         assert "count" in stdout.lower(), "Expected concept count in output"
@@ -224,7 +227,9 @@ class TestM4TestDataLoading:
         )
         returncode, stdout, stderr = run_cypher_query(query)
         assert returncode == 0, f"Failed to query manipulator: {stderr}"
-        assert "count" in stdout.lower() and "1" in stdout, "Expected manipulator entity to exist"
+        assert (
+            "count" in stdout.lower() and "1" in stdout
+        ), "Expected manipulator entity to exist"
 
 
 class TestM4SimulatedWorkflow:
@@ -246,8 +251,12 @@ class TestM4SimulatedWorkflow:
         assert returncode == 0, f"Failed to create goal state: {stderr}"
 
         # Assert specific expected values
-        assert "TestGoalState_RedBlockInBin" in stdout, "Expected goal state name not found"
-        assert "state-goal-test-m4-redblock" in stdout, "Expected goal state UUID not found"
+        assert (
+            "TestGoalState_RedBlockInBin" in stdout
+        ), "Expected goal state name not found"
+        assert (
+            "state-goal-test-m4-redblock" in stdout
+        ), "Expected goal state UUID not found"
 
         # Verify the goal state properties
         verify_query = """
@@ -257,7 +266,9 @@ class TestM4SimulatedWorkflow:
         returncode, stdout, stderr = run_cypher_query(verify_query)
         assert returncode == 0, f"Failed to verify goal state: {stderr}"
         assert "true" in stdout.lower(), "Expected is_goal=true not found"
-        assert "red block in bin" in stdout.lower(), "Expected goal description not found"
+        assert (
+            "red block in bin" in stdout.lower()
+        ), "Expected goal description not found"
 
     def test_create_plan_processes(self, loaded_test_data):
         """Simulate Sophia generating a plan with specific process ordering."""
@@ -297,7 +308,9 @@ class TestM4SimulatedWorkflow:
         assert returncode == 0, f"Failed to create plan processes: {stderr}"
 
         # Assert all expected process names are present
-        assert "TestMoveToPreGrasp" in stdout, "Expected MoveToPreGrasp process not found"
+        assert (
+            "TestMoveToPreGrasp" in stdout
+        ), "Expected MoveToPreGrasp process not found"
         assert "TestGraspRedBlock" in stdout, "Expected GraspRedBlock process not found"
         assert "TestMoveToPlace" in stdout, "Expected MoveToPlace process not found"
         assert "TestReleaseBlock" in stdout, "Expected ReleaseBlock process not found"
@@ -315,8 +328,7 @@ class TestM4SimulatedWorkflow:
         assert "3" in stdout, "Expected 3 steps in plan path not found"
 
     @pytest.mark.skipif(
-        not PLANNER_CLIENT_AVAILABLE,
-        reason="Planner client not available"
+        not PLANNER_CLIENT_AVAILABLE, reason="Planner client not available"
     )
     def test_create_plan_via_planner_api(self, loaded_test_data):
         """
@@ -335,49 +347,67 @@ class TestM4SimulatedWorkflow:
         assert response.success is True, "Plan generation should succeed"
         assert len(response.plan) == 4, "Pick-and-place should have 4 steps"
 
-        # Store plan processes in Neo4j
-        for i, step in enumerate(response.plan):
-            query = f"""
-            CREATE (p:Process {{
-                uuid: '{step.uuid}',
-                name: '{step.process}',
-                start_time: datetime(),
-                description: 'API-generated {step.process}',
-                step_number: {i}
-            }})
-            RETURN p.uuid, p.name;
+        created_uuids = []
+        try:
+            # Store plan processes in Neo4j
+            for i, step in enumerate(response.plan):
+                created_uuids.append(step.uuid)
+                query = f"""
+                CREATE (p:Process {{
+                    uuid: '{step.uuid}',
+                    name: '{step.process}',
+                    start_time: datetime(),
+                    description: 'API-generated {step.process}',
+                    step_number: {i}
+                }})
+                RETURN p.uuid, p.name;
+                """
+                returncode, stdout, stderr = run_cypher_query(query)
+                assert (
+                    returncode == 0
+                ), f"Failed to create process {step.process}: {stderr}"
+                assert step.process in stdout, f"Expected {step.process} in output"
+
+            # Create PRECEDES relationships between sequential steps
+            for i in range(len(response.plan) - 1):
+                current_uuid = response.plan[i].uuid
+                next_uuid = response.plan[i + 1].uuid
+
+                query = f"""
+                MATCH (p1:Process {{uuid: '{current_uuid}'}})
+                MATCH (p2:Process {{uuid: '{next_uuid}'}})
+                CREATE (p1)-[:PRECEDES]->(p2)
+                RETURN p1.name, p2.name;
+                """
+                returncode, stdout, stderr = run_cypher_query(query)
+                assert (
+                    returncode == 0
+                ), f"Failed to create PRECEDES relationship: {stderr}"
+
+            # Verify plan structure in Neo4j
+            verify_query = """
+            MATCH path = (start:Process)-[:PRECEDES*]->(end:Process)
+            WHERE NOT EXISTS((start)<-[:PRECEDES]-())
+            RETURN length(path) AS path_length,
+                   [n IN nodes(path) | n.name] AS process_sequence;
             """
-            returncode, stdout, stderr = run_cypher_query(query)
-            assert returncode == 0, f"Failed to create process {step.process}: {stderr}"
-            assert step.process in stdout, f"Expected {step.process} in output"
+            returncode, stdout, stderr = run_cypher_query(verify_query)
+            assert returncode == 0, f"Failed to verify plan structure: {stderr}"
 
-        # Create PRECEDES relationships between sequential steps
-        for i in range(len(response.plan) - 1):
-            current_uuid = response.plan[i].uuid
-            next_uuid = response.plan[i + 1].uuid
+            print(f"✓ Created plan via planner API with {len(response.plan)} steps")
+            print(f"  Processes: {[step.process for step in response.plan]}")
 
-            query = f"""
-            MATCH (p1:Process {{uuid: '{current_uuid}'}})
-            MATCH (p2:Process {{uuid: '{next_uuid}'}})
-            CREATE (p1)-[:PRECEDES]->(p2)
-            RETURN p1.name, p2.name;
-            """
-            returncode, stdout, stderr = run_cypher_query(query)
-            assert returncode == 0, f"Failed to create PRECEDES relationship: {stderr}"
-
-        # Verify plan structure in Neo4j
-        verify_query = """
-        MATCH path = (start:Process)-[:PRECEDES*]->(end:Process)
-        WHERE NOT EXISTS((start)<-[:PRECEDES]-())
-        RETURN length(path) AS path_length,
-               [n IN nodes(path) | n.name] AS process_sequence;
-        """
-        returncode, stdout, stderr = run_cypher_query(verify_query)
-        assert returncode == 0, f"Failed to verify plan structure: {stderr}"
-
-        print(f"✓ Created plan via planner API with {len(response.plan)} steps")
-        print(f"  Processes: {[step.process for step in response.plan]}")
-
+        finally:
+            # Cleanup created nodes
+            if created_uuids:
+                # Format list for Cypher: ['uuid1', 'uuid2']
+                uuid_list_str = "[" + ", ".join([f"'{u}'" for u in created_uuids]) + "]"
+                cleanup_query = f"""
+                MATCH (p:Process)
+                WHERE p.uuid IN {uuid_list_str}
+                DETACH DELETE p
+                """
+                run_cypher_query(cleanup_query)
 
     def test_simulate_execution_state_update(self, loaded_test_data):
         """Simulate Talos updating state during execution with specific assertions."""
@@ -842,7 +872,9 @@ class TestM4CompleteWorkflow:
 
         RETURN block.name, placed_state.is_grasped, bin.name;
         """
-        returncode, stdout, stderr = run_cypher_query(simulate_placement_execution_query)
+        returncode, stdout, stderr = run_cypher_query(
+            simulate_placement_execution_query
+        )
         assert returncode == 0, f"Failed to simulate placement execution: {stderr}"
         assert "RedBlock01" in stdout, "Expected block name in placement result"
         assert "TargetBin01" in stdout, "Expected bin name in placement result"

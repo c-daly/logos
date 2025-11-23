@@ -24,6 +24,7 @@ pytestmark = pytest.mark.skipif(
     reason="Neo4j SHACL validation runs only when RUN_NEO4J_SHACL=1",
 )
 
+
 @pytest.fixture(scope="module")
 def neo4j_driver():
     """Create Neo4j driver for testing."""
@@ -73,11 +74,22 @@ def _clear_instance_data(session):
 
 def _ensure_shapes(session, procedures):
     """Ensure SHACL shapes are loaded; load from disk if missing."""
-    shapes_count = len(session.run("CALL n10s.validation.shacl.listShapes()").data())
-    if shapes_count > 0:
-        return
+    try:
+        shapes_count = len(
+            session.run("CALL n10s.validation.shacl.listShapes()").data()
+        )
+        if shapes_count > 0:
+            return
+    except Exception:
+        # If listShapes fails (e.g. "No shapes compiled"), assume we need to load them
+        pass
 
     shapes_file = Path(__file__).parent.parent.parent / "ontology" / "shacl_shapes.ttl"
+
+    if not shapes_file.exists():
+        print(f"DEBUG: Shapes file not found at {shapes_file}")
+        return
+
     shapes_text = shapes_file.read_text(encoding="utf-8")
 
     if "n10s.validation.shacl.clear" in procedures:
@@ -98,19 +110,59 @@ def setup_neo4j(neo4j_session):
     if not procedures:
         pytest.skip("n10s plugin not installed in Neo4j")
 
-    # Configure n10s if not already configured
+    # Check current config
+    current_config = {}
+    try:
+        result = neo4j_session.run("CALL n10s.graphconfig.show()").data()
+        if result:
+            current_config = result[0]
+    except Exception:
+        pass
+
+    print(f"DEBUG: Current config: {current_config}")
+
+    # If config is missing or not KEEP, re-init
+    # We check for 'KEEP' or 4 (which seems to be the enum value for KEEP)
+    vocab_uris = current_config.get("handleVocabUris")
+    if vocab_uris != "KEEP" and vocab_uris != 4:
+        if current_config:
+            try:
+                # Ensure graph is empty before dropping config
+                neo4j_session.run("MATCH (n) DETACH DELETE n")
+                neo4j_session.run("CALL n10s.graphconfig.drop()")
+                print("DEBUG: Dropped existing config")
+            except Exception as e:
+                print(f"DEBUG: Drop config failed: {e}")
+
+        try:
+            neo4j_session.run(
+                "CALL n10s.graphconfig.init({handleVocabUris:'KEEP',handleRDFTypes:'LABELS',handleMultival:'ARRAY',keepLangTag:true})"
+            )
+            print("DEBUG: Initialized n10s with KEEP")
+        except Exception as e:
+            print(f"DEBUG: Init config failed: {e}")
+
+    # Ensure constraint exists (n10s requires it)
     try:
         neo4j_session.run(
-            "CALL n10s.graphconfig.init({handleVocabUris:'MAP',handleRDFTypes:'LABELS',handleMultival:'ARRAY',keepLangTag:true})"
+            "CREATE CONSTRAINT n10s_unique_uri IF NOT EXISTS FOR (r:Resource) REQUIRE r.uri IS UNIQUE"
         )
-    except Neo4jError:
-        pass  # Already configured is fine
+    except Exception as e:
+        print(f"DEBUG: Create constraint failed: {e}")
 
-    # Register namespace if missing
-    try:
-        neo4j_session.run("CALL n10s.nsprefixes.add('logos', 'http://logos.ontology/')")
-    except Neo4jError:
-        pass
+    # Register namespaces
+    namespaces = {
+        "logos": "http://logos.ontology/",
+        "sh": "http://www.w3.org/ns/shacl#",
+        "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+        "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+    }
+    for prefix, uri in namespaces.items():
+        try:
+            neo4j_session.run(f"CALL n10s.nsprefixes.add('{prefix}', '{uri}')")
+        except Neo4jError:
+            pass
 
     _ensure_shapes(neo4j_session, procedures)
     _clear_instance_data(neo4j_session)
@@ -172,15 +224,10 @@ def test_validate_valid_entities(setup_neo4j):
     valid_text = valid_file.read_text(encoding="utf-8")
 
     # Import valid data (keep original namespace)
-    setup_neo4j.run(
-        "CALL n10s.rdf.import.inline($rdf, 'Turtle')",
-        rdf=valid_text
-    )
+    setup_neo4j.run("CALL n10s.rdf.import.inline($rdf, 'Turtle')", rdf=valid_text)
 
     # Validate the data
-    validation_result = setup_neo4j.run(
-        "CALL n10s.validation.shacl.validate()"
-    )
+    validation_result = setup_neo4j.run("CALL n10s.validation.shacl.validate()")
 
     # Check that validation passed (conforms = true or no violations)
     # Consume the result to check for violations
@@ -190,7 +237,9 @@ def test_validate_valid_entities(setup_neo4j):
 
     # If there are any violations, the test should fail
     if violations:
-        pytest.fail(f"Valid data should not have violations. Found {len(violations)} violations: {violations}")
+        pytest.fail(
+            f"Valid data should not have violations. Found {len(violations)} violations: {violations}"
+        )
 
     print("✓ Valid entities passed SHACL validation in Neo4j")
 
@@ -201,24 +250,34 @@ def test_validate_invalid_entities(setup_neo4j):
     invalid_text = invalid_file.read_text(encoding="utf-8")
 
     # Import invalid data (keep original namespace)
-    setup_neo4j.run(
-        "CALL n10s.rdf.import.inline($rdf, 'Turtle')",
-        rdf=invalid_text
-    )
+    import_result = setup_neo4j.run(
+        "CALL n10s.rdf.import.inline($rdf, 'Turtle')", rdf=invalid_text
+    ).data()
+    print(f"\nDEBUG: Import result: {import_result}")
+
+    # DEBUG: Check what nodes were created
+    nodes = setup_neo4j.run(
+        "MATCH (n) RETURN labels(n) as labels, properties(n) as props"
+    ).data()
+    print(f"\nDEBUG: Nodes in graph: {nodes}")
 
     # Validate the data
-    validation_result = setup_neo4j.run(
-        "CALL n10s.validation.shacl.validate()"
-    )
+    validation_result = setup_neo4j.run("CALL n10s.validation.shacl.validate()")
 
     # Check that validation failed (violations should be present)
     violations = []
     for record in validation_result:
         violations.append(record)
 
+    print(f"DEBUG: Found {len(violations)} violations")
+    for v in violations:
+        print(f"DEBUG: Violation: {v}")
+
     assert len(violations) > 0, "Invalid data should produce validation violations"
 
-    print(f"✓ Invalid entities correctly produced {len(violations)} validation violations")
+    print(
+        f"✓ Invalid entities correctly produced {len(violations)} validation violations"
+    )
     print("  Sample violations:")
     for i, violation in enumerate(violations[:3]):  # Show first 3 violations
         print(f"    - Violation {i+1}: {violation}")
@@ -237,15 +296,10 @@ def test_reject_bad_write_wrong_uuid_prefix(setup_neo4j):
     """
 
     # Import the bad data
-    setup_neo4j.run(
-        "CALL n10s.rdf.import.inline($rdf, 'Turtle')",
-        rdf=bad_entity_ttl
-    )
+    setup_neo4j.run("CALL n10s.rdf.import.inline($rdf, 'Turtle')", rdf=bad_entity_ttl)
 
     # Validate - should fail
-    validation_result = setup_neo4j.run(
-        "CALL n10s.validation.shacl.validate()"
-    )
+    validation_result = setup_neo4j.run("CALL n10s.validation.shacl.validate()")
 
     # Should have violations for wrong UUID pattern
     violations = []
@@ -278,22 +332,19 @@ def test_reject_bad_write_missing_required_property(setup_neo4j):
     """
 
     # Import the bad data
-    setup_neo4j.run(
-        "CALL n10s.rdf.import.inline($rdf, 'Turtle')",
-        rdf=bad_concept_ttl
-    )
+    setup_neo4j.run("CALL n10s.rdf.import.inline($rdf, 'Turtle')", rdf=bad_concept_ttl)
 
     # Validate - should fail
-    validation_result = setup_neo4j.run(
-        "CALL n10s.validation.shacl.validate()"
-    )
+    validation_result = setup_neo4j.run("CALL n10s.validation.shacl.validate()")
 
     # Should have violations for missing required property
     violations = []
     for record in validation_result:
         violations.append(record)
 
-    assert len(violations) > 0, "Missing required property should produce validation violations"
+    assert (
+        len(violations) > 0
+    ), "Missing required property should produce validation violations"
 
     print("✓ Missing required property correctly rejected by SHACL validation")
     print(f"  {len(violations)} violations detected")
@@ -310,15 +361,10 @@ def test_reject_bad_write_entity_missing_uuid(setup_neo4j):
     """
 
     # Import the bad data
-    setup_neo4j.run(
-        "CALL n10s.rdf.import.inline($rdf, 'Turtle')",
-        rdf=bad_entity_ttl
-    )
+    setup_neo4j.run("CALL n10s.rdf.import.inline($rdf, 'Turtle')", rdf=bad_entity_ttl)
 
     # Validate - should fail
-    validation_result = setup_neo4j.run(
-        "CALL n10s.validation.shacl.validate()"
-    )
+    validation_result = setup_neo4j.run("CALL n10s.validation.shacl.validate()")
 
     # Should have violations for missing UUID
     violations = []

@@ -21,10 +21,7 @@ import sys
 
 from logos_hcg.client import HCGClient, HCGConnectionError
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -41,7 +38,7 @@ def print_entity(entity):
     print(f"  Name: {entity.name}")
     if entity.description:
         print(f"  Description: {entity.description}")
-    if hasattr(entity, 'created_at') and entity.created_at:
+    if hasattr(entity, "created_at") and entity.created_at:
         print(f"  Created: {entity.created_at}")
 
 
@@ -56,7 +53,7 @@ def print_concept(concept):
 def print_state(state):
     """Print state details."""
     print(f"  UUID: {state.uuid}")
-    if hasattr(state, 'name') and state.name:
+    if hasattr(state, "name") and state.name:
         print(f"  Name: {state.name}")
     print(f"  Timestamp: {state.timestamp}")
 
@@ -209,17 +206,17 @@ def main():
     parser.add_argument(
         "--uri",
         default=os.getenv("NEO4J_URI", "bolt://localhost:7687"),
-        help="Neo4j connection URI (default: bolt://localhost:7687)"
+        help="Neo4j connection URI (default: bolt://localhost:7687)",
     )
     parser.add_argument(
         "--user",
         default=os.getenv("NEO4J_USER", "neo4j"),
-        help="Neo4j username (default: neo4j)"
+        help="Neo4j username (default: neo4j)",
     )
     parser.add_argument(
         "--password",
         default=os.getenv("NEO4J_PASSWORD", "logosdev"),
-        help="Neo4j password (default: logosdev)"
+        help="Neo4j password (default: logosdev)",
     )
 
     args = parser.parse_args()

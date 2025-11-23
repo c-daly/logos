@@ -27,6 +27,7 @@ class EmotionState:
         context: Brief description of what triggered this emotion
         source: What generated this tag (e.g., "cwm-e-reflection")
     """
+
     uuid: str
     timestamp: str
     emotion_type: str

@@ -5,6 +5,7 @@ Client utility for calling the planner stub API from tests and other services.
 """
 
 import os
+from typing import Any, cast
 
 import httpx
 
@@ -24,7 +25,7 @@ class PlannerClient:
         """
         self.base_url = base_url or os.getenv("PLANNER_URL", "http://localhost:8001")
 
-    def health_check(self, timeout: float = 5.0) -> dict:
+    def health_check(self, timeout: float = 5.0) -> dict[str, Any]:
         """
         Check if the planner service is healthy.
 
@@ -40,7 +41,7 @@ class PlannerClient:
         with httpx.Client(timeout=timeout) as client:
             response = client.get(f"{self.base_url}/health")
             response.raise_for_status()
-            return response.json()
+            return cast(dict[str, Any], response.json())
 
     def is_available(self, timeout: float = 2.0) -> bool:
         """
@@ -63,7 +64,7 @@ class PlannerClient:
         initial_state: dict[str, bool | str],
         goal_state: dict[str, bool | str],
         scenario_name: str | None = None,
-        timeout: float = 10.0
+        timeout: float = 10.0,
     ) -> PlanResponse:
         """
         Generate a plan from initial state to goal state.
@@ -83,21 +84,16 @@ class PlannerClient:
         request = PlanRequest(
             initial_state=StateDescription(properties=initial_state),
             goal_state=StateDescription(properties=goal_state),
-            scenario_name=scenario_name
+            scenario_name=scenario_name,
         )
 
         with httpx.Client(timeout=timeout) as client:
-            response = client.post(
-                f"{self.base_url}/plan",
-                json=request.model_dump()
-            )
+            response = client.post(f"{self.base_url}/plan", json=request.model_dump())
             response.raise_for_status()
             return PlanResponse(**response.json())
 
     def generate_plan_for_scenario(
-        self,
-        scenario_name: str,
-        timeout: float = 10.0
+        self, scenario_name: str, timeout: float = 10.0
     ) -> PlanResponse:
         """
         Generate a plan for a named scenario.
@@ -118,7 +114,7 @@ class PlannerClient:
             initial_state={},
             goal_state={},
             scenario_name=scenario_name,
-            timeout=timeout
+            timeout=timeout,
         )
 
 

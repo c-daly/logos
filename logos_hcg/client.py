@@ -8,12 +8,13 @@ See Project LOGOS spec: Section 4.1 (Core Ontology and Data Model)
 """
 
 import logging
+from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from neo4j import Driver, GraphDatabase, Result, Session
+from neo4j import Driver, GraphDatabase, Session
 from neo4j.exceptions import (
     Neo4jError,
     ServiceUnavailable,
@@ -28,11 +29,13 @@ logger = logging.getLogger(__name__)
 
 class HCGConnectionError(Exception):
     """Raised when connection to Neo4j fails."""
+
     pass
 
 
 class HCGQueryError(Exception):
     """Raised when a query execution fails."""
+
     pass
 
 
@@ -99,7 +102,9 @@ class HCGClient:
         except ServiceUnavailable as e:
             raise HCGConnectionError(f"Failed to connect to Neo4j at {uri}: {e}") from e
         except Exception as e:
-            raise HCGConnectionError(f"Unexpected error connecting to Neo4j: {e}") from e
+            raise HCGConnectionError(
+                f"Unexpected error connecting to Neo4j: {e}"
+            ) from e
 
     def close(self):
         """Close the driver and release all connections."""
@@ -116,14 +121,14 @@ class HCGClient:
         self.close()
 
     @contextmanager
-    def _session(self) -> Session:
+    def _session(self) -> Iterator[Session]:
         """
         Create a session with proper resource management.
 
         Yields:
             Neo4j session
         """
-        session = None
+        session: Session | None = None
         try:
             session = self.driver.session(database=self.database)
             yield session
@@ -136,7 +141,7 @@ class HCGClient:
         query: str,
         parameters: dict[str, Any] | None = None,
         retry_count: int = 0,
-    ) -> Result:
+    ) -> list[Any]:
         """
         Execute a Cypher query with retry logic.
 
@@ -146,7 +151,7 @@ class HCGClient:
             retry_count: Current retry attempt
 
         Returns:
-            Neo4j Result object
+            List of records
 
         Raises:
             HCGQueryError: On query execution failure
@@ -167,7 +172,9 @@ class HCGClient:
                 )
                 return self._execute_query(query, parameters, retry_count + 1)
             else:
-                raise HCGQueryError(f"Query failed after {self.max_retry_attempts} retries: {e}") from e
+                raise HCGQueryError(
+                    f"Query failed after {self.max_retry_attempts} retries: {e}"
+                ) from e
         except Neo4jError as e:
             raise HCGQueryError(f"Neo4j error executing query: {e}") from e
         except Exception as e:
@@ -399,11 +406,15 @@ class HCGClient:
             List of State objects
         """
         # Convert datetime to ISO string if needed
-        start_str = start_time.isoformat() if isinstance(start_time, datetime) else start_time
+        start_str = (
+            start_time.isoformat() if isinstance(start_time, datetime) else start_time
+        )
         end_str = end_time.isoformat() if isinstance(end_time, datetime) else end_time
 
         query = HCGQueries.find_states_by_timestamp_range()
-        records = self._execute_read(query, {"start_time": start_str, "end_time": end_str})
+        records = self._execute_read(
+            query, {"start_time": start_str, "end_time": end_str}
+        )
 
         states = []
         for record in records:
@@ -450,11 +461,15 @@ class HCGClient:
             List of Process objects
         """
         # Convert datetime to ISO string if needed
-        start_str = start_time.isoformat() if isinstance(start_time, datetime) else start_time
+        start_str = (
+            start_time.isoformat() if isinstance(start_time, datetime) else start_time
+        )
         end_str = end_time.isoformat() if isinstance(end_time, datetime) else end_time
 
         query = HCGQueries.find_processes_by_time_range()
-        records = self._execute_read(query, {"start_time": start_str, "end_time": end_str})
+        records = self._execute_read(
+            query, {"start_time": start_str, "end_time": end_str}
+        )
 
         processes = []
         for record in records:
@@ -593,11 +608,13 @@ class HCGClient:
         for record in records:
             process_props = self._parse_node_to_dict(record["p"])
             state_props = self._parse_node_to_dict(record["result"])
-            results.append({
-                "process": Process(**process_props),
-                "state": State(**state_props),
-                "depth": record["depth"],
-            })
+            results.append(
+                {
+                    "process": Process(**process_props),
+                    "state": State(**state_props),
+                    "depth": record["depth"],
+                }
+            )
 
         return results
 
@@ -625,11 +642,13 @@ class HCGClient:
         for record in records:
             state_props = self._parse_node_to_dict(record["cause"])
             process_props = self._parse_node_to_dict(record["p"])
-            results.append({
-                "state": State(**state_props),
-                "process": Process(**process_props),
-                "depth": record["depth"],
-            })
+            results.append(
+                {
+                    "state": State(**state_props),
+                    "process": Process(**process_props),
+                    "depth": record["depth"],
+                }
+            )
 
         return results
 

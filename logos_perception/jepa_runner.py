@@ -6,7 +6,7 @@ Can be backed by CPU-friendly runners or hardware simulators (Talos/Gazebo).
 """
 
 import logging
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 from pydantic import BaseModel
@@ -63,9 +63,7 @@ class JEPARunner:
         Returns:
             SimulationResult with imagined process and states
         """
-        logger.info(
-            f"Running {k_steps}-step simulation for capability {capability_id}"
-        )
+        logger.info(f"Running {k_steps}-step simulation for capability {capability_id}")
 
         # Create imagined process
         process = ImaginedProcess(
@@ -118,7 +116,11 @@ class JEPARunner:
                 embedding=embedding,
                 confidence=max(0.1, confidence),
                 metadata={
-                    "source": "cpu_runner" if not self.config.use_hardware_sim else "hardware_sim",
+                    "source": (
+                        "cpu_runner"
+                        if not self.config.use_hardware_sim
+                        else "hardware_sim"
+                    ),
                     "context_keys": list(context.keys()),
                 },
             )
@@ -138,7 +140,7 @@ class JEPARunner:
         # Generate random embedding with unit norm for testing
         vec = np.random.randn(self.config.embedding_dim)
         vec = vec / np.linalg.norm(vec)
-        return vec.tolist()
+        return cast(list[float], vec.tolist())
 
     def connect_hardware_sim(self, endpoint: str) -> None:
         """

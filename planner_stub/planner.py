@@ -11,6 +11,7 @@ For Phase 1, this demonstrates the planner API contract and integration points.
 import json
 import uuid
 from pathlib import Path
+from typing import Any, cast
 
 from .models import PlanRequest, PlanResponse, ProcessStep, StateDescription
 
@@ -19,13 +20,13 @@ FIXTURES_DIR = Path(__file__).parent.parent / "tests" / "phase1" / "fixtures"
 SCENARIOS_FILE = FIXTURES_DIR / "plan_scenarios.json"
 
 
-def load_scenarios() -> dict:
+def load_scenarios() -> dict[str, Any]:
     """Load planning scenarios from fixtures."""
     if not SCENARIOS_FILE.exists():
         return {"scenarios": [], "causal_relationships": []}
 
     with open(SCENARIOS_FILE) as f:
-        return json.load(f)
+        return cast(dict[str, Any], json.load(f))
 
 
 class SimplePlanner:
@@ -57,7 +58,9 @@ class SimplePlanner:
             return self._build_response_from_scenario(scenario)
 
         # Try to match based on goal state
-        matched_scenario = self._match_scenario(request.initial_state, request.goal_state)
+        matched_scenario = self._match_scenario(
+            request.initial_state, request.goal_state
+        )
         if matched_scenario:
             return self._build_response_from_scenario(matched_scenario)
 
@@ -65,10 +68,8 @@ class SimplePlanner:
         return self._generate_simple_plan(request)
 
     def _match_scenario(
-        self,
-        initial_state: StateDescription,
-        goal_state: StateDescription
-    ) -> dict | None:
+        self, initial_state: StateDescription, goal_state: StateDescription
+    ) -> dict[str, Any] | None:
         """Match request to a known scenario based on goal state."""
         for scenario in self.scenarios.values():
             # Simple matching: if the goal has object_grasped=true, use simple_grasp
@@ -76,32 +77,34 @@ class SimplePlanner:
                 if "object_location" not in goal_state.properties:
                     # Just grasping, not moving
                     if scenario["name"] == "simple_grasp":
-                        return scenario
+                        return cast(dict[str, Any], scenario)
                 else:
                     # Pick and place
                     if scenario["name"] == "pick_and_place":
-                        return scenario
+                        return cast(dict[str, Any], scenario)
         return None
 
-    def _build_response_from_scenario(self, scenario: dict) -> PlanResponse:
+    def _build_response_from_scenario(self, scenario: dict[str, Any]) -> PlanResponse:
         """Build a PlanResponse from a scenario definition."""
         plan_steps = []
         for step in scenario["expected_plan"]:
             # Generate UUID for each process step
             process_uuid = f"process-{step['process'].lower()}-{uuid.uuid4().hex[:8]}"
 
-            plan_steps.append(ProcessStep(
-                process=step["process"],
-                preconditions=step["preconditions"],
-                effects=step["effects"],
-                uuid=process_uuid
-            ))
+            plan_steps.append(
+                ProcessStep(
+                    process=step["process"],
+                    preconditions=step["preconditions"],
+                    effects=step["effects"],
+                    uuid=process_uuid,
+                )
+            )
 
         return PlanResponse(
             plan=plan_steps,
             success=True,
             message=f"Plan generated for scenario: {scenario['name']}",
-            scenario_name=scenario["name"]
+            scenario_name=scenario["name"],
         )
 
     def _generate_simple_plan(self, request: PlanRequest) -> PlanResponse:
@@ -118,14 +121,14 @@ class SimplePlanner:
                     process="GraspAction",
                     preconditions=["gripper_open", "arm_at_pre_grasp"],
                     effects=["object_grasped"],
-                    uuid=process_uuid
+                    uuid=process_uuid,
                 )
             ]
             return PlanResponse(
                 plan=plan_steps,
                 success=True,
                 message="Generated simple grasp plan",
-                scenario_name=None
+                scenario_name=None,
             )
 
         # No plan could be generated
@@ -133,7 +136,7 @@ class SimplePlanner:
             plan=[],
             success=False,
             message="Could not generate plan for given initial and goal states",
-            scenario_name=None
+            scenario_name=None,
         )
 
 

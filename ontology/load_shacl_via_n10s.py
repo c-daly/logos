@@ -41,7 +41,10 @@ def configure_n10s(session, vocab_mode: str = "MAP") -> None:
         pass
     session.run("CALL n10s.nsprefixes.add('logos', 'http://logos.ontology/')")
 
-    cfg = {record["param"]: record["value"] for record in session.run("CALL n10s.graphconfig.show()")}
+    cfg = {
+        record["param"]: record["value"]
+        for record in session.run("CALL n10s.graphconfig.show()")
+    }
     print(f"n10s graph config now: {cfg}")
 
 
@@ -55,11 +58,19 @@ def import_shapes(session, rdf_text: str) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Load SHACL shapes via n10s and report status.")
-    parser.add_argument("--uri", required=True, help="Neo4j Bolt URI, e.g., bolt://localhost:7687")
+    parser = argparse.ArgumentParser(
+        description="Load SHACL shapes via n10s and report status."
+    )
+    parser.add_argument(
+        "--uri", required=True, help="Neo4j Bolt URI, e.g., bolt://localhost:7687"
+    )
     parser.add_argument("--user", required=True, help="Neo4j username")
     parser.add_argument("--password", required=True, help="Neo4j password")
-    parser.add_argument("--shapes", required=True, help="Path to SHACL shapes file, accessible to Neo4j (file:///...)")
+    parser.add_argument(
+        "--shapes",
+        required=True,
+        help="Path to SHACL shapes file, accessible to Neo4j (file:///...)",
+    )
 
     args = parser.parse_args()
 
@@ -85,18 +96,27 @@ def main() -> int:
             ]
 
             if not procedures:
-                print("✗ n10s procedures not found. Check plugin installation.", file=sys.stderr)
+                print(
+                    "✗ n10s procedures not found. Check plugin installation.",
+                    file=sys.stderr,
+                )
                 return 1
 
             # Clear existing shapes if possible
             if "n10s.validation.shacl.clear" in procedures:
-                print("Clearing existing SHACL shapes with n10s.validation.shacl.clear()...")
+                print(
+                    "Clearing existing SHACL shapes with n10s.validation.shacl.clear()..."
+                )
                 session.run("CALL n10s.validation.shacl.clear();")
             elif "n10s.validation.shacl.dropShapes" in procedures:
-                print("Clearing existing SHACL shapes with n10s.validation.shacl.dropShapes()...")
+                print(
+                    "Clearing existing SHACL shapes with n10s.validation.shacl.dropShapes()..."
+                )
                 session.run("CALL n10s.validation.shacl.dropShapes();")
             else:
-                print("⚠️ No SHACL clear/drop procedure available; continuing without clearing existing shapes.")
+                print(
+                    "⚠️ No SHACL clear/drop procedure available; continuing without clearing existing shapes."
+                )
 
             configure_n10s(session, vocab_mode="MAP")
 
@@ -106,13 +126,17 @@ def main() -> int:
             except Neo4jError as exc:
                 # Retry with SHORTEN if namespace-awareness still not honored
                 if "UriNamespaceHasNoAssociatedPrefix" in str(exc):
-                    print("Namespace error during import; retrying after reconfiguring with SHORTEN...")
+                    print(
+                        "Namespace error during import; retrying after reconfiguring with SHORTEN..."
+                    )
                     configure_n10s(session, vocab_mode="SHORTEN")
                     try:
                         import_shapes(session, rdf_rewritten)
                     except Neo4jError as exc2:
                         if "UriNamespaceHasNoAssociatedPrefix" in str(exc2):
-                            print("Namespace error persists even after rewrite/SHORTEN; aborting.")
+                            print(
+                                "Namespace error persists even after rewrite/SHORTEN; aborting."
+                            )
                             raise
                         else:
                             raise

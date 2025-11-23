@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+permissions:
+  contents: read
+
+jobs:
+  standard:
+    uses: c-daly/logos/.github/workflows/reusable-standard-ci.yml@main
+    with:
+      python_versions: '["3.11","3.12"]'
+      python_package_manager: 'poetry'
+      python_command_prefix: 'poetry run '
+      poetry_install_args: '--with dev'
+      python_lint_paths: '.'
+      mypy_targets: '.'
+      pytest_command: 'pytest -v --cov --cov-report=term-missing --cov-report=xml'
+      coverage_python_version: '3.11'
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

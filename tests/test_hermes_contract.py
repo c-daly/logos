@@ -3,13 +3,18 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any, cast
 
 import yaml
 
 
-def _load_hermes_contract() -> dict:
-    contract_path = Path(__file__).resolve().parent.parent / "contracts" / "hermes.openapi.yaml"
-    return yaml.safe_load(contract_path.read_text(encoding="utf-8"))
+def _load_hermes_contract() -> dict[str, Any]:
+    contract_path = (
+        Path(__file__).resolve().parent.parent / "contracts" / "hermes.openapi.yaml"
+    )
+    return cast(
+        dict[str, Any], yaml.safe_load(contract_path.read_text(encoding="utf-8"))
+    )
 
 
 def test_llm_endpoint_is_documented() -> None:

@@ -17,6 +17,7 @@ import json
 import subprocess
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 
 class DemoCapture:
@@ -66,14 +67,22 @@ class DemoCapture:
         # Adjust for your platform (macOS uses avfoundation, Windows uses gdigrab)
         cmd = [
             "ffmpeg",
-            "-video_size", "1920x1080",
-            "-framerate", "30",
-            "-f", "x11grab",
-            "-i", ":0.0",
-            "-t", str(duration),
-            "-c:v", "libx264",
-            "-preset", "fast",
-            "-crf", "23",
+            "-video_size",
+            "1920x1080",
+            "-framerate",
+            "30",
+            "-f",
+            "x11grab",
+            "-i",
+            ":0.0",
+            "-t",
+            str(duration),
+            "-c:v",
+            "libx264",
+            "-preset",
+            "fast",
+            "-crf",
+            "23",
             str(output_file),
         ]
 
@@ -126,7 +135,9 @@ class DemoCapture:
             print(f"  script {output_file}")
             print("Then exit the shell when done: exit")
             print("\nOr use this script with --commands flag:")
-            print('  python capture_demo.py --mode cli --commands "logos-cli status" "logos-cli plan ..."')
+            print(
+                '  python capture_demo.py --mode cli --commands "logos-cli status" "logos-cli plan ..."'
+            )
 
     def aggregate_logs(self, log_dirs: list[str] | None = None):
         """
@@ -145,7 +156,7 @@ class DemoCapture:
             ]
 
         output_file = self.output_dir / f"logs_aggregated_{self.timestamp}.json"
-        aggregated = {
+        aggregated: dict[str, Any] = {
             "timestamp": datetime.utcnow().isoformat(),
             "logs": [],
         }
@@ -163,11 +174,13 @@ class DemoCapture:
                 try:
                     with open(log_file) as f:
                         lines = f.readlines()
-                        aggregated["logs"].append({
+                        log_entry = {
                             "file": str(log_file),
                             "lines": len(lines),
                             "content": lines[-100:],  # Last 100 lines
-                        })
+                        }
+                        if isinstance(aggregated["logs"], list):
+                            aggregated["logs"].append(log_entry)
                 except Exception as e:
                     print(f"    ERROR reading {log_file}: {e}")
 
@@ -176,11 +189,13 @@ class DemoCapture:
                 try:
                     with open(jsonl_file) as f:
                         events = [json.loads(line) for line in f]
-                        aggregated["logs"].append({
+                        telemetry_entry = {
                             "file": str(jsonl_file),
                             "events": len(events),
                             "content": events[-50:],  # Last 50 events
-                        })
+                        }
+                        if isinstance(aggregated["logs"], list):
+                            aggregated["logs"].append(telemetry_entry)
                 except Exception as e:
                     print(f"    ERROR reading {jsonl_file}: {e}")
 
@@ -263,7 +278,11 @@ class DemoCapture:
         try:
             # Simple query for recent traces (requires Tempo API)
             result = subprocess.run(
-                ["curl", "-s", "http://localhost:3200/api/search?tags=service.name=sophia&limit=10"],
+                [
+                    "curl",
+                    "-s",
+                    "http://localhost:3200/api/search?tags=service.name=sophia&limit=10",
+                ],
                 capture_output=True,
                 text=True,
                 timeout=10,
@@ -272,7 +291,9 @@ class DemoCapture:
                 try:
                     traces = json.loads(result.stdout)
                     otel_data["recent_traces"] = traces.get("traces", [])[:10]
-                    print(f"  ✓ Retrieved {len(otel_data['recent_traces'])} recent traces")
+                    print(
+                        f"  ✓ Retrieved {len(otel_data['recent_traces'])} recent traces"
+                    )
                 except json.JSONDecodeError:
                     otel_data["recent_traces"] = []
                     print("  ⚠ Could not parse traces response")
@@ -292,7 +313,6 @@ class DemoCapture:
         print(f"     4. Save it as: {self.output_dir}/grafana_dashboard_screenshot.png")
         print("     5. Explore traces for plan_id attributes")
 
-
     def create_manifest(self):
         """Create a manifest of captured artifacts."""
         manifest = {
@@ -302,11 +322,13 @@ class DemoCapture:
 
         for file in self.output_dir.iterdir():
             if file.is_file():
-                manifest["artifacts"].append({
-                    "filename": file.name,
-                    "size": file.stat().st_size,
-                    "path": str(file),
-                })
+                manifest["artifacts"].append(
+                    {
+                        "filename": file.name,
+                        "size": file.stat().st_size,
+                        "path": str(file),
+                    }
+                )
 
         manifest_file = self.output_dir / "MANIFEST.json"
         with open(manifest_file, "w") as f:

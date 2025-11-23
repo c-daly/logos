@@ -38,7 +38,7 @@ def is_neo4j_available() -> bool:
 # Skip all tests if Neo4j is not available
 pytestmark = pytest.mark.skipif(
     not is_neo4j_available(),
-    reason="Neo4j not available. Start Neo4j with: docker compose -f infra/docker-compose.hcg.dev.yml up -d"
+    reason="Neo4j not available. Start Neo4j with: docker compose -f infra/docker-compose.hcg.dev.yml up -d",
 )
 
 
@@ -74,7 +74,9 @@ class TestConnection:
     def test_connection_invalid_uri(self):
         """Test connection failure with invalid URI."""
         with pytest.raises(HCGConnectionError):
-            HCGClient(uri="bolt://invalid:7687", user=NEO4J_USER, password=NEO4J_PASSWORD)
+            HCGClient(
+                uri="bolt://invalid:7687", user=NEO4J_USER, password=NEO4J_PASSWORD
+            )
 
     def test_context_manager(self, client_with_context):
         """Test client usage as context manager."""

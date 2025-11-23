@@ -17,6 +17,7 @@ import pytest
 # Try to import planner client for API-based tests
 try:
     from planner_stub.client import PlannerClient
+
     PLANNER_CLIENT_AVAILABLE = True
 except ImportError:
     PLANNER_CLIENT_AVAILABLE = False
@@ -33,7 +34,11 @@ def plan_scenarios():
 @pytest.fixture
 def test_data_cypher():
     """Load pick-and-place test data Cypher script."""
-    cypher_file = Path(__file__).parent.parent.parent / "ontology" / "test_data_pick_and_place.cypher"
+    cypher_file = (
+        Path(__file__).parent.parent.parent
+        / "ontology"
+        / "test_data_pick_and_place.cypher"
+    )
     return cypher_file.read_text()
 
 
@@ -54,12 +59,16 @@ def test_causal_relationships_defined(plan_scenarios):
         assert "causes" in rel
         assert "requires" in rel
 
-    print(f"✓ Defined {len(plan_scenarios['causal_relationships'])} causal relationships")
+    print(
+        f"✓ Defined {len(plan_scenarios['causal_relationships'])} causal relationships"
+    )
 
 
 def test_simple_grasp_scenario(plan_scenarios):
     """Test simple single-step grasp planning scenario."""
-    scenario = next(s for s in plan_scenarios["scenarios"] if s["name"] == "simple_grasp")
+    scenario = next(
+        s for s in plan_scenarios["scenarios"] if s["name"] == "simple_grasp"
+    )
 
     assert scenario is not None
     assert "initial_state" in scenario
@@ -81,7 +90,9 @@ def test_simple_grasp_scenario(plan_scenarios):
 
 def test_pick_and_place_scenario(plan_scenarios):
     """Test multi-step pick-and-place planning scenario."""
-    scenario = next(s for s in plan_scenarios["scenarios"] if s["name"] == "pick_and_place")
+    scenario = next(
+        s for s in plan_scenarios["scenarios"] if s["name"] == "pick_and_place"
+    )
 
     assert scenario is not None
     plan = scenario["expected_plan"]
@@ -144,7 +155,10 @@ def test_test_data_has_process_concepts(test_data_cypher):
     """Test that pick-and-place test data includes process concepts."""
     # Verify key process nodes are defined (using actual test data names)
     assert ":Process" in test_data_cypher
-    assert "process_move" in test_data_cypher.lower() or "moveaction" in test_data_cypher.lower()
+    assert (
+        "process_move" in test_data_cypher.lower()
+        or "moveaction" in test_data_cypher.lower()
+    )
 
     print("✓ Process concepts found in test data")
 
@@ -264,9 +278,13 @@ class TestPlannerAPIIntegration:
     def test_planner_api_with_states(self, planner_client):
         """Test plan generation with explicit initial and goal states."""
         response = planner_client.generate_plan(
-            initial_state={"gripper": "open", "arm_position": "home", "object_grasped": False},
+            initial_state={
+                "gripper": "open",
+                "arm_position": "home",
+                "object_grasped": False,
+            },
             goal_state={"object_location": "bin", "object_grasped": False},
-            scenario_name="pick_and_place"
+            scenario_name="pick_and_place",
         )
 
         assert response.success is True
@@ -278,7 +296,9 @@ class TestPlannerAPIIntegration:
             next_step = response.plan[i + 1]
 
             assert len(current_step.effects) > 0, f"Step {i} should have effects"
-            assert len(next_step.preconditions) > 0, f"Step {i+1} should have preconditions"
+            assert (
+                len(next_step.preconditions) > 0
+            ), f"Step {i+1} should have preconditions"
 
         print(f"✓ Generated plan with explicit states ({len(response.plan)} steps)")
 

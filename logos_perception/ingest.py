@@ -104,9 +104,7 @@ class MediaIngestService:
             result.single()
             logger.info(f"Stored frame metadata in Neo4j: {frame.frame_id}")
 
-    def store_frame_embedding(
-        self, frame_id: str, embedding: list[float]
-    ) -> str:
+    def store_frame_embedding(self, frame_id: str, embedding: list[float]) -> str:
         """
         Store frame embedding in Milvus.
 

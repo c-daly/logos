@@ -177,9 +177,7 @@ class SimulationService:
         except Exception as e:
             logger.error(f"Failed to store embeddings in Milvus: {e}")
 
-    def _link_frame_to_simulation(
-        self, frame_id: str, process_uuid: str
-    ) -> None:
+    def _link_frame_to_simulation(self, frame_id: str, process_uuid: str) -> None:
         """
         Link perception frame to simulation process.
 
@@ -195,13 +193,9 @@ class SimulationService:
 
         with self.neo4j_driver.session() as session:
             session.run(query, frame_id=frame_id, process_uuid=process_uuid)
-            logger.info(
-                f"Linked frame {frame_id} to simulation {process_uuid}"
-            )
+            logger.info(f"Linked frame {frame_id} to simulation {process_uuid}")
 
-    def get_simulation_results(
-        self, process_uuid: str
-    ) -> dict[str, Any] | None:
+    def get_simulation_results(self, process_uuid: str) -> dict[str, Any] | None:
         """
         Retrieve simulation results from Neo4j.
 

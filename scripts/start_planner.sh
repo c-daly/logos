@@ -41,11 +41,21 @@ echo ""
 cd "${REPO_ROOT}"
 
 # Start the service
-python -m uvicorn planner_stub.app:app \
-    --host "${PLANNER_HOST}" \
-    --port "${PLANNER_PORT}" \
-    --log-level info \
-    --reload
+if [ "${DETACH:-false}" = "true" ]; then
+    nohup python -m uvicorn planner_stub.app:app \
+        --host "${PLANNER_HOST}" \
+        --port "${PLANNER_PORT}" \
+        --log-level info \
+        --reload > /tmp/planner-stub.log 2>&1 &
+    echo "Planner service started in background (PID: $!)"
+    echo "Logs: /tmp/planner-stub.log"
+else
+    python -m uvicorn planner_stub.app:app \
+        --host "${PLANNER_HOST}" \
+        --port "${PLANNER_PORT}" \
+        --log-level info \
+        --reload
+fi
 
 echo ""
 echo -e "${GREEN}Planner service stopped${NC}"
