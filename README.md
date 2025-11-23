@@ -161,18 +161,86 @@ SHACL Validation Strategy
   - For local setup instructions, see `docs/PHASE1_VERIFY.md` - M2 section "Neo4j n10s Integration Tests (Opt-In)"
   - Workflow: `.github/workflows/shacl-neo4j-validation.yml`
 
--Phase 1 Verification and Gate
-- Phase 1 must be completed and verified before Phase 2 work can begin.
-- **Verification Checklist**: See `docs/old/PHASE1_VERIFY.md` (archival) alongside the living `docs/phase1/PHASE1_SPEC.md`.
+## Phase 1 Verification and Gate
+
+**Phase 1 Status: Complete** ✅
+
+Phase 1 formalized the HCG ontology, SHACL validation, development infrastructure, and CLI prototype.
+
+- **Verification Checklist**: See `docs/old/PHASE1_VERIFY.md` (archival) alongside the living `docs/phase1/PHASE1_SPEC.md`
 - **Milestone Gates**: Each milestone is verified through automated tests that produce individual badges:
   - **M1** (HCG Store/Retrieve): [![M1 Gate](https://github.com/c-daly/logos/actions/workflows/m1-neo4j-crud.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m1-neo4j-crud.yml)
   - **M2** (SHACL Validation): [![M2 Gate](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m2-shacl-validation.yml)
   - **M3** (Planning): [![M3 Gate](https://github.com/c-daly/logos/actions/workflows/m3-planning.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m3-planning.yml)
   - **M4** (End-to-End Demo): [![M4 Gate](https://github.com/c-daly/logos/actions/workflows/m4-end-to-end.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/m4-end-to-end.yml)
+
+**Completed Features:**
+- ✅ Neo4j HCG infrastructure with core ontology (`core_ontology.cypher`)
+- ✅ SHACL validation shapes (`shacl_shapes.ttl`) with pyshacl and Neo4j n10s support
+- ✅ Milvus vector database integration for embeddings
+- ✅ Apollo CLI prototype for goal/plan/state interaction
+- ✅ Sophia orchestrator with CWM-A, CWM-G, Planner, Executor
+- ✅ Hermes language utilities (STT, TTS, NLP, embeddings, LLM gateway)
+- ✅ Talos hardware abstraction layer with simulated interfaces
+- ✅ E2E pick-and-place demo with full causal graph tracking
+- ✅ Automated CI/CD with milestone gate tests
+
+**Tools & Scripts:**
 - **E2E Prototype Script**: Run `./scripts/e2e_prototype.sh` to test the complete flow (Apollo → Sophia → Talos → HCG)
 - **Planner Stub Service**: Run `./scripts/start_planner.sh` to start the planner API stub for M3/M4 testing (see `planner_stub/README.md`)
-- Phase 2 work is blocked until all milestone gates pass (automated tests green + manual verifications complete).
-- Final documentation/UX polish before calling Phase 1 “done” lives under the `phase 1 closers` label (issues #200, #201, #202, #203, #204, #205, #206, #208). These cover the opt-in Neo4j SHACL job, planner/executor shims, Apollo CLI entrypoint, Milvus smoke test, stronger M4 assertions, and CI/test cleanup.
+
+**Phase 1 Closers:**
+Final documentation/UX polish items live under the [`phase 1 closers`](https://github.com/c-daly/logos/labels/phase%201%20closers) label (issues #200, #201, #202, #203, #204, #205, #206, #208). These cover the opt-in Neo4j SHACL job, planner/executor shims, Apollo CLI entrypoint, Milvus smoke test, stronger M4 assertions, and CI/test cleanup.
+
+Phase 2 work began after all milestone gates passed (automated tests green + manual verifications complete).
+
+## Phase 2 Verification
+
+**Phase 2 Status: 86% Complete** ✅🚧
+
+Phase 2 delivers Sophia/Hermes services, Apollo dual surfaces (CLI + browser), perception pipeline integration, and diagnostics/persona features.
+
+- **Specification**: See `docs/architecture/PHASE2_SPEC.md` for complete requirements
+- **Verification Document**: See `docs/operations/PHASE2_VERIFY.md` for detailed status and gap analysis
+- **Milestone Gates**: Each milestone is verified through tests and implementation evidence:
+  - **P2-M1** (Sophia & Hermes Services): [![P2-M1](https://img.shields.io/badge/P2--M1-complete-brightgreen)](https://github.com/c-daly/logos/labels/P2-M1) **100%**
+  - **P2-M2** (Apollo Dual Surfaces): [![P2-M2](https://img.shields.io/badge/P2--M2-85%25-yellow)](https://github.com/c-daly/logos/labels/P2-M2) **85%** (media upload UI missing)
+  - **P2-M3** (Perception Pipeline): [![P2-M3](https://img.shields.io/badge/P2--M3-70%25-yellow)](https://github.com/c-daly/logos/labels/P2-M3) **70%** (media pipeline not implemented)
+  - **P2-M4** (Diagnostics & Persona): [![P2-M4](https://img.shields.io/badge/P2--M4-90%25-yellow)](https://github.com/c-daly/logos/labels/P2-M4) **90%** (CWM-E automation missing)
+
+**Completed Features:**
+- ✅ Sophia FastAPI service with `/plan`, `/state`, `/simulate` endpoints
+- ✅ Hermes FastAPI service with language/embedding utilities
+- ✅ Apollo CLI and browser webapp consuming Sophia/Hermes APIs
+- ✅ JEPA simulation endpoint functional with 20 passing tests
+- ✅ OpenTelemetry observability stack with Tempo/Grafana
+- ✅ Persona diary system with reflection and emotion tracking
+- ✅ 61 webapp tests + 20 perception tests passing
+
+**Critical Gaps:**
+
+*P2-M3 Perception Pipeline (30% gap):*
+- ❌ Media ingest service API (browser uploads, file watcher, WebRTC)
+- ❌ MediaSample nodes in HCG ontology
+- ❌ Media → JEPA → Milvus processing pipeline
+- ❌ Media upload UI component for Apollo webapp
+
+*P2-M4 CWM-E Integration (10% gap):*
+- ❌ CWM-E periodic reflection job (spec requires automatic background task)
+- ❌ Planner integration with EmotionState nodes (spec requires planner reads emotions to adjust strategy)
+
+*CWM-A Implementation (partial):*
+- ⚠️ CWM-A doesn't emit full CWMState envelope with normalized entity/relationship diffs per spec
+
+**Next Steps:**
+1. Implement media ingest service API
+2. Add MediaSample nodes to HCG ontology
+3. Build Apollo media upload component
+4. Wire media pipeline: upload → JEPA → vector storage
+5. Implement CWM-E periodic reflection job
+6. Integrate EmotionState into planner decision-making
+
+For complete gap analysis and verification evidence, see `docs/operations/PHASE2_VERIFY.md`.
 
 
 M4 Pick-and-Place Demo
