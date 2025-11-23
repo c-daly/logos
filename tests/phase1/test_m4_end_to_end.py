@@ -363,7 +363,9 @@ class TestM4SimulatedWorkflow:
                 RETURN p.uuid, p.name;
                 """
                 returncode, stdout, stderr = run_cypher_query(query)
-                assert returncode == 0, f"Failed to create process {step.process}: {stderr}"
+                assert (
+                    returncode == 0
+                ), f"Failed to create process {step.process}: {stderr}"
                 assert step.process in stdout, f"Expected {step.process} in output"
 
             # Create PRECEDES relationships between sequential steps
@@ -378,7 +380,9 @@ class TestM4SimulatedWorkflow:
                 RETURN p1.name, p2.name;
                 """
                 returncode, stdout, stderr = run_cypher_query(query)
-                assert returncode == 0, f"Failed to create PRECEDES relationship: {stderr}"
+                assert (
+                    returncode == 0
+                ), f"Failed to create PRECEDES relationship: {stderr}"
 
             # Verify plan structure in Neo4j
             verify_query = """

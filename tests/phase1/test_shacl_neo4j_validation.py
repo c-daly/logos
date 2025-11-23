@@ -75,7 +75,9 @@ def _clear_instance_data(session):
 def _ensure_shapes(session, procedures):
     """Ensure SHACL shapes are loaded; load from disk if missing."""
     try:
-        shapes_count = len(session.run("CALL n10s.validation.shacl.listShapes()").data())
+        shapes_count = len(
+            session.run("CALL n10s.validation.shacl.listShapes()").data()
+        )
         if shapes_count > 0:
             return
     except Exception:
@@ -121,8 +123,8 @@ def setup_neo4j(neo4j_session):
 
     # If config is missing or not KEEP, re-init
     # We check for 'KEEP' or 4 (which seems to be the enum value for KEEP)
-    vocab_uris = current_config.get('handleVocabUris')
-    if vocab_uris != 'KEEP' and vocab_uris != 4:
+    vocab_uris = current_config.get("handleVocabUris")
+    if vocab_uris != "KEEP" and vocab_uris != 4:
         if current_config:
             try:
                 # Ensure graph is empty before dropping config
@@ -142,7 +144,9 @@ def setup_neo4j(neo4j_session):
 
     # Ensure constraint exists (n10s requires it)
     try:
-        neo4j_session.run("CREATE CONSTRAINT n10s_unique_uri IF NOT EXISTS FOR (r:Resource) REQUIRE r.uri IS UNIQUE")
+        neo4j_session.run(
+            "CREATE CONSTRAINT n10s_unique_uri IF NOT EXISTS FOR (r:Resource) REQUIRE r.uri IS UNIQUE"
+        )
     except Exception as e:
         print(f"DEBUG: Create constraint failed: {e}")
 
@@ -152,7 +156,7 @@ def setup_neo4j(neo4j_session):
         "sh": "http://www.w3.org/ns/shacl#",
         "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
         "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
-        "xsd": "http://www.w3.org/2001/XMLSchema#"
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
     }
     for prefix, uri in namespaces.items():
         try:
@@ -246,11 +250,15 @@ def test_validate_invalid_entities(setup_neo4j):
     invalid_text = invalid_file.read_text(encoding="utf-8")
 
     # Import invalid data (keep original namespace)
-    import_result = setup_neo4j.run("CALL n10s.rdf.import.inline($rdf, 'Turtle')", rdf=invalid_text).data()
+    import_result = setup_neo4j.run(
+        "CALL n10s.rdf.import.inline($rdf, 'Turtle')", rdf=invalid_text
+    ).data()
     print(f"\nDEBUG: Import result: {import_result}")
 
     # DEBUG: Check what nodes were created
-    nodes = setup_neo4j.run("MATCH (n) RETURN labels(n) as labels, properties(n) as props").data()
+    nodes = setup_neo4j.run(
+        "MATCH (n) RETURN labels(n) as labels, properties(n) as props"
+    ).data()
     print(f"\nDEBUG: Nodes in graph: {nodes}")
 
     # Validate the data
