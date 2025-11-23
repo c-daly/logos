@@ -1,7 +1,6 @@
 # Project LOGOS — Meta Repository
 
 [![Validate LOGOS Artifacts](https://github.com/c-daly/logos/actions/workflows/validate-artifacts.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/validate-artifacts.yml)
-[![Run Tests](https://github.com/c-daly/logos/actions/workflows/test.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 > **A Non-Linguistic Cognitive Architecture for Autonomous Agents**
@@ -285,22 +284,6 @@ We welcome contributions from the community! Project LOGOS is open source under 
 ## License
 
 Project LOGOS is released under the [MIT License](LICENSE). See the LICENSE file for details.
-
-## Citation
-
-If you use LOGOS in your research, please cite:
-
-```bibtex
-@software{logos2025,
-  title = {LOGOS: A Non-Linguistic Cognitive Architecture for Autonomous Agents},
-  author = {Project LOGOS Contributors},
-  year = {2025},
-  url = {https://github.com/c-daly/logos},
-  note = {Phase 1 Complete}
-}
-```
-
-A research paper is in preparation. Citation will be updated upon publication.
 
 ## Community and Outreach
 
