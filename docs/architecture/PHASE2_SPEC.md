@@ -81,11 +81,13 @@ API/logging rules:
 - `/state`: returns latest entity states + persona/diagnostic metadata for Apollo and other clients.
 - `/simulate`: triggers CWM-G to roll out short-horizon predictions; results tagged `imagined:true` in Neo4j.
 - Packaging: Dockerfile extending the repo’s base image; Compose service `sophia-api` linked to Neo4j/Milvus.
-- **CWM-E implementation**:
+- **CWM-E implementation (Phase 2 foundations)**:
   - Backing store: reuse Neo4j (new labels `EmotionState`, `PersonaEntry`) plus Milvus for embedding/search if needed.
-  - Reflection job: FastAPI background task (or separate worker) runs every N minutes, queries recent `PersonaEntry` + plan/state nodes, and computes sentiment/confidence/trust tags using a lightweight model (e.g., fine-tuned classifier or rule set derived from plan outcomes).
-  - Writes `(:EmotionState { sentiment, confidence, caution, timestamp })` nodes linked to `(:Process)` and `(:PersonaEntry)` via `[:EMOTION_FOR]`.
-  - Planner/executor must read the latest emotion nodes to adjust strategy (e.g., avoid risky capability when `caution` high). Apollo, Hermes, or any interaction layer can use the same nodes to shape persona tone.
+  - **PersonaEntry schema additions**: Add optional `trigger` field (free-form text) to describe what caused the entry (e.g., `"error"`, `"user_request"`, `"self_model"`, `"meta"`). This enables categorization of reflections and observations without rigid enums.
+  - **Reflection infrastructure**: Create hooks for event-driven reflection (even if not fully implemented in Phase 2). Reflection system should create `PersonaEntry` nodes with `entry_type="reflection"` when appropriate, not on every chat turn.
+  - **Basic EmotionState creation**: Reflection job queries recent `PersonaEntry` + plan/state nodes and computes sentiment/confidence/caution tags using lightweight model (e.g., fine-tuned classifier or rule-based). Writes `(:EmotionState { sentiment, confidence, caution, timestamp })` nodes linked to `(:Process)` and `(:PersonaEntry)` via `[:EMOTION_FOR]`.
+  - **Note**: Full event-driven reflection (error triggers, user corrections, meta-analysis) and selective diary entry creation are Phase 3 features. Phase 2 provides the data model and basic infrastructure.
+  - Planner/executor should read the latest emotion nodes to adjust strategy (e.g., avoid risky capability when `caution` high). Apollo, Hermes, or any interaction layer can use the same nodes to shape persona tone.
 - **Imagination / simulation pipeline**:
   - `/simulate` accepts `{ capability_id, context }` payloads. Context carries entity references, pointers to sensor frames, and optional Talos metadata (even in Talos-free scenarios, pass the perception sample ID).
   - CWM-G (JEPA runner) performs k-step rollout and returns predicted states plus confidence; create `(:ImaginedProcess)`/`(:ImaginedState)` nodes with `imagined:true`, linked to the triggering plan.

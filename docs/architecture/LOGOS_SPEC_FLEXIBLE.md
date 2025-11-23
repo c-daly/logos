@@ -253,12 +253,23 @@ Focus on improving reasoning/execution while staying hardware-optional:
 - Deliver extensive diagnostics, visualization, and explainability tooling (graph inspectors, plan timelines, causal traces, capability telemetry) available from both CLI and browser experiences.
 - **Success criteria (target)**: Sophia plans against live Talos capability lists, executor reports telemetry into the HCG, embeddings/Milvus health checks run in CI, and at least one alternative Apollo surface demonstrates the loop.
 
-### 7.3 Phase 3 — Learning & Optional Embodiment
-- Introduce episodic memory in the HCG, plan learning from execution history.
-- Layer Level 2 probabilistic validation.
-- Demo at least one alternative embodiment (e.g., desk touchscreen, drone) without contract changes.
-- Explore multi-agent coordination primitives across Talos capabilities.
-- **Success criteria (target)**: Agent improves plan quality using experience, probabilistic validation augments SHACL, and heterogeneous Talos capabilities coordinate without contract changes.
+### 7.3 Phase 3 — Learning & Memory Systems
+- Implement short-term memory (session-scoped ephemeral CWMState with Redis/in-memory storage, promotion policies)
+- Event-driven reflection system (error, user correction, session boundary triggers) creating selective diary entries
+- Replace per-turn observations with meaningful, curated persona history based on impact criteria
+- Introduce episodic memory in the HCG, enable plan learning from execution history
+- Layer Level 2 probabilistic validation to complement SHACL with uncertainty reasoning
+- Demo at least one alternative embodiment (e.g., desk touchscreen, drone) without contract changes
+- Explore multi-agent coordination primitives across Talos capabilities
+- **Success criteria**: Short-term memory serves all subsystems, reflection generates meaningful insights, diary relevance improved, agent demonstrates learning from episodes, probabilistic validation augments SHACL, heterogeneous Talos capabilities coordinate without contract changes
+
+### 7.4 Phase 4 — Operational Autonomy & Advanced Reflection
+- **Meta-reflection**: Periodic aggregate analysis across diary entries to identify systemic patterns (e.g., "10 reflections about verbosity indicates communication style issue")
+- **Personality evolution tracking**: Long-term monitoring of agent behavior changes, tone adaptation, preference drift
+- **Deep planner integration**: Reflection-driven strategy adjustment, dynamic capability confidence weighting, risk assessment based on emotional state
+- **Continuous learning with safety gates**: Production deployment patterns with rollback, A/B testing, human-in-the-loop validation
+- **Observability enhancements**: Real-time reflection quality metrics, memory usage dashboards, learning curve visualization
+- **Success criteria**: Meta-reflections drive systemic improvements, personality evolution tracked and explainable, planner adapts strategy based on reflection history, production-safe continuous learning demonstrated
 
 ---
 

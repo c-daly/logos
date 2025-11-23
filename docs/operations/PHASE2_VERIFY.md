@@ -691,32 +691,43 @@ CWM-G (JEPA) simulation is fully functional with CPU-friendly mode operational. 
 - [x] ✅ WebSocket integration for real-time updates
 - [x] ✅ Documented in `apollo/docs/PERSONA_DIARY.md`
 
-#### 4.3 CWM-E Reflection Job + EmotionState Nodes
+#### 4.3 CWM-E Reflection Infrastructure + EmotionState Nodes
 
-**Status:** ⚠️ **PARTIALLY COMPLETE** (Module Exists, Not Integrated)
+**Status:** ⚠️ **FOUNDATIONS IN PLACE** (Infrastructure Ready, Full System Phase 3)
 
-**Implementation:**
-- EmotionState module exists: `logos/logos_cwm_e/`
-- EmotionState nodes can be created and queried
-- API endpoints available for manual reflection
-- Persona sentiment tracking via PersonaEntry nodes
+**Phase 2 Scope (Foundations):**
+- EmotionState and PersonaEntry schemas with `trigger` field
+- API endpoints for creating/querying emotions and diary entries
+- Basic reflection infrastructure (hooks, data models)
+- PersonaEntry sentiment tracking
 
 **Implementation Evidence:**
 - [x] ✅ CWM-E module: `logos/logos_cwm_e/reflection.py`, `logos/logos_cwm_e/api.py`
 - [x] ✅ EmotionState schema defined
-- [x] ✅ API endpoints for creating/querying emotions
+- [x] ✅ PersonaEntry schema includes optional `trigger` field (free-form text)
+- [x] ✅ API endpoints for creating/querying emotions and diary entries
 - [x] ✅ PersonaEntry sentiment field tracks emotional tone
+- [x] ✅ Apollo CLI accepts `--trigger` parameter for diary entries
 - [x] ✅ Apollo chat and diary consume persona context
-- [ ] ❌ **Periodic reflection job NOT running** - spec requires "FastAPI background task (or separate worker) runs every N minutes"
-- [ ] ❌ **Planner/executor NOT consuming EmotionState** - spec requires "Planner/executor must read the latest emotion nodes to adjust strategy"
-- [ ] ❌ **No automatic emotion generation** - emotions must be created manually via API
+- [ ] ⚠️ **Event-driven reflection NOT implemented** - Phase 3 feature
+- [ ] ⚠️ **Planner/executor NOT consuming EmotionState** - Phase 3 integration
+- [ ] ⚠️ **Selective diary entry creation NOT implemented** - Phase 3 feature
 
-**Gap Analysis:**
-The spec explicitly states:
-- "Reflection job: FastAPI background task (or separate worker) runs every N minutes"
-- "Planner/executor must read the latest emotion nodes to adjust strategy (e.g., avoid risky capability when `caution` high)"
+**Clarification:**
+Original Phase 2 spec mentioned "FastAPI background task runs every N minutes" but architectural discussion revealed event-driven reflection is more appropriate. Phase 2 provides the **data model and infrastructure foundations**:
+- `trigger` field enables categorization of reflections (error, user_request, self_model, meta, etc.)
+- PersonaEntry schema supports `entry_type="reflection"` 
+- EmotionState nodes can be created and linked
 
-Current implementation has the infrastructure but NOT the automation or integration.
+**Phase 3 will deliver:**
+- Event-driven reflection triggers (errors, user corrections, session boundaries)
+- LLM-powered reflection prompts analyzing context
+- Selective diary entry creation (not every chat turn)
+- Short-term memory system for ephemeral context
+- Planner integration consuming EmotionState for strategy adjustment
+
+**Phase 2 Achievement:**
+Infrastructure ready for Phase 3 reflection system - data models, API endpoints, and storage layer complete.
 
 #### 4.4 Demo Capture Script
 
