@@ -60,26 +60,21 @@ jobs:
       - name: Install n10s plugin manually
         run: |
           echo "Downloading n10s plugin..."
-          # Try Neo4j 5.13.x match first; fallback to 5.14.0 if unavailable
-          if ! curl -fL --retry 3 --retry-delay 5 \
-            -o neosemantics-5.13.0.jar \
-            https://github.com/neo4j-labs/neosemantics/releases/download/5.13.0/neosemantics-5.13.0.jar; then
-            echo "5.13.0 download failed, falling back to 5.14.0"
-            curl -fL --retry 3 --retry-delay 5 \
-              -o neosemantics-5.13.0.jar \
-              https://github.com/neo4j-labs/neosemantics/releases/download/5.14.0/neosemantics-5.14.0.jar
-          fi
+          # Download n10s 5.11.0.0 to match Neo4j 5.11.0
+          curl -fL --retry 3 --retry-delay 5 \
+            -o neosemantics-5.11.0.0.jar \
+            https://github.com/neo4j-labs/neosemantics/releases/download/5.11.0.0/neosemantics-5.11.0.0.jar
           
           # Verify download succeeded
-          ls -lh neosemantics-5.13.0.jar || { echo "n10s jar missing"; exit 1; }
-          test -s neosemantics-5.13.0.jar || { echo "n10s jar is empty"; exit 1; }
+          ls -lh neosemantics-5.11.0.0.jar || { echo "n10s jar missing"; exit 1; }
+          test -s neosemantics-5.11.0.0.jar || { echo "n10s jar is empty"; exit 1; }
           
           # Copy plugin into Neo4j container's plugins directory (/plugins is the mounted plugin dir in the official image)
-          docker cp neosemantics-5.13.0.jar logos-hcg-neo4j:/plugins/neosemantics-5.13.0.jar
+          docker cp neosemantics-5.11.0.0.jar logos-hcg-neo4j:/plugins/neosemantics-5.11.0.0.jar
           
           # Fix permissions - Neo4j runs as user neo4j
-          docker exec logos-hcg-neo4j chown neo4j:neo4j /plugins/neosemantics-5.13.0.jar
-          docker exec logos-hcg-neo4j chmod 644 /plugins/neosemantics-5.13.0.jar
+          docker exec logos-hcg-neo4j chown neo4j:neo4j /plugins/neosemantics-5.11.0.0.jar
+          docker exec logos-hcg-neo4j chmod 644 /plugins/neosemantics-5.11.0.0.jar
           
           # Verify plugin was copied with correct permissions
           docker exec logos-hcg-neo4j ls -lh /plugins/
