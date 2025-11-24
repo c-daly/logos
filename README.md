@@ -7,7 +7,7 @@
 
 This repository is the canonical "foundry" for Project LOGOS. It contains the formal specification, API contracts, the Hybrid Causal Graph (HCG) founding documents, and the development infrastructure for the shared HCG cluster.
 
-**Phase 1 Complete ✅** | [Read the docs](docs/) | [Contributing](CONTRIBUTING.md) | [Blog Series](docs/outreach/BLOG_SERIES_PLAN.md)
+**Phase 1 Complete ✅** | **Phase 2: 86% Complete 🟨** | [Read the docs](docs/) | [Contributing](CONTRIBUTING.md) | [📊 Project Assessment](ASSESSMENT_SUMMARY.md)
 
 Purpose
 - Host the canonical spec and design artifacts that bind all LOGOS components together (see Section 3.1: Overview and Core Principles).
@@ -192,6 +192,21 @@ Phase 1 formalized the HCG ontology, SHACL validation, development infrastructur
 Final documentation/UX polish items live under the [`phase 1 closers`](https://github.com/c-daly/logos/labels/phase%201%20closers) label (issues #200, #201, #202, #203, #204, #205, #206, #208). These cover the opt-in Neo4j SHACL job, planner/executor shims, Apollo CLI entrypoint, Milvus smoke test, stronger M4 assertions, and CI/test cleanup.
 
 Phase 2 work began after all milestone gates passed (automated tests green + manual verifications complete).
+
+## 📊 Project Status & Candid Assessment
+
+**[Read the Full Assessment](ASSESSMENT_SUMMARY.md)** - An honest evaluation of where we are versus our goals.
+
+**Quick Summary:**
+- **Phase 1:** ✅ 100% Complete - Exceeded expectations
+- **Phase 2:** 🟨 86% Complete - Core systems work, critical perception gaps remain
+- **Grade:** B (84%) - Exceptional architecture, incomplete execution
+
+**Critical Gap:** Media ingest pipeline not implemented - cannot process real images, video, or audio despite spec requirements.
+
+**Path Forward:** ~4-6 weeks of focused work to close Phase 2 gaps (media pipeline, CWM-E automation, CWM-A envelope).
+
+See [detailed assessment](docs/operations/CANDID_ASSESSMENT_2025_11.md) for full analysis, technical debt evaluation, and recommendations.
 
 ## Phase 2 Verification
 
