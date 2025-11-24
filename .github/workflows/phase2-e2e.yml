@@ -158,9 +158,9 @@ jobs:
           # Wait for services to be ready
           echo "Waiting for services to start..."
           for i in {1..30}; do
-            SOPHIA_OK=$(curl -f http://localhost:8001/health 2>/dev/null && echo "ok" || echo "fail")
-            HERMES_OK=$(curl -f http://localhost:8002/health 2>/dev/null && echo "ok" || echo "fail")
-            APOLLO_OK=$(curl -f http://localhost:8003/api/hcg/health 2>/dev/null && echo "ok" || echo "fail")
+            SOPHIA_OK=$(curl -sf http://localhost:8001/health > /dev/null && echo "ok" || echo "fail")
+            HERMES_OK=$(curl -sf http://localhost:8002/health > /dev/null && echo "ok" || echo "fail")
+            APOLLO_OK=$(curl -sf http://localhost:8003/api/hcg/health > /dev/null && echo "ok" || echo "fail")
             
             if [ "$SOPHIA_OK" = "ok" ] && [ "$HERMES_OK" = "ok" ] && [ "$APOLLO_OK" = "ok" ]; then
               echo "All services ready!"
