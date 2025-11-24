@@ -1,0 +1,105 @@
+name: SDK Tampering Prevention Test
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test-sdk-protection:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Check if SDK files were modified
+        id: check_sdk_modified
+        run: |
+          # Get list of changed files in this PR
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+          SDK_CHANGES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD | grep -E '^sdk/|^sdk-web/' || true)
+          
+          if [ -n "$SDK_CHANGES" ]; then
+            echo "sdk_modified=true" >> $GITHUB_OUTPUT
+            echo "SDK files were modified:"
+            echo "$SDK_CHANGES"
+          else
+            echo "sdk_modified=false" >> $GITHUB_OUTPUT
+            echo "No SDK files modified"
+          fi
+      
+      - name: Check if contracts were modified
+        id: check_contracts_modified
+        if: steps.check_sdk_modified.outputs.sdk_modified == 'true'
+        run: |
+          # Check if any contract files were changed
+          CONTRACT_CHANGES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD | grep -E '^contracts/.*\.(yaml|yml)$' || true)
+          
+          if [ -n "$CONTRACT_CHANGES" ]; then
+            echo "contracts_modified=true" >> $GITHUB_OUTPUT
+            echo "Contract files were modified:"
+            echo "$CONTRACT_CHANGES"
+          else
+            echo "contracts_modified=false" >> $GITHUB_OUTPUT
+            echo "No contract files modified"
+          fi
+      
+      - name: Regenerate SDKs from current contracts
+        if: steps.check_sdk_modified.outputs.sdk_modified == 'true'
+        run: |
+          chmod +x scripts/generate-sdks.sh
+          ./scripts/generate-sdks.sh
+      
+      - name: Verify SDK changes match generated output
+        if: steps.check_sdk_modified.outputs.sdk_modified == 'true'
+        run: |
+          # Check if there are any differences between committed SDKs and regenerated SDKs
+          git add -A sdk/ sdk-web/
+          
+          if git diff --cached --quiet; then
+            echo "✅ SDK changes match generated output from contracts"
+            exit 0
+          else
+            echo "::error::❌ SDK files were manually modified and don't match generated output"
+            echo ""
+            echo "The following SDK changes don't match what would be generated from contracts:"
+            git diff --cached --stat
+            echo ""
+            echo "This could mean:"
+            echo "1. SDKs were manually edited (not allowed - must regenerate from contracts)"
+            echo "2. SDKs are out of sync with contracts (run ./scripts/generate-sdks.sh)"
+            echo "3. Wrong SDK generator version was used"
+            echo ""
+            echo "To fix: Revert SDK changes and run ./scripts/generate-sdks.sh"
+            exit 1
+          fi
+      
+      - name: Summary
+        if: always()
+        run: |
+          echo "## SDK Tampering Prevention Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.check_sdk_modified.outputs.sdk_modified }}" == "true" ]; then
+            echo "🔍 **SDK files were modified in this PR**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            if [ "${{ steps.check_contracts_modified.outputs.contracts_modified }}" == "true" ]; then
+              echo "✅ Contracts were also modified (expected)" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "⚠️ Contracts were NOT modified (unexpected)" >> $GITHUB_STEP_SUMMARY
+            fi
+            
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Verification:** Regenerated SDKs and compared with committed changes" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✨ No SDK files modified in this PR" >> $GITHUB_STEP_SUMMARY
+          fi
