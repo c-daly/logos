@@ -49,15 +49,7 @@ jobs:
           pip install -e .
           pip install pytest neo4j rdflib pyshacl
       
-      - name: Start Neo4j with docker-compose
-        run: |
-          cd infra
-          docker compose -f docker-compose.hcg.dev.yml up -d neo4j
-          echo "✓ Neo4j container started"
-          echo "Waiting for APOC plugin to download..."
-          sleep 15
-      
-      - name: Install n10s plugin manually
+      - name: Download n10s plugin
         run: |
           echo "Downloading n10s plugin..."
           # Download n10s 5.11.0.0 to match Neo4j 5.11.0
@@ -68,55 +60,58 @@ jobs:
           # Verify download succeeded
           ls -lh neosemantics-5.11.0.0.jar || { echo "n10s jar missing"; exit 1; }
           test -s neosemantics-5.11.0.0.jar || { echo "n10s jar is empty"; exit 1; }
+          echo "✓ n10s plugin downloaded successfully"
+      
+      - name: Start Neo4j and install n10s
+        run: |
+          cd infra
+          # Start Neo4j with APOC only (override auto-download)
+          NEO4JLABS_PLUGINS='["apoc"]' docker compose -f docker-compose.hcg.dev.yml up -d neo4j
+          echo "✓ Neo4j container started"
           
-          # Copy plugin into Neo4j container's plugins directory (/plugins is the mounted plugin dir in the official image)
-          docker cp neosemantics-5.11.0.0.jar logos-hcg-neo4j:/plugins/neosemantics-5.11.0.0.jar
+          # Wait for container to be up before copying files
+          sleep 5
           
-          # Fix permissions - Neo4j runs as user neo4j
+          # Copy n10s plugin into container early (before Neo4j fully starts)
+          docker cp ../neosemantics-5.11.0.0.jar logos-hcg-neo4j:/plugins/neosemantics-5.11.0.0.jar
           docker exec logos-hcg-neo4j chown neo4j:neo4j /plugins/neosemantics-5.11.0.0.jar
           docker exec logos-hcg-neo4j chmod 644 /plugins/neosemantics-5.11.0.0.jar
           
-          # Verify plugin was copied with correct permissions
+          echo "✓ n10s plugin copied, plugins directory:"
           docker exec logos-hcg-neo4j ls -lh /plugins/
-          
-          # Restart Neo4j to load the plugin
-          docker restart logos-hcg-neo4j
-          echo "✓ n10s plugin installed with correct permissions, Neo4j restarting..."
-          sleep 10
+          echo "Waiting for Neo4j to start and load all plugins..."
       
       - name: Wait for Neo4j to be ready
         run: |
-          echo "Waiting for Neo4j to be ready..."
-          timeout 180 bash -c 'until docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "RETURN 1 AS test" 2>/dev/null | grep -q "test"; do sleep 5; done'
+          echo "Waiting for Neo4j to be ready with APOC + n10s..."
+          timeout 180 bash -c 'until docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "RETURN 1 AS test" 2>/dev/null | grep -q "test"; do 
+            echo "  still waiting..." 
+            sleep 5
+          done'
           echo "✓ Neo4j is ready"
-          # Give Neo4j extra time to finish loading plugins
-          sleep 15
+          # Give extra time for plugins to fully initialize
+          sleep 20
       
-      - name: Check Neo4j logs for plugin initialization
+      - name: Check Neo4j logs
         run: |
-          echo "Checking Neo4j logs for plugin status..."
+          echo "Checking Neo4j logs for plugin initialization..."
           docker logs logos-hcg-neo4j 2>&1 | tail -100
       
       - name: Verify n10s plugin is loaded
         run: |
-          echo "Verifying n10s plugin..."
-          timeout 60 bash -c '
-            until docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
-              "SHOW PROCEDURES YIELD name WHERE name STARTS WITH \"n10s\" RETURN count(name) AS count" 2>/dev/null | grep -q "count"; do
-              echo "waiting for n10s procedures..."
-              sleep 3
-            done
-          '
+          echo "Verifying n10s plugin procedures are available..."
           docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
-            "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'n10s' RETURN name" || {
-            echo "Failed to verify n10s plugin"
+            "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'n10s' RETURN name LIMIT 5" || {
+            echo "❌ Failed to verify n10s plugin"
             echo "Checking plugins directory:"
-            docker exec logos-hcg-neo4j ls -la /var/lib/neo4j/plugins/
-            echo "Checking Neo4j version and config:"
+            docker exec logos-hcg-neo4j ls -la /plugins/
+            echo "Checking Neo4j version:"
             docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "CALL dbms.components() YIELD name, versions RETURN name, versions"
-            docker logs logos-hcg-neo4j | tail -200
+            echo "Full Neo4j logs:"
+            docker logs logos-hcg-neo4j
             exit 1
           }
+          echo "✓ n10s plugin verified"
       
       - name: Load core ontology
         run: |
