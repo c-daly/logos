@@ -127,6 +127,11 @@ jobs:
       
       - name: Start services
         run: |
+          # Update start_services.sh to use CI repo paths
+          sed -i 's|$LOGOS_ROOT/../sophia|$GITHUB_WORKSPACE/sophia|g' scripts/start_services.sh
+          sed -i 's|$LOGOS_ROOT/../hermes|$GITHUB_WORKSPACE/hermes|g' scripts/start_services.sh
+          sed -i 's|$LOGOS_ROOT/../apollo|$GITHUB_WORKSPACE/apollo|g' scripts/start_services.sh
+          
           cd scripts
           chmod +x start_services.sh
           SOPHIA_API_KEY=test-ci-key ./start_services.sh start
