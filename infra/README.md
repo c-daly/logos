@@ -239,15 +239,15 @@ pytest tests/phase1/test_shacl_pyshacl.py -v
 docker compose -f infra/docker-compose.hcg.dev.yml up -d
 
 # 2. Install n10s plugin (if not already installed)
-# Download n10s jar for Neo4j 5.13.x
-curl -fL -o neosemantics-5.13.0.jar \
-  https://github.com/neo4j-labs/neosemantics/releases/download/5.13.0/neosemantics-5.13.0.jar
+# Download n10s jar for Neo4j 5.11.0
+curl -fL -o neosemantics-5.11.0.0.jar \
+  https://github.com/neo4j-labs/neosemantics/releases/download/5.11.0.0/neosemantics-5.11.0.0.jar
 
 # Copy into Neo4j plugins directory
-docker cp neosemantics-5.13.0.jar logos-hcg-neo4j:/plugins/
+docker cp neosemantics-5.11.0.0.jar logos-hcg-neo4j:/plugins/
 
 # Fix permissions and restart
-docker exec logos-hcg-neo4j chown neo4j:neo4j /plugins/neosemantics-5.13.0.jar
+docker exec logos-hcg-neo4j chown neo4j:neo4j /plugins/neosemantics-5.11.0.0.jar
 docker restart logos-hcg-neo4j
 
 # Wait for Neo4j to restart (10-15 seconds)
