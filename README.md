@@ -195,18 +195,12 @@ Phase 2 work began after all milestone gates passed (automated tests green + man
 
 ## 📊 Project Status & Candid Assessment
 
-**[Read the Full Assessment](ASSESSMENT_SUMMARY.md)** - An honest evaluation of where we are versus our goals.
-
 **Quick Summary:**
 - **Phase 1:** ✅ 100% Complete - Exceeded expectations
 - **Phase 2:** 🟨 86% Complete - Core systems work, critical perception gaps remain
 - **Grade:** B (84%) - Exceptional architecture, incomplete execution
 
 **Critical Gap:** Media ingest pipeline not implemented - cannot process real images, video, or audio despite spec requirements.
-
-**Path Forward:** ~4-6 weeks of focused work to close Phase 2 gaps (media pipeline, CWM-E automation, CWM-A envelope).
-
-See [detailed assessment](docs/operations/CANDID_ASSESSMENT_2025_11.md) for full analysis, technical debt evaluation, and recommendations.
 
 ## Phase 2 Verification
 
