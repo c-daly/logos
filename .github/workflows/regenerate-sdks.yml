@@ -79,7 +79,10 @@ jobs:
         if: steps.check_changes.outputs.changes == 'true' && github.event_name == 'push'
         run: |
           git commit -m "chore: regenerate SDKs from updated OpenAPI contracts [skip ci]"
-          git push
+          if ! git push; then
+            echo "::error::Failed to push SDK changes. This will cause sdk-regen check to fail."
+            exit 1
+          fi
       
       - name: Checkout base branch for PR creation
         if: steps.check_changes.outputs.changes == 'true' && github.event_name == 'pull_request'
@@ -146,3 +149,42 @@ jobs:
           else
             echo "✨ No SDK changes needed" >> $GITHUB_STEP_SUMMARY
           fi
+      
+      - name: Create issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 SDK Regeneration Failed',
+              labels: ['bug', 'ci', 'sdk'],
+              body: `## SDK Regeneration Failure
+            
+            The automated SDK regeneration workflow failed.
+            
+            **Workflow Run:** ${context.payload.repository.html_url}/actions/runs/${context.runId}
+            **Triggered by:** ${context.eventName}
+            ${context.eventName === 'pull_request' ? `**PR:** #${context.payload.pull_request.number}` : ''}
+            **Branch:** ${context.ref}
+            **Commit:** ${context.sha}
+            
+            ### Possible causes:
+            - Invalid OpenAPI contract syntax
+            - SDK generation script failure
+            - Git conflicts or permission issues
+            - Directory structure mismatch
+            
+            ### Action required:
+            1. Check the workflow logs (link above)
+            2. Verify OpenAPI contract syntax
+            3. Manually run \`./scripts/generate-sdks.sh\` locally to reproduce
+            4. Fix the underlying issue
+            5. Re-run the workflow or manually commit SDK updates
+            
+            **Note:** Contract changes may have landed without corresponding SDK updates. 
+            Check if SDKs need manual regeneration.
+            `
+            });
+            console.log('Created issue:', issue.data.number);
