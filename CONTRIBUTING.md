@@ -236,6 +236,45 @@ pytest --cov=logos_hcg --cov=logos_tools
 - **Milestone tests** - Verify milestone acceptance criteria (M1-M4)
 - **End-to-end tests** - Test complete workflows
 
+### Phase 2 E2E Testing Requirements
+
+All PRs affecting Phase 2 functionality should ensure Phase 2 E2E tests pass:
+
+1. **Run Phase 2 E2E tests locally before submitting PR:**
+   ```bash
+   # Start test services
+   cd logos/tests/phase2
+   docker compose -f docker-compose.test.yml up -d
+   
+   # Run tests
+   cd ../..
+   RUN_P2_E2E=1 pytest tests/phase2/test_phase2_end_to_end.py -v
+   
+   # Stop services
+   cd tests/phase2
+   docker compose -f docker-compose.test.yml down -v
+   ```
+
+2. **Phase 2 E2E tests automatically run in CI** on all PRs affecting:
+   - `logos/**`
+   - `sophia/**`
+   - `hermes/**`
+   - `apollo/**`
+
+3. **Test coverage expectations:**
+   - Service health checks must pass
+   - CWMState contract validation must pass
+   - Cross-service integration tests must pass
+   - Blocked tests (media, OTel, browser) can be skipped with proper `@pytest.mark.skip()` annotations
+
+4. **When adding new Phase 2 features:**
+   - Add corresponding E2E tests to `tests/phase2/test_phase2_end_to_end.py`
+   - Update test fixtures in `tests/phase2/fixtures.py` if needed
+   - Document new tests in `tests/phase2/README.md`
+   - If feature is blocked by another issue, use `@pytest.mark.skip(reason="Blocked by logos#XXX")`
+
+See `tests/phase2/README.md` for detailed testing documentation.
+
 ## Documentation
 
 ### Documentation Standards

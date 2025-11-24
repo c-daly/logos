@@ -22,25 +22,25 @@ pip install poetry
 poetry install
 ```
 
-3. Activate the virtual environment:
+3. Activate the Poetry virtual environment:
 ```bash
-pip install -e .
-pip install -r requirements-dev.txt
+poetry shell
 ```
 
-**Note**: The project uses Poetry for dependency management. If you have Poetry installed, you can use:
+Alternatively, run commands directly without activating the shell:
 ```bash
-poetry install
+poetry run pytest
+poetry run logos-generate-issues
 ```
 
-### Using pip (basic installation only)
+### Using pip (alternative to Poetry)
 
-For basic installation without development tools:
+For installation without Poetry:
 
-1. Create a virtual environment:
+1. Create and activate a virtual environment:
 ```bash
-pip install -e .
-pip install -r requirements-dev.txt
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 2. Install the package in editable mode:
@@ -48,7 +48,12 @@ pip install -r requirements-dev.txt
 pip install -e .
 ```
 
-**Note:** Development dependencies (pytest, ruff, mypy, etc.) are managed via Poetry and require `poetry install` for full setup.
+3. Install development dependencies:
+```bash
+pip install -r requirements-dev.txt
+```
+
+**Note:** Poetry is recommended for development as it provides better dependency management and reproducible environments.
 
 ## Dependency Management
 
@@ -89,16 +94,16 @@ The project uses pytest for testing. Tests should be run via Poetry:
 poetry run pytest
 
 # Run with verbose output
-pytest -v
+poetry run pytest -v
 
 # Run with coverage
-pytest --cov=logos_tools --cov-report=term-missing --cov-report=html
+poetry run pytest --cov --cov-report=term-missing --cov-report=html
 
 # Run specific test file
-pytest tests/test_generate_issues.py
+poetry run pytest tests/test_generate_issues.py
 
 # Run tests matching a pattern
-pytest -k "test_parser"
+poetry run pytest -k "test_parser"
 ```
 
 Test configuration is defined in `pyproject.toml` under `[tool.pytest.ini_options]`.
