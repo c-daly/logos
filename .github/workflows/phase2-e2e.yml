@@ -96,6 +96,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: c-daly/hermes
+          ref: main
           path: hermes
           token: ${{ secrets.GITHUB_TOKEN }}
       
