@@ -49,13 +49,21 @@ jobs:
           pip install -e .
           pip install pytest neo4j rdflib pyshacl
       
-      - name: Start Neo4j with docker-compose
+      - name: Start Neo4j with docker-compose (APOC only)
         run: |
           cd infra
-          docker compose -f docker-compose.hcg.dev.yml up -d neo4j
-          echo "✓ Neo4j container started"
-          echo "Waiting for APOC plugin to download..."
-          sleep 15
+          # Override NEO4JLABS_PLUGINS to only download APOC (not n10s)
+          # We'll install n10s manually to ensure correct version
+          NEO4JLABS_PLUGINS='["apoc"]' docker compose -f docker-compose.hcg.dev.yml up -d neo4j
+          echo "✓ Neo4j container started with APOC only"
+          echo "Waiting for APOC plugin to download and Neo4j to be ready..."
+          sleep 30
+      
+      - name: Wait for Neo4j to be ready (initial startup)
+        run: |
+          echo "Waiting for Neo4j to be ready..."
+          timeout 120 bash -c 'until docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "RETURN 1 AS test" 2>/dev/null | grep -q "test"; do sleep 3; done'
+          echo "✓ Neo4j is ready"
       
       - name: Install n10s plugin manually
         run: |
@@ -82,13 +90,13 @@ jobs:
           # Restart Neo4j to load the plugin
           docker restart logos-hcg-neo4j
           echo "✓ n10s plugin installed with correct permissions, Neo4j restarting..."
-          sleep 10
+          sleep 15
       
-      - name: Wait for Neo4j to be ready
+      - name: Wait for Neo4j to be ready (after restart)
         run: |
-          echo "Waiting for Neo4j to be ready..."
+          echo "Waiting for Neo4j to restart and be ready..."
           timeout 180 bash -c 'until docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "RETURN 1 AS test" 2>/dev/null | grep -q "test"; do sleep 5; done'
-          echo "✓ Neo4j is ready"
+          echo "✓ Neo4j is ready after restart"
           # Give Neo4j extra time to finish loading plugins
           sleep 15
       
