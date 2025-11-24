@@ -120,7 +120,7 @@ start_service() {
             (cd "$repo_path" && \
              MILVUS_HOST="${MILVUS_HOST:-localhost}" \
              MILVUS_PORT="${MILVUS_PORT:-19530}" \
-             HERMES_PORT="$port" poetry run python -m hermes.main \
+             HERMES_PORT="$port" poetry run hermes \
              > "$PID_DIR/$service.log" 2>&1 & \
              echo $! > "$pid_file")
             ;;
