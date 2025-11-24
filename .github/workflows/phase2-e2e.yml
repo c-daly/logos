@@ -113,17 +113,26 @@ jobs:
       - name: Install Sophia dependencies
         run: |
           cd sophia
-          poetry install
+          # Install with relaxed constraints since logos already locked versions
+          poetry install --no-root
+          # Then install sophia package using pip to avoid version conflicts
+          poetry run pip install -e .
       
       - name: Install Hermes dependencies
         run: |
           cd hermes
-          poetry install
+          # Install with relaxed constraints since logos already locked versions
+          poetry install --no-root
+          # Then install hermes package using pip to avoid version conflicts
+          poetry run pip install -e .
       
       - name: Install Apollo dependencies
         run: |
           cd apollo
-          poetry install
+          # Install with relaxed constraints since logos already locked versions
+          poetry install --no-root
+          # Then install apollo package using pip to avoid version conflicts
+          poetry run pip install -e .
       
       - name: Start services
         run: |
@@ -135,6 +144,15 @@ jobs:
           cd scripts
           chmod +x start_services.sh
           SOPHIA_API_KEY=test-ci-key ./start_services.sh start
+          
+          # Show service logs for debugging
+          echo "=== Service logs ==="
+          for log in .pids/*.log; do
+            if [ -f "$log" ]; then
+              echo "=== $(basename $log) ==="
+              tail -50 "$log"
+            fi
+          done
           
           # Wait for services to be ready
           echo "Waiting for services to start..."
@@ -150,6 +168,16 @@ jobs:
             echo "Waiting... Sophia: $SOPHIA_OK, Hermes: $HERMES_OK, Apollo: $APOLLO_OK (attempt $i/30)"
             sleep 2
           done
+          
+          # If we get here, services failed - show full logs
+          echo "=== FULL SERVICE LOGS ==="
+          for log in .pids/*.log; do
+            if [ -f "$log" ]; then
+              echo "=== $(basename $log) ==="
+              cat "$log"
+            fi
+          done
+          
           echo "Services failed to start in time"
           exit 1
         env:

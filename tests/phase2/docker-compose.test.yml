@@ -4,13 +4,14 @@ services:
   # ============================================================================
   
   neo4j:
-    image: neo4j:5.14.0
+    image: neo4j:5.28.0
     container_name: logos-phase2-neo4j-test
     environment:
       - NEO4J_AUTH=neo4j/logosdev
       - NEO4J_PLUGINS=["apoc"]
       - NEO4J_dbms_security_procedures_unrestricted=apoc.*
       - NEO4J_dbms_security_procedures_allowlist=apoc.*
+      - NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
     ports:
       - "7687:7687"
       - "7474:7474"
@@ -57,7 +58,7 @@ services:
       - logos-test-network
 
   milvus:
-    image: milvusdb/milvus:v2.3.3
+    image: milvusdb/milvus:v2.3.10
     container_name: logos-phase2-milvus-test
     command: ["milvus", "run", "standalone"]
     environment:
