@@ -110,6 +110,21 @@ jobs:
         run: |
           poetry run pip install -e ./apollo
       
+      - name: Install Sophia dependencies
+        run: |
+          cd sophia
+          poetry install
+      
+      - name: Install Hermes dependencies
+        run: |
+          cd hermes
+          poetry install
+      
+      - name: Install Apollo dependencies
+        run: |
+          cd apollo
+          poetry install
+      
       - name: Start services
         run: |
           cd scripts
