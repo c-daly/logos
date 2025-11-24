@@ -83,7 +83,7 @@ jobs:
       
       - name: Install Logos dependencies
         run: |
-          poetry install --with test
+          poetry install --with dev
       
       - name: Checkout Sophia
         uses: actions/checkout@v4
