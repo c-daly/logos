@@ -4,7 +4,7 @@ services:
   # ============================================================================
   
   neo4j:
-    image: neo4j:5.28.0
+    image: neo4j:5.11.0
     container_name: logos-phase2-neo4j-test
     environment:
       - NEO4J_AUTH=neo4j/logosdev
