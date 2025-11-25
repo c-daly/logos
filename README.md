@@ -250,6 +250,21 @@ Phase 2 delivers Sophia/Hermes services, Apollo dual surfaces (CLI + browser), p
 
 For complete gap analysis and verification evidence, see `docs/operations/PHASE2_VERIFY.md`.
 
+## OpenTelemetry Observability
+
+LOGOS uses OpenTelemetry for distributed tracing across all services (Sophia, Hermes, Apollo).
+
+**Start OTel Stack:**
+```bash
+cd logos
+./scripts/start-otel-stack.sh
+```
+
+**View Traces:**
+- Jaeger UI: http://localhost:16686
+- Prometheus: http://localhost:9090
+
+**Documentation:** See [docs/observability/OTEL_INFRASTRUCTURE.md](docs/observability/OTEL_INFRASTRUCTURE.md) for complete setup and troubleshooting.
 
 M4 Pick-and-Place Demo
 - **Demo Overview**: See `docs/M4_DEMO_ASSETS.md` for comprehensive demo documentation
