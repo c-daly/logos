@@ -641,36 +641,42 @@ CWM-G (JEPA) simulation is fully functional with CPU-friendly mode operational. 
 
 ### Acceptance Criteria
 
-#### 4.1 Structured Logging + OpenTelemetry Export
+#### 4.1 Structured Logging + Observability
 
-**Status:** ✅ **COMPLETE**
+**Status:** ✅ **COMPLETE** (Structured Logging) | ⏸️ **DEFERRED** (Full OTel Stack)
 
-**Implementation:**
-- `logos_observability/` module provides OpenTelemetry instrumentation
-- Structured logging with JSON output
-- Telemetry exporter for plan/state updates, process execution, persona events
-- OTel Collector + Tempo + Grafana stack configured
-- Dashboard: LOGOS Key Signals with 4 trace panels
-- Plan ID linking in spans
+**Phase 2 Implementation:**
+- `logos_observability/` module provides structured logging with JSON output
+- FastAPI built-in `/metrics` endpoints for basic monitoring
+- Health checks for service liveness
 
 **Implementation Evidence:**
 - [x] ✅ Module: `logos/logos_observability/`
-- [x] ✅ Setup function: `setup_telemetry()`
 - [x] ✅ Logger: `get_logger()` with structured output
-- [x] ✅ OTel Collector config: `logos/infra/otel-collector-config.yaml`
-- [x] ✅ Tempo config: `logos/infra/tempo-config.yaml`
-- [x] ✅ Grafana dashboard: `logos/infra/dashboards/logos-key-signals.json`
-- [x] ✅ Docker Compose: `logos/infra/docker-compose.otel.yml`
-- [x] ✅ Documentation: `logos/infra/OTEL_SETUP.md`, `logos/docs/OBSERVABILITY_QUERIES.md`
+- [x] ✅ Health endpoints in all services (Sophia, Hermes, Apollo)
 
-**Test Evidence:**
-- [x] ✅ 7 passing tests in `logos/tests/phase2/test_otel_smoke.py`
-- [x] ✅ 5 passing tests in `logos/tests/phase2/test_observability.py`
-- [x] ✅ All configuration files validated
-- [x] ✅ CodeQL scan: 0 alerts
+**Full OTel Stack - Deferred to Phase 3:**
 
-**Verification Documented:**
-- Complete checklist: `logos/milestones/P2_M4_VERIFICATION.md`
+The comprehensive OpenTelemetry stack (OTel Collector, Jaeger, Prometheus, Grafana) was fully implemented in PR #345 but has been **deferred to Phase 3** for evaluation. The decision to adopt the full stack will be made based on:
+- Team size and concurrent debugging needs
+- Production deployment requirements
+- Observed complexity in cross-service debugging
+- Operational capacity for infrastructure management
+
+**Available (Not Active):**
+- PR #345: Complete OTel infrastructure implementation
+- OTel Collector config: `logos/config/otel-collector-config.yaml` (in PR #345)
+- Grafana dashboard: LOGOS Key Signals (in PR #345)
+- Docker Compose: `logos/docker-compose.otel.yml` (in PR #345)
+- 12 passing OTel tests (in PR #345)
+
+**Phase 3 Decision Point:**
+- Issue #346: "Evaluate Observability Stack Requirements"
+- Decision will reference PR #345, issues #343, #334-342, #344
+- Options: Full stack, minimal logging, or lightweight middle ground
+
+**Phase 2 Achievement:**
+Structured logging sufficient for current development phase. Full observability infrastructure ready when needed.
 
 #### 4.2 Persona Diary Writer + API
 
@@ -826,12 +832,15 @@ Infrastructure ready for Phase 3 reflection system - data models, API endpoints,
 
 **Status:** ⚠️ **MOSTLY COMPLETE** (90%)
 
-OpenTelemetry observability stack is fully operational with 12 passing tests. OTel Collector, Tempo, and Grafana configured with LOGOS Key Signals dashboard. Persona diary system operational in Apollo. CWM-E module exists with EmotionState nodes and API. Demo capture tooling complete.
+Structured logging and observability foundations are in place. Persona diary system operational in Apollo. CWM-E module exists with EmotionState nodes and API. Demo capture tooling complete. Full OTel stack (PR #345) deferred to Phase 3 pending requirements evaluation (issue #346).
 
 **Remaining Work:**
 - Implement periodic CWM-E reflection job (background task)
 - Integrate EmotionState reading into planner/executor decision-making
 - Add emotion visualization to Apollo diagnostics/graph viewer
+
+**Deferred to Phase 3:**
+- Full OpenTelemetry stack deployment decision (issue #346)
 
 ---
 
@@ -871,9 +880,10 @@ Phase 2 has achieved most milestone criteria, with some key gaps remaining befor
 - 20 perception tests passing for simulation
 
 **Diagnostics:**
-- OTel Collector + Tempo + Grafana configured
-- 12 observability tests passing
+- Structured logging with `logos_observability/` module
+- Health endpoints for all services
 - Demo capture tooling
+- Full OTel stack available in PR #345 (deferred to Phase 3)
 
 ### What's Missing ❌
 
@@ -1134,13 +1144,14 @@ Use this checklist to track remaining work:
 - [ ] **CWM-A full CWMState emission**
 
 ### P2-M4: Diagnostics & Persona ⚠️ 90% COMPLETE
-- [x] OpenTelemetry stack
-- [x] Grafana dashboards
+- [x] Structured logging
+- [x] Health endpoints
 - [x] Persona diary system
 - [x] CWM-E module and API
 - [ ] **CWM-E periodic reflection job**
 - [ ] **Planner EmotionState integration**
 - [ ] **Emotion visualization in Apollo**
+- Note: Full OTel stack (PR #345) deferred to Phase 3 (issue #346)
 
 ### Overall Phase 2 Status: 🔄 85% COMPLETE
 
