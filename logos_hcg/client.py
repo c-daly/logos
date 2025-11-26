@@ -694,6 +694,333 @@ class HCGClient:
 
         return states
 
+    # ========== Write Operations ==========
+
+    def add_node(
+        self,
+        node_data: dict[str, Any],
+        validate: bool = True,
+    ) -> str:
+        """Add a node to the graph with optional SHACL validation.
+
+        Args:
+            node_data: Node data with 'id', 'type', and optional 'properties'
+            validate: Whether to validate against SHACL shapes (default True)
+
+        Returns:
+            Node ID
+
+        Raises:
+            HCGValidationError: If validation fails
+            HCGQueryError: If query execution fails
+        """
+        from logos_hcg.shacl_validator import HCGValidationError, SHACLValidator
+
+        if validate:
+            validator = SHACLValidator()
+            is_valid, errors = validator.validate_node(node_data)
+            if not is_valid:
+                raise HCGValidationError(
+                    f"Node validation failed: {'; '.join(errors)}",
+                    errors=errors,
+                )
+
+        node_id = node_data["id"]
+        node_type = node_data["type"]
+        properties = node_data.get("properties", {})
+
+        query = """
+        MERGE (n:Node {id: $id})
+        SET n.type = $type
+        SET n += $properties
+        RETURN n.id as id
+        """
+        records = self._execute_read(
+            query,
+            {"id": node_id, "type": node_type, "properties": properties},
+        )
+
+        logger.info(f"Added node: {node_id}")
+        return str(records[0]["id"]) if records else node_id
+
+    def add_edge(
+        self,
+        edge_data: dict[str, Any],
+        validate: bool = True,
+    ) -> str:
+        """Add an edge to the graph with optional SHACL validation.
+
+        Args:
+            edge_data: Edge data with 'id', 'source', 'target', 'relation',
+                      and optional 'properties'
+            validate: Whether to validate against SHACL shapes (default True)
+
+        Returns:
+            Edge ID
+
+        Raises:
+            HCGValidationError: If validation fails
+            HCGQueryError: If query execution fails or nodes not found
+        """
+        from logos_hcg.shacl_validator import HCGValidationError, SHACLValidator
+
+        if validate:
+            validator = SHACLValidator()
+            is_valid, errors = validator.validate_edge(edge_data)
+            if not is_valid:
+                raise HCGValidationError(
+                    f"Edge validation failed: {'; '.join(errors)}",
+                    errors=errors,
+                )
+
+        edge_id = edge_data["id"]
+        source_id = edge_data["source"]
+        target_id = edge_data["target"]
+        relation = edge_data["relation"]
+        properties = edge_data.get("properties", {})
+
+        query = """
+        MATCH (source:Node {id: $source_id})
+        MATCH (target:Node {id: $target_id})
+        MERGE (source)-[r:RELATION {id: $edge_id}]->(target)
+        SET r.relation_type = $relation
+        SET r += $properties
+        RETURN r.id as id
+        """
+        records = self._execute_read(
+            query,
+            {
+                "edge_id": edge_id,
+                "source_id": source_id,
+                "target_id": target_id,
+                "relation": relation,
+                "properties": properties,
+            },
+        )
+
+        if not records:
+            raise HCGQueryError(
+                f"Failed to create edge: source ({source_id}) or target ({target_id}) not found"
+            )
+
+        logger.info(f"Added edge: {edge_id}")
+        return str(records[0]["id"]) if records else edge_id
+
+    def update_node(
+        self,
+        node_id: str,
+        properties: dict[str, Any],
+    ) -> bool:
+        """Update a node's properties.
+
+        Args:
+            node_id: Node ID to update
+            properties: Properties to update/add
+
+        Returns:
+            True if updated, False if not found
+        """
+        query = """
+        MATCH (n:Node {id: $id})
+        SET n += $properties
+        RETURN count(n) as updated
+        """
+        records = self._execute_read(
+            query,
+            {"id": node_id, "properties": properties},
+        )
+
+        updated = records[0]["updated"] > 0 if records else False
+        if updated:
+            logger.info(f"Updated node: {node_id}")
+        return updated
+
+    def delete_node(self, node_id: str) -> bool:
+        """Delete a node and all its relationships from the graph.
+
+        Args:
+            node_id: Node ID to delete
+
+        Returns:
+            True if deleted, False if not found
+        """
+        query = """
+        MATCH (n:Node {id: $id})
+        DETACH DELETE n
+        RETURN count(n) as deleted
+        """
+        records = self._execute_read(query, {"id": node_id})
+
+        deleted = records[0]["deleted"] > 0 if records else False
+        if deleted:
+            logger.info(f"Deleted node: {node_id}")
+        return deleted
+
+    def delete_edge(self, edge_id: str) -> bool:
+        """Delete an edge from the graph.
+
+        Args:
+            edge_id: Edge ID to delete
+
+        Returns:
+            True if deleted, False if not found
+        """
+        query = """
+        MATCH ()-[r:RELATION {id: $id}]->()
+        DELETE r
+        RETURN count(r) as deleted
+        """
+        records = self._execute_read(query, {"id": edge_id})
+
+        deleted = records[0]["deleted"] > 0 if records else False
+        if deleted:
+            logger.info(f"Deleted edge: {edge_id}")
+        return deleted
+
+    def get_node(self, node_id: str) -> dict[str, Any] | None:
+        """Get a node from the graph.
+
+        Args:
+            node_id: Node ID
+
+        Returns:
+            Node data or None if not found
+        """
+        query = """
+        MATCH (n:Node {id: $id})
+        RETURN n.id as id, n.type as type, properties(n) as props
+        """
+        records = self._execute_read(query, {"id": node_id})
+
+        if not records:
+            return None
+
+        record = records[0]
+        props = dict(record["props"])
+        props.pop("id", None)
+        props.pop("type", None)
+
+        return {
+            "id": record["id"],
+            "type": record["type"],
+            "properties": props,
+        }
+
+    def get_edge(self, edge_id: str) -> dict[str, Any] | None:
+        """Get an edge from the graph.
+
+        Args:
+            edge_id: Edge ID
+
+        Returns:
+            Edge data or None if not found
+        """
+        query = """
+        MATCH (source:Node)-[r:RELATION {id: $id}]->(target:Node)
+        RETURN r.id as id, source.id as source, target.id as target,
+               r.relation_type as relation, properties(r) as props
+        """
+        records = self._execute_read(query, {"id": edge_id})
+
+        if not records:
+            return None
+
+        record = records[0]
+        props = dict(record["props"])
+        props.pop("id", None)
+        props.pop("relation_type", None)
+
+        return {
+            "id": record["id"],
+            "source": record["source"],
+            "target": record["target"],
+            "relation": record["relation"],
+            "properties": props,
+        }
+
+    def query_neighbors(self, node_id: str) -> list[dict[str, Any]]:
+        """Query neighbors of a node (both directions).
+
+        Args:
+            node_id: Node ID
+
+        Returns:
+            List of neighbor nodes
+        """
+        query = """
+        MATCH (n:Node {id: $id})-[r]-(neighbor:Node)
+        RETURN DISTINCT neighbor.id as id, neighbor.type as type,
+               properties(neighbor) as props
+        """
+        records = self._execute_read(query, {"id": node_id})
+
+        neighbors = []
+        for record in records:
+            props = dict(record["props"])
+            props.pop("id", None)
+            props.pop("type", None)
+
+            neighbors.append({
+                "id": record["id"],
+                "type": record["type"],
+                "properties": props,
+            })
+
+        return neighbors
+
+    def query_edges_from(self, node_id: str) -> list[dict[str, Any]]:
+        """Query outgoing edges from a node.
+
+        Args:
+            node_id: Node ID
+
+        Returns:
+            List of outgoing edges
+        """
+        query = """
+        MATCH (source:Node {id: $id})-[r:RELATION]->(target:Node)
+        RETURN r.id as id, source.id as source, target.id as target,
+               r.relation_type as relation, properties(r) as props
+        """
+        records = self._execute_read(query, {"id": node_id})
+
+        edges = []
+        for record in records:
+            props = dict(record["props"])
+            props.pop("id", None)
+            props.pop("relation_type", None)
+
+            edges.append({
+                "id": record["id"],
+                "source": record["source"],
+                "target": record["target"],
+                "relation": record["relation"],
+                "properties": props,
+            })
+
+        return edges
+
+    def clear_all(self, confirm: bool = False) -> None:
+        """Clear all nodes and edges from the graph.
+
+        WARNING: This is destructive and cannot be undone!
+
+        Args:
+            confirm: Must be True to execute (safety check)
+
+        Raises:
+            ValueError: If confirm is not True
+        """
+        if not confirm:
+            raise ValueError(
+                "Must pass confirm=True to clear all data. "
+                "This operation cannot be undone!"
+            )
+
+        query = "MATCH (n) DETACH DELETE n"
+        self._execute_query(query)
+        logger.warning("Cleared all nodes and edges from graph")
+
     # ========== Utility Operations ==========
 
     def count_nodes_by_type(self) -> dict[str, int]:
