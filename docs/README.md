@@ -7,8 +7,8 @@ This repository is the canonical source of architecture and process docs for the
 ## Directory Structure
 
 | Directory | Purpose |
-|-----------|---------|
-| `architecture/` | System specs, phase roadmaps, ADR summaries |
+|-----------|----------|
+| `architecture/` | System specs and phase specifications |
 | `adr/` | Architecture Decision Records |
 | `hcg/` | Hybrid Cognitive Graph ontology, CWM schemas |
 | `operations/` | CI/CD, testing, verification, demos, observability |
@@ -27,7 +27,7 @@ Each service maintains its own documentation in its repository:
 |---------|------------|----------|
 | **Sophia** | [c-daly/sophia](https://github.com/c-daly/sophia) | `docs/API_SERVICE_SUMMARY.md`, `docs/JEPA_SIMULATION.md` |
 | **Hermes** | [c-daly/hermes](https://github.com/c-daly/hermes) | `docs/MILVUS_INTEGRATION.md`, `DOCKER.md` |
-| **Apollo** | [c-daly/apollo](https://github.com/c-daly/apollo) | `docs/API_CLIENTS.md`, `docs/WEBSOCKET_PROTOCOL.md`, `docs/PERSONA_DIARY.md` |
+| **Apollo** | [c-daly/apollo](https://github.com/c-daly/apollo) | `webapp/README.md`, `docs/WEBSOCKET_PROTOCOL.md`, `docs/PERSONA_DIARY.md` |
 | **Talos** | [c-daly/talos](https://github.com/c-daly/talos) | `docs/FIXTURES.md`, `docs/INTEGRATION_TESTING.md` |
 
 For implementation details, always refer to the service repository. This meta-repo contains:
@@ -40,8 +40,8 @@ For implementation details, always refer to the service repository. This meta-re
 ## Key Documents
 
 ### Architecture
-- [LOGOS Specification](architecture/LOGOS_SPEC_FLEXIBLE.md) - Core architecture and philosophy
-- [Phase 2 Specification](architecture/PHASE2_SPEC.md) - Perception & Apollo UX
+- [LOGOS Specification](architecture/LOGOS_SPEC_FLEXIBLE.md) - Core architecture, philosophy, and phase roadmap
+- [Phase 2 Specification](architecture/PHASE2_SPEC.md) - Services, Apollo UX, CWM State contract
 - [Phase 3 Specification](architecture/PHASE3_SPEC.md) - Learning & Memory (planned)
 
 ### Operations
