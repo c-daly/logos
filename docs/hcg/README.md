@@ -1,8 +1,30 @@
-# HCG & Continuous World Model Docs
+# Hybrid Cognitive Graph (HCG) Documentation
 
-This folder captures the Hybrid Cognitive Graph ontology, SHACL constraints, and working-memory schemas.
+Ontology, SHACL constraints, and Causal World Model (CWM) schemas.
 
-## Current docs
-- [CWM State Contract Rollout](CWM_STATE_CONTRACT_ROLLOUT.md) — describes the unified `CWMState` envelope and rollout plan.
+## Overview
 
-Upcoming work (see issue #288) will add dedicated references for CWM-A/G/E, capability catalogs, and fact schemas. Place all HCG-related specs here so backend and UI teams share one source of truth.
+The Hybrid Cognitive Graph (HCG) is LOGOS's graph-based knowledge representation that blends:
+- **Symbolic reasoning** via Neo4j graph structures
+- **Semantic search** via Milvus vector embeddings
+- **Constraint validation** via SHACL shapes
+
+## Documents
+
+| Document | Description |
+|----------|-------------|
+| [CWM_STATE.md](CWM_STATE.md) | Unified CWMState envelope for CWM-A/G/E layers |
+
+## CWM Layers
+
+| Layer | Name | Purpose |
+|-------|------|---------|
+| CWM-A | Abstract | Symbolic entities, concepts, causal rules |
+| CWM-G | Grounded | Sensor data, predictions, physics properties |
+| CWM-E | Emotional | Diary entries, reflections, persona state |
+
+## Related Resources
+
+- [Architecture Specs](../architecture/) - Full system specifications
+- [Ontology Files](../../ontology/) - Cypher and SHACL definitions
+- [SDK Documentation](../sdk/) - Client library for HCG access

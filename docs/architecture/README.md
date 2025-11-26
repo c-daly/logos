@@ -1,10 +1,18 @@
 # Architecture Documentation
 
-System-wide specs and milestone blueprints live here. These files replace the scattered `docs/spec/` and `docs/phase2/` references.
+System-wide specifications and architectural overviews for Project LOGOS.
 
-## Key References
-- [LOGOS Flexible Spec](LOGOS_SPEC_FLEXIBLE.md) — living architecture and ontology narrative.
-- [Phase 2 Specification](PHASE2_SPEC.md) — end-to-end requirements for perception, diagnostics, and dual Apollo surfaces.
+## Documents
 
-## Related Material
-Historical documents that still need consolidation (e.g., `docs/phase1/`, `docs/phase2/perception/`) should either be migrated here or linked from this README over time.
+| Document | Description |
+|----------|-------------|
+| [LOGOS_SPEC_FLEXIBLE.md](LOGOS_SPEC_FLEXIBLE.md) | Core architecture, philosophy, deployment modes, and phase roadmap |
+| [PHASE1_SPEC.md](PHASE1_SPEC.md) | Phase 1: HCG foundation, Neo4j, SHACL validation, E2E pipeline ✅ |
+| [PHASE2_SPEC.md](PHASE2_SPEC.md) | Phase 2: Services, Apollo UX, CWM State contract (complete) |
+| [PHASE3_SPEC.md](PHASE3_SPEC.md) | Phase 3: Learning, memory, event-driven reflection (planned) |
+
+## Related Resources
+
+- [Architecture Decision Records](../adr/) - Rationale for key technical choices
+- [HCG Documentation](../hcg/) - Hybrid Cognitive Graph and CWM schemas
+- [SDK Documentation](../sdk/) - Client library usage
