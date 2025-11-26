@@ -14,7 +14,7 @@ from uuid import uuid4
 
 import pytest
 
-from logos_hcg.client import HCGClient, HCGConnectionError, HCGQueryError
+from logos_hcg.client import HCGClient
 from logos_hcg.shacl_validator import HCGValidationError, SHACLValidator
 
 
@@ -30,12 +30,12 @@ class TestSHACLValidator:
     def test_validate_node_valid(self):
         """Test validation of a valid node."""
         validator = SHACLValidator()
-        
+
         valid_node = {
             "id": str(uuid4()),
             "type": "Entity",
         }
-        
+
         # Should not raise
         is_valid, errors = validator.validate_node(valid_node)
         assert is_valid is True
@@ -44,11 +44,11 @@ class TestSHACLValidator:
     def test_validate_node_missing_id(self):
         """Test validation fails for node without id."""
         validator = SHACLValidator()
-        
+
         invalid_node = {
             "type": "Entity",
         }
-        
+
         is_valid, errors = validator.validate_node(invalid_node)
         assert is_valid is False
         assert len(errors) > 0
@@ -57,11 +57,11 @@ class TestSHACLValidator:
     def test_validate_node_missing_type(self):
         """Test validation fails for node without type."""
         validator = SHACLValidator()
-        
+
         invalid_node = {
             "id": str(uuid4()),
         }
-        
+
         is_valid, errors = validator.validate_node(invalid_node)
         assert is_valid is False
         assert len(errors) > 0
@@ -70,14 +70,14 @@ class TestSHACLValidator:
     def test_validate_edge_valid(self):
         """Test validation of a valid edge."""
         validator = SHACLValidator()
-        
+
         valid_edge = {
             "id": str(uuid4()),
             "source": str(uuid4()),
             "target": str(uuid4()),
             "relation": "RELATES_TO",
         }
-        
+
         is_valid, errors = validator.validate_edge(valid_edge)
         assert is_valid is True
         assert len(errors) == 0
@@ -85,13 +85,13 @@ class TestSHACLValidator:
     def test_validate_edge_missing_source(self):
         """Test validation fails for edge without source."""
         validator = SHACLValidator()
-        
+
         invalid_edge = {
             "id": str(uuid4()),
             "target": str(uuid4()),
             "relation": "RELATES_TO",
         }
-        
+
         is_valid, errors = validator.validate_edge(invalid_edge)
         assert is_valid is False
         assert "source" in str(errors).lower()
@@ -99,13 +99,13 @@ class TestSHACLValidator:
     def test_validate_edge_missing_target(self):
         """Test validation fails for edge without target."""
         validator = SHACLValidator()
-        
+
         invalid_edge = {
             "id": str(uuid4()),
             "source": str(uuid4()),
             "relation": "RELATES_TO",
         }
-        
+
         is_valid, errors = validator.validate_edge(invalid_edge)
         assert is_valid is False
         assert "target" in str(errors).lower()
@@ -113,13 +113,13 @@ class TestSHACLValidator:
     def test_validate_edge_missing_relation(self):
         """Test validation fails for edge without relation."""
         validator = SHACLValidator()
-        
+
         invalid_edge = {
             "id": str(uuid4()),
             "source": str(uuid4()),
             "target": str(uuid4()),
         }
-        
+
         is_valid, errors = validator.validate_edge(invalid_edge)
         assert is_valid is False
         assert "relation" in str(errors).lower()
@@ -127,33 +127,33 @@ class TestSHACLValidator:
     def test_validate_mutation_valid_add_node(self):
         """Test validation of add_node mutation."""
         validator = SHACLValidator()
-        
+
         node_data = {
             "id": str(uuid4()),
             "type": "Entity",
         }
-        
+
         is_valid, errors = validator.validate_mutation("add_node", node_data)
         assert is_valid is True
 
     def test_validate_mutation_valid_add_edge(self):
         """Test validation of add_edge mutation."""
         validator = SHACLValidator()
-        
+
         edge_data = {
             "id": str(uuid4()),
             "source": str(uuid4()),
             "target": str(uuid4()),
             "relation": "CAUSES",
         }
-        
+
         is_valid, errors = validator.validate_mutation("add_edge", edge_data)
         assert is_valid is True
 
     def test_validate_node_with_properties(self):
         """Test validation of node with additional properties."""
         validator = SHACLValidator()
-        
+
         node_data = {
             "id": str(uuid4()),
             "type": "Entity",
@@ -161,9 +161,9 @@ class TestSHACLValidator:
                 "label": "TestEntity",
                 "description": "A test entity",
                 "created_at": datetime.now().isoformat(),
-            }
+            },
         }
-        
+
         is_valid, errors = validator.validate_node(node_data)
         assert is_valid is True
 
@@ -178,7 +178,7 @@ class TestHCGClientWriteOperations:
             mock_driver = MagicMock()
             mock_gdb.driver.return_value = mock_driver
             mock_driver.verify_connectivity.return_value = None
-            
+
             client = HCGClient(
                 uri="bolt://localhost:7687",
                 user="neo4j",
@@ -196,7 +196,7 @@ class TestHCGClientWriteOperations:
             "type": "Entity",
             "properties": {"label": "Test", "name": "TestEntity"},
         }
-        
+
         node_id = mock_client.add_node(node_data, validate=False)
 
         assert node_id == "test-id"
@@ -211,7 +211,7 @@ class TestHCGClientWriteOperations:
             "type": "Entity",
             "properties": {"label": "Test"},
         }
-        
+
         node_id = mock_client.add_node(node_data, validate=True)
 
         assert node_id == "test-id"
@@ -238,7 +238,7 @@ class TestHCGClientWriteOperations:
             "relation": "RELATES_TO",
             "properties": {"weight": 1.0},
         }
-        
+
         edge_id = mock_client.add_edge(edge_data, validate=False)
 
         assert edge_id == "edge-1"
@@ -254,7 +254,7 @@ class TestHCGClientWriteOperations:
             "target": "node-2",
             "relation": "CAUSES",
         }
-        
+
         edge_id = mock_client.add_edge(edge_data, validate=True)
 
         assert edge_id == "edge-1"
@@ -327,7 +327,7 @@ class TestHCGClientNeighborQueries:
             mock_driver = MagicMock()
             mock_gdb.driver.return_value = mock_driver
             mock_driver.verify_connectivity.return_value = None
-            
+
             client = HCGClient(
                 uri="bolt://localhost:7687",
                 user="neo4j",
@@ -337,10 +337,12 @@ class TestHCGClientNeighborQueries:
 
     def test_query_neighbors(self, mock_client):
         """Test querying neighbors of a node."""
-        mock_client._execute_read = Mock(return_value=[
-            {"id": "n1", "type": "Entity", "props": {}},
-            {"id": "n2", "type": "Concept", "props": {}},
-        ])
+        mock_client._execute_read = Mock(
+            return_value=[
+                {"id": "n1", "type": "Entity", "props": {}},
+                {"id": "n2", "type": "Concept", "props": {}},
+            ]
+        )
 
         neighbors = mock_client.query_neighbors(node_id="test-id")
 
@@ -349,10 +351,24 @@ class TestHCGClientNeighborQueries:
 
     def test_query_edges_from(self, mock_client):
         """Test querying edges from a node."""
-        mock_client._execute_read = Mock(return_value=[
-            {"id": "e1", "source": "test-id", "target": "t1", "relation": "CAUSES", "props": {}},
-            {"id": "e2", "source": "test-id", "target": "t2", "relation": "RELATES_TO", "props": {}},
-        ])
+        mock_client._execute_read = Mock(
+            return_value=[
+                {
+                    "id": "e1",
+                    "source": "test-id",
+                    "target": "t1",
+                    "relation": "CAUSES",
+                    "props": {},
+                },
+                {
+                    "id": "e2",
+                    "source": "test-id",
+                    "target": "t2",
+                    "relation": "RELATES_TO",
+                    "props": {},
+                },
+            ]
+        )
 
         edges = mock_client.query_edges_from(node_id="test-id")
 
@@ -369,7 +385,7 @@ class TestSHACLValidatorCustomShapes:
         @prefix sh: <http://www.w3.org/ns/shacl#> .
         @prefix ex: <http://example.org/hcg/> .
         @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-        
+
         ex:CustomNodeShape a sh:NodeShape ;
             sh:targetClass ex:CustomNode ;
             sh:property [
@@ -378,7 +394,7 @@ class TestSHACLValidatorCustomShapes:
                 sh:minCount 1 ;
             ] .
         """
-        
+
         # Should not raise
         validator = SHACLValidator(shapes_graph=custom_shapes)
         assert validator._shapes is not None
@@ -387,7 +403,7 @@ class TestSHACLValidatorCustomShapes:
     def test_load_shapes_from_file_not_found(self):
         """Test loading shapes from non-existent file raises error."""
         validator = SHACLValidator()
-        
+
         with pytest.raises((FileNotFoundError, Exception)):
             validator.load_shapes_from_file("/nonexistent/path/shapes.ttl")
 
@@ -402,7 +418,7 @@ class TestValidationIntegration:
             mock_driver = MagicMock()
             mock_gdb.driver.return_value = mock_driver
             mock_driver.verify_connectivity.return_value = None
-            
+
             client = HCGClient(
                 uri="bolt://localhost:7687",
                 user="neo4j",
@@ -471,4 +487,3 @@ class TestExportedSymbols:
 
         assert "SHACLValidator" in logos_hcg.__all__
         assert "HCGValidationError" in logos_hcg.__all__
-

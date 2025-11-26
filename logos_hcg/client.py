@@ -960,11 +960,13 @@ class HCGClient:
             props.pop("id", None)
             props.pop("type", None)
 
-            neighbors.append({
-                "id": record["id"],
-                "type": record["type"],
-                "properties": props,
-            })
+            neighbors.append(
+                {
+                    "id": record["id"],
+                    "type": record["type"],
+                    "properties": props,
+                }
+            )
 
         return neighbors
 
@@ -990,13 +992,15 @@ class HCGClient:
             props.pop("id", None)
             props.pop("relation_type", None)
 
-            edges.append({
-                "id": record["id"],
-                "source": record["source"],
-                "target": record["target"],
-                "relation": record["relation"],
-                "properties": props,
-            })
+            edges.append(
+                {
+                    "id": record["id"],
+                    "source": record["source"],
+                    "target": record["target"],
+                    "relation": record["relation"],
+                    "properties": props,
+                }
+            )
 
         return edges
 
