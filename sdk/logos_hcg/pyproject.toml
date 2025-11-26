@@ -1,0 +1,72 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "logos-hcg"
+version = "0.1.0"
+description = "Shared HCG (Hybrid Causal Graph) client for the LOGOS ecosystem"
+authors = ["Christopher Daly <chris@cdaly.me>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "logos_hcg"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+neo4j = "^5.0.0"
+pydantic = "^2.0.0"
+pydantic-settings = "^2.0.0"
+tenacity = "^8.0.0"
+pyshacl = "^0.25.0"
+rdflib = "^7.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+pytest-cov = "^4.0.0"
+pytest-asyncio = "^0.23.0"
+ruff = "^0.4.0"
+mypy = "^1.10.0"
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = false  # Neo4j driver returns Any for record fields
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "UP",   # pyupgrade
+    "ANN",  # flake8-annotations
+    "S",    # flake8-bandit
+    "BLE",  # flake8-blind-except
+]
+ignore = [
+    "ANN101",  # Missing type annotation for self
+    "ANN102",  # Missing type annotation for cls
+    "S101",    # Use of assert (OK in tests)
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.coverage.run]
+source = ["logos_hcg"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]

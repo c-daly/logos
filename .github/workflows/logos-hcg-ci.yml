@@ -1,0 +1,104 @@
+name: logos-hcg CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'sdk/logos_hcg/**'
+      - '.github/workflows/logos-hcg-ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'sdk/logos_hcg/**'
+      - '.github/workflows/logos-hcg-ci.yml'
+
+defaults:
+  run:
+    working-directory: sdk/logos_hcg
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.3
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: sdk/logos_hcg/.venv
+          key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('sdk/logos_hcg/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+
+      - name: Install package
+        run: poetry install --no-interaction
+
+      - name: Run linting
+        run: |
+          poetry run ruff check .
+          poetry run ruff format --check .
+
+      - name: Run type checking
+        run: poetry run mypy logos_hcg --ignore-missing-imports
+
+      - name: Run tests with coverage
+        run: |
+          poetry run pytest tests/ \
+            --cov=logos_hcg \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            -v
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: sdk/logos_hcg/coverage.xml
+          flags: logos-hcg
+          name: logos-hcg-${{ matrix.python-version }}
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.8.3
+
+      - name: Build package
+        run: poetry build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: logos-hcg-dist
+          path: sdk/logos_hcg/dist/
