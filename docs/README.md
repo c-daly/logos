@@ -1,54 +1,79 @@
-# Project LOGOS Documentation Guide
+# Project LOGOS Documentation
 
-This repository is the canonical source of architecture and process docs for the LOGOS ecosystem. Recent work showed our content was scattered across `docs/phase2/*`, individual repo READMEs, and files that simply restated issue descriptions. This guide consolidates expectations for where documentation belongs and how new content should be organized.
+This repository is the canonical source of architecture and process docs for the LOGOS ecosystem. The `docs/` tree is organized by concern rather than chronology.
 
-## Canonical Layout
+---
 
-The `docs/` tree is organized by concern rather than chronology. Each folder should contain an `index.md` (or README) that links to child docs.
+## Directory Structure
 
-| Directory | Purpose | Typical Content |
-| --- | --- | --- |
-| `docs/architecture/` | End-to-end system overviews, diagrams, ADR summaries. | System maps, glossary, non-repo-specific ADRs. |
-| `docs/hcg/` | Hybrid Cognitive Graph ontology, SHACL specs, CWM schemas, capability catalog. | Ontology diagrams, CWM-A/G/E schema (see issue #288), fact/capability definitions. |
-| `docs/services/` | Service-specific behavior for Sophia, Hermes, Apollo, Talos. One subfolder per repo. | API surface summaries, deployment notes, SDK usage instructions. |
-| `docs/operations/` | CI/CD, verification procedures, scenario scripts, observability/metrics guides. | Scenario tooling (#278–#276), verification checklists, OTel dashboards. |
-| `docs/reference/` | Contracts, API docs, and generated artifacts that must live in the repo (`contracts/` can link here). | OpenAPI pointers, SDK regeneration how-tos. |
+| Directory | Purpose |
+|-----------|---------|
+| `architecture/` | System specs, phase roadmaps, ADR summaries |
+| `adr/` | Architecture Decision Records |
+| `hcg/` | Hybrid Cognitive Graph ontology, CWM schemas |
+| `operations/` | CI/CD, testing, verification, demos, observability |
+| `sdk/` | SDK installation and usage guides |
+| `api/` | Generated API docs (GitHub Pages) |
+| `outreach/` | Blog posts, papers, marketing materials |
+| `research/` | Academic research and paper drafts |
 
-Existing directories (`phase1/`, `phase2/`, `spec/`, etc.) remain in place temporarily but should be migrated into this structure as we consolidate content.
+---
 
-## Inventory & Migration Tracker
+## Service Documentation
 
-| Current Location | Target Folder | Notes / Action |
-| --- | --- | --- |
-| `docs/phase2/PHASE2_SPEC.md`, `docs/spec/LOGOS_SPEC_FLEXIBLE.md` | ✔️ migrated to `docs/architecture/` | Highest-level specs now live under `docs/architecture/`. Update any remaining references to the new paths. |
-| `docs/phase2/VERIFY.md`, `docs/phase2/METRICS_IDEAS.md` | ✔️ migrated to `docs/operations/` | Verification guides and metrics ideation now live in `docs/operations/`. |
-| `docs/phase2/APOLLO_WEB_PROTOTYPE_SPRINT.md` | ✔️ migrated to `docs/services/apollo/` | Service-specific notes should live under the corresponding service folder. |
-| `docs/phase2/CWM_STATE_CONTRACT_ROLLOUT.md` | ✔️ migrated to `docs/hcg/` | All CWM/HCG schema docs should consolidate here (see issue #288 for further work). |
-| `docs/spec/*`, `docs/api/*`, `docs/sdk/*` | `docs/reference/` & `docs/services/*` | Move per-service parts into their folders; keep shared contracts under reference. |
-| `docs/phase1/*` | `docs/history/phase1/` (optional) or archive | Retain for posterity but clearly mark as historical. |
-| `docs/issues/*`, `docs/demo/*`, standalone ticket-description files | Remove or convert into proper guides in `operations/` or service folders. |
+Each service maintains its own documentation in its repository:
 
-Use this checklist when migrating a document:
+| Service | Repository | Key Docs |
+|---------|------------|----------|
+| **Sophia** | [c-daly/sophia](https://github.com/c-daly/sophia) | `docs/API_SERVICE_SUMMARY.md`, `docs/JEPA_SIMULATION.md` |
+| **Hermes** | [c-daly/hermes](https://github.com/c-daly/hermes) | `docs/MILVUS_INTEGRATION.md`, `DOCKER.md` |
+| **Apollo** | [c-daly/apollo](https://github.com/c-daly/apollo) | `docs/API_CLIENTS.md`, `docs/WEBSOCKET_PROTOCOL.md`, `docs/PERSONA_DIARY.md` |
+| **Talos** | [c-daly/talos](https://github.com/c-daly/talos) | `docs/FIXTURES.md`, `docs/INTEGRATION_TESTING.md` |
 
-1. Decide the new home using the table above.
-2. Move or rewrite the file into the destination folder.
-3. Update inbound links (repo README, CONTRIBUTING, phase docs) to reference the new path.
-4. Delete the obsolete stub or replace it with a pointer if historically relevant.
-5. Add navigation links to the corresponding `index.md`.
+For implementation details, always refer to the service repository. This meta-repo contains:
+- Cross-cutting architecture specs (`architecture/`)
+- Operational procedures and verification (`operations/`)
+- Shared contracts and SDKs (`contracts/`, `sdk/`)
+
+---
+
+## Key Documents
+
+### Architecture
+- [LOGOS Specification](architecture/LOGOS_SPEC_FLEXIBLE.md) - Core architecture and philosophy
+- [Phase 2 Specification](architecture/PHASE2_SPEC.md) - Perception & Apollo UX
+- [Phase 3 Specification](architecture/PHASE3_SPEC.md) - Learning & Memory (planned)
+
+### Operations
+- [Testing Documentation](operations/TESTING.md) - Standards and strategy
+- [CI/CD Documentation](operations/ci/README.md) - Workflows and templates
+- [Phase 2 Verification](operations/PHASE2_VERIFY.md) - Milestone checklists
+- [Observability Queries](operations/OBSERVABILITY_QUERIES.md) - TraceQL examples
+
+### HCG / Ontology
+- [CWM State Specification](hcg/CWM_STATE.md) - Unified world model contract
+
+### SDK
+- [SDK Documentation](sdk/README.md) - Python & TypeScript client libraries
+
+---
 
 ## Authoring Guidelines
 
-- **Single source of truth**: keep substantive content in the consolidated tree; repo READMEs should only summarize and link here.
-- **No ticket-only docs**: if a document’s sole purpose is to restate an issue or milestone, convert it into a checklist inside the issue or delete it.
-- **Cross-repo contributions**: when documenting Sophia/Hermes/Apollo specifics, create or update the matching `docs/services/<service>/` page—even if the implementation lives in another repo. Link back to that service’s README for code-level details.
-- **Metadata**: include front matter or headings for ownership, last verified date, and related issues so future maintainers know who to ping.
+1. **Single source of truth**: Keep substantive content here; service READMEs should summarize and link.
+2. **No ticket-only docs**: If a document restates an issue, convert it to a checklist in the issue or delete it.
+3. **Cross-repo documentation**: For service specifics, document in that repo's `docs/` folder.
+4. **Metadata**: Include ownership, last verified date, and related issues in document headers.
 
-## Next Steps
+---
 
-1. Migrate the remaining Phase 2 perception/demo docs (e.g., `docs/phase2/perception/*`, `docs/demo/*`) into the appropriate `architecture/`, `services/`, or `operations/` folders.
-2. Draft the CWM-A/G/E schema in `docs/hcg/` (tracked by issue #288) and link it from the capability catalog (#284).
-3. Convert scenario/benchmark docs to `docs/operations/scenarios/` and delete redundant issue-only files.
-4. Update each service README to point to its `docs/services/<service>/` entry.
-5. Add a doc-style linter (e.g., simple script or checklist) to CI so new docs are placed correctly.
+## Contributing
 
-Refer to this README when adding or relocating documentation. If a file does not clearly fit one of the sections above, open a doc issue so we can decide whether to create a new category or adjust the structure.
+When adding documentation:
+
+1. Choose the appropriate directory based on content type
+2. Follow existing formatting conventions
+3. Update this README if adding a new key document
+4. Link from related documents for discoverability
+
+For questions about documentation structure, open an issue with the `documentation` label.
