@@ -108,6 +108,16 @@ poetry run pytest -k "test_parser"
 
 Test configuration is defined in `pyproject.toml` under `[tool.pytest.ini_options]`.
 
+### Local CI Parity
+
+To run the same lint/type/test sequence that executes in `.github/workflows/ci.yml`, use the helper script next to the workflow:
+
+```bash
+./.github/workflows/run_ci.sh
+```
+
+The script installs dependencies with Poetry and then runs Ruff, Black, mypy, and pytest with the exact arguments defined in CI, making it easy to reproduce failures locally.
+
 ## SDK Generation
 
 Shared SDKs for Sophia and Hermes live under `sdk/` (Python) and `sdk-web/` (TypeScript). Whenever the OpenAPI contracts change, regenerate the clients via:
