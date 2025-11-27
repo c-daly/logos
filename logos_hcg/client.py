@@ -8,10 +8,10 @@ See Project LOGOS spec: Section 4.1 (Core Ontology and Data Model)
 """
 
 import logging
+import re
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import datetime
-import re
 from typing import Any
 from uuid import UUID
 
