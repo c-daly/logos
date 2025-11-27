@@ -163,9 +163,7 @@ class PersonaEntry(BaseModel):
         description="Entry type: 'belief', 'decision', 'observation', or 'reflection'",
     )
     content: str = Field(..., description="The main content/narrative of the entry")
-    summary: str | None = Field(
-        None, description="Brief summary for quick reference"
-    )
+    summary: str | None = Field(None, description="Brief summary for quick reference")
     sentiment: str | None = Field(
         None, description="Sentiment: 'positive', 'negative', 'neutral', or 'mixed'"
     )

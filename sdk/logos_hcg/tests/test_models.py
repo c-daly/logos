@@ -179,9 +179,7 @@ class TestGraphSnapshot:
     def test_snapshot_with_data(self) -> None:
         """Test snapshot with entities and edges."""
         entity = Entity(id="e1", type="test")
-        edge = CausalEdge(
-            id="r1", source_id="e1", target_id="e2", edge_type="RELATES"
-        )
+        edge = CausalEdge(id="r1", source_id="e1", target_id="e2", edge_type="RELATES")
 
         snapshot = GraphSnapshot(
             entities=[entity],
@@ -244,11 +242,7 @@ class TestPersonaEntry:
 
         # Invalid bounds
         with pytest.raises(ValueError):
-            PersonaEntry(
-                id="e3", entry_type="belief", content="test", confidence=-0.1
-            )
+            PersonaEntry(id="e3", entry_type="belief", content="test", confidence=-0.1)
 
         with pytest.raises(ValueError):
-            PersonaEntry(
-                id="e4", entry_type="belief", content="test", confidence=1.1
-            )
+            PersonaEntry(id="e4", entry_type="belief", content="test", confidence=1.1)

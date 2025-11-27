@@ -24,17 +24,40 @@ from logos_hermes_sdk.models.llm_message import LLMMessage
 from typing import Optional, Set
 from typing_extensions import Self
 
+
 class LLMRequest(BaseModel):
     """
     Request payload for Hermes LLM gateway.
-    """ # noqa: E501
-    prompt: Optional[StrictStr] = Field(default=None, description="Shortcut for a single user message when `messages` is omitted.")
-    messages: Optional[List[LLMMessage]] = Field(default=None, description="Conversation history forwarded to the provider.")
-    provider: Optional[StrictStr] = Field(default=None, description="Override the configured provider (e.g., `openai`, `echo`, `local`).")
-    model: Optional[StrictStr] = Field(default=None, description="Provider-specific model identifier override.")
-    temperature: Optional[Union[Annotated[float, Field(le=2, strict=True, ge=0)], Annotated[int, Field(le=2, strict=True, ge=0)]]] = Field(default=0.7, description="Sampling temperature forwarded to the provider.")
-    max_tokens: Optional[Annotated[int, Field(strict=True, ge=1)]] = Field(default=None, description="Optional maximum number of tokens to generate.")
-    metadata: Optional[Dict[str, Any]] = Field(default=None, description="Additional metadata stored alongside the request.")
+    """  # noqa: E501
+
+    prompt: Optional[StrictStr] = Field(
+        default=None,
+        description="Shortcut for a single user message when `messages` is omitted.",
+    )
+    messages: Optional[List[LLMMessage]] = Field(
+        default=None, description="Conversation history forwarded to the provider."
+    )
+    provider: Optional[StrictStr] = Field(
+        default=None,
+        description="Override the configured provider (e.g., `openai`, `echo`, `local`).",
+    )
+    model: Optional[StrictStr] = Field(
+        default=None, description="Provider-specific model identifier override."
+    )
+    temperature: Optional[
+        Union[
+            Annotated[float, Field(le=2, strict=True, ge=0)],
+            Annotated[int, Field(le=2, strict=True, ge=0)],
+        ]
+    ] = Field(
+        default=0.7, description="Sampling temperature forwarded to the provider."
+    )
+    max_tokens: Optional[Annotated[int, Field(strict=True, ge=1)]] = Field(
+        default=None, description="Optional maximum number of tokens to generate."
+    )
+    metadata: Optional[Dict[str, Any]] = Field(
+        default=None, description="Additional metadata stored alongside the request."
+    )
     __properties: ClassVar[List[str]] = []
 
     model_config = ConfigDict(
@@ -42,7 +65,6 @@ class LLMRequest(BaseModel):
         validate_assignment=True,
         protected_namespaces=(),
     )
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -68,8 +90,7 @@ class LLMRequest(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -87,8 +108,5 @@ class LLMRequest(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-        })
+        _obj = cls.model_validate({})
         return _obj
-
-

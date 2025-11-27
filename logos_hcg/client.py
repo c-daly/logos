@@ -139,6 +139,7 @@ class HCGClient:
         finally:
             if session:
                 session.close()
+
     def _execute_query(
         self,
         query: str,
@@ -249,7 +250,6 @@ class HCGClient:
         if depth < 1:
             depth = 1
         return depth
-
 
     # ========== Mutation & Write Operations ==========
 

@@ -23,13 +23,17 @@ from logos_hermes_sdk.models.llm_message import LLMMessage
 from typing import Optional, Set
 from typing_extensions import Self
 
+
 class LLMChoice(BaseModel):
     """
     Individual choice returned by the provider.
-    """ # noqa: E501
+    """  # noqa: E501
+
     index: StrictInt = Field(description="Choice index.")
     message: LLMMessage
-    finish_reason: Optional[StrictStr] = Field(default=None, description="Reason generation finished (e.g., `stop`, `length`).")
+    finish_reason: Optional[StrictStr] = Field(
+        default=None, description="Reason generation finished (e.g., `stop`, `length`)."
+    )
     __properties: ClassVar[List[str]] = ["index", "message", "finish_reason"]
 
     model_config = ConfigDict(
@@ -37,7 +41,6 @@ class LLMChoice(BaseModel):
         validate_assignment=True,
         protected_namespaces=(),
     )
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -63,8 +66,7 @@ class LLMChoice(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -73,7 +75,7 @@ class LLMChoice(BaseModel):
         )
         # override the default output from pydantic by calling `to_dict()` of message
         if self.message:
-            _dict['message'] = self.message.to_dict()
+            _dict["message"] = self.message.to_dict()
         return _dict
 
     @classmethod
@@ -85,11 +87,15 @@ class LLMChoice(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "index": obj.get("index"),
-            "message": LLMMessage.from_dict(obj["message"]) if obj.get("message") is not None else None,
-            "finish_reason": obj.get("finish_reason")
-        })
+        _obj = cls.model_validate(
+            {
+                "index": obj.get("index"),
+                "message": (
+                    LLMMessage.from_dict(obj["message"])
+                    if obj.get("message") is not None
+                    else None
+                ),
+                "finish_reason": obj.get("finish_reason"),
+            }
+        )
         return _obj
-
-

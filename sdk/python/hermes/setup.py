@@ -41,7 +41,7 @@ setup(
     install_requires=REQUIRES,
     packages=find_packages(exclude=["test", "tests"]),
     include_package_data=True,
-    long_description_content_type='text/markdown',
+    long_description_content_type="text/markdown",
     long_description="""\
     Canonical Hermes OpenAPI contract for Project LOGOS. See Project LOGOS spec: Table 2 in Section 3.4 (Hermes API endpoints).  Hermes is the stateless language &amp; embedding utility providing: - Speech-to-text (STT) - Text-to-speech (TTS) - Simple NLP preprocessing - Text embedding generation - LLM gateway proxy via &#x60;/llm&#x60;  All endpoints are stateless and do not interact with the HCG directly. 
     """,  # noqa: E501

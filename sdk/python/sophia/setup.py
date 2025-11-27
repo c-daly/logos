@@ -41,7 +41,7 @@ setup(
     install_requires=REQUIRES,
     packages=find_packages(exclude=["test", "tests"]),
     include_package_data=True,
-    long_description_content_type='text/markdown',
+    long_description_content_type="text/markdown",
     long_description="""\
     Canonical Sophia OpenAPI contract for Project LOGOS. See Phase 2 specification (docs/architecture/PHASE2_SPEC.md) for behavioral details.  Sophia exposes planner and world-model endpoints backed by the Hybrid Cognitive Graph (HCG). Responses share the unified &#x60;CWMState&#x60; envelope so CLI, browser, and SDK clients consume identical data. 
     """,  # noqa: E501
