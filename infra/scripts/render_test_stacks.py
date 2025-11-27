@@ -2,7 +2,7 @@
 
 This script reads the canonical test-stack template defined under
 `infra/test_stack/` and emits staged outputs for each repo into
-`infra/test_stack/out/<repo>/`.
+`tests/e2e/stack/<repo>/`.
 
 Future automation can copy those outputs into the downstream repos or
 compare them against committed files to detect drift.
@@ -26,7 +26,7 @@ TEST_STACK_DIR = ROOT / "infra" / "test_stack"
 SERVICES_FILE = TEST_STACK_DIR / "services.yaml"
 REPOS_FILE = TEST_STACK_DIR / "repos.yaml"
 OVERLAYS_DIR = TEST_STACK_DIR / "overlays"
-DEFAULT_OUTPUT_ROOT = TEST_STACK_DIR / "out"
+DEFAULT_OUTPUT_ROOT = ROOT / "tests" / "e2e" / "stack"
 
 
 class RenderError(RuntimeError):
@@ -46,7 +46,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--output-root",
         default=str(DEFAULT_OUTPUT_ROOT),
-        help="Where to stage generated files (default: infra/test_stack/out).",
+        help="Where to stage generated files (default: tests/e2e/stack).",
     )
     parser.add_argument(
         "--check",
@@ -78,7 +78,15 @@ def deep_format(value: Any, context: Mapping[str, Any]) -> Any:
     if isinstance(value, list):
         return [deep_format(item, context) for item in value]
     if isinstance(value, dict):
-        return {key: deep_format(item, context) for key, item in value.items()}
+        formatted: dict[Any, Any] = {}
+        for key, item in value.items():
+            new_key = (
+                key.format(**context)
+                if isinstance(key, str)
+                else key
+            )
+            formatted[new_key] = deep_format(item, context)
+        return formatted
     return value
 
 

@@ -12,13 +12,16 @@ stored in Neo4j. It includes:
 See Project LOGOS spec: Section 4.1 (Core Ontology and Data Model)
 """
 
-from logos_hcg.client import HCGClient
+from logos_hcg.client import HCGClient, HCGConnectionError, HCGQueryError
 from logos_hcg.models import Concept, Entity, Process, State
 from logos_hcg.queries import HCGQueries
+from logos_hcg.shacl_validator import HCGValidationError, SHACLValidator
 from logos_hcg.sync import HCGMilvusSync, MilvusSyncError
 
 __all__ = [
     "HCGClient",
+    "HCGConnectionError",
+    "HCGQueryError",
     "HCGQueries",
     "HCGMilvusSync",
     "MilvusSyncError",
@@ -26,6 +29,8 @@ __all__ = [
     "Concept",
     "State",
     "Process",
+    "SHACLValidator",
+    "HCGValidationError",
 ]
 
 __version__ = "0.1.0"

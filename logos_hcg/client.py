@@ -23,6 +23,7 @@ from neo4j.exceptions import (
 
 from logos_hcg.models import Concept, Entity, Process, State
 from logos_hcg.queries import HCGQueries
+from logos_hcg.shacl_validator import HCGValidationError, SHACLValidator
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +70,7 @@ class HCGClient:
         max_connection_pool_size: int = 50,
         connection_acquisition_timeout: int = 60,
         max_retry_attempts: int = 3,
+        validator: SHACLValidator | None = None,
     ):
         """
         Initialize HCG client with connection pooling.
@@ -82,11 +84,13 @@ class HCGClient:
             max_connection_pool_size: Max number of connections in pool
             connection_acquisition_timeout: Timeout for acquiring connection
             max_retry_attempts: Max retry attempts for transient errors
+            validator: Optional SHACL validator for mutation APIs
         """
         self.uri = uri
         self.user = user
         self.database = database
         self.max_retry_attempts = max_retry_attempts
+        self._validator: SHACLValidator = validator or SHACLValidator()
 
         try:
             self.driver: Driver = GraphDatabase.driver(
@@ -135,7 +139,6 @@ class HCGClient:
         finally:
             if session:
                 session.close()
-
     def _execute_query(
         self,
         query: str,
@@ -246,6 +249,206 @@ class HCGClient:
         if depth < 1:
             depth = 1
         return depth
+
+
+    # ========== Mutation & Write Operations ==========
+
+    def add_node(
+        self,
+        node_data: dict[str, Any],
+        *,
+        validate: bool = True,
+    ) -> str:
+        """Create or update a node in the graph."""
+        payload = {
+            "id": node_data.get("id"),
+            "type": node_data.get("type"),
+            "properties": node_data.get("properties", {}) or {},
+        }
+        validation_target = dict(node_data)
+        validation_target.setdefault("properties", payload["properties"])
+
+        if not payload["id"]:
+            raise ValueError("node_data must include an 'id'")
+
+        if validate:
+            self._validate_node_payload(validation_target)
+        elif not payload["type"]:
+            raise ValueError("node_data must include a 'type'")
+
+        query = """
+        MERGE (n:Node {id: $id})
+        SET n.type = $type
+        SET n += $properties
+        RETURN n.id as id
+        """
+        records = self._execute_read(query, payload)
+        if records and "id" in records[0]:
+            return str(records[0]["id"])
+        return str(payload["id"])
+
+    def add_edge(
+        self,
+        edge_data: dict[str, Any],
+        *,
+        validate: bool = True,
+    ) -> str:
+        """Create or update an edge between two nodes."""
+        payload = {
+            "id": edge_data.get("id"),
+            "source": edge_data.get("source") or edge_data.get("source_id"),
+            "target": edge_data.get("target") or edge_data.get("target_id"),
+            "relation": edge_data.get("relation"),
+            "properties": edge_data.get("properties", {}) or {},
+        }
+        validation_target = dict(edge_data)
+        validation_target.setdefault("properties", payload["properties"])
+
+        missing = [key for key in ("id", "source", "target") if not payload[key]]
+        if missing:
+            raise ValueError(
+                "edge_data missing required field(s): " + ", ".join(missing)
+            )
+
+        if validate:
+            self._validate_edge_payload(validation_target)
+        elif not payload["relation"]:
+            raise ValueError("edge_data must include a 'relation'")
+
+        query = """
+        MATCH (source:Node {id: $source})
+        MATCH (target:Node {id: $target})
+        MERGE (source)-[r:RELATION {id: $id}]->(target)
+        SET r.relation_type = $relation
+        SET r += $properties
+        RETURN r.id as id
+        """
+        records = self._execute_read(query, payload)
+        if records and "id" in records[0]:
+            return str(records[0]["id"])
+        return str(payload["id"])
+
+    def update_node(
+        self,
+        *,
+        node_id: str,
+        properties: dict[str, Any] | None = None,
+        validate: bool = False,
+        node_type: str | None = None,
+    ) -> bool:
+        """Update properties for an existing node."""
+        payload = {
+            "id": node_id,
+            "properties": properties or {},
+        }
+
+        if validate:
+            candidate_type = node_type or payload["properties"].get("type")
+            if not candidate_type:
+                raise HCGValidationError(
+                    "Node validation failed",
+                    ["node_type is required when validate=True"],
+                )
+            self._validate_node_payload(
+                {
+                    "id": node_id,
+                    "type": candidate_type,
+                    "properties": payload["properties"],
+                }
+            )
+
+        query = """
+        MATCH (n:Node {id: $id})
+        SET n += $properties
+        RETURN count(n) as updated
+        """
+        records = self._execute_read(query, payload)
+        updated = records[0].get("updated", 0) if records else 0
+        return bool(updated)
+
+    def delete_node(self, node_id: str) -> bool:
+        """Delete a node and its relationships."""
+        query = """
+        MATCH (n:Node {id: $id})
+        DETACH DELETE n
+        RETURN $id as id
+        """
+        records = self._execute_read(query, {"id": node_id})
+        return bool(records)
+
+    def delete_edge(self, edge_id: str) -> bool:
+        """Delete an edge by ID."""
+        query = """
+        MATCH ()-[r:RELATION {id: $id}]-()
+        DELETE r
+        RETURN $id as id
+        """
+        records = self._execute_read(query, {"id": edge_id})
+        return bool(records)
+
+    def clear_all(self, *, confirm: bool = False) -> None:
+        """Remove all nodes and relationships from the graph."""
+        if not confirm:
+            raise ValueError("Must pass confirm=True to clear the graph")
+        self._execute_query("MATCH (n) DETACH DELETE n")
+
+    def query_neighbors(self, node_id: str) -> list[dict[str, Any]]:
+        """Return neighbor nodes connected to the provided node."""
+        query = """
+        MATCH (:Node {id: $id})-[r]-(neighbor:Node)
+        RETURN DISTINCT neighbor.id as id, neighbor.type as type,
+               properties(neighbor) as props
+        """
+        records = self._execute_read(query, {"id": node_id})
+        neighbors: list[dict[str, Any]] = []
+        for record in records:
+            props = dict(record.get("props", {}))
+            props.pop("id", None)
+            props.pop("type", None)
+            neighbors.append(
+                {
+                    "id": record.get("id"),
+                    "type": record.get("type"),
+                    "properties": props,
+                }
+            )
+        return neighbors
+
+    def query_edges_from(self, node_id: str) -> list[dict[str, Any]]:
+        """Return outgoing edges from the provided node."""
+        query = """
+        MATCH (source:Node {id: $id})-[r:RELATION]->(target:Node)
+        RETURN r.id as id, source.id as source, target.id as target,
+               r.relation_type as relation, properties(r) as props
+        """
+        records = self._execute_read(query, {"id": node_id})
+        edges: list[dict[str, Any]] = []
+        for record in records:
+            props = dict(record.get("props", {}))
+            props.pop("id", None)
+            props.pop("relation_type", None)
+            edges.append(
+                {
+                    "id": record.get("id"),
+                    "source": record.get("source"),
+                    "target": record.get("target"),
+                    "relation": record.get("relation"),
+                    "properties": props,
+                }
+            )
+        return edges
+
+    def _validate_node_payload(self, node_data: dict[str, Any]) -> None:
+        """Run SHACL validation for node data."""
+        is_valid, errors = self._validator.validate_node(node_data)
+        if not is_valid:
+            raise HCGValidationError("Node validation failed", errors)
+
+    def _validate_edge_payload(self, edge_data: dict[str, Any]) -> None:
+        """Run SHACL validation for edge data."""
+        is_valid, errors = self._validator.validate_edge(edge_data)
+        if not is_valid:
+            raise HCGValidationError("Edge validation failed", errors)
 
     # ========== Entity Operations ==========
 

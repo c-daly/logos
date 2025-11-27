@@ -5,7 +5,7 @@ This directory defines a canonical Docker Compose template for the LOGOS test in
 files. The goal is to keep every repository's CI stack self-contained **and** consistent: we make
 changes once here, regenerate, and commit the refreshed compose/env files into the downstream
 repository. The background, goals, and acceptance criteria for this work live in
-`docs/issues/2025-11-26-shared-test-stack.md`.
+[c-daly/logos#359](https://github.com/c-daly/logos/issues/359).
 
 ## Layout
 
@@ -15,7 +15,7 @@ test_stack/
 ├── repos.yaml                # Declarative description of each repo's needs
 ├── services.yaml             # Base service/volume/network templates with format placeholders
 ├── overlays/                 # Optional service fragments that repos can opt into
-└── out/                      # Staging area for generated outputs (gitignored)
+└── (rendered into tests/e2e/stack/) # Generator writes to the shared e2e stack layout
 ```
 
 ### `repos.yaml`
@@ -35,24 +35,24 @@ test_stack/
 - Each overlay file is a YAML fragment with `services`, `volumes`, or `networks` keys that the
   generator merges after rendering the base template.
 
-### `out/`
-- Temporary staging directory where the generator writes outputs inside this repo. Once the files
-  look good, copy/commit them into the target repo (or automate the sync in a follow-up step).
-- `out/` stays gitignored so we never accidentally commit preview artifacts to this repo.
+### Rendered outputs
+- Files land under `tests/e2e/stack/<repo>/` at the repo root. That directory is **not**
+  gitignored; LOGOS commits those artifacts so downstream repos can copy them verbatim.
+  Structure matches the neutral layout discussed in #356 (`stack/shared/`, `stack/apollo/`, etc.).
 
 ## Generator
 
 `logos/infra/scripts/render_test_stacks.py` is the only entry point:
 
 ```bash
-poetry run python logos/infra/scripts/render_test_stacks.py           # render all repos
-poetry run python logos/infra/scripts/render_test_stacks.py --repo apollo
-poetry run python logos/infra/scripts/render_test_stacks.py --check   # verify staged outputs
+poetry run python infra/scripts/render_test_stacks.py                               # render all repos
+poetry run python infra/scripts/render_test_stacks.py --repo apollo                 # render one repo
+poetry run python infra/scripts/render_test_stacks.py --check                       # verify outputs
 ```
 
 Key behaviors:
 - Supports single or multi-repo selection with `--repo`.
-- Writes three artifacts per repo inside `out/<repo>/`:
+- Writes three artifacts per repo inside `tests/e2e/stack/<repo>/`:
   - `docker-compose.test.yml`
   - `.env.test`
   - `STACK_VERSION` (12-char hash of the template + relevant config)
