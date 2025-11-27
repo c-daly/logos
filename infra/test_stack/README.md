@@ -1,0 +1,70 @@
+# Shared Test Stack Template
+
+This directory defines a canonical Docker Compose template for the LOGOS test infrastructure
+(Neo4j, Milvus, MinIO, etc.) plus a generator that stamps repo-specific `docker-compose.test.yml`
+files. The goal is to keep every repository's CI stack self-contained **and** consistent: we make
+changes once here, regenerate, and commit the refreshed compose/env files into the downstream
+repository. The background, goals, and acceptance criteria for this work live in
+`docs/issues/2025-11-26-shared-test-stack.md`.
+
+## Layout
+
+```
+test_stack/
+├── README.md                 # You are here
+├── repos.yaml                # Declarative description of each repo's needs
+├── services.yaml             # Base service/volume/network templates with format placeholders
+├── overlays/                 # Optional service fragments that repos can opt into
+└── out/                      # Staging area for generated outputs (gitignored)
+```
+
+### `repos.yaml`
+- Lists every repo we manage (`apollo`, `hermes`, `logos`, `sophia`, `talos`).
+- Defines the relative path to that repo from this file, the compose/env filenames, which
+  services to include, service-prefix overrides, and any overlay fragments.
+- Holds repo-specific environment overrides so credentials and connection URIs stay accurate.
+
+### `services.yaml`
+- Holds the authoritative definition of each shared service.
+- Strings support Python-style placeholders (e.g. `{service_prefix}`) which the generator fills at
+  runtime with values from `repos.yaml`.
+- Add/modify services here when we bump images, ports, or health checks.
+
+### `overlays/`
+- Placeholder for optional services that only some repos need (e.g. SHACL validation, mock APIs).
+- Each overlay file is a YAML fragment with `services`, `volumes`, or `networks` keys that the
+  generator merges after rendering the base template.
+
+### `out/`
+- Temporary staging directory where the generator writes outputs inside this repo. Once the files
+  look good, copy/commit them into the target repo (or automate the sync in a follow-up step).
+- `out/` stays gitignored so we never accidentally commit preview artifacts to this repo.
+
+## Generator
+
+`logos/infra/scripts/render_test_stacks.py` is the only entry point:
+
+```bash
+poetry run python logos/infra/scripts/render_test_stacks.py           # render all repos
+poetry run python logos/infra/scripts/render_test_stacks.py --repo apollo
+poetry run python logos/infra/scripts/render_test_stacks.py --check   # verify staged outputs
+```
+
+Key behaviors:
+- Supports single or multi-repo selection with `--repo`.
+- Writes three artifacts per repo inside `out/<repo>/`:
+  - `docker-compose.test.yml`
+  - `.env.test`
+  - `STACK_VERSION` (12-char hash of the template + relevant config)
+- `--check` recomputes outputs and exits non-zero if anything differs, which is useful for a future
+  GitHub Action that guards against drift.
+
+## Next Steps (outside this PR)
+1. Copy generated files into each repo and update their CI workflows to call the shared stack.
+2. Add an automated sync job (probably here in `logos/.github/workflows`) that runs the generator,
+   checks for diffs, and either commits them or fails fast.
+3. Populate the `overlays/` directory with real fragments (e.g. Apollo's Sophia mock, OTEL stack,
+   SHACL service) and reference them from `repos.yaml`.
+
+Until then, this directory provides the tooling + documentation so we can have a concrete
+discussion about the approach.
