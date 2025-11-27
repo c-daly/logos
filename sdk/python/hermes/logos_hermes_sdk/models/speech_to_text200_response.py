@@ -22,16 +22,12 @@ from typing import Any, ClassVar, Dict, List, Optional, Union
 from typing import Optional, Set
 from typing_extensions import Self
 
-
 class SpeechToText200Response(BaseModel):
     """
     SpeechToText200Response
-    """  # noqa: E501
-
+    """ # noqa: E501
     text: Optional[StrictStr] = Field(default=None, description="Transcribed text")
-    confidence: Optional[Union[StrictFloat, StrictInt]] = Field(
-        default=None, description="Confidence score (0.0 to 1.0)"
-    )
+    confidence: Optional[Union[StrictFloat, StrictInt]] = Field(default=None, description="Confidence score (0.0 to 1.0)")
     __properties: ClassVar[List[str]] = ["text", "confidence"]
 
     model_config = ConfigDict(
@@ -39,6 +35,7 @@ class SpeechToText200Response(BaseModel):
         validate_assignment=True,
         protected_namespaces=(),
     )
+
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -64,7 +61,8 @@ class SpeechToText200Response(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([])
+        excluded_fields: Set[str] = set([
+        ])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -82,7 +80,10 @@ class SpeechToText200Response(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate(
-            {"text": obj.get("text"), "confidence": obj.get("confidence")}
-        )
+        _obj = cls.model_validate({
+            "text": obj.get("text"),
+            "confidence": obj.get("confidence")
+        })
         return _obj
+
+
