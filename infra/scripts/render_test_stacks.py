@@ -80,12 +80,17 @@ def deep_format(value: Any, context: Mapping[str, Any]) -> Any:
     if isinstance(value, dict):
         formatted: dict[Any, Any] = {}
         for key, item in value.items():
-            new_key = (
-                key.format(**context)
-                if isinstance(key, str)
-                else key
-            )
-            formatted[new_key] = deep_format(item, context)
+            if isinstance(key, str):
+                try:
+                    formatted_key = key.format(**context)
+                except KeyError as exc:  # pragma: no cover - configuration error path
+                    missing = exc.args[0]
+                    raise RenderError(
+                        f"Missing template variable '{missing}' in context"
+                    ) from exc
+            else:
+                formatted_key = key
+            formatted[formatted_key] = deep_format(item, context)
         return formatted
     return value
 

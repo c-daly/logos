@@ -111,7 +111,7 @@ Phase 2 extends the LOGOS ecosystem with:
 - All endpoints operational: `/plan`, `/state`, `/simulate`, `/health`
 - Token-based authentication in `sophia/src/sophia/api/auth.py`
 - Docker configurations: `sophia/Dockerfile`, `sophia/docker-compose.yml`
-- Deployment summary: `sophia/IMPLEMENTATION_SUMMARY.md`
+- Deployment summary: `sophia/SOPHIA_TEST_GUIDE.md`
 
 #### 1.2 Hermes Service Running
 
