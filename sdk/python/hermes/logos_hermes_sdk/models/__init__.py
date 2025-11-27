@@ -21,9 +21,12 @@ from logos_hermes_sdk.models.llm_request import LLMRequest
 from logos_hermes_sdk.models.llm_response import LLMResponse
 from logos_hermes_sdk.models.llm_usage import LLMUsage
 from logos_hermes_sdk.models.simple_nlp200_response import SimpleNlp200Response
-from logos_hermes_sdk.models.simple_nlp200_response_entities_inner import SimpleNlp200ResponseEntitiesInner
-from logos_hermes_sdk.models.simple_nlp200_response_pos_tags_inner import SimpleNlp200ResponsePosTagsInner
+from logos_hermes_sdk.models.simple_nlp200_response_entities_inner import (
+    SimpleNlp200ResponseEntitiesInner,
+)
+from logos_hermes_sdk.models.simple_nlp200_response_pos_tags_inner import (
+    SimpleNlp200ResponsePosTagsInner,
+)
 from logos_hermes_sdk.models.simple_nlp_request import SimpleNlpRequest
 from logos_hermes_sdk.models.speech_to_text200_response import SpeechToText200Response
 from logos_hermes_sdk.models.text_to_speech_request import TextToSpeechRequest
-

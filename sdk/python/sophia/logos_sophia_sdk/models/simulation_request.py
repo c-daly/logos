@@ -23,23 +23,38 @@ from typing_extensions import Annotated
 from typing import Optional, Set
 from typing_extensions import Self
 
+
 class SimulationRequest(BaseModel):
     """
     SimulationRequest
-    """ # noqa: E501
-    capability_id: StrictStr = Field(description="Capability or Talos action identifier")
-    context: Dict[str, Any] = Field(description="Structured context (entity IDs, sensor frames, parameters)")
+    """  # noqa: E501
+
+    capability_id: StrictStr = Field(
+        description="Capability or Talos action identifier"
+    )
+    context: Dict[str, Any] = Field(
+        description="Structured context (entity IDs, sensor frames, parameters)"
+    )
     horizon_steps: Optional[Annotated[int, Field(le=50, strict=True, ge=1)]] = 5
-    assumptions: Optional[List[StrictStr]] = Field(default=None, description="Optional assumptions applied to the rollout")
-    metadata: Optional[Dict[str, Any]] = Field(default=None, description="Miscellaneous metadata for audit trails")
-    __properties: ClassVar[List[str]] = ["capability_id", "context", "horizon_steps", "assumptions", "metadata"]
+    assumptions: Optional[List[StrictStr]] = Field(
+        default=None, description="Optional assumptions applied to the rollout"
+    )
+    metadata: Optional[Dict[str, Any]] = Field(
+        default=None, description="Miscellaneous metadata for audit trails"
+    )
+    __properties: ClassVar[List[str]] = [
+        "capability_id",
+        "context",
+        "horizon_steps",
+        "assumptions",
+        "metadata",
+    ]
 
     model_config = ConfigDict(
         populate_by_name=True,
         validate_assignment=True,
         protected_namespaces=(),
     )
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -65,8 +80,7 @@ class SimulationRequest(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -84,13 +98,17 @@ class SimulationRequest(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "capability_id": obj.get("capability_id"),
-            "context": obj.get("context"),
-            "horizon_steps": obj.get("horizon_steps") if obj.get("horizon_steps") is not None else 5,
-            "assumptions": obj.get("assumptions"),
-            "metadata": obj.get("metadata")
-        })
+        _obj = cls.model_validate(
+            {
+                "capability_id": obj.get("capability_id"),
+                "context": obj.get("context"),
+                "horizon_steps": (
+                    obj.get("horizon_steps")
+                    if obj.get("horizon_steps") is not None
+                    else 5
+                ),
+                "assumptions": obj.get("assumptions"),
+                "metadata": obj.get("metadata"),
+            }
+        )
         return _obj
-
-

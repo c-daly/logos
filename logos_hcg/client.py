@@ -307,7 +307,9 @@ class HCGClient:
         match_field = self._match_field_for_labels(labels)
 
         match_value = (
-            payload["id"] if match_field == "id" else payload["properties"].get("uuid") or payload["id"]
+            payload["id"]
+            if match_field == "id"
+            else payload["properties"].get("uuid") or payload["id"]
         )
         if not match_value:
             raise ValueError(f"node_data must include a '{match_field}' field")

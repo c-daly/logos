@@ -14,7 +14,10 @@
 
 import unittest
 
-from logos_hermes_sdk.models.simple_nlp200_response_pos_tags_inner import SimpleNlp200ResponsePosTagsInner
+from logos_hermes_sdk.models.simple_nlp200_response_pos_tags_inner import (
+    SimpleNlp200ResponsePosTagsInner,
+)
+
 
 class TestSimpleNlp200ResponsePosTagsInner(unittest.TestCase):
     """SimpleNlp200ResponsePosTagsInner unit test stubs"""
@@ -27,9 +30,9 @@ class TestSimpleNlp200ResponsePosTagsInner(unittest.TestCase):
 
     def make_instance(self, include_optional) -> SimpleNlp200ResponsePosTagsInner:
         """Test SimpleNlp200ResponsePosTagsInner
-            include_optional is a boolean, when False only required
-            params are included, when True both required and
-            optional params are included """
+        include_optional is a boolean, when False only required
+        params are included, when True both required and
+        optional params are included"""
         # uncomment below to create an instance of `SimpleNlp200ResponsePosTagsInner`
         """
         model = SimpleNlp200ResponsePosTagsInner()
@@ -48,5 +51,6 @@ class TestSimpleNlp200ResponsePosTagsInner(unittest.TestCase):
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

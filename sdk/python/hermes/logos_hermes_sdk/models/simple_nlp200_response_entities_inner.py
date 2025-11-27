@@ -22,10 +22,12 @@ from typing import Any, ClassVar, Dict, List, Optional
 from typing import Optional, Set
 from typing_extensions import Self
 
+
 class SimpleNlp200ResponseEntitiesInner(BaseModel):
     """
     SimpleNlp200ResponseEntitiesInner
-    """ # noqa: E501
+    """  # noqa: E501
+
     text: Optional[StrictStr] = None
     label: Optional[StrictStr] = None
     start: Optional[StrictInt] = None
@@ -37,7 +39,6 @@ class SimpleNlp200ResponseEntitiesInner(BaseModel):
         validate_assignment=True,
         protected_namespaces=(),
     )
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -63,8 +64,7 @@ class SimpleNlp200ResponseEntitiesInner(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -82,12 +82,12 @@ class SimpleNlp200ResponseEntitiesInner(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "text": obj.get("text"),
-            "label": obj.get("label"),
-            "start": obj.get("start"),
-            "end": obj.get("end")
-        })
+        _obj = cls.model_validate(
+            {
+                "text": obj.get("text"),
+                "label": obj.get("label"),
+                "start": obj.get("start"),
+                "end": obj.get("end"),
+            }
+        )
         return _obj
-
-

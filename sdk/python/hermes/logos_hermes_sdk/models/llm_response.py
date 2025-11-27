@@ -24,25 +24,40 @@ from logos_hermes_sdk.models.llm_usage import LLMUsage
 from typing import Optional, Set
 from typing_extensions import Self
 
+
 class LLMResponse(BaseModel):
     """
     Standardized completion response returned by Hermes.
-    """ # noqa: E501
+    """  # noqa: E501
+
     id: StrictStr = Field(description="Provider response identifier.")
     provider: StrictStr = Field(description="Provider used for this completion.")
     model: StrictStr = Field(description="Provider model identifier.")
-    created: StrictInt = Field(description="Unix timestamp indicating when the provider generated the response.")
-    choices: List[LLMChoice] = Field(description="Choice payloads returned by the provider.")
+    created: StrictInt = Field(
+        description="Unix timestamp indicating when the provider generated the response."
+    )
+    choices: List[LLMChoice] = Field(
+        description="Choice payloads returned by the provider."
+    )
     usage: Optional[LLMUsage] = None
-    raw: Optional[Dict[str, Any]] = Field(default=None, description="Raw provider payload for diagnostics.")
-    __properties: ClassVar[List[str]] = ["id", "provider", "model", "created", "choices", "usage", "raw"]
+    raw: Optional[Dict[str, Any]] = Field(
+        default=None, description="Raw provider payload for diagnostics."
+    )
+    __properties: ClassVar[List[str]] = [
+        "id",
+        "provider",
+        "model",
+        "created",
+        "choices",
+        "usage",
+        "raw",
+    ]
 
     model_config = ConfigDict(
         populate_by_name=True,
         validate_assignment=True,
         protected_namespaces=(),
     )
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -68,8 +83,7 @@ class LLMResponse(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -82,10 +96,10 @@ class LLMResponse(BaseModel):
             for _item_choices in self.choices:
                 if _item_choices:
                     _items.append(_item_choices.to_dict())
-            _dict['choices'] = _items
+            _dict["choices"] = _items
         # override the default output from pydantic by calling `to_dict()` of usage
         if self.usage:
-            _dict['usage'] = self.usage.to_dict()
+            _dict["usage"] = self.usage.to_dict()
         return _dict
 
     @classmethod
@@ -97,15 +111,23 @@ class LLMResponse(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "id": obj.get("id"),
-            "provider": obj.get("provider"),
-            "model": obj.get("model"),
-            "created": obj.get("created"),
-            "choices": [LLMChoice.from_dict(_item) for _item in obj["choices"]] if obj.get("choices") is not None else None,
-            "usage": LLMUsage.from_dict(obj["usage"]) if obj.get("usage") is not None else None,
-            "raw": obj.get("raw")
-        })
+        _obj = cls.model_validate(
+            {
+                "id": obj.get("id"),
+                "provider": obj.get("provider"),
+                "model": obj.get("model"),
+                "created": obj.get("created"),
+                "choices": (
+                    [LLMChoice.from_dict(_item) for _item in obj["choices"]]
+                    if obj.get("choices") is not None
+                    else None
+                ),
+                "usage": (
+                    LLMUsage.from_dict(obj["usage"])
+                    if obj.get("usage") is not None
+                    else None
+                ),
+                "raw": obj.get("raw"),
+            }
+        )
         return _obj
-
-

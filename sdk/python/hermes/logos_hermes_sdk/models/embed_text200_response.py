@@ -22,13 +22,21 @@ from typing import Any, ClassVar, Dict, List, Optional, Union
 from typing import Optional, Set
 from typing_extensions import Self
 
+
 class EmbedText200Response(BaseModel):
     """
     EmbedText200Response
-    """ # noqa: E501
-    embedding: Optional[List[Union[StrictFloat, StrictInt]]] = Field(default=None, description="Vector embedding")
-    dimension: Optional[StrictInt] = Field(default=None, description="Embedding dimension")
-    model: Optional[StrictStr] = Field(default=None, description="Model used for embedding")
+    """  # noqa: E501
+
+    embedding: Optional[List[Union[StrictFloat, StrictInt]]] = Field(
+        default=None, description="Vector embedding"
+    )
+    dimension: Optional[StrictInt] = Field(
+        default=None, description="Embedding dimension"
+    )
+    model: Optional[StrictStr] = Field(
+        default=None, description="Model used for embedding"
+    )
     __properties: ClassVar[List[str]] = ["embedding", "dimension", "model"]
 
     model_config = ConfigDict(
@@ -36,7 +44,6 @@ class EmbedText200Response(BaseModel):
         validate_assignment=True,
         protected_namespaces=(),
     )
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -62,8 +69,7 @@ class EmbedText200Response(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -81,11 +87,11 @@ class EmbedText200Response(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "embedding": obj.get("embedding"),
-            "dimension": obj.get("dimension"),
-            "model": obj.get("model")
-        })
+        _obj = cls.model_validate(
+            {
+                "embedding": obj.get("embedding"),
+                "dimension": obj.get("dimension"),
+                "model": obj.get("model"),
+            }
+        )
         return _obj
-
-

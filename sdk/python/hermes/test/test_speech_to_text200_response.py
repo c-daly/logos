@@ -16,6 +16,7 @@ import unittest
 
 from logos_hermes_sdk.models.speech_to_text200_response import SpeechToText200Response
 
+
 class TestSpeechToText200Response(unittest.TestCase):
     """SpeechToText200Response unit test stubs"""
 
@@ -27,9 +28,9 @@ class TestSpeechToText200Response(unittest.TestCase):
 
     def make_instance(self, include_optional) -> SpeechToText200Response:
         """Test SpeechToText200Response
-            include_optional is a boolean, when False only required
-            params are included, when True both required and
-            optional params are included """
+        include_optional is a boolean, when False only required
+        params are included, when True both required and
+        optional params are included"""
         # uncomment below to create an instance of `SpeechToText200Response`
         """
         model = SpeechToText200Response()
@@ -48,5 +49,6 @@ class TestSpeechToText200Response(unittest.TestCase):
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

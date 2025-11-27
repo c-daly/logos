@@ -22,21 +22,26 @@ from typing import Any, ClassVar, Dict, List
 from typing import Optional, Set
 from typing_extensions import Self
 
+
 class LLMUsage(BaseModel):
     """
     Token usage returned by the upstream provider.
-    """ # noqa: E501
+    """  # noqa: E501
+
     prompt_tokens: StrictInt = Field(description="Prompt token count.")
     completion_tokens: StrictInt = Field(description="Completion token count.")
     total_tokens: StrictInt = Field(description="Total token count.")
-    __properties: ClassVar[List[str]] = ["prompt_tokens", "completion_tokens", "total_tokens"]
+    __properties: ClassVar[List[str]] = [
+        "prompt_tokens",
+        "completion_tokens",
+        "total_tokens",
+    ]
 
     model_config = ConfigDict(
         populate_by_name=True,
         validate_assignment=True,
         protected_namespaces=(),
     )
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -62,8 +67,7 @@ class LLMUsage(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -81,11 +85,11 @@ class LLMUsage(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "prompt_tokens": obj.get("prompt_tokens"),
-            "completion_tokens": obj.get("completion_tokens"),
-            "total_tokens": obj.get("total_tokens")
-        })
+        _obj = cls.model_validate(
+            {
+                "prompt_tokens": obj.get("prompt_tokens"),
+                "completion_tokens": obj.get("completion_tokens"),
+                "total_tokens": obj.get("total_tokens"),
+            }
+        )
         return _obj
-
-
