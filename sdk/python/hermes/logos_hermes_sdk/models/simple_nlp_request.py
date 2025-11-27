@@ -22,29 +22,23 @@ from typing import Any, ClassVar, Dict, List, Optional
 from typing import Optional, Set
 from typing_extensions import Self
 
-
 class SimpleNlpRequest(BaseModel):
     """
     SimpleNlpRequest
-    """  # noqa: E501
-
+    """ # noqa: E501
     text: StrictStr = Field(description="Text to process")
-    operations: Optional[List[StrictStr]] = Field(
-        default=None, description="List of NLP operations to perform"
-    )
+    operations: Optional[List[StrictStr]] = Field(default=None, description="List of NLP operations to perform")
     __properties: ClassVar[List[str]] = ["text", "operations"]
 
-    @field_validator("operations")
+    @field_validator('operations')
     def operations_validate_enum(cls, value):
         """Validates the enum"""
         if value is None:
             return value
 
         for i in value:
-            if i not in set(["tokenize", "pos_tag", "lemmatize", "ner"]):
-                raise ValueError(
-                    "each list item must be one of ('tokenize', 'pos_tag', 'lemmatize', 'ner')"
-                )
+            if i not in set(['tokenize', 'pos_tag', 'lemmatize', 'ner']):
+                raise ValueError("each list item must be one of ('tokenize', 'pos_tag', 'lemmatize', 'ner')")
         return value
 
     model_config = ConfigDict(
@@ -52,6 +46,7 @@ class SimpleNlpRequest(BaseModel):
         validate_assignment=True,
         protected_namespaces=(),
     )
+
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -77,7 +72,8 @@ class SimpleNlpRequest(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([])
+        excluded_fields: Set[str] = set([
+        ])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -95,7 +91,10 @@ class SimpleNlpRequest(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate(
-            {"text": obj.get("text"), "operations": obj.get("operations")}
-        )
+        _obj = cls.model_validate({
+            "text": obj.get("text"),
+            "operations": obj.get("operations")
+        })
         return _obj
+
+

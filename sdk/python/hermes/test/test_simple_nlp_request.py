@@ -16,7 +16,6 @@ import unittest
 
 from logos_hermes_sdk.models.simple_nlp_request import SimpleNlpRequest
 
-
 class TestSimpleNlpRequest(unittest.TestCase):
     """SimpleNlpRequest unit test stubs"""
 
@@ -28,9 +27,9 @@ class TestSimpleNlpRequest(unittest.TestCase):
 
     def make_instance(self, include_optional) -> SimpleNlpRequest:
         """Test SimpleNlpRequest
-        include_optional is a boolean, when False only required
-        params are included, when True both required and
-        optional params are included"""
+            include_optional is a boolean, when False only required
+            params are included, when True both required and
+            optional params are included """
         # uncomment below to create an instance of `SimpleNlpRequest`
         """
         model = SimpleNlpRequest()
@@ -52,6 +51,5 @@ class TestSimpleNlpRequest(unittest.TestCase):
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()
