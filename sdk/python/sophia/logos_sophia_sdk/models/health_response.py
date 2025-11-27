@@ -22,10 +22,12 @@ from typing import Any, ClassVar, Dict, List, Optional
 from typing import Optional, Set
 from typing_extensions import Self
 
+
 class HealthResponse(BaseModel):
     """
     HealthResponse
-    """ # noqa: E501
+    """  # noqa: E501
+
     status: Optional[StrictStr] = None
     neo4j: Optional[StrictStr] = None
     milvus: Optional[StrictStr] = None
@@ -37,7 +39,6 @@ class HealthResponse(BaseModel):
         validate_assignment=True,
         protected_namespaces=(),
     )
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -63,8 +64,7 @@ class HealthResponse(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -82,12 +82,12 @@ class HealthResponse(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "status": obj.get("status"),
-            "neo4j": obj.get("neo4j"),
-            "milvus": obj.get("milvus"),
-            "version": obj.get("version")
-        })
+        _obj = cls.model_validate(
+            {
+                "status": obj.get("status"),
+                "neo4j": obj.get("neo4j"),
+                "milvus": obj.get("milvus"),
+                "version": obj.get("version"),
+            }
+        )
         return _obj
-
-

@@ -26,4 +26,3 @@ from logos_sophia_sdk.models.plan_response import PlanResponse
 from logos_sophia_sdk.models.simulation_request import SimulationRequest
 from logos_sophia_sdk.models.simulation_response import SimulationResponse
 from logos_sophia_sdk.models.state_response import StateResponse
-
