@@ -11,6 +11,7 @@ import logging
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import datetime
+import re
 from typing import Any
 from uuid import UUID
 
@@ -251,6 +252,32 @@ class HCGClient:
             depth = 1
         return depth
 
+    @staticmethod
+    def _parse_type_labels(node_type: str | None) -> list[str]:
+        """Return normalized labels derived from the provided node type string."""
+        labels = ["Node"]
+        if not node_type:
+            return labels
+
+        raw = re.split(r"[:|,]", node_type)
+        labels.extend(label.strip() for label in raw if label and label.strip())
+        # Preserve order but deduplicate
+        seen: set[str] = set()
+        ordered: list[str] = []
+        for label in labels:
+            if label and label not in seen:
+                seen.add(label)
+                ordered.append(label)
+        return ordered
+
+    @staticmethod
+    def _match_field_for_labels(labels: list[str]) -> str:
+        """Use uuid for core ontology types so read APIs can find the data."""
+        core_labels = {"Entity", "Concept", "State", "Process"}
+        if any(label in core_labels for label in labels):
+            return "uuid"
+        return "id"
+
     # ========== Mutation & Write Operations ==========
 
     def add_node(
@@ -276,8 +303,24 @@ class HCGClient:
         elif not payload["type"]:
             raise ValueError("node_data must include a 'type'")
 
-        query = """
-        MERGE (n:Node {id: $id})
+        labels = self._parse_type_labels(payload["type"])
+        match_field = self._match_field_for_labels(labels)
+
+        match_value = (
+            payload["id"] if match_field == "id" else payload["properties"].get("uuid") or payload["id"]
+        )
+        if not match_value:
+            raise ValueError(f"node_data must include a '{match_field}' field")
+
+        if match_field == "uuid":
+            payload["properties"].setdefault("uuid", match_value)
+
+        payload["match_value"] = match_value
+
+        label_clause = ":".join(labels)
+        query = f"""
+        MERGE (n:{label_clause} {{{match_field}: $match_value}})
+        SET n.id = $id
         SET n.type = $type
         SET n += $properties
         RETURN n.id as id
