@@ -16,7 +16,6 @@ import unittest
 
 from logos_sophia_sdk.models.cwm_state import CWMState
 
-
 class TestCWMState(unittest.TestCase):
     """CWMState unit test stubs"""
 
@@ -28,9 +27,9 @@ class TestCWMState(unittest.TestCase):
 
     def make_instance(self, include_optional) -> CWMState:
         """Test CWMState
-        include_optional is a boolean, when False only required
-        params are included, when True both required and
-        optional params are included"""
+            include_optional is a boolean, when False only required
+            params are included, when True both required and
+            optional params are included """
         # uncomment below to create an instance of `CWMState`
         """
         model = CWMState()
@@ -86,6 +85,5 @@ class TestCWMState(unittest.TestCase):
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()

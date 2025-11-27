@@ -22,32 +22,24 @@ from typing import Any, ClassVar, Dict, List, Optional
 from typing import Optional, Set
 from typing_extensions import Self
 
-
 class CWMStateLinks(BaseModel):
     """
     CWMStateLinks
-    """  # noqa: E501
-
+    """ # noqa: E501
     process_ids: Optional[List[StrictStr]] = None
     plan_id: Optional[StrictStr] = None
     entity_ids: Optional[List[StrictStr]] = None
     media_sample_id: Optional[StrictStr] = None
     persona_entry_id: Optional[StrictStr] = None
     talos_run_id: Optional[StrictStr] = None
-    __properties: ClassVar[List[str]] = [
-        "process_ids",
-        "plan_id",
-        "entity_ids",
-        "media_sample_id",
-        "persona_entry_id",
-        "talos_run_id",
-    ]
+    __properties: ClassVar[List[str]] = ["process_ids", "plan_id", "entity_ids", "media_sample_id", "persona_entry_id", "talos_run_id"]
 
     model_config = ConfigDict(
         populate_by_name=True,
         validate_assignment=True,
         protected_namespaces=(),
     )
+
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -73,7 +65,8 @@ class CWMStateLinks(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([])
+        excluded_fields: Set[str] = set([
+        ])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -91,14 +84,14 @@ class CWMStateLinks(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate(
-            {
-                "process_ids": obj.get("process_ids"),
-                "plan_id": obj.get("plan_id"),
-                "entity_ids": obj.get("entity_ids"),
-                "media_sample_id": obj.get("media_sample_id"),
-                "persona_entry_id": obj.get("persona_entry_id"),
-                "talos_run_id": obj.get("talos_run_id"),
-            }
-        )
+        _obj = cls.model_validate({
+            "process_ids": obj.get("process_ids"),
+            "plan_id": obj.get("plan_id"),
+            "entity_ids": obj.get("entity_ids"),
+            "media_sample_id": obj.get("media_sample_id"),
+            "persona_entry_id": obj.get("persona_entry_id"),
+            "talos_run_id": obj.get("talos_run_id")
+        })
         return _obj
+
+
