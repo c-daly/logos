@@ -74,9 +74,7 @@ class TestConnection:
     def test_connection_invalid_uri(self):
         """Test connection failure with invalid URI."""
         with pytest.raises(HCGConnectionError):
-            HCGClient(
-                uri="bolt://invalid:7687", user=NEO4J_USER, password=NEO4J_PASSWORD
-            )
+            HCGClient(uri="bolt://invalid:7687", user=NEO4J_USER, password=NEO4J_PASSWORD)
 
     def test_context_manager(self, client_with_context):
         """Test client usage as context manager."""

@@ -314,9 +314,7 @@ def test_has_state_relationship_type(shacl_shapes):
         valid_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
     )
 
-    assert (
-        conforms
-    ), f"Valid HAS_STATE relationship should pass. Results:\n{results_text}"
+    assert conforms, f"Valid HAS_STATE relationship should pass. Results:\n{results_text}"
     print("✓ Valid HAS_STATE relationship passed validation")
 
 
@@ -392,9 +390,7 @@ def test_located_at_relationship_type(shacl_shapes):
         valid_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
     )
 
-    assert (
-        conforms
-    ), f"Valid LOCATED_AT relationship should pass. Results:\n{results_text}"
+    assert conforms, f"Valid LOCATED_AT relationship should pass. Results:\n{results_text}"
     print("✓ Valid LOCATED_AT relationship passed validation")
 
 
@@ -419,9 +415,7 @@ def test_attached_to_relationship_type(shacl_shapes):
         valid_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
     )
 
-    assert (
-        conforms
-    ), f"Valid ATTACHED_TO relationship should pass. Results:\n{results_text}"
+    assert conforms, f"Valid ATTACHED_TO relationship should pass. Results:\n{results_text}"
     print("✓ Valid ATTACHED_TO relationship passed validation")
 
 
@@ -447,9 +441,7 @@ def test_precedes_relationship_type(shacl_shapes):
         valid_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
     )
 
-    assert (
-        conforms
-    ), f"Valid PRECEDES relationship should pass. Results:\n{results_text}"
+    assert conforms, f"Valid PRECEDES relationship should pass. Results:\n{results_text}"
     print("✓ Valid PRECEDES relationship passed validation")
 
 
@@ -475,9 +467,7 @@ def test_requires_relationship_type(shacl_shapes):
         valid_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
     )
 
-    assert (
-        conforms
-    ), f"Valid REQUIRES relationship should pass. Results:\n{results_text}"
+    assert conforms, f"Valid REQUIRES relationship should pass. Results:\n{results_text}"
     print("✓ Valid REQUIRES relationship passed validation")
 
 
@@ -502,9 +492,7 @@ def test_can_perform_relationship_type(shacl_shapes):
         valid_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
     )
 
-    assert (
-        conforms
-    ), f"Valid CAN_PERFORM relationship should pass. Results:\n{results_text}"
+    assert conforms, f"Valid CAN_PERFORM relationship should pass. Results:\n{results_text}"
     print("✓ Valid CAN_PERFORM relationship passed validation")
 
 

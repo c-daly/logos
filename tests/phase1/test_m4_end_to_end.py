@@ -194,9 +194,7 @@ class TestM4OntologyLoading:
 
     def test_concepts_loaded(self, loaded_ontology):
         """Verify core concepts are loaded."""
-        returncode, stdout, stderr = run_cypher_query(
-            "MATCH (c:Concept) RETURN count(c) AS count;"
-        )
+        returncode, stdout, stderr = run_cypher_query("MATCH (c:Concept) RETURN count(c) AS count;")
         assert returncode == 0, f"Failed to query concepts: {stderr}"
         # Should have at least the core concepts
         assert "count" in stdout.lower(), "Expected concept count in output"
@@ -227,9 +225,7 @@ class TestM4TestDataLoading:
         )
         returncode, stdout, stderr = run_cypher_query(query)
         assert returncode == 0, f"Failed to query manipulator: {stderr}"
-        assert (
-            "count" in stdout.lower() and "1" in stdout
-        ), "Expected manipulator entity to exist"
+        assert "count" in stdout.lower() and "1" in stdout, "Expected manipulator entity to exist"
 
 
 class TestM4SimulatedWorkflow:
@@ -251,12 +247,8 @@ class TestM4SimulatedWorkflow:
         assert returncode == 0, f"Failed to create goal state: {stderr}"
 
         # Assert specific expected values
-        assert (
-            "TestGoalState_RedBlockInBin" in stdout
-        ), "Expected goal state name not found"
-        assert (
-            "state-goal-test-m4-redblock" in stdout
-        ), "Expected goal state UUID not found"
+        assert "TestGoalState_RedBlockInBin" in stdout, "Expected goal state name not found"
+        assert "state-goal-test-m4-redblock" in stdout, "Expected goal state UUID not found"
 
         # Verify the goal state properties
         verify_query = """
@@ -266,9 +258,7 @@ class TestM4SimulatedWorkflow:
         returncode, stdout, stderr = run_cypher_query(verify_query)
         assert returncode == 0, f"Failed to verify goal state: {stderr}"
         assert "true" in stdout.lower(), "Expected is_goal=true not found"
-        assert (
-            "red block in bin" in stdout.lower()
-        ), "Expected goal description not found"
+        assert "red block in bin" in stdout.lower(), "Expected goal description not found"
 
     def test_create_plan_processes(self, loaded_test_data):
         """Simulate Sophia generating a plan with specific process ordering."""
@@ -308,9 +298,7 @@ class TestM4SimulatedWorkflow:
         assert returncode == 0, f"Failed to create plan processes: {stderr}"
 
         # Assert all expected process names are present
-        assert (
-            "TestMoveToPreGrasp" in stdout
-        ), "Expected MoveToPreGrasp process not found"
+        assert "TestMoveToPreGrasp" in stdout, "Expected MoveToPreGrasp process not found"
         assert "TestGraspRedBlock" in stdout, "Expected GraspRedBlock process not found"
         assert "TestMoveToPlace" in stdout, "Expected MoveToPlace process not found"
         assert "TestReleaseBlock" in stdout, "Expected ReleaseBlock process not found"
@@ -327,9 +315,7 @@ class TestM4SimulatedWorkflow:
         # Should have 3 PRECEDES relationships connecting 4 processes
         assert "3" in stdout, "Expected 3 steps in plan path not found"
 
-    @pytest.mark.skipif(
-        not PLANNER_CLIENT_AVAILABLE, reason="Planner client not available"
-    )
+    @pytest.mark.skipif(not PLANNER_CLIENT_AVAILABLE, reason="Planner client not available")
     def test_create_plan_via_planner_api(self, loaded_test_data):
         """
         Simulate Sophia generating a plan via planner API.
@@ -363,9 +349,7 @@ class TestM4SimulatedWorkflow:
                 RETURN p.uuid, p.name;
                 """
                 returncode, stdout, stderr = run_cypher_query(query)
-                assert (
-                    returncode == 0
-                ), f"Failed to create process {step.process}: {stderr}"
+                assert returncode == 0, f"Failed to create process {step.process}: {stderr}"
                 assert step.process in stdout, f"Expected {step.process} in output"
 
             # Create PRECEDES relationships between sequential steps
@@ -380,9 +364,7 @@ class TestM4SimulatedWorkflow:
                 RETURN p1.name, p2.name;
                 """
                 returncode, stdout, stderr = run_cypher_query(query)
-                assert (
-                    returncode == 0
-                ), f"Failed to create PRECEDES relationship: {stderr}"
+                assert returncode == 0, f"Failed to create PRECEDES relationship: {stderr}"
 
             # Verify plan structure in Neo4j
             verify_query = """
@@ -872,9 +854,7 @@ class TestM4CompleteWorkflow:
 
         RETURN block.name, placed_state.is_grasped, bin.name;
         """
-        returncode, stdout, stderr = run_cypher_query(
-            simulate_placement_execution_query
-        )
+        returncode, stdout, stderr = run_cypher_query(simulate_placement_execution_query)
         assert returncode == 0, f"Failed to simulate placement execution: {stderr}"
         assert "RedBlock01" in stdout, "Expected block name in placement result"
         assert "TargetBin01" in stdout, "Expected bin name in placement result"

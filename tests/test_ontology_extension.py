@@ -66,9 +66,7 @@ def test_core_ontology_structure():
 
 def test_test_data_structure():
     """Test that test_data_pick_and_place.cypher has expected entities."""
-    test_data_file = (
-        Path(__file__).parent.parent / "ontology" / "test_data_pick_and_place.cypher"
-    )
+    test_data_file = Path(__file__).parent.parent / "ontology" / "test_data_pick_and_place.cypher"
     content = test_data_file.read_text()
 
     # Check for robot entities
@@ -160,9 +158,7 @@ def test_shacl_shapes_structure():
 
 def test_uuid_consistency():
     """Test that UUIDs in test data follow the patterns defined in SHACL."""
-    test_data_file = (
-        Path(__file__).parent.parent / "ontology" / "test_data_pick_and_place.cypher"
-    )
+    test_data_file = Path(__file__).parent.parent / "ontology" / "test_data_pick_and_place.cypher"
     content = test_data_file.read_text()
 
     # Extract all UUIDs
@@ -184,9 +180,7 @@ def test_uuid_consistency():
     expected_states = ["state-arm-home-01", "state-gripper-open-01"]
     expected_processes = ["process-move-pregrasp-01", "process-grasp-red-01"]
 
-    for uuid in (
-        expected_entities + expected_concepts + expected_states + expected_processes
-    ):
+    for uuid in expected_entities + expected_concepts + expected_states + expected_processes:
         assert uuid in entity_uuids, f"Expected UUID not found: {uuid}"
 
     print("✓ UUID consistency verified")
@@ -195,9 +189,7 @@ def test_uuid_consistency():
 def test_property_definitions():
     """Test that properties mentioned in SHACL are used in test data."""
     shacl_file = Path(__file__).parent.parent / "ontology" / "shacl_shapes.ttl"
-    test_data_file = (
-        Path(__file__).parent.parent / "ontology" / "test_data_pick_and_place.cypher"
-    )
+    test_data_file = Path(__file__).parent.parent / "ontology" / "test_data_pick_and_place.cypher"
 
     shacl_content = shacl_file.read_text()
     test_content = test_data_file.read_text()

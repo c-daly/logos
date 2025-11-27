@@ -287,9 +287,7 @@ class SHACLValidator:
             # Fail open - allow if validation itself fails
             return True, []
 
-    def validate_mutation(
-        self, mutation_type: str, data: dict[str, Any]
-    ) -> tuple[bool, list[str]]:
+    def validate_mutation(self, mutation_type: str, data: dict[str, Any]) -> tuple[bool, list[str]]:
         """Validate a graph mutation (node or edge operation).
 
         Args:

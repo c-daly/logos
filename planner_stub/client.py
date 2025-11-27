@@ -92,9 +92,7 @@ class PlannerClient:
             response.raise_for_status()
             return PlanResponse(**response.json())
 
-    def generate_plan_for_scenario(
-        self, scenario_name: str, timeout: float = 10.0
-    ) -> PlanResponse:
+    def generate_plan_for_scenario(self, scenario_name: str, timeout: float = 10.0) -> PlanResponse:
         """
         Generate a plan for a named scenario.
 

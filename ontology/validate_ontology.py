@@ -106,9 +106,7 @@ def validate_ttl_file(filepath: Path) -> tuple[bool, list[str]]:
                 ",",
             ] and not stripped.startswith("@"):
                 if i < len(lines):  # Not last line
-                    issues.append(
-                        f"Line {i} may be missing proper termination: {stripped[:50]}"
-                    )
+                    issues.append(f"Line {i} may be missing proper termination: {stripped[:50]}")
 
     return len(issues) == 0, issues
 

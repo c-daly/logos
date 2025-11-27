@@ -111,9 +111,7 @@ class TestMilvusCollections:
                     break
 
             assert uuid_field is not None, f"uuid field not found in {collection_name}"
-            assert (
-                uuid_field.is_primary
-            ), f"uuid is not primary key in {collection_name}"
+            assert uuid_field.is_primary, f"uuid is not primary key in {collection_name}"
 
     def test_embedding_field_dimension(self, milvus_connection):
         """Verify that embedding field has correct dimension."""
@@ -130,9 +128,7 @@ class TestMilvusCollections:
                     embedding_field = field
                     break
 
-            assert (
-                embedding_field is not None
-            ), f"embedding field not found in {collection_name}"
+            assert embedding_field is not None, f"embedding field not found in {collection_name}"
             # Default dimension is 384, but allow other values
             assert (
                 embedding_field.params["dim"] > 0
@@ -159,9 +155,7 @@ class TestMilvusCollections:
                     embedding_indexed = True
                     break
 
-            assert (
-                embedding_indexed
-            ), f"No index on 'embedding' field in {collection_name}"
+            assert embedding_indexed, f"No index on 'embedding' field in {collection_name}"
 
     def test_collection_descriptions(self, milvus_connection):
         """Verify that collections have appropriate descriptions."""
