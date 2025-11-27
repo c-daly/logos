@@ -12,7 +12,7 @@ import re
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import datetime
-from typing import Any
+from typing import Any, cast
 from uuid import UUID
 
 from neo4j import Driver, GraphDatabase, Session
@@ -290,8 +290,10 @@ class HCGClient:
             "type": node_data.get("type"),
             "properties": node_data.get("properties", {}) or {},
         }
+        node_type_value = cast(str | None, payload["type"])
+        properties_dict = cast(dict[str, Any], payload["properties"])
         validation_target = dict(node_data)
-        validation_target.setdefault("properties", payload["properties"])
+        validation_target.setdefault("properties", properties_dict)
 
         if not payload["id"]:
             raise ValueError("node_data must include an 'id'")
@@ -301,19 +303,19 @@ class HCGClient:
         elif not payload["type"]:
             raise ValueError("node_data must include a 'type'")
 
-        labels = self._parse_type_labels(payload["type"])
+        labels = self._parse_type_labels(node_type_value)
         match_field = self._match_field_for_labels(labels)
 
         match_value = (
             payload["id"]
             if match_field == "id"
-            else payload["properties"].get("uuid") or payload["id"]
+            else properties_dict.get("uuid") or payload["id"]
         )
         if not match_value:
             raise ValueError(f"node_data must include a '{match_field}' field")
 
         if match_field == "uuid":
-            payload["properties"].setdefault("uuid", match_value)
+            properties_dict.setdefault("uuid", match_value)
 
         payload["match_value"] = match_value
 
@@ -382,9 +384,10 @@ class HCGClient:
             "id": node_id,
             "properties": properties or {},
         }
+        properties_dict = cast(dict[str, Any], payload["properties"])
 
         if validate:
-            candidate_type = node_type or payload["properties"].get("type")
+            candidate_type = node_type or properties_dict.get("type")
             if not candidate_type:
                 raise HCGValidationError(
                     "Node validation failed",
@@ -394,7 +397,7 @@ class HCGClient:
                 {
                     "id": node_id,
                     "type": candidate_type,
-                    "properties": payload["properties"],
+                    "properties": properties_dict,
                 }
             )
 
