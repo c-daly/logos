@@ -26,7 +26,10 @@ def get_neo4j_config(env: Mapping[str, str] | None = None) -> Neo4jConfig:
     """Build a ``Neo4jConfig`` from environment sources."""
 
     values = env or load_stack_env()
-    uri = get_env_value("NEO4J_URI", values, "bolt://localhost:7687") or "bolt://localhost:7687"
+    uri = (
+        get_env_value("NEO4J_URI", values, "bolt://localhost:7687")
+        or "bolt://localhost:7687"
+    )
     user = get_env_value("NEO4J_USER", values, "neo4j") or "neo4j"
     password = get_env_value("NEO4J_PASSWORD", values, "logosdev") or "logosdev"
     container = resolve_container_name(
