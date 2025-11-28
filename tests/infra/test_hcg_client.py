@@ -390,6 +390,8 @@ class TestErrorHandling:
         # This should not raise an error, just return empty results
         result = hcg_client.find_entity_by_uuid("not-a-valid-uuid-format")
         assert result is None
+
+
 def require_ontology_loaded(client: HCGClient) -> None:
     """Skip tests that require ontology data when nothing has been loaded."""
 
@@ -398,6 +400,4 @@ def require_ontology_loaded(client: HCGClient) -> None:
         _ONTOLOGY_PRESENT = bool(client.find_all_concepts())
 
     if not _ONTOLOGY_PRESENT:
-        pytest.skip(
-            "Neo4j core ontology not loaded; skipping data-dependent HCG tests"
-        )
+        pytest.skip("Neo4j core ontology not loaded; skipping data-dependent HCG tests")
