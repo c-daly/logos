@@ -115,14 +115,20 @@ class PlannerClient:
             scenario_name=scenario_name,
         )
         sophia_payload = self._build_sophia_payload(request)
-        with httpx.Client(timeout=timeout) as client:
-            response = client.post(
-                f"{self.base_url}/plan",
-                json=sophia_payload,
-                headers=self._auth_headers or None,
-            )
-            response.raise_for_status()
-            data = cast(dict[str, Any], response.json())
+        try:
+            with httpx.Client(timeout=timeout) as client:
+                response = client.post(
+                    f"{self.base_url}/plan",
+                    json=sophia_payload,
+                    headers=self._auth_headers or None,
+                )
+                response.raise_for_status()
+                data = cast(dict[str, Any], response.json())
+        except (httpx.HTTPStatusError, httpx.RequestError):
+            fallback = self._fallback_plan(request)
+            if fallback is not None:
+                return fallback
+            raise
 
         plan_steps = self._convert_plan_steps(
             data.get("plan", []), request.scenario_name
@@ -234,6 +240,12 @@ class PlannerClient:
                 )
             )
         return plan_steps
+
+    def _fallback_plan(self, request: PlanRequest) -> PlanResponse | None:
+        """Use SimplePlanner when Sophia API is unavailable."""
+        if request.scenario_name in self._scenarios:
+            return SimplePlanner().generate_plan(request)
+        return None
 
 
 def get_client(base_url: str | None = None) -> PlannerClient:
