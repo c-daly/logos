@@ -107,9 +107,57 @@ Python Tooling
 - This repository includes Python-based utilities for project management and artifact validation.
 - See `DEVELOPMENT.md` for setup instructions and documentation.
 - Install tools via: `pip install -e ".[dev]"`
-- CLI tools: `logos-generate-issues`, `logos-create-issues-by-epoch`
+- CLI tools: `logos-generate-issues`, `logos-create-issues-by-epoch`, `render-test-stacks`
 - Run tests: `pytest`
 - The shared reusable CI workflow defined here also powers the Sophia/Hermes/Talos/Apollo repos.
+
+## Shared Test Infrastructure
+
+**LOGOS provides standardized test utilities and infrastructure for all repos.**
+
+### `logos_test_utils` Package
+
+Shared Python helpers for consistent test infrastructure across all LOGOS repositories:
+
+```python
+from logos_test_utils.neo4j import get_neo4j_config, get_neo4j_driver
+from logos_test_utils.milvus import get_milvus_config, wait_for_milvus
+from logos_test_utils.env import load_stack_env
+```
+
+**Downstream repos** (apollo, hermes, sophia, talos) can consume these helpers by adding to `pyproject.toml`:
+```toml
+[tool.poetry.group.dev.dependencies]
+logos-test-utils = {path = "../logos", develop = true}
+```
+
+See `logos_test_utils/fixtures.py` for ready-to-use pytest fixtures.
+
+### Test Stack Generator
+
+Generate standardized Docker Compose stacks with unique port assignments per repo:
+
+```bash
+# Generate test stacks for all repos
+poetry run render-test-stacks
+
+# Generate for specific repo
+poetry run render-test-stacks --repo apollo
+
+# Verify no drift
+poetry run render-test-stacks --check
+```
+
+**Port Assignments:**
+- logos (dev): 7687, 7474, 19530, 9091
+- apollo: 27xxx/29xxx ranges
+- hermes: 19xxx ranges
+- sophia: 37xxx/39xxx ranges
+- talos: 47xxx/49xxx ranges
+
+See `docs/operations/PORT_REFERENCE.md` for complete port map and `docs/operations/TEST_STANDARDIZATION_MIGRATION.md` for migration guide.
+
+**Credentials:** All repos use standardized `neo4j/logosdev` credentials.
 
 ## Local Testing (CI Parity)
 

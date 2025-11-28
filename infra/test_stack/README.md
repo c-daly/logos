@@ -4,8 +4,16 @@ This directory defines a canonical Docker Compose template for the LOGOS test in
 (Neo4j, Milvus, MinIO, etc.) plus a generator that stamps repo-specific `docker-compose.test.yml`
 files. The goal is to keep every repository's CI stack self-contained **and** consistent: we make
 changes once here, regenerate, and commit the refreshed compose/env files into the downstream
-repository. The background, goals, and acceptance criteria for this work live in
-`docs/issues/2025-11-26-shared-test-stack.md`.
+repository.
+
+**Status:** ✅ **Complete** - Standardization implemented across all repos (Nov 2025)
+
+## Purpose
+
+- **Consistency**: Single source of truth for test infrastructure configuration
+- **Isolation**: Each repo gets unique port assignments to prevent conflicts
+- **Maintainability**: Update once here, regenerate everywhere
+- **Standardization**: Unified credentials (`neo4j/logosdev`), environment variables, and helper patterns
 
 ## Layout
 
@@ -42,29 +50,63 @@ test_stack/
 
 ## Generator
 
-`logos/infra/scripts/render_test_stacks.py` is the only entry point:
+`logos/infra/scripts/render_test_stacks.py` is the entry point:
 
 ```bash
-poetry run python logos/infra/scripts/render_test_stacks.py           # render all repos
-poetry run python logos/infra/scripts/render_test_stacks.py --repo apollo
-poetry run python logos/infra/scripts/render_test_stacks.py --check   # verify staged outputs
+# Available via Poetry script after installation
+poetry run render-test-stacks                    # render all repos
+poetry run render-test-stacks --repo apollo      # single repo
+poetry run render-test-stacks --check            # verify no drift
+
+# Or directly
+poetry run python logos/infra/scripts/render_test_stacks.py
 ```
 
 Key behaviors:
 - Supports single or multi-repo selection with `--repo`.
-- Writes three artifacts per repo inside `out/<repo>/`:
-  - `docker-compose.test.yml`
+- Writes three artifacts per repo to `tests/e2e/stack/<repo>/`:
+  - `docker-compose.test.<repo>.yml`
   - `.env.test`
   - `STACK_VERSION` (12-char hash of the template + relevant config)
-- `--check` recomputes outputs and exits non-zero if anything differs, which is useful for a future
-  GitHub Action that guards against drift.
+- `--check` recomputes outputs and exits non-zero if anything differs (useful for CI drift detection).
 
-## Next Steps (outside this PR)
-1. Copy generated files into each repo and update their CI workflows to call the shared stack.
-2. Add an automated sync job (probably here in `logos/.github/workflows`) that runs the generator,
-   checks for diffs, and either commits them or fails fast.
-3. Populate the `overlays/` directory with real fragments (e.g. Apollo's Sophia mock, OTEL stack,
-   SHACL service) and reference them from `repos.yaml`.
+## Port Assignments
 
-Until then, this directory provides the tooling + documentation so we can have a concrete
-discussion about the approach.
+Each repo has unique port ranges to enable parallel testing:
+
+| Repo | Neo4j Bolt | Neo4j HTTP | Milvus | Milvus Admin |
+|------|------------|------------|--------|--------------|\n| logos (dev) | 7687 | 7474 | 19530 | 9091 |
+| apollo | 27687 | 27474 | 29530 | 29091 |
+| hermes | 19687 | 19474 | 19530 | 19091 |
+| sophia | 37687 | 37474 | 39530 | 39091 |
+| talos | 47687 | 47474 | 49530 | 49091 |
+
+See `docs/operations/PORT_REFERENCE.md` for complete reference.
+
+## Credentials
+
+All repos use standardized credentials:
+- **Neo4j**: `neo4j/logosdev`
+- **Milvus**: No authentication (test mode)
+- **MinIO**: `minioadmin/minioadmin`
+
+## Integration with `logos_test_utils`
+
+Generated `.env.test` files work seamlessly with the `logos_test_utils` package:
+
+```python
+from logos_test_utils.neo4j import get_neo4j_config
+
+# Automatically reads from .env.test, falls back to defaults
+config = get_neo4j_config()
+print(config.uri, config.user, config.password)
+```
+
+## Current Status
+
+- ✅ Generator complete and tested
+- ✅ All repos have standardized compose/env files
+- ✅ Port assignments prevent conflicts
+- ✅ Credentials unified across ecosystem
+- ✅ `logos_test_utils` package adopted by Phase 1 and Phase 2 tests
+- 🔄 Downstream repo adoption in progress (#363-366)

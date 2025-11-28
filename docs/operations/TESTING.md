@@ -216,7 +216,7 @@ SOPHIA_URL=http://localhost:8001
 HERMES_URL=http://localhost:8002
 APOLLO_URL=http://localhost:8003
 
-# Database connections
+# Database connections (standardized across all repos)
 NEO4J_URI=bolt://localhost:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=logosdev
@@ -228,26 +228,141 @@ MILVUS_PORT=19530
 
 ---
 
-## Known Issues
+## Shared Test Utilities (`logos_test_utils`)
 
-### Port Conflicts
+**Location:** `logos/logos_test_utils/`
 
-⚠️ Multiple test environments use the same ports (7687, 7474, 19530, 9091). Running tests from different repos simultaneously will fail.
+The `logos_test_utils` package provides standardized helpers and pytest fixtures for all LOGOS repos.
 
-**Workaround:** Run test suites sequentially.
+### Available Helpers
 
-### Credential Inconsistencies
+```python
+# Environment loading
+from logos_test_utils.env import load_stack_env, get_env_value
 
-⚠️ Hermes uses `neo4j/password` while others use `neo4j/logosdev`.
+# Neo4j utilities
+from logos_test_utils.neo4j import (
+    get_neo4j_config,
+    get_neo4j_driver,
+    wait_for_neo4j,
+    load_cypher_file,
+    run_cypher_query,
+)
+
+# Milvus utilities
+from logos_test_utils.milvus import (
+    get_milvus_config,
+    wait_for_milvus,
+)
+
+# Docker helpers
+from logos_test_utils.docker import (
+    is_container_running,
+    wait_for_container_health,
+    get_container_logs,
+)
+```
+
+### Pytest Fixtures (For Downstream Repos)
+
+Downstream repos (apollo, hermes, sophia, talos) can import ready-to-use fixtures:
+
+```python
+# In conftest.py
+from logos_test_utils.fixtures import (
+    stack_env,
+    neo4j_config,
+    neo4j_driver,
+    load_cypher,
+)
+
+# In tests
+def test_something(neo4j_driver):
+    with neo4j_driver.session() as session:
+        result = session.run("RETURN 1 AS test")
+        assert result.single()["test"] == 1
+```
+
+### Installation in Downstream Repos
+
+Add to `pyproject.toml`:
+```toml
+[tool.poetry.group.dev.dependencies]
+logos-test-utils = {path = "../logos", develop = true}
+```
+
+### Configuration Priority
+
+Helpers follow this resolution order:
+1. OS environment variables (highest priority)
+2. `.env.test` file from generated stack
+3. Hardcoded defaults (lowest priority)
+
+This allows CI overrides while maintaining local defaults.
 
 ---
+
+## Test Stack Generator
+
+**Tool:** `logos/infra/scripts/render_test_stacks.py`
+
+Generates standardized docker-compose and environment files for each repo with unique port assignments.
+
+### Usage
+
+```bash
+# Generate all repos
+poetry run python logos/infra/scripts/render_test_stacks.py
+
+# Generate specific repo
+poetry run python logos/infra/scripts/render_test_stacks.py --repo apollo
+
+# Verify no drift
+poetry run python logos/infra/scripts/render_test_stacks.py --check
+```
+
+### Port Assignments
+
+| Repo | Neo4j Bolt | Neo4j HTTP | Milvus | Milvus Admin |
+|------|------------|------------|--------|--------------|
+| logos (dev) | 7687 | 7474 | 19530 | 9091 |
+| apollo | 27687 | 27474 | 29530 | 29091 |
+| hermes | 19687 | 19474 | 19530 | 19091 |
+| sophia | 37687 | 37474 | 39530 | 39091 |
+| talos | 47687 | 47474 | 49530 | 49091 |
+
+See `docs/operations/PORT_REFERENCE.md` for complete port map.
+
+### Output Files
+
+For each repo:
+- `tests/e2e/stack/<repo>/docker-compose.test.<repo>.yml`
+- `tests/e2e/stack/<repo>/.env.test`
+- `tests/e2e/stack/<repo>/STACK_VERSION`
+
+---
+
+## Migration Guide
+
+For repos adopting the standardized test infrastructure, see:
+- `docs/operations/TEST_STANDARDIZATION_MIGRATION.md` - Step-by-step migration guide
+- `docs/operations/PORT_REFERENCE.md` - Quick reference for port assignments
+
+---
+
+## Completed Improvements ✅
+
+| Item | Completed | Issue |
+|------|-----------|-------|
+| Port standardization | ✅ Nov 2025 | #326, #358 |
+| Shared `logos_test_utils` package | ✅ Nov 2025 | #326, #367 |
+| Test stack generator | ✅ Nov 2025 | #358 |
+| Credential standardization | ✅ Nov 2025 | #369 |
 
 ## Future Improvements
 
 | Item | Issue |
 |------|-------|
-| Port standardization | #326 |
-| Shared `logos_test_utils` package | #326 |
 | Browser E2E tests (Playwright) | #315 |
 | OpenTelemetry testing | #321 |
 | Media ingestion testing | #240 |
