@@ -37,7 +37,7 @@ cd logos/infra
 docker compose -f docker-compose.hcg.dev.yml up -d
 ```
 
-Both provide: Neo4j (bolt://localhost:7687, user: neo4j, password: logosdev), Milvus (localhost:19530)
+Both provide: Neo4j (bolt://localhost:7687, user: neo4j, password: neo4jtest), Milvus (localhost:19530)
 
 ⚠️ **Don't run both!** They use the same ports.
 
@@ -49,14 +49,14 @@ cd logos/tests/phase2
 docker compose -f docker-compose.test.yml up -d
 
 # 2. Wait for infrastructure (optional but recommended)
-# Neo4j: docker exec logos-phase2-neo4j-test cypher-shell -u neo4j -p logosdev "RETURN 1"
+# Neo4j: docker exec logos-phase2-neo4j-test cypher-shell -u neo4j -p neo4jtest "RETURN 1"
 # Milvus: curl http://localhost:9091/healthz
 
 # 3. Start services with proper environment variables
 cd logos/scripts
 NEO4J_URI=bolt://localhost:7687 \
 NEO4J_USER=neo4j \
-NEO4J_PASSWORD=logosdev \
+NEO4J_PASSWORD=neo4jtest \
 MILVUS_HOST=localhost \
 MILVUS_PORT=19530 \
 SOPHIA_API_KEY=test-token-12345 \
@@ -228,7 +228,7 @@ export HERMES_URL=http://localhost:8002
 export APOLLO_URL=http://localhost:8003
 export NEO4J_URI=bolt://localhost:7687
 export NEO4J_USER=neo4j
-export NEO4J_PASSWORD=logosdev
+export NEO4J_PASSWORD=neo4jtest
 export MILVUS_HOST=localhost
 export MILVUS_PORT=19530
 export RUN_P2_E2E=1  # Required to enable tests
@@ -291,7 +291,7 @@ Phase 2 E2E tests run automatically in GitHub Actions (`.github/workflows/phase2
 **Environment Variables (CI):**
 - `NEO4J_URI=bolt://localhost:7687`
 - `NEO4J_USER=neo4j`
-- `NEO4J_PASSWORD=logosdev`
+- `NEO4J_PASSWORD=neo4jtest`
 - `MILVUS_HOST=localhost`
 - `MILVUS_PORT=19530`
 - `SOPHIA_API_KEY=test-ci-key`
@@ -322,7 +322,7 @@ curl http://localhost:8001/health  # Sophia
 curl http://localhost:8002/health  # Hermes
 
 # Check Neo4j
-docker exec logos-phase2-neo4j-test cypher-shell -u neo4j -p logosdev "RETURN 1"
+docker exec logos-phase2-neo4j-test cypher-shell -u neo4j -p neo4jtest "RETURN 1"
 
 # Check Milvus
 curl http://localhost:9091/healthz
