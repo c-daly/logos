@@ -16,6 +16,7 @@ import pytest
 
 from logos_hcg import HCGClient
 from logos_hcg.client import HCGConnectionError, HCGQueryError
+from logos_test_utils.docker import is_container_running
 from logos_test_utils.neo4j import get_neo4j_config, wait_for_neo4j
 
 # Test configuration - defaults pulled from shared stack env
@@ -31,7 +32,20 @@ _ONTOLOGY_PRESENT: bool | None = None
 def ensure_neo4j_ready():
     """Fail fast with diagnostics if Neo4j never becomes available."""
 
-    wait_for_neo4j(NEO4J_CONFIG, timeout=NEO4J_WAIT_TIMEOUT)
+    if not is_container_running(NEO4J_CONFIG.container):
+        pytest.skip(
+            "Neo4j not available. Start with: "
+            "docker compose -f infra/docker-compose.hcg.dev.yml up -d"
+        )
+
+    try:
+        wait_for_neo4j(NEO4J_CONFIG, timeout=NEO4J_WAIT_TIMEOUT)
+    except (RuntimeError, FileNotFoundError) as exc:
+        pytest.skip(
+            "Neo4j not available. Start with: "
+            "docker compose -f infra/docker-compose.hcg.dev.yml up -d\n"
+            f"Details: {exc}"
+        )
 
 
 @pytest.fixture(scope="module")

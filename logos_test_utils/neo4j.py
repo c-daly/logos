@@ -34,7 +34,7 @@ def get_neo4j_config(env: Mapping[str, str] | None = None) -> Neo4jConfig:
     password = get_env_value("NEO4J_PASSWORD", values, "neo4jtest") or "neo4jtest"
     container = resolve_container_name(
         "NEO4J_CONTAINER",
-        "logos-phase2-test-neo4j",
+        "logos-hcg-neo4j",
         values,
     )
     return Neo4jConfig(uri=uri, user=user, password=password, container=container)
