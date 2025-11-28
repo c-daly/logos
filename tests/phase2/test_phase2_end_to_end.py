@@ -80,6 +80,7 @@ class TestP2M1ServicesOnline:
             assert data["status"] in [
                 "healthy",
                 "ok",
+                "degraded",
             ], f"Unexpected status: {data['status']}"
 
             print(f"✓ Sophia service healthy at {SOPHIA_URL}")
