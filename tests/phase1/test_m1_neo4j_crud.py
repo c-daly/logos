@@ -20,11 +20,21 @@ from neo4j.exceptions import ClientError
 
 from logos_test_utils.neo4j import (
     get_neo4j_config,
+    get_neo4j_driver,
     load_cypher_file,
 )
 
 NEO4J_CONFIG = get_neo4j_config()
 REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
+@pytest.fixture(scope="module")
+def neo4j_driver():
+    """Provide a Neo4j driver tied to the shared stack."""
+
+    driver = get_neo4j_driver(NEO4J_CONFIG)
+    yield driver
+    driver.close()
 
 
 @pytest.fixture(scope="module")
