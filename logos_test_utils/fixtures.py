@@ -1,4 +1,45 @@
-"""Pytest fixtures that can be reused across LOGOS repos."""
+"""Pytest fixtures that can be reused across LOGOS repos.
+
+This module provides ready-to-use pytest fixtures for downstream repos
+(apollo, hermes, sophia, talos) to consume when they adopt the standardized
+test infrastructure.
+
+Usage in downstream repos:
+    1. Add logos_test_utils to dev dependencies in pyproject.toml:
+       ```toml
+       [tool.poetry.group.dev.dependencies]
+       logos-test-utils = {path = "../logos", develop = true}
+       ```
+
+    2. Import fixtures in conftest.py:
+       ```python
+       from logos_test_utils.fixtures import (
+           stack_env,
+           neo4j_config,
+           neo4j_driver,
+           load_cypher,
+       )
+       ```
+
+    3. Use fixtures in tests:
+       ```python
+       def test_something(neo4j_driver):
+           with neo4j_driver.session() as session:
+               result = session.run("RETURN 1 AS test")
+               assert result.single()["test"] == 1
+       ```
+
+Note: The logos repo itself typically imports helper functions directly
+(e.g., `get_neo4j_config()`) rather than using these fixtures, since its
+tests pre-date fixture standardization. New tests should consider using
+fixtures for consistency with downstream repos.
+
+Available fixtures:
+- stack_env: Parsed environment from .env.test
+- neo4j_config: Neo4j connection configuration
+- neo4j_driver: Connected Neo4j driver (session-scoped, auto-cleanup)
+- load_cypher: Helper function to load .cypher files
+"""
 
 from __future__ import annotations
 

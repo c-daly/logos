@@ -15,6 +15,10 @@ from typing import Any
 import pytest
 import requests
 
+from logos_test_utils.env import load_stack_env
+from logos_test_utils.milvus import get_milvus_config
+from logos_test_utils.neo4j import get_neo4j_config
+
 # Try to import Apollo SDK clients
 try:
     from apollo.client.hermes_client import HermesClient
@@ -26,15 +30,22 @@ try:
 except ImportError:
     APOLLO_SDK_AVAILABLE = False
 
+# Load stack environment and configs
+STACK_ENV = load_stack_env()
+NEO4J_CONFIG = get_neo4j_config(STACK_ENV)
+MILVUS_CONFIG = get_milvus_config(STACK_ENV)
+
 # Service URLs
 SOPHIA_URL = os.getenv("SOPHIA_URL", "http://localhost:8001")
 HERMES_URL = os.getenv("HERMES_URL", "http://localhost:8002")
 APOLLO_URL = os.getenv("APOLLO_URL", "http://localhost:8003")
-NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
-NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "neo4jtest")
-MILVUS_HOST = os.getenv("MILVUS_HOST", "localhost")
-MILVUS_PORT = int(os.getenv("MILVUS_PORT", "19530"))
+
+# Extract Neo4j/Milvus config from helpers
+NEO4J_URI = NEO4J_CONFIG.uri
+NEO4J_USER = NEO4J_CONFIG.user
+NEO4J_PASSWORD = NEO4J_CONFIG.password
+MILVUS_HOST = MILVUS_CONFIG.host
+MILVUS_PORT = int(MILVUS_CONFIG.port)
 
 
 # ============================================================================

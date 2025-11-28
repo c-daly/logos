@@ -31,6 +31,7 @@ classifiers = [
 packages = [
     { include = "logos_tools" },
     { include = "logos_hcg" },
+    { include = "logos_test_utils" },
     { include = "logos_observability" },
     { include = "logos_persona" },
     { include = "logos_cwm_e" },
@@ -68,6 +69,7 @@ types-requests = "^2.31.0"
 [tool.poetry.scripts]
 logos-generate-issues = "logos_tools.generate_issues:main"
 logos-create-issues-by-epoch = "logos_tools.create_issues_by_epoch:main"
+render-test-stacks = "infra.scripts.render_test_stacks:main"
 
 [tool.pytest.ini_options]
 minversion = "7.0"
