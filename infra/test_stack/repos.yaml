@@ -27,6 +27,8 @@ defaults:
     MILVUS_HOST: milvus
     MILVUS_PORT: "{milvus_grpc_port}"
     MILVUS_HEALTHCHECK: "http://milvus:{milvus_metrics_port}/healthz"
+    NEO4J_CONTAINER: "{service_prefix}-neo4j"
+    MILVUS_CONTAINER: "{service_prefix}-milvus"
 repos:
   logos:
     path: .

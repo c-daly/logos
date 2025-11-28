@@ -9,8 +9,17 @@ STACK_DIR="${SCRIPT_DIR}/stack/logos"
 COMPOSE_FILE="${STACK_DIR}/docker-compose.test.yml"
 COMPOSE_ENV_FILE="${STACK_DIR}/.env.test"
 
+# Load stack environment variables so helper commands/tests stay in sync
+if [ -f "${COMPOSE_ENV_FILE}" ]; then
+    set -a
+    # shellcheck disable=SC1090
+    source "${COMPOSE_ENV_FILE}"
+    set +a
+fi
+
 # Export container names for tests that use docker exec
-export NEO4J_CONTAINER="logos-phase2-test-neo4j"
+export NEO4J_CONTAINER="${NEO4J_CONTAINER:-logos-phase2-test-neo4j}"
+export MILVUS_CONTAINER="${MILVUS_CONTAINER:-logos-phase2-test-milvus}"
 
 compose() {
     docker compose \
@@ -137,9 +146,19 @@ function check_status() {
 }
 
 function run_test() {
-    echo -e "${BLUE}Running test suite...${NC}"
+    echo -e "${BLUE}Starting full test run (stack + seed + pytest)...${NC}"
+
+    start_services
+    trap 'stop_services' EXIT
+
+    seed_data
+
+    echo -e "${BLUE}Running pytest...${NC}"
     cd "${REPO_ROOT}"
     NEO4J_CONTAINER="${NEO4J_CONTAINER}" poetry run pytest -v tests/
+
+    trap - EXIT
+    stop_services
 }
 
 function clean_all() {

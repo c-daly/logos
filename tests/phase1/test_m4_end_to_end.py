@@ -19,6 +19,11 @@ from pathlib import Path
 
 import pytest
 
+from tests.utils.container_utils import (
+    resolve_milvus_container,
+    resolve_neo4j_container,
+)
+
 # Try to import planner client for API-based planning
 try:
     from planner_stub.client import PlannerClient
@@ -40,7 +45,8 @@ REPO_ROOT = Path(__file__).parent.parent.parent
 NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
 NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "logosdev")
-NEO4J_CONTAINER = os.getenv("NEO4J_CONTAINER", "logos-hcg-neo4j")
+NEO4J_CONTAINER = resolve_neo4j_container()
+MILVUS_CONTAINER = resolve_milvus_container()
 
 
 def is_neo4j_available() -> bool:
@@ -76,7 +82,7 @@ def is_milvus_available() -> bool:
             text=True,
             timeout=5,
         )
-        return "logos-hcg-milvus" in result.stdout
+        return MILVUS_CONTAINER in result.stdout
     except Exception:
         return False
 

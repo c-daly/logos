@@ -83,6 +83,11 @@ cd ../..
 SOPHIA_API_KEY=test-token-12345 RUN_P2_E2E=1 poetry run pytest tests/phase2/test_phase2_end_to_end.py -v
 ```
 
+> **Tip:** `tests/e2e/run_e2e.sh` wraps the same stack definition, sources the
+> generated `.env.test`, and exports the container identifiers required by the
+> integration tests. Prefer the helper when you need the Phase 1 milestone
+> suites and Phase 2 flows to share a single stack.
+
 ---
 
 ## CI/CD Requirements
@@ -206,25 +211,48 @@ RUN_M4_E2E=1 pytest tests/phase1/test_m4_end_to_end.py
 
 ## Environment Variables
 
-```bash
-# Enable E2E tests
-RUN_P2_E2E=1
-RUN_M4_E2E=1
+`tests/e2e/stack/logos/.env.test` is the canonical schema for the shared test
+stack. The file is generated via `poetry run render-test-stacks --repo logos`
+and is automatically sourced by `tests/e2e/run_e2e.sh`. Copy or export the
+variables below when running tests directly via `pytest`.
 
-# Service URLs
+### Test Toggles
+
+```bash
+RUN_P2_E2E=1      # Enable Phase 2 end-to-end suite
+RUN_M4_E2E=1      # Enable Phase 1 Milestone 4 suite
+```
+
+### Service URLs
+
+```bash
 SOPHIA_URL=http://localhost:8001
 HERMES_URL=http://localhost:8002
 APOLLO_URL=http://localhost:8003
+```
 
-# Database connections
-NEO4J_URI=bolt://localhost:7687
+### Neo4j Configuration
+
+```bash
+NEO4J_URI=bolt://neo4j:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=logosdev
-
-# Milvus
-MILVUS_HOST=localhost
-MILVUS_PORT=19530
+NEO4J_CONTAINER=logos-phase2-test-neo4j   # Optional override when reusing an existing stack
 ```
+
+### Milvus Configuration
+
+```bash
+MILVUS_HOST=milvus
+MILVUS_PORT=19530
+MILVUS_HEALTHCHECK=http://milvus:9091/healthz
+MILVUS_CONTAINER=logos-phase2-test-milvus
+```
+
+> Integration tests auto-detect the running container names via
+> `tests/utils/container_utils.py`, but defining `NEO4J_CONTAINER` and
+> `MILVUS_CONTAINER` keeps the behaviour deterministic across CI jobs and local
+> developer stacks.
 
 ---
 

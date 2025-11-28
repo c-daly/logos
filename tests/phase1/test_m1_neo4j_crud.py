@@ -20,11 +20,13 @@ import pytest
 from neo4j import GraphDatabase
 from neo4j.exceptions import ClientError, ServiceUnavailable
 
+from tests.utils.container_utils import resolve_neo4j_container
+
 # Test configuration
 NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
 NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "logosdev")
-NEO4J_CONTAINER = os.getenv("NEO4J_CONTAINER", "logos-hcg-neo4j")
+NEO4J_CONTAINER = resolve_neo4j_container()
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 
 
