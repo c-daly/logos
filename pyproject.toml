@@ -35,7 +35,8 @@ packages = [
     { include = "logos_persona" },
     { include = "logos_cwm_e" },
     { include = "logos_perception" },
-    { include = "logos_sophia" }
+    { include = "logos_sophia" },
+    { include = "logos_test_utils" }
 ]
 
 [tool.poetry.dependencies]

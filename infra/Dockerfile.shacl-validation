@@ -23,6 +23,7 @@ COPY logos_persona ./logos_persona
 COPY logos_cwm_e ./logos_cwm_e
 COPY logos_perception ./logos_perception
 COPY logos_sophia ./logos_sophia
+COPY logos_test_utils ./logos_test_utils
 
 # Install dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
