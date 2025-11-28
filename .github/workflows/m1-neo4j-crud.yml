@@ -48,6 +48,12 @@ jobs:
           echo "✓ Neo4j container started"
           echo "Waiting for APOC plugin to download..."
           sleep 15
+
+      - name: Load core ontology into Neo4j
+        run: |
+          echo "Seeding Neo4j with core ontology..."
+          ./infra/load_ontology.sh
+          echo "✓ Core ontology loaded"
       
       - name: Wait for Neo4j to be ready
         run: |
