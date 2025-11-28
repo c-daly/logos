@@ -24,6 +24,7 @@ COPY logos_cwm_e ./logos_cwm_e
 COPY logos_perception ./logos_perception
 COPY logos_sophia ./logos_sophia
 COPY logos_test_utils ./logos_test_utils
+COPY planner_stub ./planner_stub
 
 # Install dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
