@@ -13,7 +13,7 @@ ONTOLOGY_FILE="${REPO_ROOT}/ontology/core_ontology.cypher"
 # Configuration
 NEO4J_CONTAINER="${NEO4J_CONTAINER:-logos-hcg-neo4j}"
 NEO4J_USER="${NEO4J_USER:-neo4j}"
-NEO4J_PASSWORD="${NEO4J_PASSWORD:-logosdev}"
+NEO4J_PASSWORD="${NEO4J_PASSWORD:-neo4jtest}"
 
 # Colors for output
 RED='\033[0;31m'

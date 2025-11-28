@@ -26,6 +26,7 @@ permissions:
 env:
   NEO4J_CONTAINER: logos-hcg-neo4j
   MILVUS_CONTAINER: logos-hcg-milvus
+  RUN_HCG_TESTS: "1"
 
 jobs:
   e2e-prototype-test:
