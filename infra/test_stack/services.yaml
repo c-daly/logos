@@ -25,7 +25,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - "{network_name}"
+      - default
 
   milvus-etcd:
     container_name: "{service_prefix}-milvus-etcd"
@@ -45,7 +45,7 @@ services:
     volumes:
       - "{volume_prefix}_milvus_etcd:/etcd"
     networks:
-      - "{network_name}"
+      - default
 
   milvus-minio:
     container_name: "{service_prefix}-milvus-minio"
@@ -70,7 +70,7 @@ services:
       - "{minio_api_port}:9000"
       - "{minio_console_port}:9001"
     networks:
-      - "{network_name}"
+      - default
 
   milvus:
     container_name: "{service_prefix}-milvus"
@@ -93,7 +93,7 @@ services:
       timeout: 20s
       retries: 3
     networks:
-      - "{network_name}"
+      - default
 
 volumes:
   "{volume_prefix}_neo4j_data": {}
