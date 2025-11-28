@@ -3,6 +3,7 @@
     {
       "name": "simple_grasp",
       "description": "Single-step plan to grasp an object",
+      "target_state": "object_grasped",
       "initial_state": {
         "gripper": "open",
         "arm_position": "pre_grasp",
@@ -22,6 +23,7 @@
     {
       "name": "pick_and_place",
       "description": "Multi-step plan to pick up object and place it",
+      "target_state": "red_block_in_bin",
       "initial_state": {
         "gripper": "open",
         "arm_position": "home",
