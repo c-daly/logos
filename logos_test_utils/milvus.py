@@ -22,8 +22,8 @@ class MilvusConfig:
 
 def get_milvus_config(env: Mapping[str, str] | None = None) -> MilvusConfig:
     values = env or load_stack_env()
-    host = get_env_value("MILVUS_HOST", values, "milvus")
-    port = get_env_value("MILVUS_PORT", values, "19530")
+    host = get_env_value("MILVUS_HOST", values, "milvus") or "milvus"
+    port = get_env_value("MILVUS_PORT", values, "19530") or "19530"
     container = resolve_container_name(
         "MILVUS_CONTAINER",
         "logos-phase2-test-milvus",
