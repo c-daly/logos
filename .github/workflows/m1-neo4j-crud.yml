@@ -17,6 +17,10 @@ on:
 permissions:
   contents: read
 
+env:
+  NEO4J_CONTAINER: logos-hcg-neo4j
+  MILVUS_CONTAINER: logos-hcg-milvus
+
 jobs:
   m1-neo4j-crud:
     name: M1 HCG Store and Retrieve Test
@@ -48,7 +52,7 @@ jobs:
       - name: Wait for Neo4j to be ready
         run: |
           echo "Waiting for Neo4j to be ready..."
-          timeout 180 bash -c 'until docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "RETURN 1 AS test" 2>/dev/null | grep -q "test"; do sleep 5; done'
+          timeout 180 bash -c 'until docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "RETURN 1 AS test" 2>/dev/null | grep -q "test"; do sleep 5; done'
           echo "✓ Neo4j is ready"
           # Give Neo4j extra time to finish loading plugins
           sleep 10
@@ -56,7 +60,7 @@ jobs:
       - name: Verify Neo4j is accessible
         run: |
           echo "Verifying Neo4j connection..."
-          docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "RETURN 1 AS test"
+          docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "RETURN 1 AS test"
           echo "✓ Neo4j connection verified"
       
       - name: Check Neo4j logs

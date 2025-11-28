@@ -7,7 +7,7 @@ import os
 import subprocess
 import time
 from collections.abc import Mapping, MutableMapping
-from typing import Any
+from typing import Any, cast
 
 
 def resolve_container_name(
@@ -67,7 +67,10 @@ def inspect_container_state(container_name: str) -> MutableMapping[str, Any] | N
         )
         if result.returncode != 0 or not result.stdout.strip():
             return None
-        return json.loads(result.stdout)
+        state = json.loads(result.stdout)
+        if isinstance(state, MutableMapping):
+            return cast(MutableMapping[str, Any], state)
+        return None
     except (subprocess.SubprocessError, json.JSONDecodeError):
         return None
 

@@ -19,6 +19,10 @@ on:
 permissions:
   contents: read
 
+env:
+  NEO4J_CONTAINER: logos-hcg-neo4j
+  MILVUS_CONTAINER: logos-hcg-milvus
+
 jobs:
   validate-cypher:
     name: Validate Cypher Ontology
@@ -34,12 +38,12 @@ jobs:
         run: |
           docker run -d --name neo4j-validator \
             -p 7474:7474 -p 7687:7687 \
-            -e NEO4J_AUTH=neo4j/testpassword \
+            -e NEO4J_AUTH=neo4j/neo4jtest \
             -e NEO4J_PLUGINS='["apoc", "n10s"]' \
             neo4j:5.13.0
           
           echo "Waiting for Neo4j to start..."
-          timeout 60 bash -c 'until docker exec neo4j-validator cypher-shell -u neo4j -p testpassword "RETURN 1;" 2>/dev/null; do sleep 2; done'
+          timeout 60 bash -c 'until docker exec neo4j-validator cypher-shell -u neo4j -p neo4jtest "RETURN 1;" 2>/dev/null; do sleep 2; done'
           echo "Neo4j is ready"
       
       - name: Validate core_ontology.cypher syntax
@@ -47,7 +51,7 @@ jobs:
           echo "Validating Cypher syntax for core_ontology.cypher..."
           
           # Execute the Cypher script to validate syntax
-          docker exec neo4j-validator cypher-shell -u neo4j -p testpassword \
+          docker exec neo4j-validator cypher-shell -u neo4j -p neo4jtest \
             -f /dev/stdin < ontology/core_ontology.cypher
           
           echo "✅ Cypher syntax validation passed"
