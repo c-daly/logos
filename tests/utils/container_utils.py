@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
 import os
 import subprocess
+from collections.abc import Iterable
 
 DEFAULT_NEO4J_CANDIDATES: tuple[str, ...] = (
     "logos-phase2-test-neo4j",
