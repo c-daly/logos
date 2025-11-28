@@ -31,7 +31,6 @@ classifiers = [
 packages = [
     { include = "logos_tools" },
     { include = "logos_hcg" },
-    { include = "logos_test_utils" },
     { include = "logos_observability" },
     { include = "logos_persona" },
     { include = "logos_cwm_e" },
@@ -39,7 +38,8 @@ packages = [
     { include = "logos_sophia" }
 ]
 
-[tool.poetry.dependencies]
+# Test utilities are available but optional (dev/test only)
+[tool.poetry.group.test.dependencies]
 python = "^3.10"
 rdflib = "^7.0.0"
 pyshacl = "^0.25.0"
