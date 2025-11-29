@@ -14,10 +14,10 @@
 
 import unittest
 
-from logos_sophia_sdk.models.plan_request import PlanRequest
+from logos_sophia_sdk.models.plan_request_goal import PlanRequestGoal
 
-class TestPlanRequest(unittest.TestCase):
-    """PlanRequest unit test stubs"""
+class TestPlanRequestGoal(unittest.TestCase):
+    """PlanRequestGoal unit test stubs"""
 
     def setUp(self):
         pass
@@ -25,36 +25,28 @@ class TestPlanRequest(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def make_instance(self, include_optional) -> PlanRequest:
-        """Test PlanRequest
+    def make_instance(self, include_optional) -> PlanRequestGoal:
+        """Test PlanRequestGoal
             include_optional is a boolean, when False only required
             params are included, when True both required and
             optional params are included """
-        # uncomment below to create an instance of `PlanRequest`
+        # uncomment below to create an instance of `PlanRequestGoal`
         """
-        model = PlanRequest()
+        model = PlanRequestGoal()
         if include_optional:
-            return PlanRequest(
-                goal = logos_sophia_sdk.models.plan_request_goal.PlanRequest_goal(
-                    description = '', 
-                    target_state = '', ),
-                context = { },
-                constraints = [
-                    ''
-                    ],
-                priority = 'P1',
-                metadata = { }
+            return PlanRequestGoal(
+                description = '',
+                target_state = ''
             )
         else:
-            return PlanRequest(
-                goal = logos_sophia_sdk.models.plan_request_goal.PlanRequest_goal(
-                    description = '', 
-                    target_state = '', ),
+            return PlanRequestGoal(
+                description = '',
+                target_state = '',
         )
         """
 
-    def testPlanRequest(self):
-        """Test PlanRequest"""
+    def testPlanRequestGoal(self):
+        """Test PlanRequestGoal"""
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 

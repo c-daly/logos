@@ -1,30 +1,25 @@
 
-# PlanRequest
+# PlanRequestGoal
 
+Goal specification with description and target_state
 
 ## Properties
 
 Name | Type
 ------------ | -------------
-`goal` | [PlanRequestGoal](PlanRequestGoal.md)
-`context` | { [key: string]: any; }
-`constraints` | Array&lt;string&gt;
-`priority` | string
-`metadata` | { [key: string]: any; }
+`description` | string
+`targetState` | string
 
 ## Example
 
 ```typescript
-import type { PlanRequest } from '@logos/sophia-sdk'
+import type { PlanRequestGoal } from '@logos/sophia-sdk'
 
 // TODO: Update the object below with actual values
 const example = {
-  "goal": null,
-  "context": null,
-  "constraints": null,
-  "priority": P1,
-  "metadata": null,
-} satisfies PlanRequest
+  "description": null,
+  "targetState": null,
+} satisfies PlanRequestGoal
 
 console.log(example)
 
@@ -33,7 +28,7 @@ const exampleJSON: string = JSON.stringify(example)
 console.log(exampleJSON)
 
 // Parse the JSON string back to an object
-const exampleParsed = JSON.parse(exampleJSON) as PlanRequest
+const exampleParsed = JSON.parse(exampleJSON) as PlanRequestGoal
 console.log(exampleParsed)
 ```
 

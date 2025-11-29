@@ -13,6 +13,7 @@ docs/CWMStateData.md
 docs/CWMStateLinks.md
 docs/HealthResponse.md
 docs/PlanRequest.md
+docs/PlanRequestGoal.md
 docs/PlanResponse.md
 docs/PlanningApi.md
 docs/SimulationRequest.md
@@ -40,6 +41,7 @@ logos_sophia_sdk/models/cwme_sentiment_data.py
 logos_sophia_sdk/models/cwmg_imagined_data.py
 logos_sophia_sdk/models/health_response.py
 logos_sophia_sdk/models/plan_request.py
+logos_sophia_sdk/models/plan_request_goal.py
 logos_sophia_sdk/models/plan_response.py
 logos_sophia_sdk/models/simulation_request.py
 logos_sophia_sdk/models/simulation_response.py
@@ -61,6 +63,7 @@ test/test_cwme_sentiment_data.py
 test/test_cwmg_imagined_data.py
 test/test_health_response.py
 test/test_plan_request.py
+test/test_plan_request_goal.py
 test/test_plan_response.py
 test/test_planning_api.py
 test/test_simulation_request.py
