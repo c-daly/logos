@@ -82,9 +82,7 @@ def create_persona_api(driver: Driver) -> APIRouter:
         entries = diary.get_recent_entries(limit=limit, sentiment=sentiment)
         return [PersonaEntryResponse(**entry.to_dict()) for entry in entries]
 
-    @router.get(
-        "/entries/process/{process_uuid}", response_model=list[PersonaEntryResponse]
-    )
+    @router.get("/entries/process/{process_uuid}", response_model=list[PersonaEntryResponse])
     def get_entries_for_process(process_uuid: str):
         """
         Get all persona entries related to a specific process.

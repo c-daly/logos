@@ -96,9 +96,7 @@ def check_sync_consistency(
 
     try:
         # Get UUIDs from Neo4j for each node type
-        with HCGClient(
-            uri=neo4j_uri, user=neo4j_user, password=neo4j_password
-        ) as client:
+        with HCGClient(uri=neo4j_uri, user=neo4j_user, password=neo4j_password) as client:
             # Entity UUIDs
             entities = client.find_all_entities()
             entity_uuids = {str(e.uuid) for e in entities}
@@ -206,9 +204,7 @@ def print_sync_status(sync_reports: dict[str, Any]) -> bool:
         if not report["in_sync"]:
             all_in_sync = False
             if report["orphaned_embeddings"]:
-                print(
-                    f"   ⚠ {len(report['orphaned_embeddings'])} orphaned embeddings in Milvus"
-                )
+                print(f"   ⚠ {len(report['orphaned_embeddings'])} orphaned embeddings in Milvus")
             if report["missing_embeddings"]:
                 print(f"   ⚠ {len(report['missing_embeddings'])} missing embeddings")
 

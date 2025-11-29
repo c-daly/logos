@@ -42,9 +42,7 @@ class MediaIngestService:
         self.neo4j_driver = neo4j_driver
         self.milvus_collection_name = milvus_collection_name
         self.milvus_alias = milvus_alias
-        logger.info(
-            f"Initialized MediaIngestService with collection {milvus_collection_name}"
-        )
+        logger.info(f"Initialized MediaIngestService with collection {milvus_collection_name}")
 
     def ingest_frame(
         self,
@@ -123,9 +121,7 @@ class MediaIngestService:
                 )
                 return frame_id
 
-            collection = Collection(
-                name=self.milvus_collection_name, using=self.milvus_alias
-            )
+            collection = Collection(name=self.milvus_collection_name, using=self.milvus_alias)
 
             # Insert embedding
             data = [[frame_id], [embedding]]
@@ -142,9 +138,7 @@ class MediaIngestService:
             # In Talos-free scenarios, this is non-critical
             return frame_id
 
-    def link_frame_to_simulation(
-        self, frame_id: str, simulation_process_uuid: str
-    ) -> None:
+    def link_frame_to_simulation(self, frame_id: str, simulation_process_uuid: str) -> None:
         """
         Link a frame to an imagination simulation process.
 
@@ -164,9 +158,7 @@ class MediaIngestService:
                 frame_id=frame_id,
                 process_uuid=simulation_process_uuid,
             )
-            logger.info(
-                f"Linked frame {frame_id} to simulation {simulation_process_uuid}"
-            )
+            logger.info(f"Linked frame {frame_id} to simulation {simulation_process_uuid}")
 
     def get_frame_metadata(self, frame_id: str) -> dict[str, Any] | None:
         """

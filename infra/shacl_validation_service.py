@@ -55,9 +55,7 @@ def load_shacl_shapes():
     try:
         shacl_shapes_graph = Graph()
         shacl_shapes_graph.parse(shapes_file, format="turtle")
-        logger.info(
-            f"Loaded {len(shacl_shapes_graph)} SHACL triples from {shapes_file}"
-        )
+        logger.info(f"Loaded {len(shacl_shapes_graph)} SHACL triples from {shapes_file}")
     except Exception as e:
         logger.error(f"Failed to load SHACL shapes: {e}")
         raise
@@ -129,9 +127,7 @@ class ValidationResult(BaseModel):
 
     conforms: bool = Field(..., description="True if data conforms to SHACL shapes")
 
-    violations_count: int = Field(
-        ..., description="Number of validation violations found"
-    )
+    violations_count: int = Field(..., description="Number of validation violations found")
 
     report_text: str = Field(..., description="Human-readable validation report")
 
@@ -221,9 +217,7 @@ async def validate_data(request: ValidationRequest):
             # Count "Constraint Violation" occurrences in report
             violations_count = results_text.count("Constraint Violation")
 
-        logger.info(
-            f"Validation complete: conforms={conforms}, violations={violations_count}"
-        )
+        logger.info(f"Validation complete: conforms={conforms}, violations={violations_count}")
 
         return ValidationResult(
             conforms=conforms,

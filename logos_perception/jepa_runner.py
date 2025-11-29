@@ -117,9 +117,7 @@ class JEPARunner:
                 confidence=max(0.1, confidence),
                 metadata={
                     "source": (
-                        "cpu_runner"
-                        if not self.config.use_hardware_sim
-                        else "hardware_sim"
+                        "cpu_runner" if not self.config.use_hardware_sim else "hardware_sim"
                     ),
                     "context_keys": list(context.keys()),
                 },

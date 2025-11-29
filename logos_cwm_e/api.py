@@ -127,9 +127,7 @@ def create_cwm_e_api(driver: Driver) -> APIRouter:
             emotions=[EmotionStateResponse(**e.to_dict()) for e in emotions],
         )
 
-    @router.get(
-        "/emotions/process/{process_uuid}", response_model=list[EmotionStateResponse]
-    )
+    @router.get("/emotions/process/{process_uuid}", response_model=list[EmotionStateResponse])
     def get_emotions_for_process(process_uuid: str):
         """
         Get all emotion states tagged on a process.
@@ -143,9 +141,7 @@ def create_cwm_e_api(driver: Driver) -> APIRouter:
         emotions = reflector.get_emotions_for_process(process_uuid)
         return [EmotionStateResponse(**e.to_dict()) for e in emotions]
 
-    @router.get(
-        "/emotions/entity/{entity_uuid}", response_model=list[EmotionStateResponse]
-    )
+    @router.get("/emotions/entity/{entity_uuid}", response_model=list[EmotionStateResponse])
     def get_emotions_for_entity(entity_uuid: str):
         """
         Get all emotion states tagged on an entity.

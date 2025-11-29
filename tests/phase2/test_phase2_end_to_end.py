@@ -213,9 +213,7 @@ class TestP2CWMStateEnvelope:
         from apollo.config.settings import SophiaConfig
 
         config = SophiaConfig(
-            host=SOPHIA_URL.replace("http://", "")
-            .replace("https://", "")
-            .split(":")[0],
+            host=SOPHIA_URL.replace("http://", "").replace("https://", "").split(":")[0],
             port=int(SOPHIA_URL.split(":")[-1]) if ":" in SOPHIA_URL else 8001,
             api_key=os.getenv("SOPHIA_API_KEY", "test-token-12345"),
         )
@@ -226,9 +224,7 @@ class TestP2CWMStateEnvelope:
         if not APOLLO_SDK_AVAILABLE:
             pytest.skip("Apollo SDK not available")
 
-        pytest.skip(
-            "Blocked by sophia#32 and apollo#91 - SDK sends string, API expects dict"
-        )
+        pytest.skip("Blocked by sophia#32 and apollo#91 - SDK sends string, API expects dict")
 
         response = sophia_client.create_goal("Test goal: pick up red block")
 
@@ -250,9 +246,7 @@ class TestP2CWMStateEnvelope:
             found_fields = [f for f in cwm_fields if f in data]
 
             if found_fields:
-                print(
-                    f"✓ CWMState fields found in /plan response: {', '.join(found_fields)}"
-                )
+                print(f"✓ CWMState fields found in /plan response: {', '.join(found_fields)}")
             else:
                 print("⚠ CWMState envelope not yet fully implemented in /plan response")
 
@@ -272,9 +266,7 @@ class TestP2CWMStateEnvelope:
                 f"✓ /state endpoint returned {len(response.data) if isinstance(response.data, list) else 1} states"
             )
 
-    @pytest.mark.skip(
-        reason="Blocked by logos#240 - media ingestion service not implemented"
-    )
+    @pytest.mark.skip(reason="Blocked by logos#240 - media ingestion service not implemented")
     def test_simulate_endpoint_returns_cwmstate(self, sophia_client):
         """Verify /simulate imagined states use CWMState structure."""
         pass
@@ -321,16 +313,12 @@ class TestP2CWMStateEnvelope:
 class TestP2M3PerceptionImagination:
     """Test perception and imagination capabilities (JEPA stub tests)."""
 
-    @pytest.mark.skip(
-        reason="Blocked by logos#240 - media ingestion service not implemented"
-    )
+    @pytest.mark.skip(reason="Blocked by logos#240 - media ingestion service not implemented")
     def test_media_upload_endpoint(self):
         """Verify media upload → storage → embedding → Neo4j linkage."""
         pass
 
-    @pytest.mark.skip(
-        reason="Blocked by logos#240 - media ingestion service not implemented"
-    )
+    @pytest.mark.skip(reason="Blocked by logos#240 - media ingestion service not implemented")
     def test_simulate_with_media_context(self):
         """Verify /simulate with media_sample_id performs JEPA rollout."""
         pass
@@ -409,16 +397,12 @@ class TestP2M2ApolloDualSurface:
         from apollo.config.settings import HermesConfig, SophiaConfig
 
         sophia_config = SophiaConfig(
-            host=SOPHIA_URL.replace("http://", "")
-            .replace("https://", "")
-            .split(":")[0],
+            host=SOPHIA_URL.replace("http://", "").replace("https://", "").split(":")[0],
             port=int(SOPHIA_URL.split(":")[-1]) if ":" in SOPHIA_URL else 8001,
         )
 
         hermes_config = HermesConfig(
-            host=HERMES_URL.replace("http://", "")
-            .replace("https://", "")
-            .split(":")[0],
+            host=HERMES_URL.replace("http://", "").replace("https://", "").split(":")[0],
             port=int(HERMES_URL.split(":")[-1]) if ":" in HERMES_URL else 8002,
         )
 
@@ -487,9 +471,7 @@ class TestP2M4DiagnosticsPersona:
         from apollo.config.settings import PersonaApiConfig
 
         config = PersonaApiConfig(
-            host=SOPHIA_URL.replace("http://", "")
-            .replace("https://", "")
-            .split(":")[0],
+            host=SOPHIA_URL.replace("http://", "").replace("https://", "").split(":")[0],
             port=int(SOPHIA_URL.split(":")[-1]) if ":" in SOPHIA_URL else 8001,
         )
         return PersonaClient(config)
@@ -513,9 +495,7 @@ class TestP2M4DiagnosticsPersona:
         if response.success:
             print("✓ Persona entry created successfully")
         else:
-            print(
-                f"⚠ Persona entry creation failed (may not be implemented yet): {response.error}"
-            )
+            print(f"⚠ Persona entry creation failed (may not be implemented yet): {response.error}")
 
     def test_reflection_creates_emotion_state(self):
         """Verify reflection → EmotionState → persona linkage."""
@@ -533,9 +513,7 @@ class TestP2M4DiagnosticsPersona:
         assert (
             emotion_state["model_type"] == "emotion"
         ), "Emotion state should have correct model_type"
-        assert (
-            "emotion" in emotion_state["data"]
-        ), "Emotion state should include emotion field"
+        assert "emotion" in emotion_state["data"], "Emotion state should include emotion field"
         print("✓ EmotionState schema validated")
 
     def test_persona_diary_filtering(self, persona_client):
@@ -578,10 +556,7 @@ class TestP2M4DiagnosticsPersona:
             print("✓ Persona CRUD: create works")
 
             # Read (if we have entry ID)
-            if (
-                isinstance(create_response.data, dict)
-                and "entry_id" in create_response.data
-            ):
+            if isinstance(create_response.data, dict) and "entry_id" in create_response.data:
                 entry_id = create_response.data["entry_id"]
                 read_response = persona_client.get_entry(entry_id)
 
@@ -590,16 +565,12 @@ class TestP2M4DiagnosticsPersona:
         else:
             print(f"⚠ Persona CRUD not fully implemented yet: {create_response.error}")
 
-    @pytest.mark.skip(
-        reason="Blocked by logos#321 - OpenTelemetry instrumentation incomplete"
-    )
+    @pytest.mark.skip(reason="Blocked by logos#321 - OpenTelemetry instrumentation incomplete")
     def test_otel_span_propagation(self):
         """Verify trace_id flows Apollo → Sophia → Hermes."""
         pass
 
-    @pytest.mark.skip(
-        reason="Blocked by logos#321 - OpenTelemetry instrumentation incomplete"
-    )
+    @pytest.mark.skip(reason="Blocked by logos#321 - OpenTelemetry instrumentation incomplete")
     def test_diagnostics_telemetry_export(self):
         """Verify telemetry exported to OTLP collector."""
         pass
@@ -622,16 +593,12 @@ class TestP2CrossServiceIntegration:
         from apollo.config.settings import HermesConfig, SophiaConfig
 
         sophia_config = SophiaConfig(
-            host=SOPHIA_URL.replace("http://", "")
-            .replace("https://", "")
-            .split(":")[0],
+            host=SOPHIA_URL.replace("http://", "").replace("https://", "").split(":")[0],
             port=int(SOPHIA_URL.split(":")[-1]) if ":" in SOPHIA_URL else 8001,
         )
 
         hermes_config = HermesConfig(
-            host=HERMES_URL.replace("http://", "")
-            .replace("https://", "")
-            .split(":")[0],
+            host=HERMES_URL.replace("http://", "").replace("https://", "").split(":")[0],
             port=int(HERMES_URL.split(":")[-1]) if ":" in HERMES_URL else 8002,
         )
 
@@ -717,9 +684,7 @@ class TestP2CrossServiceIntegration:
         assert response.error is not None, "Error should be populated"
         print(f"✓ Error propagation works: {response.error}")
 
-    @pytest.mark.skip(
-        reason="Blocked by logos#321 - OpenTelemetry instrumentation incomplete"
-    )
+    @pytest.mark.skip(reason="Blocked by logos#321 - OpenTelemetry instrumentation incomplete")
     def test_trace_context_propagation(self):
         """Verify distributed tracing works."""
         pass
@@ -742,23 +707,17 @@ class TestP2CompleteWorkflow:
         from apollo.config.settings import HermesConfig, PersonaApiConfig, SophiaConfig
 
         sophia_config = SophiaConfig(
-            host=SOPHIA_URL.replace("http://", "")
-            .replace("https://", "")
-            .split(":")[0],
+            host=SOPHIA_URL.replace("http://", "").replace("https://", "").split(":")[0],
             port=int(SOPHIA_URL.split(":")[-1]) if ":" in SOPHIA_URL else 8001,
         )
 
         hermes_config = HermesConfig(
-            host=HERMES_URL.replace("http://", "")
-            .replace("https://", "")
-            .split(":")[0],
+            host=HERMES_URL.replace("http://", "").replace("https://", "").split(":")[0],
             port=int(HERMES_URL.split(":")[-1]) if ":" in HERMES_URL else 8002,
         )
 
         persona_config = PersonaApiConfig(
-            host=SOPHIA_URL.replace("http://", "")
-            .replace("https://", "")
-            .split(":")[0],
+            host=SOPHIA_URL.replace("http://", "").replace("https://", "").split(":")[0],
             port=int(SOPHIA_URL.split(":")[-1]) if ":" in SOPHIA_URL else 8001,
         )
 
@@ -798,17 +757,13 @@ class TestP2CompleteWorkflow:
             if sim_response.success:
                 print("   ✓ JEPA simulation endpoint works")
             else:
-                print(
-                    f"   ⚠ JEPA simulation not fully implemented: {sim_response.error}"
-                )
+                print(f"   ⚠ JEPA simulation not fully implemented: {sim_response.error}")
         except Exception as e:
             print(f"   ⚠ JEPA simulation error: {e}")
 
         # Step 4: Plan generation
         print("\n4. Testing plan generation...")
-        plan_response = clients["sophia"].create_goal(
-            "Complete workflow test: pick and place"
-        )
+        plan_response = clients["sophia"].create_goal("Complete workflow test: pick and place")
 
         if plan_response.success:
             print("   ✓ Plan generation works")

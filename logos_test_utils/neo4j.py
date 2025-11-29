@@ -26,10 +26,7 @@ def get_neo4j_config(env: Mapping[str, str] | None = None) -> Neo4jConfig:
     """Build a ``Neo4jConfig`` from environment sources."""
 
     values = env or load_stack_env()
-    uri = (
-        get_env_value("NEO4J_URI", values, "bolt://localhost:7687")
-        or "bolt://localhost:7687"
-    )
+    uri = get_env_value("NEO4J_URI", values, "bolt://localhost:7687") or "bolt://localhost:7687"
     user = get_env_value("NEO4J_USER", values, "neo4j") or "neo4j"
     password = get_env_value("NEO4J_PASSWORD", values, "neo4jtest") or "neo4jtest"
     container = resolve_container_name(
@@ -118,6 +115,4 @@ def wait_for_neo4j(config: Neo4jConfig | None = None, timeout: int = 90) -> None
     cfg = config or get_neo4j_config()
     wait_for_container_health(cfg.container, timeout=timeout)
     if not is_neo4j_available(cfg):
-        raise RuntimeError(
-            "Neo4j container reported healthy but Bolt endpoint is unreachable"
-        )
+        raise RuntimeError("Neo4j container reported healthy but Bolt endpoint is unreachable")
