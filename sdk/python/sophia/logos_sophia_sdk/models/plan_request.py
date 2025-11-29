@@ -23,23 +23,39 @@ from logos_sophia_sdk.models.plan_request_goal import PlanRequestGoal
 from typing import Optional, Set
 from typing_extensions import Self
 
+
 class PlanRequest(BaseModel):
     """
     PlanRequest
-    """ # noqa: E501
+    """  # noqa: E501
+
     goal: PlanRequestGoal
-    context: Optional[Dict[str, Any]] = Field(default=None, description="Optional context (entities, constraints, media references)")
-    constraints: Optional[List[StrictStr]] = Field(default=None, description="Hard constraints the planner must honor")
-    priority: Optional[StrictStr] = Field(default=None, description="Informational priority label (e.g., P0/P1/P2)")
-    metadata: Optional[Dict[str, Any]] = Field(default=None, description="Arbitrary metadata for downstream audits")
-    __properties: ClassVar[List[str]] = ["goal", "context", "constraints", "priority", "metadata"]
+    context: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Optional context (entities, constraints, media references)",
+    )
+    constraints: Optional[List[StrictStr]] = Field(
+        default=None, description="Hard constraints the planner must honor"
+    )
+    priority: Optional[StrictStr] = Field(
+        default=None, description="Informational priority label (e.g., P0/P1/P2)"
+    )
+    metadata: Optional[Dict[str, Any]] = Field(
+        default=None, description="Arbitrary metadata for downstream audits"
+    )
+    __properties: ClassVar[List[str]] = [
+        "goal",
+        "context",
+        "constraints",
+        "priority",
+        "metadata",
+    ]
 
     model_config = ConfigDict(
         populate_by_name=True,
         validate_assignment=True,
         protected_namespaces=(),
     )
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -65,8 +81,7 @@ class PlanRequest(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -75,7 +90,7 @@ class PlanRequest(BaseModel):
         )
         # override the default output from pydantic by calling `to_dict()` of goal
         if self.goal:
-            _dict['goal'] = self.goal.to_dict()
+            _dict["goal"] = self.goal.to_dict()
         return _dict
 
     @classmethod
@@ -87,13 +102,17 @@ class PlanRequest(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "goal": PlanRequestGoal.from_dict(obj["goal"]) if obj.get("goal") is not None else None,
-            "context": obj.get("context"),
-            "constraints": obj.get("constraints"),
-            "priority": obj.get("priority"),
-            "metadata": obj.get("metadata")
-        })
+        _obj = cls.model_validate(
+            {
+                "goal": (
+                    PlanRequestGoal.from_dict(obj["goal"])
+                    if obj.get("goal") is not None
+                    else None
+                ),
+                "context": obj.get("context"),
+                "constraints": obj.get("constraints"),
+                "priority": obj.get("priority"),
+                "metadata": obj.get("metadata"),
+            }
+        )
         return _obj
-
-

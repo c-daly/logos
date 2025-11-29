@@ -58,17 +58,32 @@ from logos_hermes_sdk.exceptions import ApiAttributeError as ApiAttributeError
 from logos_hermes_sdk.exceptions import ApiException as ApiException
 
 # import models into sdk package
-from logos_hermes_sdk.models.embed_text200_response import EmbedText200Response as EmbedText200Response
-from logos_hermes_sdk.models.embed_text_request import EmbedTextRequest as EmbedTextRequest
+from logos_hermes_sdk.models.embed_text200_response import (
+    EmbedText200Response as EmbedText200Response,
+)
+from logos_hermes_sdk.models.embed_text_request import (
+    EmbedTextRequest as EmbedTextRequest,
+)
 from logos_hermes_sdk.models.llm_choice import LLMChoice as LLMChoice
 from logos_hermes_sdk.models.llm_message import LLMMessage as LLMMessage
 from logos_hermes_sdk.models.llm_request import LLMRequest as LLMRequest
 from logos_hermes_sdk.models.llm_response import LLMResponse as LLMResponse
 from logos_hermes_sdk.models.llm_usage import LLMUsage as LLMUsage
-from logos_hermes_sdk.models.simple_nlp200_response import SimpleNlp200Response as SimpleNlp200Response
-from logos_hermes_sdk.models.simple_nlp200_response_entities_inner import SimpleNlp200ResponseEntitiesInner as SimpleNlp200ResponseEntitiesInner
-from logos_hermes_sdk.models.simple_nlp200_response_pos_tags_inner import SimpleNlp200ResponsePosTagsInner as SimpleNlp200ResponsePosTagsInner
-from logos_hermes_sdk.models.simple_nlp_request import SimpleNlpRequest as SimpleNlpRequest
-from logos_hermes_sdk.models.speech_to_text200_response import SpeechToText200Response as SpeechToText200Response
-from logos_hermes_sdk.models.text_to_speech_request import TextToSpeechRequest as TextToSpeechRequest
-
+from logos_hermes_sdk.models.simple_nlp200_response import (
+    SimpleNlp200Response as SimpleNlp200Response,
+)
+from logos_hermes_sdk.models.simple_nlp200_response_entities_inner import (
+    SimpleNlp200ResponseEntitiesInner as SimpleNlp200ResponseEntitiesInner,
+)
+from logos_hermes_sdk.models.simple_nlp200_response_pos_tags_inner import (
+    SimpleNlp200ResponsePosTagsInner as SimpleNlp200ResponsePosTagsInner,
+)
+from logos_hermes_sdk.models.simple_nlp_request import (
+    SimpleNlpRequest as SimpleNlpRequest,
+)
+from logos_hermes_sdk.models.speech_to_text200_response import (
+    SpeechToText200Response as SpeechToText200Response,
+)
+from logos_hermes_sdk.models.text_to_speech_request import (
+    TextToSpeechRequest as TextToSpeechRequest,
+)

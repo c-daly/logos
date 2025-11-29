@@ -22,22 +22,32 @@ from typing import Any, ClassVar, Dict, List, Optional, Union
 from typing import Optional, Set
 from typing_extensions import Self
 
+
 class CWMESentimentData(BaseModel):
     """
     Payload for CWM-E (persona/emotion) outputs.
-    """ # noqa: E501
-    sentiment: Optional[StrictStr] = Field(default=None, description="e.g., confident, cautious")
+    """  # noqa: E501
+
+    sentiment: Optional[StrictStr] = Field(
+        default=None, description="e.g., confident, cautious"
+    )
     confidence_delta: Optional[Union[StrictFloat, StrictInt]] = None
     caution_delta: Optional[Union[StrictFloat, StrictInt]] = None
-    narrative: Optional[StrictStr] = Field(default=None, description="Short diary-style reflection")
-    __properties: ClassVar[List[str]] = ["sentiment", "confidence_delta", "caution_delta", "narrative"]
+    narrative: Optional[StrictStr] = Field(
+        default=None, description="Short diary-style reflection"
+    )
+    __properties: ClassVar[List[str]] = [
+        "sentiment",
+        "confidence_delta",
+        "caution_delta",
+        "narrative",
+    ]
 
     model_config = ConfigDict(
         populate_by_name=True,
         validate_assignment=True,
         protected_namespaces=(),
     )
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -63,8 +73,7 @@ class CWMESentimentData(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -82,12 +91,12 @@ class CWMESentimentData(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "sentiment": obj.get("sentiment"),
-            "confidence_delta": obj.get("confidence_delta"),
-            "caution_delta": obj.get("caution_delta"),
-            "narrative": obj.get("narrative")
-        })
+        _obj = cls.model_validate(
+            {
+                "sentiment": obj.get("sentiment"),
+                "confidence_delta": obj.get("confidence_delta"),
+                "caution_delta": obj.get("caution_delta"),
+                "narrative": obj.get("narrative"),
+            }
+        )
         return _obj
-
-

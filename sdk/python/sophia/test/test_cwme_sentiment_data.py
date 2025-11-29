@@ -16,6 +16,7 @@ import unittest
 
 from logos_sophia_sdk.models.cwme_sentiment_data import CWMESentimentData
 
+
 class TestCWMESentimentData(unittest.TestCase):
     """CWMESentimentData unit test stubs"""
 
@@ -27,9 +28,9 @@ class TestCWMESentimentData(unittest.TestCase):
 
     def make_instance(self, include_optional) -> CWMESentimentData:
         """Test CWMESentimentData
-            include_optional is a boolean, when False only required
-            params are included, when True both required and
-            optional params are included """
+        include_optional is a boolean, when False only required
+        params are included, when True both required and
+        optional params are included"""
         # uncomment below to create an instance of `CWMESentimentData`
         """
         model = CWMESentimentData()
@@ -50,5 +51,6 @@ class TestCWMESentimentData(unittest.TestCase):
         # inst_req_only = self.make_instance(include_optional=False)
         # inst_req_and_optional = self.make_instance(include_optional=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

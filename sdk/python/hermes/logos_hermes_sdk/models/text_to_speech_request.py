@@ -22,13 +22,19 @@ from typing import Any, ClassVar, Dict, List, Optional
 from typing import Optional, Set
 from typing_extensions import Self
 
+
 class TextToSpeechRequest(BaseModel):
     """
     TextToSpeechRequest
-    """ # noqa: E501
+    """  # noqa: E501
+
     text: StrictStr = Field(description="Text to synthesize")
-    voice: Optional[StrictStr] = Field(default='default', description="Optional voice identifier")
-    language: Optional[StrictStr] = Field(default='en-US', description="Language code (e.g., \"en-US\")")
+    voice: Optional[StrictStr] = Field(
+        default="default", description="Optional voice identifier"
+    )
+    language: Optional[StrictStr] = Field(
+        default="en-US", description='Language code (e.g., "en-US")'
+    )
     __properties: ClassVar[List[str]] = ["text", "voice", "language"]
 
     model_config = ConfigDict(
@@ -36,7 +42,6 @@ class TextToSpeechRequest(BaseModel):
         validate_assignment=True,
         protected_namespaces=(),
     )
-
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -62,8 +67,7 @@ class TextToSpeechRequest(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([
-        ])
+        excluded_fields: Set[str] = set([])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -81,11 +85,15 @@ class TextToSpeechRequest(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate({
-            "text": obj.get("text"),
-            "voice": obj.get("voice") if obj.get("voice") is not None else 'default',
-            "language": obj.get("language") if obj.get("language") is not None else 'en-US'
-        })
+        _obj = cls.model_validate(
+            {
+                "text": obj.get("text"),
+                "voice": (
+                    obj.get("voice") if obj.get("voice") is not None else "default"
+                ),
+                "language": (
+                    obj.get("language") if obj.get("language") is not None else "en-US"
+                ),
+            }
+        )
         return _obj
-
-
