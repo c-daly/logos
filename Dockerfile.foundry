@@ -1,0 +1,38 @@
+# Base image with Python
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Poetry
+RUN curl -sSL https://install.python-poetry.org | python3 - && \
+    ln -s /root/.local/bin/poetry /usr/local/bin/poetry
+
+# Copy project files
+COPY pyproject.toml poetry.lock* ./
+COPY logos_test_utils/ ./logos_test_utils/
+COPY logos_hcg/ ./logos_hcg/
+COPY logos_observability/ ./logos_observability/
+COPY logos_perception/ ./logos_perception/
+COPY logos_persona/ ./logos_persona/
+COPY logos_sophia/ ./logos_sophia/
+COPY logos_cwm_e/ ./logos_cwm_e/
+COPY logos_tools/ ./logos_tools/
+COPY utils/ ./utils/
+COPY README.md ./
+
+# Install dependencies including test dependencies
+RUN poetry config virtualenvs.create false && \
+    poetry install --with test --no-interaction --no-ansi
+
+# Set Python path
+ENV PYTHONPATH=/app:$PYTHONPATH
+
+# Default command
+CMD ["python"]
