@@ -13,45 +13,35 @@ Reference: docs/PHASE1_VERIFY.md - M1 checklist
 """
 
 import os
-import subprocess
+from pathlib import Path
 from uuid import uuid4
 
 import pytest
-from neo4j import GraphDatabase
-from neo4j.exceptions import ClientError, ServiceUnavailable
+from neo4j.exceptions import ClientError
 
-# Test configuration
-NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
-NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "logosdev")
-NEO4J_CONTAINER = os.getenv("NEO4J_CONTAINER", "logos-hcg-neo4j")
-REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-
-
-def is_neo4j_available() -> bool:
-    """Check if Neo4j is available for testing."""
-    try:
-        driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
-        with driver.session() as session:
-            result = session.run("RETURN 1 AS test")
-            result.single()
-        driver.close()
-        return True
-    except (ServiceUnavailable, Exception):
-        return False
-
-
-# Skip all tests if Neo4j is not available
-pytestmark = pytest.mark.skipif(
-    not is_neo4j_available(),
-    reason="Neo4j not available. Start with: docker compose -f infra/docker-compose.hcg.dev.yml up -d",
+from logos_test_utils.docker import is_container_running
+from logos_test_utils.neo4j import (
+    get_neo4j_config,
+    get_neo4j_driver,
+    load_cypher_file,
 )
+
+NEO4J_CONFIG = get_neo4j_config()
+REPO_ROOT = Path(__file__).resolve().parents[2]
+RUN_M1_E2E = os.getenv("RUN_M1_E2E") not in {None, "", "0", "false", "False"}
+
+if not RUN_M1_E2E or not is_container_running(NEO4J_CONFIG.container):
+    pytest.skip(
+        "M1 CRUD suite requires RUN_M1_E2E=1 and the shared stack running.",
+        allow_module_level=True,
+    )
 
 
 @pytest.fixture(scope="module")
 def neo4j_driver():
-    """Create a Neo4j driver for testing."""
-    driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
+    """Provide a Neo4j driver tied to the shared stack."""
+
+    driver = get_neo4j_driver(NEO4J_CONFIG)
     yield driver
     driver.close()
 
@@ -59,45 +49,26 @@ def neo4j_driver():
 @pytest.fixture(scope="module")
 def loaded_ontology(neo4j_driver):
     """Load core ontology into Neo4j before tests."""
-    ontology_path = os.path.join(REPO_ROOT, "ontology", "core_ontology.cypher")
+    ontology_path = REPO_ROOT / "ontology" / "core_ontology.cypher"
 
     # First, clean the database
     with neo4j_driver.session() as session:
         session.run("MATCH (n) DETACH DELETE n")
 
-    # Load ontology via docker exec (more reliable than parsing)
-    try:
-        subprocess.run(
-            f"cat {ontology_path} | docker exec -i {NEO4J_CONTAINER} cypher-shell -u {NEO4J_USER} -p {NEO4J_PASSWORD}",
-            shell=True,
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        return True
-    except subprocess.CalledProcessError as e:
-        pytest.fail(f"Failed to load ontology: {e.stderr}")
+    result = load_cypher_file(ontology_path, config=NEO4J_CONFIG, timeout=120)
+    if result.returncode != 0:
+        pytest.fail(f"Failed to load ontology: {result.stderr}")
+    return True
 
 
 @pytest.fixture(scope="module")
 def loaded_test_data(neo4j_driver, loaded_ontology):
     """Load test data into Neo4j before tests."""
-    test_data_path = os.path.join(
-        REPO_ROOT, "ontology", "test_data_pick_and_place.cypher"
-    )
-
-    # Load test data via docker exec (more reliable than parsing)
-    try:
-        subprocess.run(
-            f"cat {test_data_path} | docker exec -i {NEO4J_CONTAINER} cypher-shell -u {NEO4J_USER} -p {NEO4J_PASSWORD}",
-            shell=True,
-            capture_output=True,
-            text=True,
-            check=True,
-        )
-        return True
-    except subprocess.CalledProcessError as e:
-        pytest.fail(f"Failed to load test data: {e.stderr}")
+    test_data_path = REPO_ROOT / "ontology" / "test_data_pick_and_place.cypher"
+    result = load_cypher_file(test_data_path, config=NEO4J_CONFIG, timeout=120)
+    if result.returncode != 0:
+        pytest.fail(f"Failed to load test data: {result.stderr}")
+    return True
 
 
 class TestOntologyLoading:

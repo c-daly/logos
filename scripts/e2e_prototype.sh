@@ -13,7 +13,7 @@ LOG_DIR="${REPO_ROOT}/logs/e2e"
 # Configuration
 NEO4J_CONTAINER="${NEO4J_CONTAINER:-logos-hcg-neo4j}"
 NEO4J_USER="${NEO4J_USER:-neo4j}"
-NEO4J_PASSWORD="${NEO4J_PASSWORD:-logosdev}"
+NEO4J_PASSWORD="${NEO4J_PASSWORD:-neo4jtest}"
 NEO4J_URI="${NEO4J_URI:-bolt://localhost:7687}"
 
 # Colors for output

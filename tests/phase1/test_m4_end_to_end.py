@@ -19,6 +19,22 @@ from pathlib import Path
 
 import pytest
 
+from logos_test_utils.env import load_stack_env
+from logos_test_utils.milvus import (
+    get_milvus_config,
+    wait_for_milvus,
+)
+from logos_test_utils.neo4j import (
+    get_neo4j_config,
+    wait_for_neo4j,
+)
+from logos_test_utils.neo4j import (
+    load_cypher_file as stack_load_cypher_file,
+)
+from logos_test_utils.neo4j import (
+    run_cypher_query as stack_run_cypher_query,
+)
+
 # Try to import planner client for API-based planning
 try:
     from planner_stub.client import PlannerClient
@@ -33,111 +49,40 @@ pytestmark = pytest.mark.skipif(
     reason="M4 end-to-end flow runs only when RUN_M4_E2E=1",
 )
 
-# Repository root
-REPO_ROOT = Path(__file__).parent.parent.parent
-
-# Neo4j configuration - use environment variables with defaults
-NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
-NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "logosdev")
-NEO4J_CONTAINER = os.getenv("NEO4J_CONTAINER", "logos-hcg-neo4j")
+REPO_ROOT = Path(__file__).resolve().parents[2]
+STACK_ENV = load_stack_env()
+NEO4J_CONFIG = get_neo4j_config(STACK_ENV)
+MILVUS_CONFIG = get_milvus_config(STACK_ENV)
+NEO4J_WAIT_TIMEOUT = int(os.getenv("NEO4J_WAIT_TIMEOUT", "120"))
+MILVUS_WAIT_TIMEOUT = int(os.getenv("MILVUS_WAIT_TIMEOUT", "60"))
 
 
-def is_neo4j_available() -> bool:
-    """Check if Neo4j is available and responsive."""
-    try:
-        result = subprocess.run(
-            [
-                "docker",
-                "exec",
-                NEO4J_CONTAINER,
-                "cypher-shell",
-                "-u",
-                NEO4J_USER,
-                "-p",
-                NEO4J_PASSWORD,
-                "RETURN 1 AS test;",
-            ],
-            capture_output=True,
-            text=True,
-            timeout=5,
-        )
-        return result.returncode == 0
-    except Exception:
-        return False
-
-
-def is_milvus_available() -> bool:
-    """Check if Milvus container is running."""
-    try:
-        result = subprocess.run(
-            ["docker", "ps", "--format", "{{.Names}}"],
-            capture_output=True,
-            text=True,
-            timeout=5,
-        )
-        return "logos-hcg-milvus" in result.stdout
-    except Exception:
-        return False
-
-
-def run_cypher_query(query: str) -> tuple[int, str, str]:
+def run_cypher_query(query: str, timeout: int = 60) -> tuple[int, str, str]:
     """Execute a Cypher query in Neo4j."""
-    try:
-        result = subprocess.run(
-            [
-                "docker",
-                "exec",
-                NEO4J_CONTAINER,
-                "cypher-shell",
-                "-u",
-                NEO4J_USER,
-                "-p",
-                NEO4J_PASSWORD,
-                query,
-            ],
-            capture_output=True,
-            text=True,
-            timeout=30,
-        )
-        return result.returncode, result.stdout, result.stderr
-    except subprocess.TimeoutExpired:
-        return 1, "", "Query timed out"
+
+    result = stack_run_cypher_query(
+        query,
+        config=NEO4J_CONFIG,
+        timeout=timeout,
+    )
+    return result.returncode, result.stdout, result.stderr
 
 
-def load_cypher_file(file_path: Path) -> tuple[int, str, str]:
+def load_cypher_file(file_path: Path, timeout: int = 120) -> tuple[int, str, str]:
     """Load a Cypher file into Neo4j."""
-    try:
-        with open(file_path) as f:
-            result = subprocess.run(
-                [
-                    "docker",
-                    "exec",
-                    "-i",
-                    NEO4J_CONTAINER,
-                    "cypher-shell",
-                    "-u",
-                    NEO4J_USER,
-                    "-p",
-                    NEO4J_PASSWORD,
-                ],
-                stdin=f,
-                capture_output=True,
-                text=True,
-                timeout=60,
-            )
-        return result.returncode, result.stdout, result.stderr
-    except subprocess.TimeoutExpired:
-        return 1, "", "Loading timed out"
+
+    result = stack_load_cypher_file(
+        file_path,
+        config=NEO4J_CONFIG,
+        timeout=timeout,
+    )
+    return result.returncode, result.stdout, result.stderr
 
 
 @pytest.fixture(scope="module")
 def neo4j_connection():
     """Ensure Neo4j is available for testing."""
-    if not is_neo4j_available():
-        pytest.skip(
-            "Neo4j not available. Start with: docker compose -f infra/docker-compose.hcg.dev.yml up -d"
-        )
+    wait_for_neo4j(NEO4J_CONFIG, timeout=NEO4J_WAIT_TIMEOUT)
     yield
     # Cleanup after tests (optional)
 
@@ -165,15 +110,17 @@ class TestM4InfrastructureStartup:
 
     def test_neo4j_is_running(self, neo4j_connection):
         """Verify Neo4j container is running and responsive."""
-        assert is_neo4j_available(), "Neo4j should be running and responsive"
+        # ``neo4j_connection`` fixture already waited; just assert the driver is reachable
+        returncode, stdout, stderr = run_cypher_query("RETURN 1 AS ok;")
+        assert returncode == 0, f"Neo4j query failed after health wait: {stderr}"
 
     def test_milvus_is_running(self):
         """Verify Milvus container is running."""
         # Milvus is optional for the basic E2E test
-        if is_milvus_available():
-            assert True, "Milvus is running"
-        else:
-            pytest.skip("Milvus not running (optional for this test)")
+        try:
+            wait_for_milvus(MILVUS_CONFIG, timeout=MILVUS_WAIT_TIMEOUT)
+        except RuntimeError as exc:
+            pytest.skip(f"Milvus not ready (optional for this test): {exc}")
 
 
 class TestM4OntologyLoading:
@@ -682,8 +629,7 @@ class TestM4EndToEndScript:
     def test_e2e_script_runs(self):
         """Test that the E2E script runs successfully."""
         # This test is marked as slow because it runs the full E2E flow
-        if not is_neo4j_available():
-            pytest.skip("Neo4j not available for E2E script test")
+        wait_for_neo4j(NEO4J_CONFIG, timeout=NEO4J_WAIT_TIMEOUT)
 
         script_path = REPO_ROOT / "scripts" / "e2e_prototype.sh"
         try:

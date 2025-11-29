@@ -108,7 +108,7 @@ start_service() {
             (cd "$repo_path" && \
              NEO4J_URI="${NEO4J_URI:-bolt://localhost:7687}" \
              NEO4J_USER="${NEO4J_USER:-neo4j}" \
-             NEO4J_PASSWORD="${NEO4J_PASSWORD:-logosdev}" \
+             NEO4J_PASSWORD="${NEO4J_PASSWORD:-neo4jtest}" \
              MILVUS_HOST="${MILVUS_HOST:-localhost}" \
              MILVUS_PORT="${MILVUS_PORT:-19530}" \
              SOPHIA_API_TOKEN="${SOPHIA_API_KEY:-test-token-12345}" \
@@ -128,7 +128,7 @@ start_service() {
             (cd "$repo_path" && \
              NEO4J_URI="${NEO4J_URI:-bolt://localhost:7687}" \
              NEO4J_USER="${NEO4J_USER:-neo4j}" \
-             NEO4J_PASSWORD="${NEO4J_PASSWORD:-logosdev}" \
+             NEO4J_PASSWORD="${NEO4J_PASSWORD:-neo4jtest}" \
              SOPHIA_URL="${SOPHIA_URL:-http://localhost:8001}" \
              HERMES_URL="${HERMES_URL:-http://localhost:8002}" \
              APOLLO_PORT="$port" poetry run apollo-api \
@@ -138,16 +138,18 @@ start_service() {
     esac
     
     # Wait for service to start
-    local retries=10
+    local retries=${SERVICE_START_RETRIES:-30}
+    local delay=${SERVICE_START_DELAY:-1}
     for i in $(seq 1 $retries); do
-        sleep 1
+        sleep "$delay"
         if check_port "$port"; then
             log_success "$service started successfully (PID: $(cat "$pid_file"))"
             return 0
         fi
     done
-    
-    log_error "$service failed to start. Check $PID_DIR/$service.log"
+
+    local waited=$((retries * delay))
+    log_error "$service failed to start within ${waited}s. Check $PID_DIR/$service.log"
     return 1
 }
 

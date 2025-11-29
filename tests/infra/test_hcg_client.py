@@ -13,33 +13,45 @@ from datetime import datetime, timedelta
 from uuid import uuid4
 
 import pytest
-from neo4j.exceptions import ServiceUnavailable
 
 from logos_hcg import HCGClient
 from logos_hcg.client import HCGConnectionError, HCGQueryError
+from logos_test_utils.docker import is_container_running
+from logos_test_utils.neo4j import get_neo4j_config, wait_for_neo4j
 
-# Test configuration - can be overridden with environment variables
-NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
-NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "logosdev")
-
-
-def is_neo4j_available() -> bool:
-    """Check if Neo4j is available for testing."""
-    try:
-        client = HCGClient(uri=NEO4J_URI, user=NEO4J_USER, password=NEO4J_PASSWORD)
-        result = client.verify_connection()
-        client.close()
-        return result
-    except (HCGConnectionError, ServiceUnavailable):
-        return False
-
-
-# Skip all tests if Neo4j is not available
+# Test configuration - defaults pulled from shared stack env
+RUN_HCG_TESTS = os.getenv("RUN_HCG_TESTS") not in {None, "", "0", "false", "False"}
 pytestmark = pytest.mark.skipif(
-    not is_neo4j_available(),
-    reason="Neo4j not available. Start Neo4j with: docker compose -f infra/docker-compose.hcg.dev.yml up -d",
+    not RUN_HCG_TESTS,
+    reason="Set RUN_HCG_TESTS=1 and start the shared stack to exercise HCG integration tests.",
 )
+
+NEO4J_CONFIG = get_neo4j_config()
+NEO4J_URI = os.getenv("NEO4J_URI", NEO4J_CONFIG.uri)
+NEO4J_USER = os.getenv("NEO4J_USER", NEO4J_CONFIG.user)
+NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", NEO4J_CONFIG.password)
+NEO4J_WAIT_TIMEOUT = int(os.getenv("NEO4J_WAIT_TIMEOUT", "120"))
+_ONTOLOGY_PRESENT: bool | None = None
+
+
+@pytest.fixture(scope="session", autouse=True)
+def ensure_neo4j_ready():
+    """Fail fast with diagnostics if Neo4j never becomes available."""
+
+    if not is_container_running(NEO4J_CONFIG.container):
+        pytest.skip(
+            "Neo4j not available. Start with: "
+            "docker compose -f infra/docker-compose.hcg.dev.yml up -d"
+        )
+
+    try:
+        wait_for_neo4j(NEO4J_CONFIG, timeout=NEO4J_WAIT_TIMEOUT)
+    except (RuntimeError, FileNotFoundError) as exc:
+        pytest.skip(
+            "Neo4j not available. Start with: "
+            "docker compose -f infra/docker-compose.hcg.dev.yml up -d\n"
+            f"Details: {exc}"
+        )
 
 
 @pytest.fixture(scope="module")
@@ -101,6 +113,7 @@ class TestConceptQueries:
 
     def test_find_all_concepts(self, hcg_client):
         """Test finding all concepts."""
+        require_ontology_loaded(hcg_client)
         concepts = hcg_client.find_all_concepts()
         assert len(concepts) > 0
 
@@ -367,6 +380,7 @@ class TestUtilityOperations:
 
     def test_count_nodes_by_type(self, hcg_client):
         """Test counting nodes by type."""
+        require_ontology_loaded(hcg_client)
         counts = hcg_client.count_nodes_by_type()
 
         assert "entity_count" in counts
@@ -396,3 +410,14 @@ class TestErrorHandling:
         # This should not raise an error, just return empty results
         result = hcg_client.find_entity_by_uuid("not-a-valid-uuid-format")
         assert result is None
+
+
+def require_ontology_loaded(client: HCGClient) -> None:
+    """Skip tests that require ontology data when nothing has been loaded."""
+
+    global _ONTOLOGY_PRESENT
+    if _ONTOLOGY_PRESENT is None:
+        _ONTOLOGY_PRESENT = bool(client.find_all_concepts())
+
+    if not _ONTOLOGY_PRESENT:
+        pytest.skip("Neo4j core ontology not loaded; skipping data-dependent HCG tests")
