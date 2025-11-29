@@ -1,0 +1,44 @@
+name: Publish Package to GitHub Packages
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:  # Allow manual trigger
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
+      - name: Configure Poetry for GitHub Packages
+        run: |
+          poetry config repositories.github https://pypi.pkg.github.com/c-daly
+          poetry config http-basic.github __token__ ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build package
+        run: poetry build
+      
+      - name: Publish to GitHub Packages
+        run: poetry publish -r github
+      
+      - name: Output package info
+        run: |
+          echo "Published logos-foundry version $(poetry version -s)"
+          echo "Available at: https://github.com/c-daly/logos/packages"
