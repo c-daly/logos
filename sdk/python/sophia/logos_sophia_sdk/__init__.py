@@ -64,15 +64,9 @@ from logos_sophia_sdk.exceptions import ApiException as ApiException
 
 # import models into sdk package
 from logos_sophia_sdk.models.cwma_graph_data import CWMAGraphData as CWMAGraphData
-from logos_sophia_sdk.models.cwma_graph_data_validation import (
-    CWMAGraphDataValidation as CWMAGraphDataValidation,
-)
-from logos_sophia_sdk.models.cwme_sentiment_data import (
-    CWMESentimentData as CWMESentimentData,
-)
-from logos_sophia_sdk.models.cwmg_imagined_data import (
-    CWMGImaginedData as CWMGImaginedData,
-)
+from logos_sophia_sdk.models.cwma_graph_data_validation import CWMAGraphDataValidation as CWMAGraphDataValidation
+from logos_sophia_sdk.models.cwme_sentiment_data import CWMESentimentData as CWMESentimentData
+from logos_sophia_sdk.models.cwmg_imagined_data import CWMGImaginedData as CWMGImaginedData
 from logos_sophia_sdk.models.cwm_state import CWMState as CWMState
 from logos_sophia_sdk.models.cwm_state_data import CWMStateData as CWMStateData
 from logos_sophia_sdk.models.cwm_state_links import CWMStateLinks as CWMStateLinks
@@ -80,10 +74,7 @@ from logos_sophia_sdk.models.health_response import HealthResponse as HealthResp
 from logos_sophia_sdk.models.plan_request import PlanRequest as PlanRequest
 from logos_sophia_sdk.models.plan_request_goal import PlanRequestGoal as PlanRequestGoal
 from logos_sophia_sdk.models.plan_response import PlanResponse as PlanResponse
-from logos_sophia_sdk.models.simulation_request import (
-    SimulationRequest as SimulationRequest,
-)
-from logos_sophia_sdk.models.simulation_response import (
-    SimulationResponse as SimulationResponse,
-)
+from logos_sophia_sdk.models.simulation_request import SimulationRequest as SimulationRequest
+from logos_sophia_sdk.models.simulation_response import SimulationResponse as SimulationResponse
 from logos_sophia_sdk.models.state_response import StateResponse as StateResponse
+

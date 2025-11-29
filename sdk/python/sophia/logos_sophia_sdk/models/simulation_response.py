@@ -24,27 +24,20 @@ from logos_sophia_sdk.models.cwm_state import CWMState
 from typing import Optional, Set
 from typing_extensions import Self
 
-
 class SimulationResponse(BaseModel):
     """
     SimulationResponse
-    """  # noqa: E501
-
+    """ # noqa: E501
     simulation_id: UUID
     status: StrictStr
     duration_ms: Optional[StrictInt] = None
     states: List[CWMState]
-    __properties: ClassVar[List[str]] = [
-        "simulation_id",
-        "status",
-        "duration_ms",
-        "states",
-    ]
+    __properties: ClassVar[List[str]] = ["simulation_id", "status", "duration_ms", "states"]
 
-    @field_validator("status")
+    @field_validator('status')
     def status_validate_enum(cls, value):
         """Validates the enum"""
-        if value not in set(["completed", "failed"]):
+        if value not in set(['completed', 'failed']):
             raise ValueError("must be one of enum values ('completed', 'failed')")
         return value
 
@@ -53,6 +46,7 @@ class SimulationResponse(BaseModel):
         validate_assignment=True,
         protected_namespaces=(),
     )
+
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -78,7 +72,8 @@ class SimulationResponse(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([])
+        excluded_fields: Set[str] = set([
+        ])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -91,7 +86,7 @@ class SimulationResponse(BaseModel):
             for _item_states in self.states:
                 if _item_states:
                     _items.append(_item_states.to_dict())
-            _dict["states"] = _items
+            _dict['states'] = _items
         return _dict
 
     @classmethod
@@ -103,16 +98,12 @@ class SimulationResponse(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate(
-            {
-                "simulation_id": obj.get("simulation_id"),
-                "status": obj.get("status"),
-                "duration_ms": obj.get("duration_ms"),
-                "states": (
-                    [CWMState.from_dict(_item) for _item in obj["states"]]
-                    if obj.get("states") is not None
-                    else None
-                ),
-            }
-        )
+        _obj = cls.model_validate({
+            "simulation_id": obj.get("simulation_id"),
+            "status": obj.get("status"),
+            "duration_ms": obj.get("duration_ms"),
+            "states": [CWMState.from_dict(_item) for _item in obj["states"]] if obj.get("states") is not None else None
+        })
         return _obj
+
+

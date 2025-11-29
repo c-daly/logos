@@ -23,34 +23,22 @@ from logos_sophia_sdk.models.cwma_graph_data_validation import CWMAGraphDataVali
 from typing import Optional, Set
 from typing_extensions import Self
 
-
 class CWMAGraphData(BaseModel):
     """
     Payload for CWM-A (abstract reasoning) outputs.
-    """  # noqa: E501
-
-    entities: Optional[List[Dict[str, Any]]] = Field(
-        default=None, description="Normalized entity diffs"
-    )
-    relations: Optional[List[Dict[str, Any]]] = Field(
-        default=None, description="Relationship diffs"
-    )
-    violations: Optional[List[StrictStr]] = Field(
-        default=None, description="SHACL validation issues, if any"
-    )
+    """ # noqa: E501
+    entities: Optional[List[Dict[str, Any]]] = Field(default=None, description="Normalized entity diffs")
+    relations: Optional[List[Dict[str, Any]]] = Field(default=None, description="Relationship diffs")
+    violations: Optional[List[StrictStr]] = Field(default=None, description="SHACL validation issues, if any")
     validation: Optional[CWMAGraphDataValidation] = None
-    __properties: ClassVar[List[str]] = [
-        "entities",
-        "relations",
-        "violations",
-        "validation",
-    ]
+    __properties: ClassVar[List[str]] = ["entities", "relations", "violations", "validation"]
 
     model_config = ConfigDict(
         populate_by_name=True,
         validate_assignment=True,
         protected_namespaces=(),
     )
+
 
     def to_str(self) -> str:
         """Returns the string representation of the model using alias"""
@@ -76,7 +64,8 @@ class CWMAGraphData(BaseModel):
           were set at model initialization. Other fields with value `None`
           are ignored.
         """
-        excluded_fields: Set[str] = set([])
+        excluded_fields: Set[str] = set([
+        ])
 
         _dict = self.model_dump(
             by_alias=True,
@@ -85,7 +74,7 @@ class CWMAGraphData(BaseModel):
         )
         # override the default output from pydantic by calling `to_dict()` of validation
         if self.validation:
-            _dict["validation"] = self.validation.to_dict()
+            _dict['validation'] = self.validation.to_dict()
         return _dict
 
     @classmethod
@@ -97,16 +86,12 @@ class CWMAGraphData(BaseModel):
         if not isinstance(obj, dict):
             return cls.model_validate(obj)
 
-        _obj = cls.model_validate(
-            {
-                "entities": obj.get("entities"),
-                "relations": obj.get("relations"),
-                "violations": obj.get("violations"),
-                "validation": (
-                    CWMAGraphDataValidation.from_dict(obj["validation"])
-                    if obj.get("validation") is not None
-                    else None
-                ),
-            }
-        )
+        _obj = cls.model_validate({
+            "entities": obj.get("entities"),
+            "relations": obj.get("relations"),
+            "violations": obj.get("violations"),
+            "validation": CWMAGraphDataValidation.from_dict(obj["validation"]) if obj.get("validation") is not None else None
+        })
         return _obj
+
+
