@@ -1,14 +1,22 @@
 # Package Publishing Guide
 
-This document describes how to publish and consume the `logos-foundry` package using GitHub Packages.
+This document describes how to publish and consume the `logos-foundry` package using GitHub Container Registry.
 
 ## Overview
 
-`logos-foundry` is published to GitHub Packages (GitHub's PyPI-compatible package registry) to enable other LOGOS repositories to consume shared utilities without path dependencies.
+`logos-foundry` is published as a container image to GitHub Container Registry (ghcr.io) to enable other LOGOS repositories to consume shared utilities and dependencies without path dependencies.
 
 **Package Name:** `logos-foundry`  
 **Current Version:** `0.1.0`  
-**Registry:** `https://pypi.pkg.github.com/c-daly`
+**Registry:** `ghcr.io/c-daly/logos-foundry`
+
+## What's Included
+
+The container includes:
+- All logos packages: `logos_test_utils`, `logos_hcg`, `logos_observability`, `logos_perception`, `logos_persona`, `logos_sophia`, `logos_cwm_e`, `logos_tools`, `planner_stub`
+- All runtime and test dependencies (pytest, rdflib, pyshacl, neo4j, pymilvus, opentelemetry, etc.)
+- Poetry for package management
+- Python 3.11
 
 ## Publishing New Versions
 
@@ -17,7 +25,6 @@ This document describes how to publish and consume the `logos-foundry` package u
 1. **Update version in `pyproject.toml`:**
    ```bash
    # Bump version following semver: MAJOR.MINOR.PATCH
-   # Edit pyproject.toml manually or use:
    poetry version patch  # 0.1.0 -> 0.1.1
    poetry version minor  # 0.1.0 -> 0.2.0
    poetry version major  # 0.1.0 -> 1.0.0
@@ -40,7 +47,7 @@ This document describes how to publish and consume the `logos-foundry` package u
 4. **Verify publication:**
    - GitHub Actions will automatically trigger the publish workflow
    - Check workflow at: https://github.com/c-daly/logos/actions
-   - Package appears at: https://github.com/c-daly/logos/packages
+   - Container appears at: https://github.com/c-daly/logos/pkgs/container/logos-foundry
 
 ### Manual Publishing
 
@@ -52,129 +59,133 @@ If you need to publish without creating a release:
    - Select branch (usually `main`)
    - Click "Run workflow"
 
-2. **Or publish locally:**
-   ```bash
-   # Configure authentication (one-time)
-   poetry config http-basic.github YOUR_GITHUB_USERNAME YOUR_PERSONAL_ACCESS_TOKEN
-   
-   # Build and publish
-   poetry build
-   poetry publish -r github
-   ```
+## Consuming the Package in Other Repos
 
-## Consuming from GitHub Packages
+### Using as Base Image in Docker Compose
 
-### For Poetry Projects (Recommended)
+Most common use case - use the container as a base for running tests:
 
-1. **Add GitHub Packages as a source in `pyproject.toml`:**
-   ```toml
-   [[tool.poetry.source]]
-   name = "github"
-   url = "https://pypi.pkg.github.com/c-daly"
-   priority = "supplemental"  # Check PyPI first, fall back to GitHub
-   ```
+```yaml
+# docker-compose.test.yml
+services:
+  test-runner:
+    image: ghcr.io/c-daly/logos-foundry:0.1.0
+    volumes:
+      - ./tests:/app/tests
+      - ./src:/app/src  # Mount your repo's code
+    environment:
+      - NEO4J_URI=bolt://neo4j:7687
+      - MILVUS_HOST=milvus
+    command: pytest tests/
+    depends_on:
+      - neo4j
+      - milvus
+```
 
-2. **Add the dependency:**
-   ```toml
-   [tool.poetry.dependencies]
-   logos-foundry = "^0.1.0"
-   ```
+### Using as Base in Dockerfile
 
-3. **Configure authentication:**
-   ```bash
-   # One-time setup
-   poetry config http-basic.github YOUR_GITHUB_USERNAME YOUR_PERSONAL_ACCESS_TOKEN
-   ```
+Build your service on top of the foundry image:
 
-4. **Install:**
-   ```bash
-   poetry install
-   ```
+```dockerfile
+# Dockerfile
+FROM ghcr.io/c-daly/logos-foundry:0.1.0
 
-### For pip Projects
+# Copy your service code
+COPY . /app/myservice
+WORKDIR /app/myservice
 
-```bash
-# Set up authentication
-export PIP_INDEX_URL=https://pypi.org/simple/
-export PIP_EXTRA_INDEX_URL=https://pypi.pkg.github.com/c-daly/
+# Install your service's additional dependencies
+RUN poetry install --no-interaction --no-ansi
 
-# Install with authentication
-pip install \
-  --index-url https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@pypi.pkg.github.com/c-daly/simple/ \
-  --extra-index-url https://pypi.org/simple/ \
-  logos-foundry==0.1.0
+# Run your service
+CMD ["uvicorn", "myservice.main:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+### Using in GitHub Actions
+
+```yaml
+# .github/workflows/test.yml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/c-daly/logos-foundry:0.1.0
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        run: pytest tests/
 ```
 
 ## Authentication
 
-### Creating a Personal Access Token
+### For Public Access (Read-Only)
 
-1. Go to https://github.com/settings/tokens/new
-2. Set description: "logos-foundry package access"
-3. Select scopes:
-   - `read:packages` (required for consuming)
-   - `write:packages` (required for publishing)
-4. Generate token and save it securely
+The container is publicly accessible for pulling - no authentication needed:
+
+```bash
+docker pull ghcr.io/c-daly/logos-foundry:0.1.0
+```
 
 ### For CI/CD (GitHub Actions)
 
-GitHub Actions automatically has access via `GITHUB_TOKEN`:
+GitHub Actions automatically has access via `GITHUB_TOKEN` for private images:
 
 ```yaml
-- name: Configure Poetry for GitHub Packages
-  run: |
-    poetry config repositories.github https://pypi.pkg.github.com/c-daly
-    poetry config http-basic.github __token__ ${{ secrets.GITHUB_TOKEN }}
+- name: Log in to GitHub Container Registry
+  uses: docker/login-action@v3
+  with:
+    registry: ghcr.io
+    username: ${{ github.actor }}
+    password: ${{ secrets.GITHUB_TOKEN }}
+```
 
-- name: Install dependencies
-  run: poetry install
+### For Local Development (Private Images)
+
+```bash
+# Create a Personal Access Token with read:packages scope
+# Then login:
+echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
 ```
 
 ## Local Development Workflow
 
 When working on changes to `logos-foundry` that need testing in dependent repos:
 
-### Option 1: Path Override (Temporary)
+### Option 1: Mount Local logos Directory
 
-```bash
-cd dependent-repo
-
-# Use local version
-poetry add ../logos
-
-# Work on changes, test...
-
-# Revert to published version
-poetry add logos-foundry@^0.1.0
+```yaml
+# docker-compose.test.yml (temporary)
+services:
+  test-runner:
+    image: ghcr.io/c-daly/logos-foundry:0.1.0
+    volumes:
+      - ../logos:/app/logos:ro  # Override with local version
+      - ./tests:/app/tests
 ```
 
-### Option 2: Editable Install
+### Option 2: Build Custom Image
 
-```bash
-cd dependent-repo
+```dockerfile
+# Dockerfile.dev
+FROM ghcr.io/c-daly/logos-foundry:0.1.0
 
-# Install logos-foundry in editable mode
-pip install -e ../logos
-
-# Changes in ../logos are immediately reflected
-# Remember to uninstall before switching back:
-pip uninstall logos-foundry
-poetry install  # Reinstall from lock file
+# Override with local logos packages
+COPY ../logos/logos_test_utils /app/logos_test_utils
+COPY ../logos/logos_hcg /app/logos_hcg
+# ... other packages as needed
 ```
 
-### Option 3: Local Build and Install
+### Option 3: Publish a Dev Version
 
 ```bash
 cd logos
-poetry build
-
-cd ../dependent-repo
-pip install ../logos/dist/logos_foundry-0.1.0-py3-none-any.whl
+poetry version 0.1.1-dev
+# Build and test locally, then trigger workflow
 ```
 
 ## Package Contents
 
-`logos-foundry` includes the following sub-packages:
+The container includes the following logos sub-packages:
 
 - **`logos_tools`** - CLI tools for issue generation and management
 - **`logos_hcg`** - Hybrid Cognitive Graph data structures and utilities
@@ -186,12 +197,12 @@ pip install ../logos/dist/logos_foundry-0.1.0-py3-none-any.whl
 - **`logos_test_utils`** - Shared test fixtures and utilities
 - **`planner_stub`** - Planning stub implementations
 
+Plus all test dependencies (pytest, neo4j, pymilvus, rdflib, pyshacl, opentelemetry, etc.)
+
 ### Using Test Utilities
 
-To use `logos_test_utils` in consuming repos:
-
 ```python
-# In conftest.py or test files
+# In your repo's tests - everything is already installed
 from logos_test_utils import (
     get_neo4j_config,
     get_milvus_config,
@@ -199,7 +210,6 @@ from logos_test_utils import (
     cleanup_milvus,
 )
 
-# Neo4j fixture using shared utilities
 @pytest.fixture
 def neo4j_driver():
     config = get_neo4j_config()
@@ -211,8 +221,6 @@ def neo4j_driver():
     cleanup_neo4j(driver)
     driver.close()
 ```
-
-**Note:** Consuming repos must declare test dependencies themselves or install with extras if `logos_test_utils` requires them (neo4j, pymilvus, etc.).
 
 ## Versioning Strategy
 
@@ -239,47 +247,60 @@ poetry version prerelease  # 0.1.1-alpha.0 -> 0.1.1-alpha.1
 
 ## Troubleshooting
 
-### Package not found
+## Troubleshooting
 
-**Error:** `Package logos-foundry not found`
+### Container not found
+
+**Error:** `Error response from daemon: pull access denied`
 
 **Solutions:**
-1. Verify GitHub Packages source is configured in `pyproject.toml`
-2. Check authentication is set up correctly
-3. Ensure the package version exists: https://github.com/c-daly/logos/packages
+1. Verify the image name: `ghcr.io/c-daly/logos-foundry:0.1.0`
+2. Check if you need authentication (for private images)
+3. Ensure the container version exists: https://github.com/c-daly/logos/pkgs/container/logos-foundry
 
 ### Authentication failed
 
-**Error:** `401 Unauthorized` or `403 Forbidden`
+**Error:** `401 Unauthorized` or `403 Forbidden` when pulling
 
 **Solutions:**
-1. Verify your Personal Access Token has `read:packages` scope
-2. Re-run: `poetry config http-basic.github USERNAME TOKEN`
-3. For CI, ensure `GITHUB_TOKEN` has `packages: read` permission
-
-### Wrong package version installed
-
-**Error:** Getting an old version despite specifying newer one
-
-**Solutions:**
-1. Clear Poetry cache: `poetry cache clear github --all`
-2. Force update: `poetry update logos-foundry`
-3. Check your version constraint in `pyproject.toml`
+1. Login to ghcr.io: `echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin`
+2. Verify your Personal Access Token has `read:packages` scope
+3. For CI, ensure workflow has `packages: read` permission
 
 ### Local changes not reflected
 
-If you're using path dependencies and changes aren't reflected:
+If you're mounting local directories and changes aren't reflected:
 
 ```bash
-# Force reinstall
-poetry install --no-cache
-# Or
-pip install --force-reinstall -e ../logos
+# Rebuild if using custom Dockerfile
+docker-compose build --no-cache test-runner
+
+# Or restart services
+docker-compose restart test-runner
 ```
+
+### Import errors in tests
+
+**Error:** `ModuleNotFoundError: No module named 'logos_test_utils'`
+
+**Solutions:**
+1. Ensure you're using the foundry container: `image: ghcr.io/c-daly/logos-foundry:0.1.0`
+2. Check PYTHONPATH is set correctly (default: `/app`)
+3. Verify your code is mounted in the right location
+
+## Version Strategy
+
+Follow semantic versioning (MAJOR.MINOR.PATCH):
+
+- **PATCH (0.1.x):** Bug fixes, documentation updates, no breaking changes
+- **MINOR (0.x.0):** New features, new utilities, backward compatible
+- **MAJOR (x.0.0):** Breaking changes to APIs or package structure
+
+**Dev versions:** Use `-dev` suffix (e.g., `0.1.1-dev`) for testing unpublished changes
 
 ## Related Documentation
 
-- **Issue #373:** Package Distribution Strategy
+- **Issue #373:** Package Distribution Strategy  
 - **Issue #374:** GitHub Packages Setup (this implementation)
 - **Testing Guide:** `docs/operations/TESTING.md`
-- **GitHub Packages Docs:** https://docs.github.com/en/packages
+- **GitHub Container Registry Docs:** https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry
