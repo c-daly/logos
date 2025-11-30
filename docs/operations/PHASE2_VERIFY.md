@@ -1,5 +1,7 @@
 # Phase 2 Verification Checklist
 
+> Status (December 2025): Phase 2 is in progress. This checklist predates the OTEL stack addition and the Milvus port change to 18530/18091. Perception ingest/JEPA pipeline is not implemented yet; CWM-E reflection remains manual. Use this doc as a checklist, but confirm evidence by rerunning the e2e stack and checking the service repos (sophia, hermes, apollo) for current readiness.
+
 This document provides comprehensive verification criteria, demo instructions, evidence requirements, and CI workflow references for all Phase 2 milestones (P2-M1 through P2-M4).
 
 ## Overview
@@ -19,9 +21,9 @@ Phase 2 extends the LOGOS ecosystem with:
 | Milestone | Description | Status |
 |-----------|-------------|--------|
 | **P2-M1** | Services Online | ✅ **COMPLETE** |
-| **P2-M2** | Apollo Dual Surface | ✅ **COMPLETE** |
-| **P2-M3** | Perception & Imagination | ✅ **COMPLETE** (Talos-optional) |
-| **P2-M4** | Diagnostics & Persona | ✅ **COMPLETE** |
+| **P2-M2** | Apollo Dual Surface | ⚠️ **MOSTLY COMPLETE** (media upload UI missing) |
+| **P2-M3** | Perception & Imagination | ⚠️ **PARTIAL** (no media ingest/JEPA pipeline) |
+| **P2-M4** | Diagnostics & Persona | ⚠️ **MOSTLY COMPLETE** (CWM-E automation/telemetry gaps) |
 
 **Last Updated:** November 23, 2025
 
@@ -100,11 +102,11 @@ Phase 2 extends the LOGOS ecosystem with:
    ```
 
 **Evidence Requirements:**
-- [x] ✅ Screenshot of `/docs` endpoint showing all Sophia APIs (API auto-generated)
-- [x] ✅ Health check response JSON (Implemented in `sophia/src/sophia/api/app.py`)
-- [x] ✅ Successful plan creation response (Verified in implementation)
-- [x] ✅ Docker Compose logs showing service startup (`sophia/docker-compose.yml`)
-- [x] ✅ CI workflow run showing Sophia tests passing (Tests in `sophia/tests/`)
+- ✅ Screenshot of `/docs` endpoint showing all Sophia APIs (API auto-generated)
+- ✅ Health check response JSON (Implemented in `sophia/src/sophia/api/app.py`)
+- ✅ Successful plan creation response (Verified in implementation)
+- ✅ Docker Compose logs showing service startup (`sophia/docker-compose.yml`)
+- ✅ CI workflow run showing Sophia tests passing (Tests in `sophia/tests/`)
 
 **Implementation Evidence:**
 - Sophia API fully implemented in `sophia/src/sophia/api/app.py`
@@ -182,12 +184,12 @@ Phase 2 extends the LOGOS ecosystem with:
    ```
 
 **Evidence Requirements:**
-- [x] ✅ Screenshot of `/docs` endpoint showing all Hermes APIs (API auto-generated)
-- [x] ✅ Health check response JSON (Enhanced health endpoint implemented)
-- [x] ✅ Successful embedding creation response (Verified in implementation)
-- [x] ✅ NLP parsing result JSON (Verified in implementation)
-- [x] ✅ Docker Compose logs showing service startup (`hermes/docker-compose.yml`)
-- [x] ✅ CI workflow run showing Hermes tests passing (Tests in `hermes/tests/`)
+- ✅ Screenshot of `/docs` endpoint showing all Hermes APIs (API auto-generated)
+- ✅ Health check response JSON (Enhanced health endpoint implemented)
+- ✅ Successful embedding creation response (Verified in implementation)
+- ✅ NLP parsing result JSON (Verified in implementation)
+- ✅ Docker Compose logs showing service startup (`hermes/docker-compose.yml`)
+- ✅ CI workflow run showing Hermes tests passing (Tests in `hermes/tests/`)
 
 **Implementation Evidence:**
 - Hermes API fully implemented in `hermes/src/hermes/main.py`
@@ -248,9 +250,9 @@ Upload all P2-M1 evidence to: `logs/p2-m1-verification/`
 - `hermes_docs_screenshot.png` - Screenshot of Swagger UI
 - `integration_tests.log` - Integration test output
 **Evidence Requirements:**
-- [x] ✅ Integration test output showing all tests passed (E2E tests in `apollo/tests/e2e/`)
-- [x] ✅ Docker Compose configurations verified (`logos/infra/docker-compose.hcg.dev.yml`)
-- [x] ✅ All service documentation endpoints operational
+- ✅ Integration test output showing all tests passed (E2E tests in `apollo/tests/e2e/`)
+- ✅ Docker Compose configurations verified (`logos/infra/docker-compose.hcg.dev.yml`)
+- ✅ All service documentation endpoints operational
 
 **Implementation Evidence:**
 - Docker Compose orchestration: `logos/infra/docker-compose.hcg.dev.yml`
@@ -283,12 +285,12 @@ Both Sophia and Hermes services are fully implemented, tested, and operational i
 - Error handling and retry logic
 
 **Implementation Evidence:**
-- [x] ✅ TypeScript SDK: `apollo/webapp/src/lib/sophia-client.ts`, `hermes-client.ts`
-- [x] ✅ Python SDK usage: `apollo/src/apollo/sdk/` with `logos_sophia_sdk`, `logos_hermes_sdk`
-- [x] ✅ Full method coverage documented in `apollo/C4A_IMPLEMENTATION_SUMMARY.md`
-- [x] ✅ Bearer token authentication implemented
-- [x] ✅ Shared `ServiceResponse` pattern for error handling
-- [x] ✅ Configuration management via `apollo/src/apollo/config.py` and `apollo/webapp/src/lib/config.ts`
+- ✅ TypeScript SDK: `apollo/webapp/src/lib/sophia-client.ts`, `hermes-client.ts`
+- ✅ Python SDK usage: `apollo/src/apollo/sdk/` with `logos_sophia_sdk`, `logos_hermes_sdk`
+- ✅ Full method coverage documented in `apollo/C4A_IMPLEMENTATION_SUMMARY.md`
+- ✅ Bearer token authentication implemented
+- ✅ Shared `ServiceResponse` pattern for error handling
+- ✅ Configuration management via `apollo/src/apollo/config.py` and `apollo/webapp/src/lib/config.ts`
 
 **Verification:**
 - CLI/Web parity table verified in `apollo/C4A_IMPLEMENTATION_SUMMARY.md`
@@ -355,12 +357,12 @@ Both Sophia and Hermes services are fully implemented, tested, and operational i
 - Output formatting (YAML/JSON)
 
 **Implementation Evidence:**
-- [x] ✅ CLI fully refactored using SDKs (`apollo/src/apollo/`)
-- [x] ✅ All commands operational: `status`, `plan`, `state`, `simulate`, `embed`, `chat`, `diary`
-- [x] ✅ SDK integration documented in `apollo/docs/PROTOTYPE-WIRING.md`
-- [x] ✅ Configuration system: `apollo/src/apollo/config.py`
-- [x] ✅ Authentication via Bearer tokens
-- [x] ✅ Shared `ServiceResponse` pattern with CLI/web parity
+- ✅ CLI fully refactored using SDKs (`apollo/src/apollo/`)
+- ✅ All commands operational: `status`, `plan`, `state`, `simulate`, `embed`, `chat`, `diary`
+- ✅ SDK integration documented in `apollo/docs/PROTOTYPE-WIRING.md`
+- ✅ Configuration system: `apollo/src/apollo/config.py`
+- ✅ Authentication via Bearer tokens
+- ✅ Shared `ServiceResponse` pattern with CLI/web parity
 
 **Verification:**
 - Implementation details: `apollo/README.md`
@@ -379,17 +381,17 @@ Both Sophia and Hermes services are fully implemented, tested, and operational i
 - WebSocket for real-time updates
 
 **Implementation Evidence:**
-- [x] ✅ Vite + React + TypeScript stack: `apollo/webapp/`
-- [x] ✅ All major components implemented:
+- ✅ Vite + React + TypeScript stack: `apollo/webapp/`
+- ✅ All major components implemented:
   - Chat Panel: `apollo/webapp/src/components/ChatPanel.tsx`
   - Graph Viewer: `apollo/webapp/src/components/GraphViewer.tsx`
   - Diagnostics Panel: `apollo/webapp/src/components/DiagnosticsPanel.tsx` (Logs, Timeline, Telemetry tabs)
   - Persona Diary: `apollo/webapp/src/components/PersonaDiary.tsx`
-- [x] ✅ SDK integration via `apollo/webapp/src/lib/sophia-client.ts` and `hermes-client.ts`
-- [x] ✅ Configuration system: `apollo/webapp/src/lib/config.ts`
-- [x] ✅ WebSocket integration: `apollo/webapp/src/hooks/useDiagnosticsStream.ts`
-- [x] ✅ Authentication: Bearer token support
-- [x] ✅ 61 passing tests
+- ✅ SDK integration via `apollo/webapp/src/lib/sophia-client.ts` and `hermes-client.ts`
+- ✅ Configuration system: `apollo/webapp/src/lib/config.ts`
+- ✅ WebSocket integration: `apollo/webapp/src/hooks/useDiagnosticsStream.ts`
+- ✅ Authentication: Bearer token support
+- ✅ 61 passing tests
 
 **Verification:**
 - Implementation complete per `apollo/C4A_IMPLEMENTATION_SUMMARY.md`
@@ -416,7 +418,7 @@ Apollo dual surfaces (CLI + browser) are functional with shared SDK architecture
 
 #### 3.1 CWM-G (JEPA) Implementation
 
-**Status:** ✅ **COMPLETE** (Simulation Only)### P2-M2 Evidence Upload
+**Status:** ⚠️ **PARTIAL** (simulation-only stub; no media ingest)### P2-M2 Evidence Upload
 
 Upload all P2-M2 evidence to: `logs/p2-m2-verification/`
 
@@ -460,13 +462,13 @@ Upload all P2-M2 evidence to: `logs/p2-m2-verification/`
 - Talos/Gazebo integration optional
 
 **Implementation Evidence:**
-- [x] ✅ JEPA runner: `sophia/src/sophia/jepa/runner.py`
-- [x] ✅ Simulation endpoint: `/simulate` in `sophia/src/sophia/api/app.py`
-- [x] ✅ Imagined states written to Neo4j
-- [x] ✅ Embeddings stored in Milvus
-- [x] ✅ Confidence degradation implemented
-- [x] ✅ CPU-friendly mode operational
-- [x] ✅ Talos integration documented: `logos/docs/phase2/perception/TALOS_INTEGRATION.md`
+- ✅ JEPA runner: `sophia/src/sophia/jepa/runner.py`
+- ✅ Simulation endpoint: `/simulate` in `sophia/src/sophia/api/app.py`
+- ✅ Imagined states written to Neo4j
+- ✅ Embeddings stored in Milvus
+- ✅ Confidence degradation implemented
+- ✅ CPU-friendly mode operational
+- ✅ Talos integration documented: `logos/docs/phase2/perception/TALOS_INTEGRATION.md`
 
 **Test Evidence:**
 - 11 passing tests in `logos/tests/integration/perception/test_simulate_api.py`
@@ -559,10 +561,10 @@ Upload all P2-M2 evidence to: `logs/p2-m2-verification/`
 - API endpoints return consistent structure
 
 **Implementation Evidence:**
-- [x] ✅ State contract documented in `logos/docs/architecture/PHASE2_SPEC.md`
-- [x] ✅ CWMState models in SDK
-- [x] ✅ CWM-G (JEPA) emits proper CWMState envelopes
-- [x] ✅ Apollo CLI and web consume unified format
+- ✅ State contract documented in `logos/docs/architecture/PHASE2_SPEC.md`
+- ✅ CWMState models in SDK
+- ✅ CWM-G (JEPA) emits proper CWMState envelopes
+- ✅ Apollo CLI and web consume unified format
 - [ ] ⚠️ **CWM-A not fully emitting CWMState** - basic implementation doesn't produce normalized entity/relationship diffs per spec
 - [ ] ⚠️ **CWM-E not auto-generating CWMState** - requires manual API calls
 
@@ -590,10 +592,10 @@ Upload all P2-M2 evidence to: `logs/p2-m2-verification/`
 **Status:** ✅ **COMPLETE**
 
 **Implementation Evidence:**
-- [x] ✅ `/simulate` endpoint operational in Sophia API
-- [x] ✅ Apollo CLI command: `apollo-cli simulate`
-- [x] ✅ Tests verify end-to-end flow
-- [x] ✅ Imagined states queryable via `/state` endpoint
+- ✅ `/simulate` endpoint operational in Sophia API
+- ✅ Apollo CLI command: `apollo-cli simulate`
+- ✅ Tests verify end-to-end flow
+- ✅ Imagined states queryable via `/state` endpoint
 
 ### P2-M3 Completion Summary
 
@@ -651,9 +653,9 @@ CWM-G (JEPA) simulation is fully functional with CPU-friendly mode operational. 
 - Health checks for service liveness
 
 **Implementation Evidence:**
-- [x] ✅ Module: `logos/logos_observability/`
-- [x] ✅ Logger: `get_logger()` with structured output
-- [x] ✅ Health endpoints in all services (Sophia, Hermes, Apollo)
+- ✅ Module: `logos/logos_observability/`
+- ✅ Logger: `get_logger()` with structured output
+- ✅ Health endpoints in all services (Sophia, Hermes, Apollo)
 
 **Full OTel Stack - Deferred to Phase 3:**
 
@@ -690,12 +692,12 @@ Structured logging sufficient for current development phase. Full observability 
 - Apollo CLI `diary` command for entry management
 
 **Implementation Evidence:**
-- [x] ✅ Persona API implementation in Apollo
-- [x] ✅ PersonaDiary component: `apollo/webapp/src/components/PersonaDiary.tsx`
-- [x] ✅ CLI diary command: `apollo-cli diary`
-- [x] ✅ PersonaEntry nodes in HCG ontology
-- [x] ✅ WebSocket integration for real-time updates
-- [x] ✅ Documented in `apollo/docs/PERSONA_DIARY.md`
+- ✅ Persona API implementation in Apollo
+- ✅ PersonaDiary component: `apollo/webapp/src/components/PersonaDiary.tsx`
+- ✅ CLI diary command: `apollo-cli diary`
+- ✅ PersonaEntry nodes in HCG ontology
+- ✅ WebSocket integration for real-time updates
+- ✅ Documented in `apollo/docs/PERSONA_DIARY.md`
 
 #### 4.3 CWM-E Reflection Infrastructure + EmotionState Nodes
 
@@ -709,14 +711,14 @@ Structured logging sufficient for current development phase. Full observability 
 - Basic reflection infrastructure (hooks, data models)
 
 **Implementation Evidence:**
-- [x] ✅ CWM-E module: `logos/logos_cwm_e/reflection.py`, `logos/logos_cwm_e/api.py`
-- [x] ✅ EmotionState schema defined in `logos/ontology/core_ontology.cypher`
-- [x] ✅ PersonaEntry schema in `logos/ontology/core_ontology.cypher` (uuid, timestamp, summary, sentiment, related_process)
-- [x] ✅ PersonaEntry schema in `logos_persona/api.py` matches ontology
-- [x] ✅ Apollo repo extends PersonaEntry with optional `trigger` field (see apollo PR #81)
-- [x] ✅ Apollo CLI accepts `--trigger` parameter for diary entries
-- [x] ✅ Apollo API endpoints handle trigger field
-- [x] ✅ Apollo chat and diary consume persona context
+- ✅ CWM-E module: `logos/logos_cwm_e/reflection.py`, `logos/logos_cwm_e/api.py`
+- ✅ EmotionState schema defined in `logos/ontology/core_ontology.cypher`
+- ✅ PersonaEntry schema in `logos/ontology/core_ontology.cypher` (uuid, timestamp, summary, sentiment, related_process)
+- ✅ PersonaEntry schema in `logos_persona/api.py` matches ontology
+- ✅ Apollo repo extends PersonaEntry with optional `trigger` field (see apollo PR #81)
+- ✅ Apollo CLI accepts `--trigger` parameter for diary entries
+- ✅ Apollo API endpoints handle trigger field
+- ✅ Apollo chat and diary consume persona context
 - [ ] ⚠️ **Event-driven reflection NOT implemented** - Phase 3 feature
 - [ ] ⚠️ **Planner/executor NOT consuming EmotionState** - Phase 3 integration
 - [ ] ⚠️ **Selective diary entry creation NOT implemented** - Phase 3 feature
@@ -822,11 +824,11 @@ Infrastructure ready for Phase 3 reflection system - data models, API endpoints,
 - Dashboard verification workflow
 
 **Implementation Evidence:**
-- [x] ✅ Demo capture script: `logos/scripts/demo_capture/capture_demo.py`
-- [x] ✅ OTel metrics capture: `capture_otel_metrics()` method
-- [x] ✅ Manual verification instructions included
-- [x] ✅ Documentation: `logos/scripts/demo_capture/README.md`
-- [x] ✅ Outputs JSON artifacts for evidence collection
+- ✅ Demo capture script: `logos/scripts/demo_capture/capture_demo.py`
+- ✅ OTel metrics capture: `capture_otel_metrics()` method
+- ✅ Manual verification instructions included
+- ✅ Documentation: `logos/scripts/demo_capture/README.md`
+- ✅ Outputs JSON artifacts for evidence collection
 
 ### P2-M4 Completion Summary
 
@@ -1122,21 +1124,21 @@ echo "✓ All Phase 2 verifications complete"
 Use this checklist to track remaining work:
 
 ### P2-M1: Services Online ✅ COMPLETE
-- [x] Sophia API operational
-- [x] Hermes API operational
-- [x] Docker Compose orchestration
-- [x] Health endpoints working
+- Sophia API operational
+- Hermes API operational
+- Docker Compose orchestration
+- Health endpoints working
 
 ### P2-M2: Apollo Dual Surface ⚠️ 85% COMPLETE
-- [x] CLI refactored with SDK
-- [x] Browser UI with all major components
-- [x] Shared SDK architecture
+- CLI refactored with SDK
+- Browser UI with all major components
+- Shared SDK architecture
 - [ ] **Media upload UI component**
 
 ### P2-M3: Perception & Imagination ⚠️ 70% COMPLETE
-- [x] JEPA simulation engine
-- [x] `/simulate` endpoint
-- [x] Unified CWM State contract (partial)
+- JEPA simulation engine
+- `/simulate` endpoint
+- Unified CWM State contract (partial)
 - [ ] **Media ingest service API**
 - [ ] **MediaSample nodes in HCG**
 - [ ] **Apollo media upload UI**
@@ -1144,10 +1146,10 @@ Use this checklist to track remaining work:
 - [ ] **CWM-A full CWMState emission**
 
 ### P2-M4: Diagnostics & Persona ⚠️ 90% COMPLETE
-- [x] Structured logging
-- [x] Health endpoints
-- [x] Persona diary system
-- [x] CWM-E module and API
+- Structured logging
+- Health endpoints
+- Persona diary system
+- CWM-E module and API
 - [ ] **CWM-E periodic reflection job**
 - [ ] **Planner EmotionState integration**
 - [ ] **Emotion visualization in Apollo**
@@ -1263,7 +1265,7 @@ Use this checklist to track overall Phase 2 completion:
 ## References
 
 - **Phase 2 Specification:** `docs/architecture/PHASE2_SPEC.md`
-- **LOGOS Full Specification:** `docs/architecture/LOGOS_SPEC_FLEXIBLE.md`
+- **LOGOS Full Specification:** `docs/architecture/LOGOS_SPEC.md`
 - **Phase 1 Verification:** `docs/old/PHASE1_VERIFY.md`
 - **HCG Ontology:** `ontology/core_ontology.cypher`
 - **Hermes API Contract:** `contracts/hermes.openapi.yaml`
