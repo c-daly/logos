@@ -228,8 +228,8 @@ def main():
     )
     parser.add_argument(
         "--neo4j-password",
-        default="logosdev",
-        help="Neo4j password (default: logosdev)",
+        default="neo4jtest",
+        help="Neo4j password (default: neo4jtest)",
     )
     parser.add_argument(
         "--milvus-host",

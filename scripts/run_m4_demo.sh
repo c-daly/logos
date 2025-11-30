@@ -119,7 +119,7 @@ clean_previous_data() {
         print_section "Cleaning Previous Demo Data"
         
         print_info "Clearing Neo4j database..."
-        docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+        docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
             "MATCH (n) DETACH DELETE n;" 2>&1 | head -3
         
         print_success "Database cleared"
@@ -163,7 +163,7 @@ capture_system_metrics() {
     
     # Neo4j node counts
     print_info "Counting Neo4j nodes..."
-    docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+    docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
         "MATCH (n) RETURN labels(n)[0] AS type, count(n) AS count ORDER BY type;" \
         > "${DEMO_RUN_DIR}/metrics/node_counts.txt" 2>&1
     
@@ -177,7 +177,7 @@ capture_system_metrics() {
     
     # Relationship counts
     print_info "Counting relationships..."
-    docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+    docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
         "MATCH ()-[r]->() RETURN type(r) AS rel_type, count(r) AS count ORDER BY count DESC;" \
         > "${DEMO_RUN_DIR}/metrics/relationship_counts.txt" 2>&1
     
@@ -197,7 +197,7 @@ run_verification_queries() {
     
     # Query 1: Final block location
     print_info "Query 1: Verify red block final location..."
-    docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+    docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
         "MATCH (block:Entity)-[:LOCATED_AT]->(bin:Entity)
          WHERE block.name CONTAINS 'RedBlock'
          RETURN block.name AS Object, bin.name AS Location;" \
@@ -213,7 +213,7 @@ run_verification_queries() {
     
     # Query 2: Plan execution order
     print_info "Query 2: Verify plan execution order..."
-    docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+    docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
         "MATCH path = (start:Process)-[:PRECEDES*]->(end:Process)
          WHERE NOT EXISTS((start)<-[:PRECEDES]-())
          RETURN [n in nodes(path) | n.name] AS sequence, length(path) AS steps;" \
@@ -229,7 +229,7 @@ run_verification_queries() {
     
     # Query 3: State history
     print_info "Query 3: Check block state history..."
-    docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+    docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
         "MATCH (e:Entity)-[:HAS_STATE]->(s:State)
          WHERE e.name CONTAINS 'RedBlock'
          RETURN s.name, s.description, s.timestamp
@@ -248,7 +248,7 @@ run_verification_queries() {
     
     # Query 4: Causal relationships
     print_info "Query 4: Verify causal relationships..."
-    docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+    docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
         "MATCH (p:Process)-[:CAUSES]->(s:State)
          RETURN p.name AS Action, s.name AS ResultingState;" \
         > "${queries_dir}/q4_causal_links.txt" 2>&1

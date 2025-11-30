@@ -213,7 +213,7 @@ When modifying the HCG ontology:
 
 - All new features must include tests
 - Tests should be consistent with existing test patterns
-- Integration tests go in `tests/phase1/` or `tests/phase2/`
+- Integration tests go in `tests/integration/`; cross-service E2E suites live in `tests/e2e/`
 - Use fixtures for common test data
 
 ### Running Tests
@@ -223,7 +223,7 @@ When modifying the HCG ontology:
 pytest
 
 # Run specific test file
-pytest tests/phase1/test_m1_neo4j_crud.py
+pytest tests/integration/ontology/test_neo4j_crud.py
 
 # Run with coverage
 pytest --cov=logos_hcg --cov=logos_tools
@@ -242,17 +242,10 @@ All PRs affecting Phase 2 functionality should ensure Phase 2 E2E tests pass:
 
 1. **Run Phase 2 E2E tests locally before submitting PR:**
    ```bash
-   # Start test services
-   cd logos/tests/phase2
-   docker compose -f docker-compose.test.yml up -d
-   
-   # Run tests
-   cd ../..
-   RUN_P2_E2E=1 pytest tests/phase2/test_phase2_end_to_end.py -v
-   
-   # Stop services
-   cd tests/phase2
-   docker compose -f docker-compose.test.yml down -v
+   # Start/stop the shared stack
+   ./tests/e2e/run_e2e.sh up
+   RUN_P2_E2E=1 pytest tests/e2e/test_phase2_end_to_end.py -v
+   ./tests/e2e/run_e2e.sh down
    ```
 
 2. **Phase 2 E2E tests automatically run in CI** on all PRs affecting:
@@ -268,12 +261,12 @@ All PRs affecting Phase 2 functionality should ensure Phase 2 E2E tests pass:
    - Blocked tests (media, OTel, browser) can be skipped with proper `@pytest.mark.skip()` annotations
 
 4. **When adding new Phase 2 features:**
-   - Add corresponding E2E tests to `tests/phase2/test_phase2_end_to_end.py`
-   - Update test fixtures in `tests/phase2/fixtures.py` if needed
-   - Document new tests in `tests/phase2/README.md`
+   - Add corresponding E2E tests to `tests/e2e/test_phase2_end_to_end.py`
+   - Update test fixtures in `tests/e2e/fixtures.py` if needed
+   - Document new tests in `tests/e2e/README.md`
    - If feature is blocked by another issue, use `@pytest.mark.skip(reason="Blocked by logos#XXX")`
 
-See `tests/phase2/README.md` for detailed testing documentation.
+See `tests/e2e/README.md` for detailed testing documentation.
 
 ## Documentation
 

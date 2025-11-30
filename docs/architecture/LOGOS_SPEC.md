@@ -234,7 +234,7 @@ Future deployment work must address:
 
 ### 7.1 Phase 1 — Completed Milestone
 - **Infrastructure**: `infra/docker-compose.hcg.dev.yml`, helper scripts, opt-in heavy Dockerfile (`Dockerfile.shacl-validation`).
-- **Data/Validation**: `core_ontology.cypher`, `shacl_shapes.ttl`, pySHACL tests (`tests/phase1/test_shacl_pyshacl.py`), optional Neo4j validation job with `RUN_NEO4J_SHACL=1`.
+- **Data/Validation**: `core_ontology.cypher`, `shacl_shapes.ttl`, pySHACL tests (`tests/integration/ontology/test_shacl_pyshacl.py`), optional Neo4j validation job with `RUN_NEO4J_SHACL=1`.
 - **Testing**: M1–M4 CI workflows + badges; heavy tests gated via env vars (`RUN_M4_E2E=1` or GitHub workflow inputs).
 - **Prototype**: Apollo CLI goal → plan → execute loop with deterministic Talos shim; `scripts/e2e_prototype.sh` for scripted demo.
 - **Documentation**: README updates, `PHASE1_VERIFY.md` checklist, `PHASE1_PROTOTYPE_EXPECTATIONS.md`, new flexible spec, and knowledge-base docs.
@@ -280,7 +280,7 @@ Focus on improving reasoning/execution while staying hardware-optional:
 3. **Manual demo checklist**: `docs/PHASE1_VERIFY.md` tracks infrastructure bootstrap, validation evidence, Apollo CLI runthrough, and log artifacts.
 4. **Stakeholder runbook**:
    - Start infra via compose.
-   - Run fast tests: `pytest tests/phase1 -m "not slow"`.
+   - Run fast tests: `pytest tests/integration -m "not slow"`.
    - Drive Apollo CLI (`send`, `plans`, `execute`, `state`).
    - Optionally enable heavy flows and show GitHub badges/logs.
 

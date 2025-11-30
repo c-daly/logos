@@ -6,11 +6,61 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 STACK_DIR="${SCRIPT_DIR}/stack/logos"
-COMPOSE_FILE="${STACK_DIR}/docker-compose.test.yml"
-COMPOSE_ENV_FILE="${STACK_DIR}/.env.test"
+DEFAULT_COMPOSE_FILE="${STACK_DIR}/docker-compose.test.yml"
+DEFAULT_COMPOSE_ENV_FILE="${STACK_DIR}/.env.test"
+
+COMPOSE_FILE="${DOCKER_COMPOSE_FILE:-${DEFAULT_COMPOSE_FILE}}"
+COMPOSE_ENV_FILE="${DOCKER_COMPOSE_ENV_FILE:-${DEFAULT_COMPOSE_ENV_FILE}}"
+
+# Load stack environment variables to allow port overrides
+if [ -f "${COMPOSE_ENV_FILE}" ]; then
+    set -a
+    # shellcheck source=/dev/null
+    source "${COMPOSE_ENV_FILE}"
+    set +a
+fi
+
+SOPHIA_PORT="${SOPHIA_PORT:-8001}"
+HERMES_PORT="${HERMES_PORT:-8002}"
+APOLLO_PORT="${APOLLO_PORT:-8003}"
+
+NEO4J_HTTP_PORT="${NEO4J_HTTP_PORT:-7474}"
+NEO4J_BOLT_PORT="${NEO4J_BOLT_PORT:-7687}"
+MILVUS_PORT="${MILVUS_PORT:-19530}"
+MILVUS_METRICS_PORT="${MILVUS_METRICS_PORT:-9091}"
+MINIO_API_PORT="${MINIO_API_PORT:-9000}"
+MINIO_CONSOLE_PORT="${MINIO_CONSOLE_PORT:-9001}"
+ETCD_PORT="${ETCD_PORT:-2379}"
+
+MILVUS_PUBLIC_HOST="${MILVUS_PUBLIC_HOST:-localhost}"
+SOPHIA_URL="${SOPHIA_URL:-http://localhost:${SOPHIA_PORT}}"
+HERMES_URL="${HERMES_URL:-http://localhost:${HERMES_PORT}}"
+APOLLO_URL="${APOLLO_URL:-http://localhost:${APOLLO_PORT}}"
+MILVUS_METRICS_URL="${MILVUS_METRICS_URL:-http://${MILVUS_PUBLIC_HOST}:${MILVUS_METRICS_PORT}/healthz}"
+
+export SOPHIA_PORT HERMES_PORT APOLLO_PORT
+export NEO4J_HTTP_PORT NEO4J_BOLT_PORT MILVUS_PORT MILVUS_METRICS_PORT MINIO_API_PORT MINIO_CONSOLE_PORT ETCD_PORT
+export SOPHIA_URL HERMES_URL APOLLO_URL MILVUS_PUBLIC_HOST MILVUS_METRICS_URL
+
+NEO4J_PUBLIC_HOST="${NEO4J_PUBLIC_HOST:-localhost}"
+STACK_NEO4J_HOST="${NEO4J_HOST:-neo4j}"
+if [ "${STACK_NEO4J_HOST}" != "${NEO4J_PUBLIC_HOST}" ]; then
+    export STACK_NEO4J_HOST
+fi
+export NEO4J_HOST="${NEO4J_PUBLIC_HOST}"
+NEO4J_URI="${NEO4J_URI:-bolt://${NEO4J_PUBLIC_HOST}:${NEO4J_BOLT_PORT}}"
+export NEO4J_PUBLIC_HOST NEO4J_URI
+
+# Ensure host-side processes connect via the public Milvus interface
+STACK_MILVUS_HOST="${MILVUS_HOST:-milvus}"
+if [ "${STACK_MILVUS_HOST}" != "${MILVUS_PUBLIC_HOST}" ]; then
+    export STACK_MILVUS_HOST
+    export MILVUS_HOST="${MILVUS_PUBLIC_HOST}"
+fi
 
 # Export container names for tests that use docker exec
-export NEO4J_CONTAINER="logos-phase2-test-neo4j"
+export NEO4J_CONTAINER="${NEO4J_CONTAINER:-logos-phase2-test-neo4j}"
+export MILVUS_CONTAINER="${MILVUS_CONTAINER:-logos-phase2-test-milvus}"
 
 START_SERVICES_SCRIPT="${REPO_ROOT}/scripts/start_services.sh"
 SHOULD_START_APP_SERVICES=0
@@ -87,7 +137,7 @@ function print_usage() {
 }
 
 function stop_host_processes_on_ports() {
-    local ports=("8001" "8002" "8003")
+    local ports=("${SOPHIA_PORT}" "${HERMES_PORT}" "${APOLLO_PORT}")
     for port in "${ports[@]}"; do
         local pids=""
         if command -v lsof >/dev/null 2>&1; then
@@ -103,7 +153,15 @@ function stop_host_processes_on_ports() {
 }
 
 function stop_containers_on_ports() {
-    local ports=("7474" "7687" "19530" "9091" "9000" "9001" "2379")
+    local ports=(
+        "${NEO4J_HTTP_PORT}"
+        "${NEO4J_BOLT_PORT}"
+        "${MILVUS_PORT}"
+        "${MILVUS_METRICS_PORT}"
+        "${MINIO_API_PORT}"
+        "${MINIO_CONSOLE_PORT}"
+        "${ETCD_PORT}"
+    )
     for port in "${ports[@]}"; do
         local container=$(docker ps --format '{{.ID}}' --filter "publish=${port}" 2>/dev/null)
         if [ -n "$container" ]; then
@@ -135,7 +193,7 @@ function start_services() {
     
     # Check Milvus
     echo -n "Milvus: "
-    if curl -s -f http://localhost:9091/healthz > /dev/null 2>&1; then
+    if curl -s -f "${MILVUS_METRICS_URL}" > /dev/null 2>&1; then
         echo -e "${GREEN}✓ Ready${NC}"
     else
         echo -e "${RED}✗ Not ready${NC}"
@@ -164,8 +222,8 @@ function seed_data() {
     
     # Initialize Milvus collections
     echo -e "${YELLOW}Initializing Milvus collections...${NC}"
-    MILVUS_HOST=localhost \
-    MILVUS_PORT=19530 \
+    MILVUS_HOST="${MILVUS_PUBLIC_HOST}" \
+    MILVUS_PORT="${MILVUS_PORT}" \
     "${REPO_ROOT}/infra/init_milvus.sh"
     
     echo -e "${GREEN}✓ Test data seeded${NC}"
@@ -178,15 +236,15 @@ function check_status() {
     echo ""
     echo -e "${BLUE}Health Checks:${NC}"
     
-    echo -n "Neo4j (bolt://localhost:7687): "
+    echo -n "Neo4j (bolt://localhost:${NEO4J_BOLT_PORT}): "
     if compose exec -T neo4j cypher-shell -u neo4j -p neo4jtest "RETURN 1" > /dev/null 2>&1; then
         echo -e "${GREEN}✓ Healthy${NC}"
     else
         echo -e "${RED}✗ Unhealthy${NC}"
     fi
     
-    echo -n "Milvus (localhost:19530): "
-    if curl -s -f http://localhost:9091/healthz > /dev/null 2>&1; then
+    echo -n "Milvus (${MILVUS_PUBLIC_HOST}:${MILVUS_PORT}): "
+    if curl -s -f "${MILVUS_METRICS_URL}" > /dev/null 2>&1; then
         echo -e "${GREEN}✓ Healthy${NC}"
     else
         echo -e "${RED}✗ Unhealthy${NC}"
@@ -196,6 +254,8 @@ function check_status() {
 function run_test() {
     echo -e "${BLUE}Running test suite...${NC}"
     cd "${REPO_ROOT}"
+    export SOPHIA_URL HERMES_URL APOLLO_URL
+    export SOPHIA_PORT HERMES_PORT APOLLO_PORT
     start_application_services
 
     set +e

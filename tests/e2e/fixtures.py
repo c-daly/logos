@@ -36,9 +36,13 @@ NEO4J_CONFIG = get_neo4j_config(STACK_ENV)
 MILVUS_CONFIG = get_milvus_config(STACK_ENV)
 
 # Service URLs
-SOPHIA_URL = os.getenv("SOPHIA_URL", "http://localhost:8001")
-HERMES_URL = os.getenv("HERMES_URL", "http://localhost:8002")
-APOLLO_URL = os.getenv("APOLLO_URL", "http://localhost:8003")
+SOPHIA_PORT = os.getenv("SOPHIA_PORT", "8001")
+HERMES_PORT = os.getenv("HERMES_PORT", "8002")
+APOLLO_PORT = os.getenv("APOLLO_PORT", "8003")
+
+SOPHIA_URL = os.getenv("SOPHIA_URL", f"http://localhost:{SOPHIA_PORT}")
+HERMES_URL = os.getenv("HERMES_URL", f"http://localhost:{HERMES_PORT}")
+APOLLO_URL = os.getenv("APOLLO_URL", f"http://localhost:{APOLLO_PORT}")
 
 # Extract Neo4j/Milvus config from helpers
 NEO4J_URI = NEO4J_CONFIG.uri
@@ -119,7 +123,7 @@ def sophia_client() -> SophiaClient:
     url = SOPHIA_URL.replace("http://", "").replace("https://", "")
     parts = url.split(":")
     host = parts[0]
-    port = int(parts[1]) if len(parts) > 1 else 8001
+    port = int(parts[1]) if len(parts) > 1 else int(SOPHIA_PORT)
 
     config = SophiaConfig(host=host, port=port)
     return SophiaClient(config)
@@ -135,7 +139,7 @@ def hermes_client() -> HermesClient:
     url = HERMES_URL.replace("http://", "").replace("https://", "")
     parts = url.split(":")
     host = parts[0]
-    port = int(parts[1]) if len(parts) > 1 else 8002
+    port = int(parts[1]) if len(parts) > 1 else int(HERMES_PORT)
 
     config = HermesConfig(host=host, port=port)
     return HermesClient(config)
@@ -151,7 +155,7 @@ def persona_client() -> PersonaClient:
     url = SOPHIA_URL.replace("http://", "").replace("https://", "")
     parts = url.split(":")
     host = parts[0]
-    port = int(parts[1]) if len(parts) > 1 else 8001
+    port = int(parts[1]) if len(parts) > 1 else int(SOPHIA_PORT)
 
     config = PersonaApiConfig(host=host, port=port)
     return PersonaClient(config)

@@ -51,7 +51,7 @@ docker compose -f docker-compose.hcg.dev.yml up -d
 **Environment variables**:
 - `NEO4J_CONTAINER` - Neo4j container name (default: `logos-hcg-neo4j`)
 - `NEO4J_USER` - Neo4j username (default: `neo4j`)
-- `NEO4J_PASSWORD` - Neo4j password (default: `logosdev`)
+- `NEO4J_PASSWORD` - Neo4j password (default: `neo4jtest`)
 - `NEO4J_URI` - Neo4j connection URI (default: `bolt://localhost:7687`)
 
 **Example**:
@@ -70,7 +70,7 @@ The script is automatically run in CI via `.github/workflows/m4-end-to-end.yml`.
 **Related Documentation**:
 - Phase 1 Verification: `docs/PHASE1_VERIFY.md` (M4 section)
 - Prototype Capabilities: `docs/PROTOTYPE_CAPABILITIES.md`
-- Test Suite: `tests/phase1/test_m4_end_to_end.py`
+- Test Suite: `tests/e2e/test_phase1_end_to_end.py`
 
 ## Troubleshooting
 

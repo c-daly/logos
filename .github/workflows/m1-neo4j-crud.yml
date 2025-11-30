@@ -82,7 +82,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Run tests with verbose output
-          pytest tests/phase1/test_m1_neo4j_crud.py -v --tb=short
+          pytest tests/integration/ontology/test_neo4j_crud.py -v --tb=short
           
           TEST_EXIT_CODE=$?
           

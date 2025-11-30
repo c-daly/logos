@@ -6,7 +6,7 @@ This script provides a deterministic way to bootstrap the HCG with:
 2. Seed entities (RobotArm, Manipulator, etc.)
 
 Usage:
-    python -m logos_hcg.load_hcg --uri bolt://localhost:7687 --user neo4j --password logosdev
+    python -m logos_hcg.load_hcg --uri bolt://localhost:7687 --user neo4j --password neo4jtest
 
     Or with environment variables:
     NEO4J_URI=bolt://localhost:7687 python -m logos_hcg.load_hcg
@@ -376,8 +376,8 @@ def main():
     )
     parser.add_argument(
         "--password",
-        default=os.getenv("NEO4J_PASSWORD", "logosdev"),
-        help="Neo4j password (default: logosdev)",
+        default=os.getenv("NEO4J_PASSWORD", "neo4jtest"),
+        help="Neo4j password (default: neo4jtest)",
     )
     parser.add_argument(
         "--repo-root",

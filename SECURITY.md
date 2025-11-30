@@ -111,7 +111,7 @@ When contributing to LOGOS, please follow these security best practices:
    - Scan images for vulnerabilities
 
 2. **Database Security**
-   - Use strong passwords (not defaults like `logosdev`)
+   - Use strong passwords (not defaults like `neo4jtest`)
    - Restrict network access appropriately
    - Enable authentication on Neo4j and Milvus
    - Regular backups
@@ -141,7 +141,7 @@ When contributing to LOGOS, please follow these security best practices:
 
 The Phase 1 prototype is designed for **development and research only**. It has several known security limitations:
 
-1. **Default Credentials**: Neo4j uses default credentials (`neo4j/logosdev`)
+1. **Default Credentials**: Neo4j uses default credentials (`neo4j/neo4jtest`)
 2. **No Authentication**: Most APIs don't require authentication
 3. **Local Access Only**: Infrastructure expects localhost deployment
 4. **Simulated Components**: No production hardening

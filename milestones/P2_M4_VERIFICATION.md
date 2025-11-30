@@ -32,10 +32,10 @@ Open http://localhost:3001 in your browser
 ### 4. Run Tests
 ```bash
 # Run OTel smoke tests
-pytest tests/phase2/test_otel_smoke.py -v
+pytest tests/integration/observability/test_otel_smoke.py -v
 
 # Run all observability tests
-pytest tests/phase2/test_observability.py tests/phase2/test_otel_smoke.py -v
+pytest tests/integration/observability/test_observability.py tests/integration/observability/test_otel_smoke.py -v
 ```
 
 ### 5. Capture Demo Artifacts
@@ -52,7 +52,7 @@ python capture_demo.py --mode otel
 **Verification**:
 1. Review code: `logos_sophia/api.py` line 77-95
 2. Look for: `span.set_attribute("plan_id", result.process.uuid)`
-3. Run test: `pytest tests/phase2/test_otel_smoke.py::test_tracer_creates_spans -v`
+3. Run test: `pytest tests/integration/observability/test_otel_smoke.py::test_tracer_creates_spans -v`
 
 **Expected**: Test passes, span attributes include plan_id
 
@@ -105,7 +105,7 @@ python capture_demo.py --mode otel
 **Verification**:
 1. Review: `.github/workflows/phase2-otel.yml`
 2. Check jobs: otel-smoke-test, collector-config-validation, documentation-check
-3. Run tests locally: `pytest tests/phase2/test_otel_smoke.py -v`
+3. Run tests locally: `pytest tests/integration/observability/test_otel_smoke.py -v`
 4. Check test count: Should be 7 tests
 
 **Expected**: All 7 smoke tests pass, configs are valid
@@ -223,7 +223,7 @@ Expected: Returns traces from Sophia service
 6. `infra/dashboards/logos-key-signals.json`
 7. `infra/OTEL_SETUP.md`
 8. `docs/OBSERVABILITY_QUERIES.md`
-9. `tests/phase2/test_otel_smoke.py`
+9. `tests/integration/observability/test_otel_smoke.py`
 10. `.github/workflows/phase2-otel.yml`
 11. `milestones/P2_M4_VERIFICATION.md` (this file)
 

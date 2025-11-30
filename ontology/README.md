@@ -25,7 +25,7 @@ cd ../infra
 docker compose -f docker-compose.hcg.dev.yml up -d
 ```
 
-Wait for Neo4j to be ready at http://localhost:7474 (login: neo4j/logosdev)
+Wait for Neo4j to be ready at http://localhost:7474 (login: neo4j/neo4jtest)
 
 ### 2. Install n10s Plugin (Manual)
 
@@ -53,7 +53,7 @@ sleep 15
 
 Verify the plugin is loaded:
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
   "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'n10s' RETURN count(name) AS count"
 ```
 
@@ -61,7 +61,7 @@ docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
 
 ```bash
 cat core_ontology.cypher | \
-  docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p logosdev
+  docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest
 ```
 
 ### 4. Load SHACL Shapes and Run Validation
@@ -74,7 +74,7 @@ pip install neo4j rdflib pyshacl
 python load_and_validate_shacl.py \
   --uri bolt://localhost:7687 \
   --user neo4j \
-  --password logosdev \
+  --password neo4jtest \
   --shapes shacl_shapes.ttl \
   --skip-validation
 ```
@@ -86,9 +86,9 @@ python load_and_validate_shacl.py \
 python load_and_validate_shacl.py \
   --uri bolt://localhost:7687 \
   --user neo4j \
-  --password logosdev \
+  --password neo4jtest \
   --shapes shacl_shapes.ttl \
-  --test-data ../tests/phase1/fixtures/valid_entities.ttl \
+  --test-data ../tests/integration/ontology/fixtures/valid_entities.ttl \
   --clear
 ```
 
@@ -97,9 +97,9 @@ python load_and_validate_shacl.py \
 python load_and_validate_shacl.py \
   --uri bolt://localhost:7687 \
   --user neo4j \
-  --password logosdev \
+  --password neo4jtest \
   --shapes shacl_shapes.ttl \
-  --test-data ../tests/phase1/fixtures/invalid_entities.ttl \
+  --test-data ../tests/integration/ontology/fixtures/invalid_entities.ttl \
   --clear
 ```
 
@@ -112,7 +112,7 @@ python load_and_validate_shacl.py \
 **Arguments**:
 - `--uri` - Neo4j connection URI (default: bolt://localhost:7687)
 - `--user` - Neo4j username (default: neo4j)
-- `--password` - Neo4j password (default: logosdev)
+- `--password` - Neo4j password (default: neo4jtest)
 - `--shapes` - Path to SHACL shapes TTL file (default: shacl_shapes.ttl)
 - `--test-data` - Path to test data TTL file to validate (optional)
 - `--clear` - Clear graph before loading data
@@ -224,14 +224,14 @@ If you see "n10s plugin not available", ensure:
 
 1. Ensure Neo4j is running: `docker ps | grep neo4j`
 2. Check port 7687 is exposed: `docker port logos-hcg-neo4j`
-3. Verify credentials (default: neo4j/logosdev)
+3. Verify credentials (default: neo4j/neo4jtest)
 
 ## References
 
 - **Specification**: `docs/spec/project_logos_full.md`, Section 4.3.1 (SHACL validation)
 - **Verification**: `docs/PHASE1_VERIFY.md`, M2 section
 - **Infrastructure**: `infra/docker-compose.hcg.dev.yml`
-- **Test Fixtures**: `tests/phase1/fixtures/`
+- **Test Fixtures**: `tests/integration/ontology/fixtures/`
 
 ## Vector Embedding Integration (Section 4.2)
 

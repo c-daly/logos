@@ -21,7 +21,8 @@ def _load_graph(path: Path) -> Graph:
 
 @pytest.fixture(scope="module")
 def shapes_graph() -> Graph:
-    shapes_path = Path(__file__).parent.parent.parent / "ontology" / "shacl_shapes.ttl"
+    repo_root = Path(__file__).resolve().parents[3]
+    shapes_path = repo_root / "ontology" / "shacl_shapes.ttl"
     return _load_graph(shapes_path)
 
 

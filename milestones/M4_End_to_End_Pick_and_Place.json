@@ -46,7 +46,7 @@
   
   "test_results": {
     "automated_tests": {
-      "file": "tests/phase1/test_m4_end_to_end.py",
+      "file": "tests/e2e/test_phase1_end_to_end.py",
       "passed": 22,
       "skipped": 1,
       "failed": 0,

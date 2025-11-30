@@ -57,9 +57,13 @@ NEO4J_CONFIG = get_neo4j_config(STACK_ENV)
 MILVUS_CONFIG = get_milvus_config(STACK_ENV)
 
 # Service URLs - use environment variables with defaults
-SOPHIA_URL = os.getenv("SOPHIA_URL", "http://localhost:8001")
-HERMES_URL = os.getenv("HERMES_URL", "http://localhost:8002")
-APOLLO_URL = os.getenv("APOLLO_URL", "http://localhost:8003")
+SOPHIA_PORT = os.getenv("SOPHIA_PORT", "8001")
+HERMES_PORT = os.getenv("HERMES_PORT", "8002")
+APOLLO_PORT = os.getenv("APOLLO_PORT", "8003")
+
+SOPHIA_URL = os.getenv("SOPHIA_URL", f"http://localhost:{SOPHIA_PORT}")
+HERMES_URL = os.getenv("HERMES_URL", f"http://localhost:{HERMES_PORT}")
+APOLLO_URL = os.getenv("APOLLO_URL", f"http://localhost:{APOLLO_PORT}")
 
 # Extract Neo4j/Milvus config from helpers
 NEO4J_URI = NEO4J_CONFIG.uri
@@ -214,7 +218,7 @@ class TestP2CWMStateEnvelope:
 
         config = SophiaConfig(
             host=SOPHIA_URL.replace("http://", "").replace("https://", "").split(":")[0],
-            port=int(SOPHIA_URL.split(":")[-1]) if ":" in SOPHIA_URL else 8001,
+            port=int(SOPHIA_URL.split(":")[-1]) if ":" in SOPHIA_URL else int(SOPHIA_PORT),
             api_key=os.getenv("SOPHIA_API_KEY", "test-token-12345"),
         )
         return SophiaClient(config)
@@ -398,12 +402,12 @@ class TestP2M2ApolloDualSurface:
 
         sophia_config = SophiaConfig(
             host=SOPHIA_URL.replace("http://", "").replace("https://", "").split(":")[0],
-            port=int(SOPHIA_URL.split(":")[-1]) if ":" in SOPHIA_URL else 8001,
+            port=int(SOPHIA_URL.split(":")[-1]) if ":" in SOPHIA_URL else int(SOPHIA_PORT),
         )
 
         hermes_config = HermesConfig(
             host=HERMES_URL.replace("http://", "").replace("https://", "").split(":")[0],
-            port=int(HERMES_URL.split(":")[-1]) if ":" in HERMES_URL else 8002,
+            port=int(HERMES_URL.split(":")[-1]) if ":" in HERMES_URL else int(HERMES_PORT),
         )
 
         return {
@@ -472,7 +476,7 @@ class TestP2M4DiagnosticsPersona:
 
         config = PersonaApiConfig(
             host=SOPHIA_URL.replace("http://", "").replace("https://", "").split(":")[0],
-            port=int(SOPHIA_URL.split(":")[-1]) if ":" in SOPHIA_URL else 8001,
+            port=int(SOPHIA_URL.split(":")[-1]) if ":" in SOPHIA_URL else int(SOPHIA_PORT),
         )
         return PersonaClient(config)
 
@@ -594,12 +598,12 @@ class TestP2CrossServiceIntegration:
 
         sophia_config = SophiaConfig(
             host=SOPHIA_URL.replace("http://", "").replace("https://", "").split(":")[0],
-            port=int(SOPHIA_URL.split(":")[-1]) if ":" in SOPHIA_URL else 8001,
+            port=int(SOPHIA_URL.split(":")[-1]) if ":" in SOPHIA_URL else int(SOPHIA_PORT),
         )
 
         hermes_config = HermesConfig(
             host=HERMES_URL.replace("http://", "").replace("https://", "").split(":")[0],
-            port=int(HERMES_URL.split(":")[-1]) if ":" in HERMES_URL else 8002,
+            port=int(HERMES_URL.split(":")[-1]) if ":" in HERMES_URL else int(HERMES_PORT),
         )
 
         return {
@@ -708,17 +712,17 @@ class TestP2CompleteWorkflow:
 
         sophia_config = SophiaConfig(
             host=SOPHIA_URL.replace("http://", "").replace("https://", "").split(":")[0],
-            port=int(SOPHIA_URL.split(":")[-1]) if ":" in SOPHIA_URL else 8001,
+            port=int(SOPHIA_URL.split(":")[-1]) if ":" in SOPHIA_URL else int(SOPHIA_PORT),
         )
 
         hermes_config = HermesConfig(
             host=HERMES_URL.replace("http://", "").replace("https://", "").split(":")[0],
-            port=int(HERMES_URL.split(":")[-1]) if ":" in HERMES_URL else 8002,
+            port=int(HERMES_URL.split(":")[-1]) if ":" in HERMES_URL else int(HERMES_PORT),
         )
 
         persona_config = PersonaApiConfig(
             host=SOPHIA_URL.replace("http://", "").replace("https://", "").split(":")[0],
-            port=int(SOPHIA_URL.split(":")[-1]) if ":" in SOPHIA_URL else 8001,
+            port=int(SOPHIA_URL.split(":")[-1]) if ":" in SOPHIA_URL else int(SOPHIA_PORT),
         )
 
         return {

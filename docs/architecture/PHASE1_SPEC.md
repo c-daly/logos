@@ -29,7 +29,8 @@ Phase 1 establishes the core infrastructure for LOGOS: the Hierarchical Concept 
   - State progression tracking with temporal ordering
   - Causal chain construction for multi-step operations
 - **Test Suite**
-  - `tests/phase1/` — Comprehensive milestone tests (M1–M4)
+  - `tests/integration/` — Comprehensive milestone tests (M1–M3)
+  - `tests/e2e/test_phase1_end_to_end.py` — M4 end-to-end verification
   - CI workflows via `phase1-gate.yml`
   - Verification evidence in `logs/` directories
 - **Documentation**
@@ -58,7 +59,7 @@ Phase 1 establishes the core infrastructure for LOGOS: the Hierarchical Concept 
 - UUID constraints prevent duplicate entities
 - Relationship traversal queries return expected results
 - Entity-Concept associations established and queryable
-- Test file: `tests/phase1/test_m1_neo4j_crud.py` — 47 tests passing
+- Test file: `tests/integration/ontology/test_neo4j_crud.py` — 47 tests passing
 
 ---
 
@@ -82,7 +83,7 @@ Phase 1 establishes the core infrastructure for LOGOS: the Hierarchical Concept 
 - Valid data passes validation without errors
 - Invalid data (missing fields, wrong types, constraint violations) detected and rejected
 - Error messages include specific violation details
-- Test file: `tests/phase1/test_m2_shacl_validation.py` — SHACL integration verified
+- Test file: `tests/integration/ontology/test_shacl_validation.py` — SHACL integration verified
 
 ---
 
@@ -104,7 +105,7 @@ Phase 1 establishes the core infrastructure for LOGOS: the Hierarchical Concept 
 - Causal chain verifiable: each Process CAUSES expected State
 - Temporal ordering correct: PRECEDES relationships form valid sequence
 - State nodes accurately reflect entity position/status changes
-- Test file: `tests/phase1/test_m3_planning.py` — Planning scenarios verified
+- Test file: `tests/integration/planning/test_planning_workflow.py` — Planning scenarios verified
 
 ---
 
@@ -142,7 +143,7 @@ Phase 1 establishes the core infrastructure for LOGOS: the Hierarchical Concept 
 - HCG contains complete execution trace
 - Final state matches expected goal state
 - Verification evidence captured and documented
-- Test file: `tests/phase1/test_m4_end_to_end.py` — 22 tests passing
+- Test file: `tests/e2e/test_phase1_end_to_end.py` — 22 tests passing
 
 ---
 
@@ -222,7 +223,7 @@ All Phase 1 milestones have been verified. Evidence is stored in `logs/p1-m{1-4}
 - [x] **P1-M4**: End-to-end pipeline verified, 22 integration tests passing, evidence documented
 
 ### Verification Evidence
-- Test results: `tests/phase1/` — All milestone tests green
+- Test results: `tests/integration/` and `tests/e2e/test_phase1_end_to_end.py` — All milestone tests green
 - Milestone JSON: `milestones/M4_End_to_End_Pick_and_Place.json` — Detailed acceptance criteria and results
 - CI logs: GitHub Actions workflow runs for `phase1-gate.yml`
 
@@ -235,7 +236,7 @@ All Phase 1 milestones have been verified. Evidence is stored in `logs/p1-m{1-4}
 - **HCG Data Layer**: `docs/hcg/HCG_DATA_LAYER.md`
 - **Infrastructure Setup**: `infra/README.md`
 - **Ontology Files**: `ontology/README.md`
-- **Phase 1 Tests**: `tests/phase1/`
+- **Phase 1 Tests**: `tests/integration/`, `tests/e2e/test_phase1_end_to_end.py`
 - **Milestone Records**: `milestones/Phase_1_HCG_and_Abstract_Pipeline.json`
 
 > This document serves as the authoritative Phase 1 specification, mirroring the format of Phase 2 and Phase 3 specs. Phase 1 is complete and provides the foundation for all subsequent phases.

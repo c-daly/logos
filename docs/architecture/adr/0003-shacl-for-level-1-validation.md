@@ -120,7 +120,7 @@ This approach satisfies both development velocity (fast CI) and production requi
 
 ### pyshacl Validation (CI/CD)
 ```python
-# tests/phase1/test_shacl_pyshacl.py
+# tests/integration/ontology/test_shacl_pyshacl.py
 from pyshacl import validate
 
 shapes_graph = rdflib.Graph().parse("ontology/shacl_shapes.ttl")
@@ -154,8 +154,8 @@ RETURN focusNode, propertyShape, value, severity
 
 * Related to [ADR-0001](0001-use-neo4j-for-graph-database.md) - Neo4j integration via n10s
 * Implemented in `ontology/shacl_shapes.ttl`
-* Test suite in `tests/phase1/test_shacl_pyshacl.py`
-* Integration tests in `tests/phase1/test_shacl_neo4j_validation.py`
+* Test suite in `tests/integration/ontology/test_shacl_pyshacl.py`
+* Integration tests in `tests/integration/ontology/test_shacl_neo4j_validation.py`
 * CI workflow: `.github/workflows/validate-artifacts.yml`
 * Weekly validation: `.github/workflows/shacl-neo4j-validation.yml`
 

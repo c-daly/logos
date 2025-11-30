@@ -124,7 +124,7 @@ Initial State          Goal Created         Plan Generated       Executed
 |------|-------------|
 | `ontology/core_ontology.cypher` | Core HCG ontology constraints |
 | `ontology/test_data_pick_and_place.cypher` | Demo scenario entities |
-| `tests/phase1/test_m4_end_to_end.py` | Automated integration tests |
+| `tests/e2e/test_phase1_end_to_end.py` | Automated integration tests |
 
 ## Demo Workflow Details
 
@@ -299,7 +299,7 @@ Aggregates all logs into structured format with manifest.
 Run the complete M4 test suite:
 
 ```bash
-pytest tests/phase1/test_m4_end_to_end.py -v
+pytest tests/e2e/test_phase1_end_to_end.py -v
 ```
 
 **Coverage:**
@@ -349,7 +349,7 @@ docker compose -f infra/docker-compose.hcg.dev.yml restart
 docker logs logos-hcg-neo4j --tail 50
 
 # Verify Neo4j is ready
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "RETURN 1;"
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "RETURN 1;"
 ```
 
 ### No Verification Results
@@ -381,7 +381,7 @@ Modify `ontology/test_data_pick_and_place.cypher` to create custom demos:
 Use Neo4j browser to explore the graph:
 
 1. Open http://localhost:7474
-2. Login: neo4j / logosdev
+2. Login: neo4j / neo4jtest
 3. Run exploratory queries:
 
 ```cypher

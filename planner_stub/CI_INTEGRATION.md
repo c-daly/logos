@@ -35,7 +35,7 @@ The M3 workflow (`.github/workflows/m3-planning.yml`) starts the planner service
     done
 
 - name: Run M3 Planning Tests
-  run: pytest tests/phase1/test_m3_planning.py -v
+  run: pytest tests/integration/planning/test_planning_workflow.py -v
 
 - name: Stop planner service
   if: always()
@@ -77,7 +77,7 @@ sleep 5
 curl http://localhost:8001/health
 
 # Run M3 tests
-pytest tests/phase1/test_m3_planning.py -v
+pytest tests/integration/planning/test_planning_workflow.py -v
 
 # Run planner stub tests
 pytest tests/test_planner_stub.py -v

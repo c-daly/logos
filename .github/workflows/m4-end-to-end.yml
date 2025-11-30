@@ -116,7 +116,7 @@ jobs:
           fi
 
           export RUN_M4_E2E=1
-          pytest tests/phase1/test_m4_end_to_end.py -v --tb=short 2>&1 | tee m4_output.txt
+          pytest tests/e2e/test_phase1_end_to_end.py -v --tb=short 2>&1 | tee m4_output.txt
           
           if [ ${PIPESTATUS[0]} -eq 0 ]; then
             echo "✅ **PASSED**: End-to-end integration working" >> $GITHUB_STEP_SUMMARY

@@ -4,13 +4,15 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'tests/phase2/**'
+      - 'tests/e2e/**'
+      - 'tests/integration/**'
       - 'scripts/start_services.sh'
       - '.github/workflows/phase2-e2e.yml'
   push:
     branches: [main]
     paths:
-      - 'tests/phase2/**'
+      - 'tests/e2e/**'
+      - 'tests/integration/**'
       - 'scripts/start_services.sh'
       - '.github/workflows/phase2-e2e.yml'
   workflow_dispatch:
@@ -49,15 +51,15 @@ jobs:
       
       - name: Start infrastructure
         run: |
-          cd tests/phase2
-          docker compose -f docker-compose.test.yml up -d
+          chmod +x tests/e2e/run_e2e.sh
+          ./tests/e2e/run_e2e.sh up
           echo "Infrastructure starting..."
       
       - name: Wait for Neo4j
         run: |
           echo "Waiting for Neo4j..."
           for i in {1..60}; do
-            if docker exec logos-phase2-neo4j-test cypher-shell -u neo4j -p neo4jtest "RETURN 1" 2>/dev/null; then
+            if docker exec logos-phase2-test-neo4j cypher-shell -u neo4j -p neo4jtest "RETURN 1" 2>/dev/null; then
               echo "Neo4j is ready"
               exit 0
             fi
@@ -198,7 +200,7 @@ jobs:
       
       - name: Run Phase 2 E2E Tests
         run: |
-          poetry run pytest tests/phase2/test_phase2_end_to_end.py -v --tb=short
+          poetry run pytest tests/e2e/test_phase2_end_to_end.py -v --tb=short
         env:
           RUN_P2_E2E: "1"
           SOPHIA_URL: http://localhost:8001
@@ -227,14 +229,13 @@ jobs:
           netstat -tlnp 2>/dev/null | grep -E ':(8001|8002|8003|7687|19530)' || echo "No services listening"
           
           echo -e "\n=== Neo4j logs ==="
-          docker logs logos-phase2-neo4j-test --tail=100 || true
+          docker logs logos-phase2-test-neo4j --tail=100 || true
           
           echo -e "\n=== Milvus logs ==="
-          docker logs logos-phase2-milvus-test --tail=100 || true
+          docker logs logos-phase2-test-milvus --tail=100 || true
       
       - name: Stop test services
         if: always()
         run: |
-          cd tests/phase2
-          docker compose -f docker-compose.test.yml down -v || true
+          ./tests/e2e/run_e2e.sh down || true
           docker volume prune -f || true

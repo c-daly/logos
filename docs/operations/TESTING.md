@@ -68,19 +68,18 @@ All Python repositories must use:
 
 **Scope:** Full user flows across multiple services.
 
-**Location:** `logos/tests/phase2/test_phase2_end_to_end.py`
+**Location:** `logos/tests/e2e/test_phase2_end_to_end.py`
 
-**Infrastructure:** `logos/tests/phase2/docker-compose.test.yml`
-- Neo4j 5.14.0, Milvus 2.3.3 (with etcd/MinIO)
+**Infrastructure:** `logos/tests/e2e/stack/logos/docker-compose.test.yml` (managed via `tests/e2e/run_e2e.sh`)
+- Neo4j 5.14.0, Milvus 2.4.x (with etcd/MinIO)
 - Ports: 7687, 7474 (Neo4j), 8001 (Sophia), 8002 (Hermes), 8003 (Apollo), 19530, 9091 (Milvus)
-- Credentials: `neo4j/logosdev`, `SOPHIA_API_KEY=test-token-12345`
+- Credentials: `neo4j/neo4jtest`, `SOPHIA_API_KEY=test-token-12345`
 
 **Run manually:**
 ```bash
-cd logos/tests/phase2
-docker compose -f docker-compose.test.yml up -d
-cd ../..
-SOPHIA_API_KEY=test-token-12345 RUN_P2_E2E=1 poetry run pytest tests/phase2/test_phase2_end_to_end.py -v
+./tests/e2e/run_e2e.sh up
+SOPHIA_API_KEY=test-token-12345 RUN_P2_E2E=1 poetry run pytest tests/e2e/test_phase2_end_to_end.py -v
+./tests/e2e/run_e2e.sh down
 ```
 
 ---
@@ -184,22 +183,20 @@ poetry run pytest tests/test_milvus_integration.py
 docker compose -f docker-compose.test.yml down -v
 ```
 
-### Phase 2 E2E (Full Stack)
+### End-to-End (Full Stack)
 
 ```bash
-cd logos/tests/phase2
-docker compose -f docker-compose.test.yml up -d
-cd ../..
-RUN_P2_E2E=1 pytest tests/phase2/test_phase2_end_to_end.py -v
-cd tests/phase2
-docker compose -f docker-compose.test.yml down -v
+cd logos
+./tests/e2e/run_e2e.sh up
+RUN_P2_E2E=1 pytest tests/e2e/test_phase2_end_to_end.py -v
+./tests/e2e/run_e2e.sh down
 ```
 
 ### Phase 1 Milestones
 
 ```bash
 cd logos
-RUN_M4_E2E=1 pytest tests/phase1/test_m4_end_to_end.py
+RUN_M4_E2E=1 pytest tests/e2e/test_phase1_end_to_end.py
 ```
 
 ---
@@ -219,7 +216,7 @@ APOLLO_URL=http://localhost:8003
 # Database connections
 NEO4J_URI=bolt://localhost:7687
 NEO4J_USER=neo4j
-NEO4J_PASSWORD=logosdev
+NEO4J_PASSWORD=neo4jtest
 
 # Milvus
 MILVUS_HOST=localhost
@@ -238,7 +235,7 @@ MILVUS_PORT=19530
 
 ### Credential Inconsistencies
 
-⚠️ Hermes uses `neo4j/password` while others use `neo4j/logosdev`.
+⚠️ Hermes uses `neo4j/password` while others use `neo4j/neo4jtest`.
 
 ---
 

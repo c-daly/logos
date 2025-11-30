@@ -9,7 +9,7 @@ The `docker-compose.hcg.dev.yml` file provides a complete local development envi
 - **Neo4j 5.13.0**: Graph database for the Hybrid Causal Graph (HCG)
   - HTTP interface: http://localhost:7474
   - Bolt protocol: bolt://localhost:7687
-  - Default credentials: `neo4j/logosdev`
+  - Default credentials: `neo4j/neo4jtest`
   - Plugins: APOC (graph-data-science and n10s will attempt to install if available)
 
 - **Milvus v2.3.3**: Vector database for semantic search
@@ -64,10 +64,10 @@ This script will:
 
 ```bash
 # Wait for Neo4j to be ready (may take 10-30 seconds on first start)
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "RETURN 1;"
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "RETURN 1;"
 
 # Load the ontology
-docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p logosdev < ontology/core_ontology.cypher
+docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest < ontology/core_ontology.cypher
 ```
 
 ### Initialize Milvus Collections
@@ -108,7 +108,7 @@ To verify collections without creating them:
 Open http://localhost:7474 in your browser and connect with:
 - URL: `bolt://localhost:7687`
 - Username: `neo4j`
-- Password: `logosdev`
+- Password: `neo4jtest`
 
 ### Use SHACL Validation Service
 
@@ -152,7 +152,7 @@ docker compose -f infra/docker-compose.hcg.dev.yml down -v
 ### Check Neo4j Constraints
 
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "SHOW CONSTRAINTS;"
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "SHOW CONSTRAINTS;"
 ```
 
 You should see uniqueness constraints for:
@@ -165,7 +165,7 @@ You should see uniqueness constraints for:
 ### Check Neo4j Indexes
 
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "SHOW INDEXES;"
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "SHOW INDEXES;"
 ```
 
 You should see indexes for entity names, state timestamps, and process timestamps.
@@ -173,7 +173,7 @@ You should see indexes for entity names, state timestamps, and process timestamp
 ### Check APOC Procedures
 
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
   "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'apoc' RETURN count(name) AS apoc_count;"
 ```
 
@@ -212,7 +212,7 @@ The LOGOS project uses a two-tier SHACL validation strategy:
 **Usage**:
 ```bash
 # Run pyshacl tests (no Neo4j required)
-pytest tests/phase1/test_shacl_pyshacl.py -v
+pytest tests/integration/ontology/test_shacl_pyshacl.py -v
 ```
 
 **What it validates**:
@@ -254,14 +254,14 @@ docker restart logos-hcg-neo4j
 sleep 15
 
 # 3. Verify n10s is loaded
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
   "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'n10s' RETURN name LIMIT 5"
 
 # 4. Load core ontology (if not already loaded)
 ./infra/load_ontology.sh
 
 # 5. Run Neo4j SHACL validation tests
-RUN_NEO4J_SHACL=1 pytest tests/phase1/test_shacl_neo4j_validation.py -v
+RUN_NEO4J_SHACL=1 pytest tests/integration/ontology/test_shacl_neo4j_validation.py -v
 ```
 
 **What it validates**:

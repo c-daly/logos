@@ -20,7 +20,7 @@ This PR completes the verification of Milestone 4 (M4), demonstrating that the L
    - Confirmed ontology and test data load successfully
 
 2. **Automated Testing**
-   - Ran 23 integration tests from `tests/phase1/test_m4_end_to_end.py`
+   - Ran 23 integration tests from `tests/e2e/test_phase1_end_to_end.py`
    - **Result:** 22 passed, 1 skipped (optional planner service)
    - Execution time: 85 seconds
    - All acceptance criteria verified programmatically
@@ -109,7 +109,7 @@ milestones/
 platform linux -- Python 3.12.3, pytest-9.0.1, pluggy-1.6.0
 collected 23 items
 
-tests/phase1/test_m4_end_to_end.py .........s.............               [100%]
+tests/e2e/test_phase1_end_to_end.py .........s.............             [100%]
 
 =================== 22 passed, 1 skipped in 85.33s ===================
 ```

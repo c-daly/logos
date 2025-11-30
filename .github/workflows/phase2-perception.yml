@@ -6,7 +6,7 @@ on:
     paths:
       - 'logos_perception/**'
       - 'logos_sophia/**'
-      - 'tests/phase2/perception/**'
+      - 'tests/integration/perception/**'
       - 'ontology/core_ontology.cypher'
       - 'ontology/shacl_shapes.ttl'
       - '.github/workflows/phase2-perception.yml'
@@ -15,7 +15,7 @@ on:
     paths:
       - 'logos_perception/**'
       - 'logos_sophia/**'
-      - 'tests/phase2/perception/**'
+      - 'tests/integration/perception/**'
       - 'ontology/core_ontology.cypher'
       - 'ontology/shacl_shapes.ttl'
 
@@ -51,15 +51,15 @@ jobs:
       
       - name: Run JEPA runner tests
         run: |
-          poetry run pytest tests/phase2/perception/test_jepa_runner.py -v --cov=logos_perception --cov-report=xml
+          poetry run pytest tests/integration/perception/test_jepa_runner.py -v --cov=logos_perception --cov-report=xml
       
       - name: Run simulation service tests
         run: |
-          poetry run pytest tests/phase2/perception/test_simulation_service.py -v --cov=logos_sophia --cov-append --cov-report=xml
+          poetry run pytest tests/integration/perception/test_simulation_service.py -v --cov=logos_sophia --cov-append --cov-report=xml
       
       - name: Run simulate API tests
         run: |
-          poetry run pytest tests/phase2/perception/test_simulate_api.py -v --cov=logos_sophia --cov-append --cov-report=xml
+          poetry run pytest tests/integration/perception/test_simulate_api.py -v --cov=logos_sophia --cov-append --cov-report=xml
       
       - name: Test summary
         if: always()

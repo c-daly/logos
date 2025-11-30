@@ -79,7 +79,7 @@ The LOGOS ecosystem requires a development infrastructure cluster consisting of:
    This creates vector collections for Entity, Concept, State, and Process embeddings.
 
 5. **Verify the setup:**
-   - Neo4j Browser: http://localhost:7474 (credentials: `neo4j/logosdev`)
+  - Neo4j Browser: http://localhost:7474 (credentials: `neo4j/neo4jtest`)
    - SHACL Validation API: http://localhost:8081/docs
    - Check health: `python3 infra/check_hcg_health.py`
 
@@ -150,11 +150,11 @@ CI/CD and Validation
 
 SHACL Validation Strategy
 - **Default CI Gate (pyshacl)**: Fast, connectionless validation runs automatically on every push/PR ✅
-  - Tests in `tests/phase1/test_shacl_pyshacl.py` validate shapes against fixtures without requiring Neo4j
+  - Tests in `tests/integration/ontology/test_shacl_pyshacl.py` validate shapes against fixtures without requiring Neo4j
   - Ensures SHACL shapes are syntactically correct and fixtures conform to expectations
   - **This is the primary gate** - PRs must pass these tests to merge
 - **Integration Tests (Neo4j+n10s)**: Opt-in validation for comprehensive testing 🔧
-  - Tests in `tests/phase1/test_shacl_neo4j_validation.py` validate data using Neo4j's n10s plugin
+  - Tests in `tests/integration/ontology/test_shacl_neo4j_validation.py` validate data using Neo4j's n10s plugin
   - Requires Neo4j with n10s plugin installed and `RUN_NEO4J_SHACL=1` environment variable
   - Runs weekly or can be triggered manually via workflow dispatch
   - For local setup instructions, see `docs/PHASE1_VERIFY.md` - M2 section "Neo4j n10s Integration Tests (Opt-In)"

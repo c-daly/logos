@@ -31,7 +31,7 @@ from logos_hcg import HCGClient
 client = HCGClient(
     uri="bolt://localhost:7687",
     user="neo4j",
-    password="logosdev"
+    password="neo4jtest"
 )
 
 # Find entities
@@ -52,7 +52,7 @@ client.close()
 ```python
 from logos_hcg import HCGClient
 
-with HCGClient(uri="bolt://localhost:7687", user="neo4j", password="logosdev") as client:
+with HCGClient(uri="bolt://localhost:7687", user="neo4j", password="neo4jtest") as client:
     # Find concepts
     concepts = client.find_all_concepts()
     for concept in concepts:
@@ -156,7 +156,7 @@ results = client.traverse_causality_backward(
 client = HCGClient(
     uri="bolt://localhost:7687",
     user="neo4j",
-    password="logosdev",
+    password="neo4jtest",
     max_connection_pool_size=50,        # Max connections in pool
     max_connection_lifetime=3600,       # Connection lifetime in seconds
     connection_acquisition_timeout=60,  # Timeout for acquiring connection
@@ -171,7 +171,7 @@ Tests can be configured via environment variables:
 ```bash
 export NEO4J_URI="bolt://localhost:7687"
 export NEO4J_USER="neo4j"
-export NEO4J_PASSWORD="logosdev"
+export NEO4J_PASSWORD="neo4jtest"
 ```
 
 ## Data Models
@@ -269,7 +269,7 @@ docker compose -f docker-compose.hcg.dev.yml up -d
 
 # Load core ontology
 cd ../ontology
-cat core_ontology.cypher | docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p logosdev
+cat core_ontology.cypher | docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest
 
 # Run tests
 cd ..

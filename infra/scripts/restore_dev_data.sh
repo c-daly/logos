@@ -274,7 +274,7 @@ wait_for_services() {
     
     print_info "Waiting for Neo4j..."
     while [ $attempt -le $max_attempts ]; do
-        if docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "RETURN 1;" &> /dev/null; then
+        if docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "RETURN 1;" &> /dev/null; then
             print_info "✓ Neo4j is ready"
             break
         fi
@@ -349,10 +349,10 @@ main() {
         print_info "Services have been restarted"
         print_info "Neo4j Browser: http://localhost:7474"
         print_info "  Username: neo4j"
-        print_info "  Password: logosdev"
+        print_info "  Password: neo4jtest"
         echo ""
         print_info "Verify your data:"
-        print_info "  docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev 'MATCH (n) RETURN count(n);'"
+        print_info "  docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest 'MATCH (n) RETURN count(n);'"
         echo ""
         exit 0
     else
