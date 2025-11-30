@@ -12,7 +12,6 @@ import os
 
 import pytest
 
-
 DEFAULT_SOPHIA_PORT = os.getenv("SOPHIA_PORT", "8001")
 DEFAULT_HERMES_PORT = os.getenv("HERMES_PORT", "8002")
 DEFAULT_APOLLO_PORT = os.getenv("APOLLO_PORT", "8003")
