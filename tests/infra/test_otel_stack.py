@@ -5,7 +5,6 @@ These tests verify that the OTel collector, Jaeger, and Prometheus
 services are properly configured and accessible.
 """
 
-import os
 import subprocess
 import time
 from pathlib import Path
@@ -19,7 +18,7 @@ def otel_stack():
     """Start the OTel stack for testing."""
     # Get the project root directory (where docker-compose.otel.yml is)
     project_root = Path(__file__).parent.parent.parent.absolute()
-    
+
     # Start the stack
     subprocess.run(
         ["docker", "compose", "-f", "docker-compose.otel.yml", "up", "-d"],
