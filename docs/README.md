@@ -40,11 +40,12 @@ For implementation details, always refer to the service repository. This meta-re
 ## Key Documents
 
 ### Architecture
-- [LOGOS Specification](architecture/LOGOS_SPEC_FLEXIBLE.md) - Core architecture, philosophy, and phase roadmap
+- [LOGOS Specification](architecture/LOGOS_SPEC.md) - Core architecture, philosophy, and phase roadmap
 - [Phase 2 Specification](architecture/PHASE2_SPEC.md) - Services, Apollo UX, CWM State contract
 - [Phase 3 Specification](architecture/PHASE3_SPEC.md) - Learning & Memory (planned)
 
 ### Operations
+- [Developer Onboarding](operations/DEV_ONBOARDING.md) - Fast start for local dev and CI parity
 - [Testing Documentation](operations/TESTING.md) - Standards and strategy
 - [CI/CD Documentation](operations/ci/README.md) - Workflows and templates
 - [Phase 2 Verification](operations/PHASE2_VERIFY.md) - Milestone checklists

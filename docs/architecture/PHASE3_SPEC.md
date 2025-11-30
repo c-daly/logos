@@ -250,6 +250,6 @@ Phase 3 provides the foundation. Advanced features for later phases:
 ## References
 
 - `PHASE2_SPEC.md` - PersonaEntry schema, CWM-E foundations
-- `LOGOS_SPEC_FLEXIBLE.md` - Short-term memory conceptual architecture
+- `LOGOS_SPEC.md` - Short-term memory conceptual architecture
 - `apollo/docs/PERSONA_DIARY.md` - Diary API and usage patterns
 - `docs/operations/PHASE2_VERIFY.md` - Phase 2 completion criteria

@@ -7,7 +7,7 @@
 
 This repository is the canonical "foundry" for Project LOGOS. It contains the formal specification, API contracts, the Hybrid Causal Graph (HCG) founding documents, and the development infrastructure for the shared HCG cluster.
 
-**Phase 1 Complete ✅** | **Phase 2: 86% Complete 🟨** | [Read the docs](docs/) | [Contributing](CONTRIBUTING.md) | [📊 Project Assessment](ASSESSMENT_SUMMARY.md)
+**Phase 1 Complete ✅** | **Phase 2: In Progress 🟨** | [Read the docs](docs/) | [Contributing](CONTRIBUTING.md) | [📊 Project Assessment](ASSESSMENT_SUMMARY.md)
 
 Purpose
 - Host the canonical spec and design artifacts that bind all LOGOS components together (see Section 3.1: Overview and Core Principles).
@@ -25,18 +25,23 @@ Embodiment &amp; UX flexibility
 - Talos exposes capabilities via APIs, not a fixed robot. A LOGOS deployment may plug in simulators, one robot, many robots, or no hardware at all without changing Sophia or the HCG.
 - Apollo is any interaction surface that drives the documented goal/plan/state APIs: today that is a CLI; future touch/voice interfaces or kiosks remain fully compliant as long as they use the same contracts.
 
-Documentation layout & phases
-- `docs/architecture/LOGOS_SPEC_FLEXIBLE.md` is the living architecture spec.
-- `docs/phase1/`, `docs/phase2/`, … hold the active specs/checklists for each phase.
-- `docs/adr/` contains Architecture Decision Records documenting key technical decisions.
-- `docs/old/` preserves the original Phase 1 docs, action items, and research notes for reference.
+Documentation layout
+- Architecture specs live in `docs/architecture/` (see `PHASE1_SPEC.md`, `PHASE2_SPEC.md`, `PHASE3_SPEC.md`).
+- Operations/CI/testing/verification live in `docs/operations/`.
+- Observability references live in `docs/observability/`.
+- API docs (generated) live in `docs/api/` and are published to GitHub Pages.
 
-Phase roadmap (see `docs/phase*/` folders for details):
-- **Phase 1 – Formalize HCG & Abstract Pipeline**: Ontology, SHACL, Compose infra, CLI prototype. Spec: `docs/phase1/PHASE1_SPEC.md`.
-- **Phase 2 – Perception & Apollo UX**: Sophia/Hermes services, Apollo browser + CLI, perception pipeline, diagnostics/persona. Spec: `docs/architecture/PHASE2_SPEC.md` | Verification: `docs/operations/PHASE2_VERIFY.md`.
-- **Phase 3 – Learning & Embodiment Options**: Episodic memory, probabilistic validation, optional physical demos (manipulator, touchscreen), multi-agent prep. Spec TBD (`docs/phase3/`).
-- **Phase 4 – Operational Autonomy**: Continuous learning with safety gates, observability/rollback tooling, production deployment patterns. Spec TBD (`docs/phase4/`).
-- **Phase 5 – Networked Agents / Swarm**: LOGOS instances collaborating, sharing HCG slices, coordinating Talos fleets. Spec TBD (`docs/phase5/`).
+Phase roadmap (see `docs/architecture/` for specs):
+- **Phase 1 – Formalize HCG & Abstract Pipeline**: Ontology, SHACL, Compose infra, CLI prototype. Spec: `docs/architecture/PHASE1_SPEC.md`.
+- **Phase 2 – Perception & Apollo UX**: Sophia/Hermes services, Apollo browser + CLI, perception pipeline, diagnostics/persona. Spec: `docs/architecture/PHASE2_SPEC.md` | Verification (in refresh): `docs/operations/PHASE2_VERIFY.md`.
+- **Phase 3 – Learning & Embodiment Options**: Episodic memory, probabilistic validation, optional physical demos (manipulator, touchscreen), multi-agent prep. Spec: `docs/architecture/PHASE3_SPEC.md`.
+- **Phase 4 – Operational Autonomy**: Continuous learning with safety gates, observability/rollback tooling, production deployment patterns. Spec TBD.
+- **Phase 5 – Networked Agents / Swarm**: LOGOS instances collaborating, sharing HCG slices, coordinating Talos fleets. Spec TBD.
+
+What’s new
+- Added OpenTelemetry dev stack (collector + Jaeger + Prometheus); see `docs/observability/OTEL_INFRASTRUCTURE.md`.
+- Milvus test stack ports shifted to 18530/18091 (update client configs accordingly).
+- CI no longer uploads coverage to Codecov; Poetry is used in perception workflows.
 
 Infrastructure Setup
 
@@ -79,7 +84,7 @@ The LOGOS ecosystem requires a development infrastructure cluster consisting of:
    This creates vector collections for Entity, Concept, State, and Process embeddings.
 
 5. **Verify the setup:**
-  - Neo4j Browser: http://localhost:7474 (credentials: `neo4j/neo4jtest`)
+   - Neo4j Browser: http://localhost:7474 (credentials: `neo4j/neo4jtest`)
    - SHACL Validation API: http://localhost:8081/docs
    - Check health: `python3 infra/check_hcg_health.py`
 
@@ -196,59 +201,17 @@ Phase 2 work began after all milestone gates passed (automated tests green + man
 ## 📊 Project Status & Candid Assessment
 
 **Quick Summary:**
-- **Phase 1:** ✅ 100% Complete - Exceeded expectations
-- **Phase 2:** 🟨 86% Complete - Core systems work, critical perception gaps remain
-- **Grade:** B (84%) - Exceptional architecture, incomplete execution
+- **Phase 1:** ✅ Complete
+- **Phase 2:** 🟨 In progress — core services and dual surfaces land, perception pipeline and observability instrumentation still maturing
 
-**Critical Gap:** Media ingest pipeline not implemented - cannot process real images, video, or audio despite spec requirements.
+**Key gaps to close next:** Media ingest pipeline (upload → JEPA → Milvus), automatic CWM-E reflection, and end-to-end trace propagation across services.
 
 ## Phase 2 Verification
 
-**Phase 2 Status: 86% Complete** ✅🚧
+Phase 2 covers Sophia/Hermes services, Apollo dual surfaces (CLI + browser), perception pipeline integration, and diagnostics/persona features.
 
-Phase 2 delivers Sophia/Hermes services, Apollo dual surfaces (CLI + browser), perception pipeline integration, and diagnostics/persona features.
-
-- **Specification**: See `docs/architecture/PHASE2_SPEC.md` for complete requirements
-- **Verification Document**: See `docs/operations/PHASE2_VERIFY.md` for detailed status and gap analysis
-- **Milestone Gates**: Each milestone is verified through tests and implementation evidence:
-  - **P2-M1** (Sophia & Hermes Services): [![P2-M1](https://img.shields.io/badge/P2--M1-complete-brightgreen)](https://github.com/c-daly/logos/labels/P2-M1) **100%**
-  - **P2-M2** (Apollo Dual Surfaces): [![P2-M2](https://img.shields.io/badge/P2--M2-85%25-yellow)](https://github.com/c-daly/logos/labels/P2-M2) **85%** (media upload UI missing)
-  - **P2-M3** (Perception Pipeline): [![P2-M3](https://img.shields.io/badge/P2--M3-70%25-yellow)](https://github.com/c-daly/logos/labels/P2-M3) **70%** (media pipeline not implemented)
-  - **P2-M4** (Diagnostics & Persona): [![P2-M4](https://img.shields.io/badge/P2--M4-90%25-yellow)](https://github.com/c-daly/logos/labels/P2-M4) **90%** (CWM-E automation missing)
-
-**Completed Features:**
-- ✅ Sophia FastAPI service with `/plan`, `/state`, `/simulate` endpoints
-- ✅ Hermes FastAPI service with language/embedding utilities
-- ✅ Apollo CLI and browser webapp consuming Sophia/Hermes APIs
-- ✅ JEPA simulation endpoint functional with 20 passing tests
-- ✅ OpenTelemetry observability stack with Tempo/Grafana
-- ✅ Persona diary system with reflection and emotion tracking
-- ✅ 61 webapp tests + 20 perception tests passing
-
-**Critical Gaps:**
-
-*P2-M3 Perception Pipeline (30% gap):*
-- ❌ Media ingest service API (browser uploads, file watcher, WebRTC)
-- ❌ MediaSample nodes in HCG ontology
-- ❌ Media → JEPA → Milvus processing pipeline
-- ❌ Media upload UI component for Apollo webapp
-
-*P2-M4 CWM-E Integration (10% gap):*
-- ❌ CWM-E periodic reflection job (spec requires automatic background task)
-- ❌ Planner integration with EmotionState nodes (spec requires planner reads emotions to adjust strategy)
-
-*CWM-A Implementation (partial):*
-- ⚠️ CWM-A doesn't emit full CWMState envelope with normalized entity/relationship diffs per spec
-
-**Next Steps:**
-1. Implement media ingest service API
-2. Add MediaSample nodes to HCG ontology
-3. Build Apollo media upload component
-4. Wire media pipeline: upload → JEPA → vector storage
-5. Implement CWM-E periodic reflection job
-6. Integrate EmotionState into planner decision-making
-
-For complete gap analysis and verification evidence, see `docs/operations/PHASE2_VERIFY.md`.
+- **Specification**: `docs/architecture/PHASE2_SPEC.md`
+- **Verification (historical)**: `docs/operations/PHASE2_VERIFY.md` — currently being refreshed; treat percentages/links there as archival until updated.
 
 
 M4 Pick-and-Place Demo
