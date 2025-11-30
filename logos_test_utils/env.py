@@ -59,6 +59,8 @@ def get_env_value(
 def _get_repo_root_from_items(env_items: tuple[tuple[str, str], ...] | None) -> Path:
     """Cached resolver keyed on a hashable view of env items."""
 
+    # Note: load_stack_env() returns an empty mapping if the stack env file is
+    # missing; that is intentional so we can safely fall back to other sources.
     env = dict(env_items) if env_items is not None else load_stack_env()
     env_value = get_env_value("LOGOS_REPO_ROOT", env)
     if env_value:
@@ -80,8 +82,9 @@ def get_repo_root(env: Mapping[str, str] | None = None) -> Path:
     """Resolve the LOGOS repo root using env/stack overrides with a safe fallback.
 
     Priority:
-    1. `LOGOS_REPO_ROOT` from OS env or provided env mapping.
-    2. The parent of this package (works when running from the repo or an installed package).
+    1. `LOGOS_REPO_ROOT` from OS env or provided env mapping (only if it exists).
+    2. `GITHUB_WORKSPACE` (useful on CI runners) when present and exists.
+    3. The parent of this package (works when running from the repo or an installed package).
 
     Accepts an optional env mapping (e.g., from `load_stack_env`), coercing it
     into a hashable key for caching.

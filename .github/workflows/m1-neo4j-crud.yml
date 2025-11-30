@@ -42,7 +42,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install poetry
           poetry config virtualenvs.create false
-          poetry install --with dev --no-interaction --no-ansi
+          poetry install --with dev,test --no-interaction --no-ansi
       
       - name: Start Neo4j with docker-compose
         run: |
