@@ -38,8 +38,10 @@ def test_repo_root_falls_back_to_github_workspace(monkeypatch, tmp_path: Path):
     workspace = tmp_path / "workspace"
     workspace.mkdir()
     monkeypatch.setenv("GITHUB_WORKSPACE", str(workspace))
+    monkeypatch.delenv("LOGOS_REPO_ROOT", raising=False)
+    monkeypatch.delenv("LOGOS_STACK_ENV", raising=False)
 
-    assert get_repo_root() == workspace
+    assert get_repo_root({}) == workspace
 
 
 def test_repo_root_defaults_to_package_parent(monkeypatch):
