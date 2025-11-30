@@ -13,14 +13,13 @@ Reference: docs/PHASE1_VERIFY.md - M1 checklist
 """
 
 import os
-from pathlib import Path
 from uuid import uuid4
 
 import pytest
 from neo4j.exceptions import ClientError
 
-from logos_test_utils.env import get_repo_root
 from logos_test_utils.docker import is_container_running
+from logos_test_utils.env import get_repo_root
 from logos_test_utils.neo4j import (
     get_neo4j_config,
     get_neo4j_driver,
