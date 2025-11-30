@@ -8,8 +8,8 @@
 |---------|------|
 | **Neo4j HTTP** | 7474 |
 | **Neo4j Bolt** | 7687 |
-| **Milvus gRPC** | 19530 |
-| **Milvus Metrics** | 9091 |
+| **Milvus gRPC** | 18530 |
+| **Milvus Metrics** | 18091 |
 | **OTLP gRPC (collector)** | 4319 |
 | **OTLP HTTP (collector)** | 4320 |
 | **Prometheus UI** | 9090 |
@@ -23,7 +23,7 @@ NEO4J_URI=bolt://neo4j:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=neo4jtest
 MILVUS_HOST=milvus
-MILVUS_PORT=19530
+MILVUS_PORT=18530
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4319
 ```
 

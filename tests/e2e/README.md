@@ -51,6 +51,6 @@ poetry run render-test-stacks --repo logos
 The test stack includes:
 
 - **Neo4j 5.13.0** - Graph database (ports 7474, 7687)
-- **Milvus v2.4.15** - Vector database (ports 19530 gRPC, 9091 metrics)
+- **Milvus v2.4.15** - Vector database (ports 18530 gRPC, 18091 metrics)
   - etcd v3.5.15 - Milvus metadata store
   - MinIO - Milvus object storage (ports 9000, 9001)

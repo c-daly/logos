@@ -59,7 +59,7 @@ All Python repositories must use:
 | Location | `tests/integration/` or `tests/` with integration marker |
 
 **Infrastructure per repo:**
-- **Hermes:** `docker-compose.test.yml` (Milvus + Neo4j, ports 7687, 7474, 19530, 9091)
+- **Hermes:** `docker-compose.test.yml` (Milvus + Neo4j, ports 7687, 7474, 18530, 18091)
 - **Sophia:** Uses `logos/infra/docker-compose.hcg.dev.yml`
 - **Apollo:** `tests/e2e/docker-compose.e2e.yml` (Neo4j + mock services)
 - **Talos:** Uses shared infrastructure or skips if Neo4j unavailable
@@ -72,7 +72,7 @@ All Python repositories must use:
 
 **Infrastructure:** `logos/tests/e2e/stack/logos/docker-compose.test.yml` (managed via `tests/e2e/run_e2e.sh`)
 - Neo4j 5.14.0, Milvus 2.4.x (with etcd/MinIO)
-- Ports: 7687, 7474 (Neo4j), 8001 (Sophia), 8002 (Hermes), 8003 (Apollo), 19530, 9091 (Milvus)
+- Ports: 7687, 7474 (Neo4j), 8001 (Sophia), 8002 (Hermes), 8003 (Apollo), 18530, 18091 (Milvus)
 - Credentials: `neo4j/neo4jtest`, `SOPHIA_API_KEY=test-token-12345`
 
 **Run manually:**
@@ -224,7 +224,7 @@ NEO4J_PASSWORD=neo4jtest
 
 # Milvus
 MILVUS_HOST=localhost
-MILVUS_PORT=19530
+MILVUS_PORT=18530
 ```
 
 ---
@@ -233,7 +233,7 @@ MILVUS_PORT=19530
 
 ### Port Conflicts
 
-⚠️ Multiple test environments use the same ports (7687, 7474, 19530, 9091). Running tests from different repos simultaneously will fail.
+⚠️ Multiple test environments use the same ports (7687, 7474, 18530, 18091). Running tests from different repos simultaneously will fail.
 
 **Workaround:** Run test suites sequentially.
 
