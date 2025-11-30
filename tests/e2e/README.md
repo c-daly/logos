@@ -54,3 +54,7 @@ The test stack includes:
 - **Milvus v2.4.15** - Vector database (port 19530)
   - etcd v3.5.15 - Milvus metadata store
   - MinIO - Milvus object storage (ports 9000, 9001)
+
+## Repo Root Overrides
+
+- Integration/E2E helpers read `LOGOS_REPO_ROOT` first, then fall back to the package path. The generated `.env.test` includes this variable; override it if you relocate or vendor the repository so ontology fixtures resolve correctly.

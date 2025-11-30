@@ -199,6 +199,11 @@ cd logos
 RUN_M4_E2E=1 pytest tests/e2e/test_phase1_end_to_end.py
 ```
 
+### Repository Root Configuration
+
+- Tests resolve the repo root via the `LOGOS_REPO_ROOT` environment variable (optional) and fall back to the installed package path when unset. Set this if the repo is vendored or checked out in a non-standard location.
+- The generated test stack now emits `LOGOS_REPO_ROOT` in `.env.test`; `logos_test_utils.env.get_repo_root()` reads OS env first, then stack env, ensuring backwards-compatible defaults.
+
 ---
 
 ## Environment Variables

@@ -14,11 +14,13 @@ import pytest
 from pyshacl import validate
 from rdflib import Graph
 
+from logos_test_utils.env import get_repo_root
+
 
 @pytest.fixture
 def shacl_shapes():
     """Load SHACL shapes from ontology directory."""
-    repo_root = Path(__file__).resolve().parents[3]
+    repo_root = get_repo_root()
     shapes_file = repo_root / "ontology" / "shacl_shapes.ttl"
     shapes_graph = Graph()
     shapes_graph.parse(shapes_file, format="turtle")

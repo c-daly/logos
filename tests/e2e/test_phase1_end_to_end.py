@@ -19,7 +19,7 @@ from pathlib import Path
 
 import pytest
 
-from logos_test_utils.env import load_stack_env
+from logos_test_utils.env import get_repo_root, load_stack_env
 from logos_test_utils.milvus import (
     get_milvus_config,
     wait_for_milvus,
@@ -49,8 +49,8 @@ pytestmark = pytest.mark.skipif(
     reason="M4 end-to-end flow runs only when RUN_M4_E2E=1",
 )
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
 STACK_ENV = load_stack_env()
+REPO_ROOT = get_repo_root(STACK_ENV)
 NEO4J_CONFIG = get_neo4j_config(STACK_ENV)
 MILVUS_CONFIG = get_milvus_config(STACK_ENV)
 NEO4J_WAIT_TIMEOUT = int(os.getenv("NEO4J_WAIT_TIMEOUT", "120"))

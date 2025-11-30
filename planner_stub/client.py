@@ -82,8 +82,8 @@ class PlannerClient:
             True if service is available, False otherwise
         """
         try:
-            self.health_check(timeout=timeout)
-            return True
+            health = self.health_check(timeout=timeout)
+            return health.get("status") == "healthy"
         except Exception:
             return False
 

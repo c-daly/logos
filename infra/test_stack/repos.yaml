@@ -32,6 +32,9 @@ repos:
     path: .
     service_prefix: logos-phase2-test
     volume_prefix: logos_phase2_test
+    env:
+      NEO4J_URI: "bolt://localhost:{neo4j_bolt_port}"
+      LOGOS_REPO_ROOT: "{repo_root}"
     services:
       - neo4j
       - milvus-etcd

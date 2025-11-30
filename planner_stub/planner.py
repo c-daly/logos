@@ -13,10 +13,12 @@ import uuid
 from pathlib import Path
 from typing import Any, cast
 
+from logos_test_utils.env import get_repo_root
+
 from .models import PlanRequest, PlanResponse, ProcessStep, StateDescription
 
 # Load plan scenarios from fixtures
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = get_repo_root()
 FIXTURES_DIR = REPO_ROOT / "tests" / "integration" / "planning" / "fixtures"
 SCENARIOS_FILE = FIXTURES_DIR / "plan_scenarios.json"
 

@@ -246,7 +246,8 @@ def render_repo(
     output_root: Path,
     check_only: bool,
 ) -> bool:
-    context = repo_cfg["context"]
+    repo_root_path = (ROOT / repo_cfg["path"]).resolve()
+    context = {**repo_cfg["context"], "repo_root": str(repo_root_path)}
     compose_doc = build_compose_doc(
         template=template,
         context=context,

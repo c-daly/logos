@@ -53,3 +53,31 @@ def get_env_value(
     if env and key in env:
         return env[key]
     return default
+
+
+@cache
+def _get_repo_root_from_items(env_items: tuple[tuple[str, str], ...] | None) -> Path:
+    """Cached resolver keyed on a hashable view of env items."""
+
+    env = dict(env_items) if env_items is not None else load_stack_env()
+    env_value = get_env_value("LOGOS_REPO_ROOT", env)
+    if env_value:
+        candidate = Path(env_value).expanduser()
+        return candidate.resolve()
+
+    return Path(__file__).resolve().parents[1]
+
+
+def get_repo_root(env: Mapping[str, str] | None = None) -> Path:
+    """Resolve the LOGOS repo root using env/stack overrides with a safe fallback.
+
+    Priority:
+    1. `LOGOS_REPO_ROOT` from OS env or provided env mapping.
+    2. The parent of this package (works when running from the repo or an installed package).
+
+    Accepts an optional env mapping (e.g., from `load_stack_env`), coercing it
+    into a hashable key for caching.
+    """
+
+    env_items = tuple(sorted(env.items())) if env is not None else None
+    return _get_repo_root_from_items(env_items)

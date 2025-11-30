@@ -12,6 +12,8 @@ import pytest
 from pyshacl import validate
 from rdflib import Graph
 
+from logos_test_utils.env import get_repo_root
+
 
 def _load_graph(path: Path) -> Graph:
     g = Graph()
@@ -21,7 +23,7 @@ def _load_graph(path: Path) -> Graph:
 
 @pytest.fixture(scope="module")
 def shapes_graph() -> Graph:
-    repo_root = Path(__file__).resolve().parents[3]
+    repo_root = get_repo_root()
     shapes_path = repo_root / "ontology" / "shacl_shapes.ttl"
     return _load_graph(shapes_path)
 
