@@ -2,34 +2,66 @@
 
 **Quick reference for test environment port assignments.**
 
-## Port Map (current logos test stack)
+## Port Map
 
-| Service | Port |
-|---------|------|
-| **Neo4j HTTP** | 7474 |
-| **Neo4j Bolt** | 7687 |
-| **Milvus gRPC** | 18530 |
-| **Milvus Metrics** | 18091 |
-| **OTLP gRPC (collector)** | 4319 |
-| **OTLP HTTP (collector)** | 4320 |
-| **Prometheus UI** | 9090 |
-| **Jaeger UI** | 16686 |
+| Service | logos (default) | apollo | hermes | sophia | talos |
+|---------|----------------|--------|--------|--------|-------|
+| **Neo4j HTTP** | 7474 | 27474 | N/A | 37474 | 47474 |
+| **Neo4j Bolt** | 7687 | 27687 | N/A | 37687 | 47687 |
+| **Milvus gRPC** | 19530 | 29530 | 19530 | 39530 | N/A |
+| **Milvus Metrics** | 9091 | 29091 | 19091 | 39091 | N/A |
 
-> Ports reflect the generated test stack (`infra/test_stack/repos.yaml` and `tests/e2e/stack/logos/docker-compose.test.yml`). If you regenerate stacks for other repos, confirm the rendered ports in the compose output instead of relying on old offsets.
+## Connection Strings by Repo
 
-## Connection Strings (logos test stack)
+### logos (default/dev)
 ```bash
 NEO4J_URI=bolt://neo4j:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=neo4jtest
 MILVUS_HOST=milvus
-MILVUS_PORT=18530
-OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4319
+MILVUS_PORT=19530
+```
+
+### apollo
+```bash
+NEO4J_URI=bolt://neo4j:27687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=neo4jtest
+MILVUS_HOST=milvus
+MILVUS_PORT=29530
+```
+
+### hermes
+```bash
+# Hermes only uses Milvus
+MILVUS_HOST=milvus
+MILVUS_PORT=19530
+```
+
+### sophia
+```bash
+NEO4J_URI=bolt://neo4j:37687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=neo4jtest
+MILVUS_HOST=milvus
+MILVUS_PORT=39530
+```
+
+### talos
+```bash
+# Talos only uses Neo4j
+NEO4J_URI=bolt://neo4j:47687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=neo4jtest
 ```
 
 ## Container Name Prefixes
 
 - `logos-phase2-test-*` (logos repo)
+- `apollo-test-*` (apollo repo)
+- `hermes-test-*` (hermes repo)
+- `sophia-test-*` (sophia repo)
+- `talos-test-*` (talos repo)
 
 ## Finding Your Containers
 
@@ -63,10 +95,10 @@ docker stop $(docker ps -q --filter "name=test")
 ### Can't Connect to Service
 ```bash
 # Check service is running
-docker compose -f tests/e2e/stack/logos/docker-compose.test.yml ps
+docker compose -f tests/e2e/docker-compose.test.apollo.yml ps
 
 # Check health
-docker inspect logos-phase2-test-neo4j | grep -A 10 Health
+docker inspect apollo-test-neo4j | grep -A 10 Health
 ```
 
 ## Quick Start Commands

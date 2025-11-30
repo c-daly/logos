@@ -232,6 +232,6 @@ RETURN es, pe, p
 
 - `docs/operations/PHASE2_VERIFY.md` - P2-M4 verification checklist
 - `docs/architecture/PHASE2_SPEC.md` - Phase 2 specification (CWM-E section)
-- `docs/architecture/LOGOS_SPEC.md` - CWM-E design principles
+- `docs/architecture/LOGOS_SPEC_FLEXIBLE.md` - CWM-E design principles
 - `logos_persona/` - Persona diary module
 - `examples/p2_m4_demo.py` - Example usage
