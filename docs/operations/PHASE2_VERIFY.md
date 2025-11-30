@@ -1,6 +1,6 @@
 # Phase 2 Verification Checklist
 
-> Status (December 2025): Phase 2 is in progress. This checklist predates the OTEL stack addition and the Milvus port change to 18530/18091. Perception ingest/JEPA pipeline is not implemented yet; CWM-E reflection remains manual. Use this doc as a checklist, but confirm evidence by rerunning the e2e stack and checking the service repos (sophia, hermes, apollo) for current readiness.
+> Status (December 2025): Phase 2 is in progress. This checklist predates the OTEL stack addition. Perception ingest/JEPA pipeline is not implemented yet; CWM-E reflection remains manual. Use this doc as a checklist, but confirm evidence by rerunning the e2e stack and checking the service repos (sophia, hermes, apollo) for current readiness.
 
 This document provides comprehensive verification criteria, demo instructions, evidence requirements, and CI workflow references for all Phase 2 milestones (P2-M1 through P2-M4).
 
