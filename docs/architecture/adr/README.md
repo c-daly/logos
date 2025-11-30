@@ -60,7 +60,7 @@ The following ADRs document foundational architectural decisions made during Pha
 ## Relationship to Specification
 
 ADRs complement but do not replace the main specification documents:
-- **Specification** (`docs/architecture/LOGOS_SPEC_FLEXIBLE.md`): Describes the current system architecture and design
+- **Specification** (`docs/architecture/LOGOS_SPEC.md`): Describes the current system architecture and design
 - **ADRs**: Document the decision-making process and rationale behind architectural choices
 
 When architectural decisions evolve, create a new ADR that supersedes the old one rather than modifying the original ADR.

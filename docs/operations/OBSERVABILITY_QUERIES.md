@@ -1,64 +1,43 @@
 # LOGOS Observability Query Snippets
 
-This document contains useful TraceQL queries and examples for exploring LOGOS traces in Grafana Tempo.
+This doc targets the current OTEL stack: Collector → Jaeger (traces) + Prometheus (metrics). Use Tempo/TraceQL only if you stand up the optional Tempo stack.
 
-## Basic Queries
+## Jaeger (traces)
 
-### All traces from a specific service
-```traceql
-{ resource.service.name="sophia" }
-{ resource.service.name="hermes" }
-{ resource.service.name="apollo" }
-```
+- Filter by service: set `Service` dropdown to `sophia`, `hermes`, `apollo-cli`, or `apollo-webapp`.
+- Filter by endpoint (Operation): e.g. `/plan`, `/state`, `/simulate`, `embed_text`.
+- Filter by trace attributes (Tags):
+  - `plan_id=<uuid>` to follow a specific plan.
+  - `http.status_code=500` for errors.
+  - `otel.status_code=ERROR` to find failing spans.
+- Time filters: use “Min Duration” (`1s` for slow spans) or “Max Duration” (`100ms` for fast spans).
 
-### Traces for a specific endpoint
-```traceql
-{ span.name="/simulate" }
-{ span.name="/plan" }
-{ span.name="/state" }
-{ span.name="embed_text" }
-```
+Suggested tag searches:
+- Perception flow: `resource.service.name=sophia` + `span.name=/simulate`
+- Persona/diary: `resource.service.name=sophia` + `span.name=/persona`
+- NLP/embeddings: `resource.service.name=hermes` + `span.name=embed_text`
 
-## Plan-Centric Queries
+## Prometheus (metrics)
 
-### All traces linked to a specific plan
-```traceql
-{ span.plan_id="<your-plan-uuid>" }
-```
+Paste these into the Prometheus UI (http://localhost:9090):
+- Target health: `up`
+- Collector send failures: `otelcol_exporter_send_failed_spans`
+- Collector queue pressure: `otelcol_processor_batch_batch_send_size_sum`
+- HTTP latencies (if exported): `http_server_request_duration_seconds_bucket`
+- Exporter latency (gRPC): `otelcol_exporter_queue_size`
 
-### All traces with plan_id attributes
-```traceql
-{ span.plan_id != nil }
-```
+Common checks:
+- `up{job="otel-collector"}` should be 1.
+- `up{job="sophia"}` / `up{job="hermes"}` / `up{job="apollo"}` should be 1 when those services are running in the stack.
+- `sum(rate(otelcol_exporter_send_failed_spans[5m])) > 0` indicates trace export problems.
 
-### Failed plan executions
-```traceql
-{ span.plan_id != nil && status=error }
-```
+## Optional: Tempo/TraceQL (archival)
 
-## Performance Queries
-
-### Slow operations (>1 second)
-```traceql
-{ duration > 1s }
-```
-
-### Very slow operations (>5 seconds)
-```traceql
-{ duration > 5s }
-```
-
-### Fast operations (<100ms)
-```traceql
-{ duration < 100ms }
-```
-
-## Service-Specific Queries
-
-### Sophia simulation traces
-```traceql
-{ resource.service.name="sophia" && span.name="/simulate" }
-```
+If you bring back the Tempo stack, these TraceQL snippets still apply:
+- All spans for a service: `{ resource.service.name="sophia" }`
+- Endpoint filter: `{ span.name="/plan" }`
+- Plan-scoped: `{ span.plan_id="<plan-uuid>" }`
+- Errors: `{ status=error }`
 
 ### Hermes embedding operations
 ```traceql
