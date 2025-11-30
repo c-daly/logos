@@ -195,7 +195,7 @@ This performs syntax checking on Cypher and TTL files without requiring a runnin
 
 ## Test Fixtures
 
-Test fixtures are located in `tests/phase1/fixtures/`:
+Test fixtures are located in `tests/integration/ontology/fixtures/`:
 
 ### valid_entities.ttl
 
@@ -218,19 +218,19 @@ Contains invalid test data that should fail validation:
 ### Run all validation tests:
 
 ```bash
-pytest tests/phase1/test_m2_shacl_validation.py -v
+pytest tests/integration/ontology/test_shacl_validation.py -v
 ```
 
 ### Run specific test:
 
 ```bash
-pytest tests/phase1/test_m2_shacl_validation.py::test_valid_entities_pass_validation -v
+pytest tests/integration/ontology/test_shacl_validation.py::test_valid_entities_pass_validation -v
 ```
 
 ### Run with coverage:
 
 ```bash
-pytest tests/phase1/test_m2_shacl_validation.py --cov=ontology --cov-report=html
+pytest tests/integration/ontology/test_shacl_validation.py --cov=ontology --cov-report=html
 ```
 
 ## CI/CD Integration
@@ -263,14 +263,14 @@ Validation runs on:
 1. **Before committing changes** to ontology files:
    ```bash
    python ontology/validate_ontology.py
-   pytest tests/phase1/test_m2_shacl_validation.py -v
+   pytest tests/integration/ontology/test_shacl_validation.py -v
    ```
 
 2. **When adding new node types or properties**:
    - Add SHACL shape constraints to `ontology/shacl_shapes.ttl`
-   - Add valid test case to `tests/phase1/fixtures/valid_entities.ttl`
-   - Add invalid test case to `tests/phase1/fixtures/invalid_entities.ttl`
-   - Add test function to `tests/phase1/test_m2_shacl_validation.py`
+   - Add valid test case to `tests/integration/ontology/fixtures/valid_entities.ttl`
+   - Add invalid test case to `tests/integration/ontology/fixtures/invalid_entities.ttl`
+   - Add test function to `tests/integration/ontology/test_shacl_validation.py`
 
 3. **When modifying relationships**:
    - Update corresponding relationship shape in `shacl_shapes.ttl`
@@ -387,7 +387,7 @@ To add new validation rules:
    - Valid case in `valid_entities.ttl`
    - Invalid case in `invalid_entities.ttl`
 
-3. **Add test function** in `test_m2_shacl_validation.py`:
+3. **Add test function** in `tests/integration/ontology/test_shacl_validation.py`:
    ```python
    def test_my_custom_validation(shacl_shapes):
        """Test that my custom constraint is enforced."""
@@ -396,7 +396,7 @@ To add new validation rules:
 
 4. **Verify tests pass**:
    ```bash
-   pytest tests/phase1/test_m2_shacl_validation.py::test_my_custom_validation -v
+   pytest tests/integration/ontology/test_shacl_validation.py::test_my_custom_validation -v
    ```
 
 5. **Update this documentation** with new shape details.

@@ -148,12 +148,12 @@ The GitHub Actions workflows automatically start the planner stub service before
     sleep 5  # Wait for service to start
     
 - name: Run M3 tests
-  run: pytest tests/phase1/test_m3_planning.py
+  run: pytest tests/integration/planning/test_planning_workflow.py
 ```
 
 ## Scenarios
 
-The planner stub uses pre-defined scenarios from `tests/phase1/fixtures/plan_scenarios.json`:
+The planner stub uses pre-defined scenarios from `tests/integration/planning/fixtures/plan_scenarios.json`:
 
 - **simple_grasp**: Single-step plan to grasp an object
 - **pick_and_place**: Multi-step plan to pick up and place an object

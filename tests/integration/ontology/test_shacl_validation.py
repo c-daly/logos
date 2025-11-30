@@ -18,7 +18,8 @@ from rdflib import Graph
 @pytest.fixture
 def shacl_shapes():
     """Load SHACL shapes from ontology directory."""
-    shapes_file = Path(__file__).parent.parent.parent / "ontology" / "shacl_shapes.ttl"
+    repo_root = Path(__file__).resolve().parents[3]
+    shapes_file = repo_root / "ontology" / "shacl_shapes.ttl"
     shapes_graph = Graph()
     shapes_graph.parse(shapes_file, format="turtle")
     return shapes_graph

@@ -8,7 +8,7 @@ This script demonstrates retrieving entities from the HCG and validates M1 accep
 - Traverse HAS_STATE relationships
 
 Usage:
-    python -m logos_hcg.demo_retrieval --uri bolt://localhost:7687 --user neo4j --password logosdev
+    python -m logos_hcg.demo_retrieval --uri bolt://localhost:7687 --user neo4j --password neo4jtest
 
 See Project LOGOS spec: Section 4.1 (Core Ontology and Data Model)
 Reference: docs/PHASE1_VERIFY.md - M1 checklist
@@ -215,8 +215,8 @@ def main():
     )
     parser.add_argument(
         "--password",
-        default=os.getenv("NEO4J_PASSWORD", "logosdev"),
-        help="Neo4j password (default: logosdev)",
+        default=os.getenv("NEO4J_PASSWORD", "neo4jtest"),
+        help="Neo4j password (default: neo4jtest)",
     )
 
     args = parser.parse_args()

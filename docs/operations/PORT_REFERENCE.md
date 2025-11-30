@@ -17,7 +17,7 @@
 ```bash
 NEO4J_URI=bolt://neo4j:7687
 NEO4J_USER=neo4j
-NEO4J_PASSWORD=logosdev
+NEO4J_PASSWORD=neo4jtest
 MILVUS_HOST=milvus
 MILVUS_PORT=19530
 ```
@@ -26,7 +26,7 @@ MILVUS_PORT=19530
 ```bash
 NEO4J_URI=bolt://neo4j:27687
 NEO4J_USER=neo4j
-NEO4J_PASSWORD=logosdev
+NEO4J_PASSWORD=neo4jtest
 MILVUS_HOST=milvus
 MILVUS_PORT=29530
 ```
@@ -42,7 +42,7 @@ MILVUS_PORT=19530
 ```bash
 NEO4J_URI=bolt://neo4j:37687
 NEO4J_USER=neo4j
-NEO4J_PASSWORD=logosdev
+NEO4J_PASSWORD=neo4jtest
 MILVUS_HOST=milvus
 MILVUS_PORT=39530
 ```
@@ -52,7 +52,7 @@ MILVUS_PORT=39530
 # Talos only uses Neo4j
 NEO4J_URI=bolt://neo4j:47687
 NEO4J_USER=neo4j
-NEO4J_PASSWORD=logosdev
+NEO4J_PASSWORD=neo4jtest
 ```
 
 ## Container Name Prefixes

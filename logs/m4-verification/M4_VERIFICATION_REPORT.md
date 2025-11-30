@@ -41,7 +41,7 @@ Milestone 4 (M4) demonstrates the complete system integration of Project LOGOS P
 ## Test Results
 
 ### Automated Integration Tests
-**File:** `tests/phase1/test_m4_end_to_end.py`  
+**File:** `tests/e2e/test_phase1_end_to_end.py`  
 **Result:** ✅ **22 passed, 1 skipped** (Planner service test is optional)
 
 #### Test Classes and Coverage:

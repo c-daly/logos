@@ -196,7 +196,7 @@ See `docs/phase2/perception/TALOS_INTEGRATION.md` for details.
 
 Run perception tests:
 ```bash
-pytest tests/phase2/perception/ -v
+pytest tests/integration/perception/ -v
 ```
 
 Test coverage:

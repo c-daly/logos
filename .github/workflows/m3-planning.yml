@@ -60,7 +60,7 @@ jobs:
       - name: Run M3 Planning Tests
         run: |
           echo "## M3: Planning Capability Tests" >> $GITHUB_STEP_SUMMARY
-          pytest tests/phase1/test_m3_planning.py -v --tb=short
+          pytest tests/integration/planning/test_planning_workflow.py -v --tb=short
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "✅ **M3 GATE PASSED**: Planning concepts validated" >> $GITHUB_STEP_SUMMARY
           echo "See \`docs/PHASE1_VERIFY.md\` for complete M3 checklist." >> $GITHUB_STEP_SUMMARY

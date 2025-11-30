@@ -26,7 +26,8 @@ except ImportError:
 @pytest.fixture
 def plan_scenarios():
     """Load planning test scenarios."""
-    scenarios_file = Path(__file__).parent / "fixtures" / "plan_scenarios.json"
+    fixtures_dir = Path(__file__).resolve().parent / "fixtures"
+    scenarios_file = fixtures_dir / "plan_scenarios.json"
     with open(scenarios_file) as f:
         return json.load(f)
 
@@ -34,9 +35,8 @@ def plan_scenarios():
 @pytest.fixture
 def test_data_cypher():
     """Load pick-and-place test data Cypher script."""
-    cypher_file = (
-        Path(__file__).parent.parent.parent / "ontology" / "test_data_pick_and_place.cypher"
-    )
+    repo_root = Path(__file__).resolve().parents[3]
+    cypher_file = repo_root / "ontology" / "test_data_pick_and_place.cypher"
     return cypher_file.read_text()
 
 

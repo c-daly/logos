@@ -25,7 +25,7 @@ This migration standardizes test infrastructure across all LOGOS repos to elimin
 ### 2. Credential Standardization
 
 **Before**: `neo4j/password`, `neo4j/testpassword`, `neo4j/sophia_dev`  
-**After**: `neo4j/logosdev` (everywhere)
+**After**: `neo4j/neo4jtest` (everywhere)
 
 ### 3. Shared Test Utilities
 
@@ -120,7 +120,7 @@ logos-test-utils = { path = "../logos", develop = true }
 
 3. **Update credentials**:
    - Remove references to `neo4j/password`
-   - Use `neo4j/logosdev` everywhere
+   - Use `neo4j/neo4jtest` everywhere
 
 4. **Add shared fixtures**:
    ```toml
@@ -144,7 +144,7 @@ logos-test-utils = { path = "../logos", develop = true }
    ```
 
 3. **Update credentials**:
-   - Change `neo4j/sophia_dev` → `neo4j/logosdev`
+   - Change `neo4j/sophia_dev` → `neo4j/neo4jtest`
    - Update tests expecting old password
 
 4. **Adopt shared fixtures**:
@@ -179,7 +179,7 @@ logos-test-utils = { path = "../logos", develop = true }
 - [ ] `pyproject.toml` includes `logos-test-utils` dependency
 - [ ] Tests import from `logos_test_utils` instead of local duplicates
 - [ ] Helper scripts source `.env.test`
-- [ ] All credentials use `neo4j/logosdev`
+- [ ] All credentials use `neo4j/neo4jtest`
 - [ ] CI passes with new configuration
 
 ### Cross-Repo
@@ -232,7 +232,7 @@ milvus_cfg = get_milvus_config()  # Reads MILVUS_HOST, MILVUS_PORT
 - Verify firewall isn't blocking localhost ports
 
 ### "Authentication failed"
-- Confirm using `neo4j/logosdev` everywhere
+- Confirm using `neo4j/neo4jtest` everywhere
 - Check `.env.test` has correct NEO4J_PASSWORD
 - Regenerate stack files if old credentials cached
 

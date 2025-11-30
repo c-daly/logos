@@ -8,7 +8,24 @@ Configures:
 - Plugin configuration
 """
 
+import os
+
 import pytest
+
+
+DEFAULT_SOPHIA_PORT = os.getenv("SOPHIA_PORT", "8001")
+DEFAULT_HERMES_PORT = os.getenv("HERMES_PORT", "8002")
+DEFAULT_APOLLO_PORT = os.getenv("APOLLO_PORT", "8003")
+
+DEFAULT_SOPHIA_URL = os.getenv(
+    "SOPHIA_URL", f"http://localhost:{DEFAULT_SOPHIA_PORT}"
+)
+DEFAULT_HERMES_URL = os.getenv(
+    "HERMES_URL", f"http://localhost:{DEFAULT_HERMES_PORT}"
+)
+DEFAULT_APOLLO_URL = os.getenv(
+    "APOLLO_URL", f"http://localhost:{DEFAULT_APOLLO_PORT}"
+)
 
 
 def pytest_configure(config):
@@ -56,19 +73,19 @@ def pytest_addoption(parser):
     parser.addoption(
         "--sophia-url",
         action="store",
-        default="http://localhost:8001",
+        default=DEFAULT_SOPHIA_URL,
         help="Sophia service URL",
     )
     parser.addoption(
         "--hermes-url",
         action="store",
-        default="http://localhost:8002",
+        default=DEFAULT_HERMES_URL,
         help="Hermes service URL",
     )
     parser.addoption(
         "--apollo-url",
         action="store",
-        default="http://localhost:8003",
+        default=DEFAULT_APOLLO_URL,
         help="Apollo service URL",
     )
 

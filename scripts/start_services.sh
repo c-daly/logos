@@ -17,11 +17,29 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOGOS_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 PID_DIR="$SCRIPT_DIR/.pids"
 
+# Allow port overrides from environment (default to standardized values)
+SOPHIA_PORT="${SOPHIA_PORT:-8001}"
+HERMES_PORT="${HERMES_PORT:-8002}"
+APOLLO_PORT="${APOLLO_PORT:-8003}"
+
+if [ -z "${HERMES_LLM_PROVIDER:-}" ]; then
+    HERMES_LLM_PROVIDER="openai"
+fi
+
+if [ -z "${HERMES_LLM_API_KEY:-}" ] && [ -n "${OPENAI_API_KEY:-}" ]; then
+    HERMES_LLM_API_KEY="${OPENAI_API_KEY}"
+fi
+
+export HERMES_LLM_PROVIDER
+if [ -n "${HERMES_LLM_API_KEY:-}" ]; then
+    export HERMES_LLM_API_KEY
+fi
+
 # Service configuration
 declare -A SERVICES=(
-    [sophia]="8001:sophia:$LOGOS_ROOT/../sophia"
-    [hermes]="8002:hermes:$LOGOS_ROOT/../hermes"
-    [apollo]="8003:apollo:$LOGOS_ROOT/../apollo"
+    [sophia]="${SOPHIA_PORT}:sophia:$LOGOS_ROOT/../sophia"
+    [hermes]="${HERMES_PORT}:hermes:$LOGOS_ROOT/../hermes"
+    [apollo]="${APOLLO_PORT}:apollo:$LOGOS_ROOT/../apollo"
 )
 
 # Colors for output
@@ -102,6 +120,9 @@ start_service() {
     
     log_info "Starting $service on port $port..."
     
+    local milvus_host_for_services="${MILVUS_PUBLIC_HOST:-${MILVUS_HOST:-localhost}}"
+    local milvus_port_for_services="${MILVUS_PORT:-19530}"
+
     # Start service based on type
     case "$service" in
         sophia)
@@ -109,8 +130,8 @@ start_service() {
              NEO4J_URI="${NEO4J_URI:-bolt://localhost:7687}" \
              NEO4J_USER="${NEO4J_USER:-neo4j}" \
              NEO4J_PASSWORD="${NEO4J_PASSWORD:-neo4jtest}" \
-             MILVUS_HOST="${MILVUS_HOST:-localhost}" \
-             MILVUS_PORT="${MILVUS_PORT:-19530}" \
+             MILVUS_HOST="${milvus_host_for_services}" \
+             MILVUS_PORT="${milvus_port_for_services}" \
              SOPHIA_API_TOKEN="${SOPHIA_API_KEY:-test-token-12345}" \
              poetry run uvicorn sophia.api.app:app --host 0.0.0.0 --port "$port" \
              > "$PID_DIR/$service.log" 2>&1 & \
@@ -118,8 +139,8 @@ start_service() {
             ;;
         hermes)
             (cd "$repo_path" && \
-             MILVUS_HOST="${MILVUS_HOST:-localhost}" \
-             MILVUS_PORT="${MILVUS_PORT:-19530}" \
+             MILVUS_HOST="${milvus_host_for_services}" \
+             MILVUS_PORT="${milvus_port_for_services}" \
              HERMES_PORT="$port" poetry run hermes \
              > "$PID_DIR/$service.log" 2>&1 & \
              echo $! > "$pid_file")
@@ -129,8 +150,8 @@ start_service() {
              NEO4J_URI="${NEO4J_URI:-bolt://localhost:7687}" \
              NEO4J_USER="${NEO4J_USER:-neo4j}" \
              NEO4J_PASSWORD="${NEO4J_PASSWORD:-neo4jtest}" \
-             SOPHIA_URL="${SOPHIA_URL:-http://localhost:8001}" \
-             HERMES_URL="${HERMES_URL:-http://localhost:8002}" \
+             SOPHIA_URL="${SOPHIA_URL:-http://localhost:${SOPHIA_PORT}}" \
+             HERMES_URL="${HERMES_URL:-http://localhost:${HERMES_PORT}}" \
              APOLLO_PORT="$port" poetry run apollo-api \
              > "$PID_DIR/$service.log" 2>&1 & \
              echo $! > "$pid_file")
@@ -292,9 +313,9 @@ Services:
     - Apollo (port 8003): UI/command layer
 
 Prerequisites:
-    - Infrastructure must be running (Neo4j, Milvus)
-      Run: cd ../infra && docker compose -f docker-compose.hcg.dev.yml up -d
-      Or:  cd ../tests/phase2 && docker compose -f docker-compose.test.yml up -d
+        - Infrastructure must be running (Neo4j, Milvus)
+            Run: cd ../infra && docker compose -f docker-compose.hcg.dev.yml up -d
+            Or:  ../tests/e2e/run_e2e.sh up
 
     - Poetry environments must be set up in each repository
 EOF

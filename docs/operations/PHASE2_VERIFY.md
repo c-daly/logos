@@ -215,7 +215,7 @@ Phase 2 extends the LOGOS ecosystem with:
 
 2. **Run integration smoke test:**
    ```bash
-   pytest tests/phase2/test_integration_smoke.py -v
+   pytest tests/e2e/test_phase2_end_to_end.py::TestP2CrossServiceIntegration -v
    ```
 
 3. **Verify service mesh:**
@@ -469,8 +469,8 @@ Upload all P2-M2 evidence to: `logs/p2-m2-verification/`
 - [x] ✅ Talos integration documented: `logos/docs/phase2/perception/TALOS_INTEGRATION.md`
 
 **Test Evidence:**
-- 11 passing tests in `logos/tests/phase2/perception/test_simulate_api.py`
-- 9 passing tests in `logos/tests/phase2/perception/test_jepa_runner.py`
+- 11 passing tests in `logos/tests/integration/perception/test_simulate_api.py`
+- 9 passing tests in `logos/tests/integration/perception/test_jepa_runner.py`
 - Tests verify:
   - State generation
   - Embedding creation
@@ -1070,11 +1070,11 @@ These workflows can be added in future phases to enhance CI automation. Current 
    - 61 tests currently passing
 
 5. **Perception Tests**
-   - Run: `cd logos && poetry run pytest tests/phase2/perception/`
+   - Run: `cd logos && poetry run pytest tests/integration/perception/`
    - 20 tests verifying JEPA simulation
 
 6. **Observability Tests**
-   - Run: `cd logos && poetry run pytest tests/phase2/test_otel_smoke.py tests/phase2/test_observability.py`
+   - Run: `cd logos && poetry run pytest tests/integration/observability/test_otel_smoke.py tests/integration/observability/test_observability.py`
    - 12 tests verifying OTel instrumentation
 
 ---
@@ -1104,7 +1104,7 @@ cd apollo
 ```bash
 # Run all Phase 2 tests
 cd logos
-poetry run pytest tests/phase2/ -v
+poetry run pytest tests/e2e/test_phase2_end_to_end.py -v
 
 # Run Apollo tests
 cd apollo

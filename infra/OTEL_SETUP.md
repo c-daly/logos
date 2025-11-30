@@ -244,7 +244,7 @@ The CI pipeline includes a smoke test to verify OTel exporters don't break servi
 
 ```bash
 # Run in CI
-pytest tests/phase2/test_otel_smoke.py -v
+pytest tests/integration/observability/test_otel_smoke.py -v
 ```
 
 This test:
@@ -296,5 +296,5 @@ The demo capture script will:
 ## See Also
 
 - `logos_observability/README.md` - Python instrumentation library
-- `tests/phase2/test_observability.py` - Unit tests
+- `tests/integration/observability/test_observability.py` - Unit tests
 - `docs/operations/PHASE2_VERIFY.md` - P2-M4 acceptance criteria

@@ -16,7 +16,14 @@ from typing import Any, cast
 from .models import PlanRequest, PlanResponse, ProcessStep, StateDescription
 
 # Load plan scenarios from fixtures
-FIXTURES_DIR = Path(__file__).parent.parent / "tests" / "phase1" / "fixtures"
+REPO_ROOT = Path(__file__).resolve().parents[1]
+FIXTURES_DIR = (
+    REPO_ROOT
+    / "tests"
+    / "integration"
+    / "planning"
+    / "fixtures"
+)
 SCENARIOS_FILE = FIXTURES_DIR / "plan_scenarios.json"
 
 

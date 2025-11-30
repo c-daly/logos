@@ -5,8 +5,8 @@ configfile: pyproject.toml
 plugins: anyio-4.11.0, cov-7.0.0
 collected 23 items
 
-tests/phase1/test_m4_end_to_end.py .........s.............               [100%]
+tests/e2e/test_phase1_end_to_end.py .........s.............             [100%]
 
 =========================== short test summary info ============================
-SKIPPED [1] tests/phase1/test_m4_end_to_end.py:331: Planner service not running
+SKIPPED [1] tests/e2e/test_phase1_end_to_end.py:331: Planner service not running
 =================== 22 passed, 1 skipped in 85.33s (0:01:25) ===================

@@ -8,15 +8,13 @@ on:
     paths:
       - 'logos_observability/**'
       - 'logos_sophia/**'
-      - 'tests/phase2/test_otel_smoke.py'
-      - 'tests/phase2/test_observability.py'
+      - 'tests/integration/observability/**'
       - 'pyproject.toml'
   pull_request:
     paths:
       - 'logos_observability/**'
       - 'logos_sophia/**'
-      - 'tests/phase2/test_otel_smoke.py'
-      - 'tests/phase2/test_observability.py'
+      - 'tests/integration/observability/**'
       - 'pyproject.toml'
   workflow_dispatch:
 
@@ -49,11 +47,11 @@ jobs:
       
       - name: Run OTel smoke tests
         run: |
-          pytest tests/phase2/test_otel_smoke.py -v --cov=logos_observability --cov-report=term-missing
+          pytest tests/integration/observability/test_otel_smoke.py -v --cov=logos_observability --cov-report=term-missing
       
       - name: Run observability tests
         run: |
-          pytest tests/phase2/test_observability.py -v
+          pytest tests/integration/observability/test_observability.py -v
       
       - name: Upload coverage
         uses: actions/upload-artifact@v4
