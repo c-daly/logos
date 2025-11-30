@@ -112,9 +112,7 @@ class TestOntologyLoading:
             indexes = [record["name"] for record in result]
 
             # Check for LOGOS indexes
-            assert any(
-                "logos_entity_name" in i for i in indexes
-            ), "Entity name index missing"
+            assert any("logos_entity_name" in i for i in indexes), "Entity name index missing"
             assert any(
                 "logos_state_timestamp" in i for i in indexes
             ), "State timestamp index missing"
@@ -251,9 +249,7 @@ class TestStateCreation:
 
         with neo4j_driver.session() as session:
             # Create first state
-            session.run(
-                "CREATE (s:State {uuid: $uuid, timestamp: datetime()})", uuid=test_uuid
-            )
+            session.run("CREATE (s:State {uuid: $uuid, timestamp: datetime()})", uuid=test_uuid)
 
             # Try to create duplicate
             with pytest.raises(ClientError) as exc_info:

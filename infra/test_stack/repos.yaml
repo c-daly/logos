@@ -64,8 +64,8 @@ repos:
       - milvus-minio
       - milvus
     context:
-      milvus_grpc_port: "19530"
-      milvus_metrics_port: "19091"
+      milvus_grpc_port: "18530"
+      milvus_metrics_port: "18091"
     env:
       NEO4J_URI: "bolt://neo4j:7687"
       MILVUS_HOST: milvus

@@ -71,6 +71,7 @@ All URIs are relative to *http://localhost:8000*
 - [CWMStateLinks](docs/CWMStateLinks.md)
 - [HealthResponse](docs/HealthResponse.md)
 - [PlanRequest](docs/PlanRequest.md)
+- [PlanRequestGoal](docs/PlanRequestGoal.md)
 - [PlanResponse](docs/PlanResponse.md)
 - [SimulationRequest](docs/SimulationRequest.md)
 - [SimulationResponse](docs/SimulationResponse.md)

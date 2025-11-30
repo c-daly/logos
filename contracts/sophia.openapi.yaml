@@ -159,8 +159,18 @@ components:
       type: object
       properties:
         goal:
-          type: string
-          description: Natural-language goal or structured identifier
+          type: object
+          description: Goal specification with description and target_state
+          properties:
+            description:
+              type: string
+              description: Natural-language description of the goal
+            target_state:
+              type: string
+              description: Identifier for the desired target state
+          required:
+            - description
+            - target_state
         context:
           type: object
           additionalProperties: true

@@ -91,9 +91,7 @@ class TestHCGMilvusSync:
     @patch("logos_hcg.sync.connections")
     @patch("logos_hcg.sync.utility")
     @patch("logos_hcg.sync.Collection")
-    def test_upsert_embedding_success(
-        self, mock_collection, mock_utility, mock_connections
-    ):
+    def test_upsert_embedding_success(self, mock_collection, mock_utility, mock_connections):
         """Test successful embedding upsert."""
         # Setup mocks
         mock_utility.has_collection.return_value = True
@@ -139,9 +137,7 @@ class TestHCGMilvusSync:
     @patch("logos_hcg.sync.connections")
     @patch("logos_hcg.sync.utility")
     @patch("logos_hcg.sync.Collection")
-    def test_batch_upsert_embeddings(
-        self, mock_collection, mock_utility, mock_connections
-    ):
+    def test_batch_upsert_embeddings(self, mock_collection, mock_utility, mock_connections):
         """Test batch embedding upsert."""
         mock_utility.has_collection.return_value = True
         mock_coll_instance = Mock()
@@ -172,9 +168,7 @@ class TestHCGMilvusSync:
     @patch("logos_hcg.sync.connections")
     @patch("logos_hcg.sync.utility")
     @patch("logos_hcg.sync.Collection")
-    def test_batch_upsert_empty_list(
-        self, mock_collection, mock_utility, mock_connections
-    ):
+    def test_batch_upsert_empty_list(self, mock_collection, mock_utility, mock_connections):
         """Test batch upsert with empty list."""
         mock_utility.has_collection.return_value = True
         mock_collection.return_value = Mock()
@@ -213,9 +207,7 @@ class TestHCGMilvusSync:
     @patch("logos_hcg.sync.connections")
     @patch("logos_hcg.sync.utility")
     @patch("logos_hcg.sync.Collection")
-    def test_batch_delete_embeddings(
-        self, mock_collection, mock_utility, mock_connections
-    ):
+    def test_batch_delete_embeddings(self, mock_collection, mock_utility, mock_connections):
         """Test batch embedding deletion."""
         mock_utility.has_collection.return_value = True
         mock_coll_instance = Mock()
@@ -236,9 +228,7 @@ class TestHCGMilvusSync:
     @patch("logos_hcg.sync.connections")
     @patch("logos_hcg.sync.utility")
     @patch("logos_hcg.sync.Collection")
-    def test_batch_delete_empty_list(
-        self, mock_collection, mock_utility, mock_connections
-    ):
+    def test_batch_delete_empty_list(self, mock_collection, mock_utility, mock_connections):
         """Test batch delete with empty list."""
         mock_utility.has_collection.return_value = True
         mock_collection.return_value = Mock()
@@ -281,9 +271,7 @@ class TestHCGMilvusSync:
     @patch("logos_hcg.sync.connections")
     @patch("logos_hcg.sync.utility")
     @patch("logos_hcg.sync.Collection")
-    def test_get_embedding_not_found(
-        self, mock_collection, mock_utility, mock_connections
-    ):
+    def test_get_embedding_not_found(self, mock_collection, mock_utility, mock_connections):
         """Test retrieving a non-existent embedding."""
         mock_utility.has_collection.return_value = True
         mock_coll_instance = Mock()
@@ -327,9 +315,7 @@ class TestHCGMilvusSync:
     @patch("logos_hcg.sync.connections")
     @patch("logos_hcg.sync.utility")
     @patch("logos_hcg.sync.Collection")
-    def test_verify_sync_orphaned_embeddings(
-        self, mock_collection, mock_utility, mock_connections
-    ):
+    def test_verify_sync_orphaned_embeddings(self, mock_collection, mock_utility, mock_connections):
         """Test sync verification with orphaned embeddings."""
         mock_utility.has_collection.return_value = True
         mock_coll_instance = Mock()
@@ -357,9 +343,7 @@ class TestHCGMilvusSync:
     @patch("logos_hcg.sync.connections")
     @patch("logos_hcg.sync.utility")
     @patch("logos_hcg.sync.Collection")
-    def test_verify_sync_missing_embeddings(
-        self, mock_collection, mock_utility, mock_connections
-    ):
+    def test_verify_sync_missing_embeddings(self, mock_collection, mock_utility, mock_connections):
         """Test sync verification with missing embeddings."""
         mock_utility.has_collection.return_value = True
         mock_coll_instance = Mock()
@@ -386,9 +370,7 @@ class TestHCGMilvusSync:
     @patch("logos_hcg.sync.connections")
     @patch("logos_hcg.sync.utility")
     @patch("logos_hcg.sync.Collection")
-    def test_health_check_connected(
-        self, mock_collection, mock_utility, mock_connections
-    ):
+    def test_health_check_connected(self, mock_collection, mock_utility, mock_connections):
         """Test health check when connected."""
         mock_utility.has_collection.return_value = True
         mock_coll_instance = Mock()

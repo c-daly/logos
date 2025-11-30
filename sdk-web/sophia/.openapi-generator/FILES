@@ -11,6 +11,7 @@ docs/CWMStateData.md
 docs/CWMStateLinks.md
 docs/HealthResponse.md
 docs/PlanRequest.md
+docs/PlanRequestGoal.md
 docs/PlanResponse.md
 docs/PlanningApi.md
 docs/SimulationRequest.md
@@ -33,6 +34,7 @@ src/models/CWMStateData.ts
 src/models/CWMStateLinks.ts
 src/models/HealthResponse.ts
 src/models/PlanRequest.ts
+src/models/PlanRequestGoal.ts
 src/models/PlanResponse.ts
 src/models/SimulationRequest.ts
 src/models/SimulationResponse.ts
