@@ -67,6 +67,12 @@ def _get_repo_root_from_items(env_items: tuple[tuple[str, str], ...] | None) -> 
         if resolved.exists():
             return resolved
 
+    workspace = os.getenv("GITHUB_WORKSPACE")
+    if workspace:
+        candidate = Path(workspace).expanduser().resolve()
+        if candidate.exists():
+            return candidate
+
     return Path(__file__).resolve().parents[1]
 
 
