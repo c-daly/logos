@@ -48,11 +48,11 @@ jobs:
       
       - name: Run OTel smoke tests
         run: |
-          pytest tests/integration/observability/test_otel_smoke.py -v --cov=logos_observability --cov-report=term-missing
+          poetry run pytest tests/integration/observability/test_otel_smoke.py -v --cov=logos_observability --cov-report=term-missing
       
       - name: Run observability tests
         run: |
-          pytest tests/integration/observability/test_observability.py -v
+          poetry run pytest tests/integration/observability/test_observability.py -v
       
       - name: Upload coverage
         uses: actions/upload-artifact@v4

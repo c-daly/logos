@@ -148,7 +148,7 @@ jobs:
           export NEO4J_PASSWORD=neo4jtest
           export RUN_NEO4J_SHACL=1
           
-          pytest tests/integration/ontology/test_shacl_neo4j_validation.py -v --tb=short 2>&1 | tee neo4j_validation_output.txt
+          poetry run pytest tests/integration/ontology/test_shacl_neo4j_validation.py -v --tb=short 2>&1 | tee neo4j_validation_output.txt
           
           if [ ${PIPESTATUS[0]} -eq 0 ]; then
             echo "✅ **PASSED**: All Neo4j SHACL validation tests passed" >> $GITHUB_STEP_SUMMARY
