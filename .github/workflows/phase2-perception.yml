@@ -61,16 +61,6 @@ jobs:
         run: |
           poetry run pytest tests/phase2/perception/test_simulate_api.py -v --cov=logos_sophia --cov-append --cov-report=xml
       
-      - name: Upload coverage reports
-        uses: codecov/codecov-action@v4
-        if: always()
-        with:
-          files: ./coverage.xml
-          flags: perception
-          name: perception-coverage
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      
       - name: Test summary
         if: always()
         run: |
