@@ -18,6 +18,8 @@ import pytest
 from neo4j import GraphDatabase
 from neo4j.exceptions import Neo4jError
 
+from logos_test_utils.env import get_repo_root
+
 RUN_NEO4J_SHACL = os.getenv("RUN_NEO4J_SHACL") == "1"
 pytestmark = pytest.mark.skipif(
     not RUN_NEO4J_SHACL,
@@ -82,7 +84,7 @@ def _ensure_shapes(session, procedures):
         # If listShapes fails (e.g. "No shapes compiled"), assume we need to load them
         pass
 
-    repo_root = Path(__file__).resolve().parents[3]
+    repo_root = get_repo_root()
     shapes_file = repo_root / "ontology" / "shacl_shapes.ttl"
 
     if not shapes_file.exists():

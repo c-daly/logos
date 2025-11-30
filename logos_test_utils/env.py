@@ -53,3 +53,18 @@ def get_env_value(
     if env and key in env:
         return env[key]
     return default
+
+
+def get_repo_root(env: Mapping[str, str] | None = None) -> Path:
+    """Resolve the LOGOS repo root, honoring LOGOS_REPO_ROOT if set.
+
+    Priority:
+    1. LOGOS_REPO_ROOT from OS env or provided mapping (if path exists).
+    2. Fallback to parent of this package (works in-repo or installed).
+    """
+    env_value = get_env_value("LOGOS_REPO_ROOT", env)
+    if env_value:
+        candidate = Path(env_value).expanduser().resolve()
+        if candidate.exists():
+            return candidate
+    return Path(__file__).resolve().parents[1]
