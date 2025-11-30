@@ -118,7 +118,7 @@ jobs:
       - name: Validate SHACL shapes
         run: |
           # Validate SHACL syntax using Python
-          python -c "
+          poetry run python -c "
           from rdflib import Graph
           g = Graph()
           g.parse('ontology/shacl_shapes.ttl', format='turtle')
