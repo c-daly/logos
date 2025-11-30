@@ -60,11 +60,20 @@ def get_repo_root(env: Mapping[str, str] | None = None) -> Path:
 
     Priority:
     1. LOGOS_REPO_ROOT from OS env or provided mapping (if path exists).
-    2. Fallback to parent of this package (works in-repo or installed).
+    2. GITHUB_WORKSPACE (set by GitHub Actions in CI).
+    3. Fallback to parent of this package (works when running from source).
     """
     env_value = get_env_value("LOGOS_REPO_ROOT", env)
     if env_value:
         candidate = Path(env_value).expanduser().resolve()
         if candidate.exists():
             return candidate
+
+    # GitHub Actions sets GITHUB_WORKSPACE to the repo checkout
+    github_workspace = os.getenv("GITHUB_WORKSPACE")
+    if github_workspace:
+        candidate = Path(github_workspace).resolve()
+        if candidate.exists():
+            return candidate
+
     return Path(__file__).resolve().parents[1]
