@@ -2,8 +2,6 @@
 
 This note captures the concrete additions needed for LOGOS to move from an elegant architecture to a significant research project. Treat these items as non-negotiable ingredients for any submission or public launch.
 
-**Status (December 2025):** OTEL dev stack landed; perception ingest/JEPA pipeline still missing; CWM-E automation is manual; coverage upload disabled (XML still produced). Use this list to focus remaining work and evidence capture.
-
 ---
 
 ## 1. Benchmarks & Datasets

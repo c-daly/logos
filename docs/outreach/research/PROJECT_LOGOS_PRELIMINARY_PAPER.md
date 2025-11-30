@@ -4,8 +4,6 @@
 
 ---
 
-> Status note (December 2025): OTEL dev stack (collector + Jaeger + Prometheus) is in; perception ingest/JEPA pipeline is still a stub (no media upload/service path yet); CWM-E is manual; coverage uploads are disabled in CI though coverage XML is generated.
-
 ## Abstract
 Large language models provide competent natural language interfaces yet lack grounded state, causal guarantees, and explainability when asked to operate embodied agents. Project LOGOS addresses these gaps through the Hybrid Cognitive Graph (HCG), a multi-model causal world representation that fuses symbolic graph reasoning (CWM-A), grounded imagination (CWM-G), and reflective persona state (CWM-E). Sophia, Hermes, Talos, and Apollo expose this structure through APIs, browser/CLI tooling, and JEPA-powered simulation, enabling Talos-optional deployments that remain causally coherent. This paper introduces the architecture, highlights the ontology + SHACL verification base alongside the CLI/Sophia/Hermes services, details the perception pipeline and dual Apollo surfaces, and outlines the evaluation plan that measures latency, CWM coverage, persona fidelity, and visualization quality. Early integration results indicate that LOGOS can reject invalid plans, surface imagined states with provenance, and provide deterministic audit trails when acting as a causal co-processor for LLM-powered experiences.
 
@@ -38,7 +36,7 @@ LLM agent frameworks (e.g., ReAct, AutoGPT) showcase plan-language loops but lac
 ## 3 System Overview
 
 ### 3.1 Component Layout
-LOGOS consists of five collaborating systems (see `docs/architecture/LOGOS_SPEC.md`):
+LOGOS consists of five collaborating systems (see `docs/architecture/LOGOS_SPEC_FLEXIBLE.md`):
 1. **Sophia** — non-linguistic cognitive core orchestrating goals, planners, and executors that operate on the HCG.
 2. **Hermes** — stateless language services (STT, TTS, NLP preprocessing, embedding) that convert natural language into graph-compatible artifacts without mutating the HCG.
 3. **Talos** — capability bus/hardware abstraction; optional in deployments yet supported through shared contracts.
@@ -150,8 +148,4 @@ If these criteria are met, LOGOS can transition from a research curiosity to a b
 ---
 
 ## References
-- LeCun, Yann. “A Path Towards Autonomous Machine Intelligence.” arXiv:2201.12407 (Jan 2022). *(JEPA and world models.)*
-- Carion, Nicolas, et al. “Joint Embedding Predictive Architectures.” arXiv:2301.08243 (2023). *(JEPA formulation.)*
-- Robinson, Ian, Jim Webber, and Emil Eifrem. *Graph Databases.* O’Reilly Media (2015). *(Graph modeling foundations relevant to HCG.)*
-- Hogan, Aidan, et al. “Knowledge Graphs.” arXiv:2003.02320 (2021). *(Broader KG context.)*
-- Prud’hommeaux, Eric, and Holger Knublauch. “Shapes Constraint Language (SHACL).” W3C Recommendation (2017). *(Validation baseline for HCG/SHACL.)*
+*(To be populated with formal citations during the full drafting stage.)*

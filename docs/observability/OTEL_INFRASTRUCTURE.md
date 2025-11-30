@@ -63,8 +63,6 @@ VITE_OTEL_EXPORTER_URL=http://localhost:4320/v1/traces  # For browser/webapp (HT
 
 ## Troubleshooting
 
-See `docs/operations/OBSERVABILITY_QUERIES.md` for Jaeger filters and Prometheus query snippets.
-
 ### Collector not receiving traces
 1. Check collector logs: `docker logs logos-otel-collector`
 2. Verify collector health: `curl http://localhost:13133/`

@@ -2,8 +2,6 @@
 
 This file captures the architectural decisions, experiments, and verification evidence we want to reference when drafting the Project LOGOS research paper. Treat it as a living log: add links, figures, and data snapshots as work lands so the narrative is ready when writing starts.
 
-**Status (December 2025):** OTEL dev stack landed (collector + Jaeger + Prometheus). Perception ingest/JEPA pipeline is not implemented yet (no media upload path). CWM-E remains manual; coverage uploads are disabled (XML still produced).
-
 ## 1. Purpose
 
 1. Keep a contemporaneous record of the choices that define the full LOGOS roadmap (Phase 1 foundations + Phase 2 perception/Apollo + future Talos hooks).
@@ -14,15 +12,14 @@ This file captures the architectural decisions, experiments, and verification ev
 
 | Decision | Rationale | Evidence / Links |
 |----------|-----------|------------------|
-| Hybrid Cognitive Graph (HCG) + SHACL validation baseline | Provide symbolic ground truth for all phases; ensure ontology integrity. | `docs/architecture/LOGOS_SPEC.md`, `docs/architecture/PHASE1_SPEC.md`, SHACL tests. |
+| Hybrid Cognitive Graph (HCG) + SHACL validation baseline | Provide symbolic ground truth for all phases; ensure ontology integrity. | `docs/architecture/LOGOS_SPEC_FLEXIBLE.md`, `docs/phase1/PHASE1_SPEC.md`, SHACL tests. |
 | Phase 1 workstreams (A: HCG, B: Sophia core, C: Hermes & Apollo CLI) | Build the minimal end-to-end loop before perception enhancements. | `docs/old/action_items.md`, `docs/phase1/PHASE1_VERIFY.md`, Phase 1 issue set (#200–#208). |
 | Unified `CWMState` envelope (CWM-A/G/E) | Align APIs, storage, and diagnostics; simplify reasoning across layers. | `docs/architecture/PHASE2_SPEC.md`, `docs/hcg/CWM_STATE_CONTRACT_ROLLOUT.md`. |
-| Talos-optional perception pipeline | Browser-first demo path, JEPA rollouts even without hardware; same hooks support Talos/Gazebo later. | `docs/architecture/PHASE2_SPEC.md` (perception), tickets #240-242. **Status:** ingest/JEPA path not implemented. |
-| Dual Apollo surfaces with shared SDK | Browser UI as primary storytelling surface + CLI parity; ensures tests exercise end-to-end stack. | `docs/architecture/PHASE2_SPEC.md`, SDK generation scripts. |
-| Diagnostics + persona diary via CWM-E | Tie observability to agent tone/behavior; create auditable persona narrative. | `logos_persona/README.md`, `docs/operations/PHASE2_VERIFY.md` P2-M4 criteria. **Status:** reflection job manual. |
-| JEPA-powered `/simulate` for imagination | Visual reasoning without physical hardware; standard context schema for Talos handoff. | `logos_perception/README.md`, JEPA runner module references. **Status:** JEPA stub only; no media ingest. |
-| Open governance & verification artifacts | Reproducible demos, evidence bundles, and CI workflows for each milestone. | `docs/operations/PHASE2_VERIFY.md` (archival), CI workflows, logs directories. |
-| OTEL dev stack (collector + Jaeger + Prometheus) | Baseline for distributed tracing/metrics. | `docs/observability/OTEL_INFRASTRUCTURE.md`, `docker-compose.otel.yml`. |
+| Talos-optional perception pipeline | Browser-first demo path, JEPA rollouts even without hardware; same hooks support Talos/Gazebo later. | `docs/phase2/perception/TALOS_INTEGRATION.md`, tickets #240-242. |
+| Dual Apollo surfaces with shared SDK | Browser UI as primary storytelling surface + CLI parity; ensures tests exercise end-to-end stack. | `apollo/docs/architecture/PHASE2_SPEC.md`, SDK generation scripts. |
+| Diagnostics + persona diary via CWM-E | Tie observability to agent tone/behavior; create auditable persona narrative. | `logos_persona/README.md`, `docs/operations/PHASE2_VERIFY.md` P2-M4 criteria. |
+| JEPA-powered `/simulate` for imagination | Visual reasoning without physical hardware; standard context schema for Talos handoff. | `logos_perception/README.md`, JEPA runner module references. |
+| Open governance & verification artifacts | Reproducible demos, evidence bundles, and CI workflows for each milestone. | `docs/phase1/PHASE1_VERIFY.md`, `docs/operations/PHASE2_VERIFY.md`, logs directories. |
 
 Update the table as new architectural commitments land (e.g., Milvus schema, OTel exporters).
 
@@ -70,10 +67,3 @@ Keep a running list of figures/tables per section (e.g., `Figure 2: CWMState flo
 - [ ] Schedule a periodic review (bi-weekly) to add new outcomes and adjust the proposed structure.
 
 > When it is time to draft the paper, promote this document to an outline and copy relevant evidence directly into the manuscript. Until then, use it to keep phase decisions, rationale, and references organized.
-
-## 7. References (seed list)
-- LeCun, Yann. “A Path Towards Autonomous Machine Intelligence.” arXiv:2201.12407 (Jan 2022). *(JEPA and world models.)*
-- Carion, Nicolas, et al. “Joint Embedding Predictive Architectures.” arXiv:2301.08243 (2023). *(JEPA formulation.)*
-- Robinson, Ian, Jim Webber, and Emil Eifrem. *Graph Databases.* O’Reilly Media (2015). *(Graph modeling foundations relevant to HCG.)*
-- Hogan, Aidan, et al. “Knowledge Graphs.” arXiv:2003.02320 (2021). *(Broader KG context.)*
-- Prud’hommeaux, Eric, and Holger Knublauch. “Shapes Constraint Language (SHACL).” W3C Recommendation (2017). *(Validation baseline for HCG/SHACL.)*

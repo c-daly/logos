@@ -25,7 +25,7 @@ All Python repositories must use:
 | `ruff` | Linting |
 | `black` | Formatting |
 | `mypy` | Type checking |
-| `pytest-cov` | Coverage (Codecov upload currently disabled; generate XML locally) |
+| `pytest-cov` | Coverage (uploading to Codecov) |
 
 ---
 
@@ -107,10 +107,6 @@ If a test requires a database, spin it up using Docker Compose in the workflow.
 ### Reusable Workflow
 
 All repositories must use: `c-daly/logos/.github/workflows/reusable-standard-ci.yml`
-
-Notes:
-- Coverage upload to Codecov is currently disabled; keep generating `coverage.xml` locally for quality gates.
-- Perception workflow jobs have switched to Poetry; align local runs with the workflow commands.
 
 See [CI Documentation](ci/README.md) for details.
 
