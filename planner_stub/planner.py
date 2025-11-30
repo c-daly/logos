@@ -17,13 +17,7 @@ from .models import PlanRequest, PlanResponse, ProcessStep, StateDescription
 
 # Load plan scenarios from fixtures
 REPO_ROOT = Path(__file__).resolve().parents[1]
-FIXTURES_DIR = (
-    REPO_ROOT
-    / "tests"
-    / "integration"
-    / "planning"
-    / "fixtures"
-)
+FIXTURES_DIR = REPO_ROOT / "tests" / "integration" / "planning" / "fixtures"
 SCENARIOS_FILE = FIXTURES_DIR / "plan_scenarios.json"
 
 

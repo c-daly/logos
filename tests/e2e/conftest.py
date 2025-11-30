@@ -16,15 +16,9 @@ DEFAULT_SOPHIA_PORT = os.getenv("SOPHIA_PORT", "8001")
 DEFAULT_HERMES_PORT = os.getenv("HERMES_PORT", "8002")
 DEFAULT_APOLLO_PORT = os.getenv("APOLLO_PORT", "8003")
 
-DEFAULT_SOPHIA_URL = os.getenv(
-    "SOPHIA_URL", f"http://localhost:{DEFAULT_SOPHIA_PORT}"
-)
-DEFAULT_HERMES_URL = os.getenv(
-    "HERMES_URL", f"http://localhost:{DEFAULT_HERMES_PORT}"
-)
-DEFAULT_APOLLO_URL = os.getenv(
-    "APOLLO_URL", f"http://localhost:{DEFAULT_APOLLO_PORT}"
-)
+DEFAULT_SOPHIA_URL = os.getenv("SOPHIA_URL", f"http://localhost:{DEFAULT_SOPHIA_PORT}")
+DEFAULT_HERMES_URL = os.getenv("HERMES_URL", f"http://localhost:{DEFAULT_HERMES_PORT}")
+DEFAULT_APOLLO_URL = os.getenv("APOLLO_URL", f"http://localhost:{DEFAULT_APOLLO_PORT}")
 
 
 def pytest_configure(config):
