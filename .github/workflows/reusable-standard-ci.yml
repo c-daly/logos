@@ -17,7 +17,7 @@ on:
         description: 'Dependency installer (pip or poetry)'
         required: false
         type: string
-        default: 'pip'
+        default: 'poetry'
       python_install_command:
         description: 'Command used to install Python dependencies when using pip'
         required: false

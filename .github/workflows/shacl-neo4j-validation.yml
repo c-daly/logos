@@ -47,11 +47,18 @@ jobs:
         with:
           python-version: '3.11'
       
-      - name: Install dependencies
+      - name: Install Poetry
         run: |
-          python -m pip install --upgrade pip
-          pip install -e .
-          pip install pytest neo4j rdflib pyshacl
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
+      - name: Configure Poetry
+        run: |
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project true
+      
+      - name: Install dependencies
+        run: poetry install --with test,dev
       
       - name: Download n10s plugin
         run: |
@@ -146,7 +153,7 @@ jobs:
           export NEO4J_PASSWORD=neo4jtest
           export RUN_NEO4J_SHACL=1
           
-          pytest tests/integration/ontology/test_shacl_neo4j_validation.py -v --tb=short 2>&1 | tee neo4j_validation_output.txt
+          poetry run pytest tests/integration/ontology/test_shacl_neo4j_validation.py -v --tb=short 2>&1 | tee neo4j_validation_output.txt
           
           if [ ${PIPESTATUS[0]} -eq 0 ]; then
             echo "✅ **PASSED**: All Neo4j SHACL validation tests passed" >> $GITHUB_STEP_SUMMARY

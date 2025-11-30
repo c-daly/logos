@@ -38,20 +38,26 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       
-      - name: Install dependencies
+      - name: Install Poetry
         run: |
-          python -m pip install --upgrade pip
-          pip install -e .
-          pip install pytest pytest-cov httpx
-          pip install opentelemetry-exporter-otlp-proto-grpc
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
+      - name: Configure Poetry
+        run: |
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project true
+      
+      - name: Install dependencies
+        run: poetry install --with test,dev
       
       - name: Run OTel smoke tests
         run: |
-          pytest tests/integration/observability/test_otel_smoke.py -v --cov=logos_observability --cov-report=term-missing
+          poetry run pytest tests/integration/observability/test_otel_smoke.py -v --cov=logos_observability --cov-report=term-missing
       
       - name: Run observability tests
         run: |
-          pytest tests/integration/observability/test_observability.py -v
+          poetry run pytest tests/integration/observability/test_observability.py -v
       
       - name: Upload coverage
         uses: actions/upload-artifact@v4
