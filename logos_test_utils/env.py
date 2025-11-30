@@ -63,7 +63,9 @@ def _get_repo_root_from_items(env_items: tuple[tuple[str, str], ...] | None) -> 
     env_value = get_env_value("LOGOS_REPO_ROOT", env)
     if env_value:
         candidate = Path(env_value).expanduser()
-        return candidate.resolve()
+        resolved = candidate.resolve()
+        if resolved.exists():
+            return resolved
 
     return Path(__file__).resolve().parents[1]
 
