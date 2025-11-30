@@ -17,6 +17,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOGOS_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 PID_DIR="$SCRIPT_DIR/.pids"
 
+# Prefer project-local Poetry if available
+if [ -d "${LOGOS_ROOT}/.venv/bin" ]; then
+    export PATH="${LOGOS_ROOT}/.venv/bin:${PATH}"
+fi
+if [ -d "${HOME}/.local/bin" ]; then
+    export PATH="${HOME}/.local/bin:${PATH}"
+fi
+
 # Allow port overrides from environment (default to standardized values)
 SOPHIA_PORT="${SOPHIA_PORT:-8001}"
 HERMES_PORT="${HERMES_PORT:-8002}"
