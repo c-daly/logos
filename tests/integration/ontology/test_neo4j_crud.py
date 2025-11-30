@@ -13,13 +13,13 @@ Reference: docs/PHASE1_VERIFY.md - M1 checklist
 """
 
 import os
-from pathlib import Path
 from uuid import uuid4
 
 import pytest
 from neo4j.exceptions import ClientError
 
 from logos_test_utils.docker import is_container_running
+from logos_test_utils.env import get_repo_root
 from logos_test_utils.neo4j import (
     get_neo4j_config,
     get_neo4j_driver,
@@ -27,7 +27,7 @@ from logos_test_utils.neo4j import (
 )
 
 NEO4J_CONFIG = get_neo4j_config()
-REPO_ROOT = Path(__file__).resolve().parents[3]
+REPO_ROOT = get_repo_root()
 RUN_M1_E2E = os.getenv("RUN_M1_E2E") not in {None, "", "0", "false", "False"}
 
 if not RUN_M1_E2E or not is_container_running(NEO4J_CONFIG.container):

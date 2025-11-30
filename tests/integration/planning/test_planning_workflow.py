@@ -14,6 +14,8 @@ from pathlib import Path
 
 import pytest
 
+from logos_test_utils.env import get_repo_root
+
 # Try to import planner client for API-based tests
 try:
     from planner_stub.client import PlannerClient
@@ -35,7 +37,7 @@ def plan_scenarios():
 @pytest.fixture
 def test_data_cypher():
     """Load pick-and-place test data Cypher script."""
-    repo_root = Path(__file__).resolve().parents[3]
+    repo_root = get_repo_root()
     cypher_file = repo_root / "ontology" / "test_data_pick_and_place.cypher"
     return cypher_file.read_text()
 
