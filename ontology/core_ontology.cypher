@@ -88,6 +88,23 @@ CREATE CONSTRAINT logos_imagined_state_uuid IF NOT EXISTS
 FOR (is:ImaginedState)
 REQUIRE is.uuid IS UNIQUE;
 
+//// Phase 2 P2-M3: MediaSample node constraints (media ingestion)
+CREATE CONSTRAINT logos_media_sample_uuid IF NOT EXISTS
+FOR (ms:MediaSample)
+REQUIRE ms.uuid IS UNIQUE;
+
+CREATE INDEX logos_media_sample_media_type IF NOT EXISTS
+FOR (ms:MediaSample)
+ON (ms.media_type);
+
+CREATE INDEX logos_media_sample_timestamp IF NOT EXISTS
+FOR (ms:MediaSample)
+ON (ms.timestamp);
+
+CREATE INDEX logos_media_sample_file_hash IF NOT EXISTS
+FOR (ms:MediaSample)
+ON (ms.file_hash);
+
 //// CWM-A: Abstract/Associative World Model node constraints
 CREATE CONSTRAINT logos_fact_uuid IF NOT EXISTS
 FOR (f:Fact)
@@ -190,6 +207,13 @@ ON (abs.domain);
 //// - (:PerceptionFrame)-[:TRIGGERED_SIMULATION]->(:ImaginedProcess) — Frame that initiated simulation
 //// - (:ImaginedProcess)-[:PREDICTS]->(:ImaginedState) — Process predicting future state
 //// - (:ImaginedState)-[:PRECEDES]->(:ImaginedState) — Temporal ordering of imagined states
+
+//// Phase 2 P2-M3: Extended relationship types for media ingestion
+//// - (:MediaSample)-[:HAS_EMBEDDING]->(:Embedding) — Media linked to Milvus embedding
+//// - (:MediaSample)-[:EXTRACTED_FROM]->(:MediaSample) — Frame extracted from video
+//// - (:MediaSample)-[:FEEDS]->(:SimulationContext) — Media used as simulation input
+//// - (:MediaSample)-[:PRODUCES]->(:PerceptionFrame) — Media processed into perception frame
+//// - (:MediaSample)-[:UPLOADED_BY]->(:Session) — Upload session tracking
 
 //// CWM-A: Relationship types for abstract/associative world model
 //// - (:Fact)-[:ABOUT]->(:Concept|:Entity) — Fact concerns this node
