@@ -866,3 +866,636 @@ class HCGQueries:
         MERGE (p)-[r:USES_CAPABILITY]->(cap)
         RETURN p, r, cap
         """
+
+    # ========== CWM-A: Fact Queries (logos#288) ==========
+
+    @staticmethod
+    def find_fact_by_uuid() -> str:
+        """
+        Find a fact by its UUID.
+
+        Parameters:
+        - uuid: Fact UUID (string format, prefix 'fact-')
+
+        Returns: Fact node properties
+        """
+        return """
+        MATCH (f:Fact {uuid: $uuid})
+        RETURN f
+        """
+
+    @staticmethod
+    def find_facts_by_subject() -> str:
+        """
+        Find facts by subject.
+
+        Parameters:
+        - subject: Subject string to match
+        - status: Optional status filter (default: all statuses)
+
+        Returns: List of matching Fact nodes
+        """
+        return """
+        MATCH (f:Fact)
+        WHERE f.subject = $subject
+          AND ($status IS NULL OR f.status = $status)
+        RETURN f
+        ORDER BY f.confidence DESC
+        """
+
+    @staticmethod
+    def find_facts_by_predicate() -> str:
+        """
+        Find facts by predicate.
+
+        Parameters:
+        - predicate: Predicate string to match
+        - status: Optional status filter
+
+        Returns: List of matching Fact nodes
+        """
+        return """
+        MATCH (f:Fact)
+        WHERE f.predicate = $predicate
+          AND ($status IS NULL OR f.status = $status)
+        RETURN f
+        ORDER BY f.confidence DESC
+        """
+
+    @staticmethod
+    def find_facts_by_triple() -> str:
+        """
+        Find facts matching subject-predicate-object pattern.
+
+        Parameters:
+        - subject: Subject (optional, null matches any)
+        - predicate: Predicate (optional, null matches any)
+        - object: Object (optional, null matches any)
+        - status: Optional status filter
+
+        Returns: List of matching Fact nodes
+        """
+        return """
+        MATCH (f:Fact)
+        WHERE ($subject IS NULL OR f.subject = $subject)
+          AND ($predicate IS NULL OR f.predicate = $predicate)
+          AND ($object IS NULL OR f.object = $object)
+          AND ($status IS NULL OR f.status = $status)
+        RETURN f
+        ORDER BY f.confidence DESC
+        """
+
+    @staticmethod
+    def get_canonical_facts() -> str:
+        """
+        Get all canonical (stable, verified) facts.
+
+        Parameters:
+        - domain: Optional domain filter
+        - min_confidence: Minimum confidence threshold (default 0.0)
+        - skip: Pagination offset
+        - limit: Maximum results
+
+        Returns: List of canonical Fact nodes
+        """
+        return """
+        MATCH (f:Fact)
+        WHERE f.status = 'canonical'
+          AND ($domain IS NULL OR f.domain = $domain)
+          AND f.confidence >= $min_confidence
+        RETURN f
+        ORDER BY f.confidence DESC
+        SKIP $skip
+        LIMIT $limit
+        """
+
+    @staticmethod
+    def find_supporting_facts() -> str:
+        """
+        Find facts that support a given process.
+
+        Parameters:
+        - process_uuid: Process UUID
+
+        Returns: List of Fact nodes linked via SUPPORTS relationship
+        """
+        return """
+        MATCH (f:Fact)-[:SUPPORTS]->(p:Process {uuid: $process_uuid})
+        RETURN f
+        ORDER BY f.confidence DESC
+        """
+
+    @staticmethod
+    def find_contradicting_facts() -> str:
+        """
+        Find facts that contradict a given fact.
+
+        Parameters:
+        - fact_uuid: Fact UUID
+
+        Returns: List of contradicting Fact nodes
+        """
+        return """
+        MATCH (f:Fact {uuid: $fact_uuid})-[:CONTRADICTS]-(other:Fact)
+        RETURN other
+        """
+
+    @staticmethod
+    def find_facts_about_concept() -> str:
+        """
+        Find facts related to a concept.
+
+        Parameters:
+        - concept_name: Concept name to search in subject/object
+
+        Returns: List of Fact nodes mentioning the concept
+        """
+        return """
+        MATCH (f:Fact)
+        WHERE f.subject = $concept_name OR f.object = $concept_name
+        RETURN f
+        ORDER BY f.confidence DESC
+        """
+
+    # ========== CWM-A: Fact Mutations ==========
+
+    @staticmethod
+    def create_fact() -> str:
+        """
+        Create a new fact node.
+
+        Parameters:
+        - uuid: Fact UUID (must start with 'fact-')
+        - subject: Subject of the statement
+        - predicate: Relationship/property
+        - object: Object/value
+        - confidence: Confidence score (0.0-1.0)
+        - status: Lifecycle status (hypothesis/proposed/canonical/deprecated)
+        - source: Optional source identifier
+        - source_type: Optional source type
+        - domain: Optional knowledge domain
+
+        Returns: The created Fact node
+        """
+        return """
+        CREATE (f:Fact {
+            uuid: $uuid,
+            subject: $subject,
+            predicate: $predicate,
+            object: $object,
+            confidence: $confidence,
+            status: $status,
+            source: $source,
+            source_type: $source_type,
+            domain: $domain,
+            created_at: datetime(),
+            updated_at: datetime()
+        })
+        RETURN f
+        """
+
+    @staticmethod
+    def update_fact_status() -> str:
+        """
+        Update the status of a fact (e.g., promote to canonical).
+
+        Parameters:
+        - uuid: Fact UUID
+        - status: New status
+        - confidence: Optional new confidence score
+
+        Returns: The updated Fact node
+        """
+        return """
+        MATCH (f:Fact {uuid: $uuid})
+        SET f.status = $status,
+            f.confidence = COALESCE($confidence, f.confidence),
+            f.updated_at = datetime()
+        RETURN f
+        """
+
+    @staticmethod
+    def deprecate_fact() -> str:
+        """
+        Mark a fact as deprecated.
+
+        Parameters:
+        - uuid: Fact UUID
+        - superseded_by: Optional UUID of superseding fact
+
+        Returns: The deprecated Fact node
+        """
+        return """
+        MATCH (f:Fact {uuid: $uuid})
+        SET f.status = 'deprecated',
+            f.updated_at = datetime()
+        WITH f
+        OPTIONAL MATCH (successor:Fact {uuid: $superseded_by})
+        FOREACH (_ IN CASE WHEN successor IS NOT NULL THEN [1] ELSE [] END |
+            MERGE (successor)-[:SUPERSEDES]->(f)
+        )
+        RETURN f
+        """
+
+    @staticmethod
+    def link_fact_supports_process() -> str:
+        """
+        Create a SUPPORTS relationship from fact to process.
+
+        Parameters:
+        - fact_uuid: Fact UUID
+        - process_uuid: Process UUID
+
+        Returns: The created relationship
+        """
+        return """
+        MATCH (f:Fact {uuid: $fact_uuid})
+        MATCH (p:Process {uuid: $process_uuid})
+        MERGE (f)-[r:SUPPORTS]->(p)
+        RETURN f, r, p
+        """
+
+    @staticmethod
+    def link_fact_about_concept() -> str:
+        """
+        Create an ABOUT relationship from fact to concept.
+
+        Parameters:
+        - fact_uuid: Fact UUID
+        - concept_uuid: Concept UUID
+
+        Returns: The created relationship
+        """
+        return """
+        MATCH (f:Fact {uuid: $fact_uuid})
+        MATCH (c:Concept {uuid: $concept_uuid})
+        MERGE (f)-[r:ABOUT]->(c)
+        RETURN f, r, c
+        """
+
+    # ========== CWM-A: Association Queries ==========
+
+    @staticmethod
+    def find_association_by_uuid() -> str:
+        """
+        Find an association by its UUID.
+
+        Parameters:
+        - uuid: Association UUID (string format, prefix 'assoc-')
+
+        Returns: Association node properties
+        """
+        return """
+        MATCH (a:Association {uuid: $uuid})
+        RETURN a
+        """
+
+    @staticmethod
+    def find_associations_by_concept() -> str:
+        """
+        Find associations involving a concept.
+
+        Parameters:
+        - concept: Concept name to search in source/target
+        - min_strength: Minimum strength threshold (default 0.0)
+
+        Returns: List of Association nodes
+        """
+        return """
+        MATCH (a:Association)
+        WHERE (a.source_concept = $concept OR a.target_concept = $concept)
+          AND a.strength >= $min_strength
+        RETURN a
+        ORDER BY a.strength DESC
+        """
+
+    @staticmethod
+    def find_associations_between() -> str:
+        """
+        Find associations between two specific concepts.
+
+        Parameters:
+        - source: Source concept name
+        - target: Target concept name
+
+        Returns: List of Association nodes
+        """
+        return """
+        MATCH (a:Association)
+        WHERE (a.source_concept = $source AND a.target_concept = $target)
+           OR (a.bidirectional = true AND a.source_concept = $target AND a.target_concept = $source)
+        RETURN a
+        ORDER BY a.strength DESC
+        """
+
+    @staticmethod
+    def create_association() -> str:
+        """
+        Create a new association node.
+
+        Parameters:
+        - uuid: Association UUID (must start with 'assoc-')
+        - source_concept: Source concept name
+        - target_concept: Target concept name
+        - strength: Association strength (0.0-1.0)
+        - relationship_type: Optional type of association
+        - bidirectional: Whether relationship is symmetric
+        - context: Optional context where valid
+
+        Returns: The created Association node
+        """
+        return """
+        CREATE (a:Association {
+            uuid: $uuid,
+            source_concept: $source_concept,
+            target_concept: $target_concept,
+            strength: $strength,
+            relationship_type: $relationship_type,
+            bidirectional: $bidirectional,
+            context: $context,
+            created_at: datetime()
+        })
+        RETURN a
+        """
+
+    @staticmethod
+    def update_association_strength() -> str:
+        """
+        Update the strength of an association.
+
+        Parameters:
+        - uuid: Association UUID
+        - strength: New strength value
+
+        Returns: The updated Association node
+        """
+        return """
+        MATCH (a:Association {uuid: $uuid})
+        SET a.strength = $strength
+        RETURN a
+        """
+
+    # ========== CWM-A: Abstraction Queries ==========
+
+    @staticmethod
+    def find_abstraction_by_uuid() -> str:
+        """
+        Find an abstraction by its UUID.
+
+        Parameters:
+        - uuid: Abstraction UUID (string format, prefix 'abs-')
+
+        Returns: Abstraction node properties
+        """
+        return """
+        MATCH (abs:Abstraction {uuid: $uuid})
+        RETURN abs
+        """
+
+    @staticmethod
+    def find_abstraction_by_name() -> str:
+        """
+        Find an abstraction by exact name.
+
+        Parameters:
+        - name: Abstraction name
+
+        Returns: Abstraction node properties
+        """
+        return """
+        MATCH (abs:Abstraction {name: $name})
+        RETURN abs
+        """
+
+    @staticmethod
+    def find_abstractions_by_domain() -> str:
+        """
+        Find abstractions in a domain.
+
+        Parameters:
+        - domain: Knowledge domain
+
+        Returns: List of Abstraction nodes
+        """
+        return """
+        MATCH (abs:Abstraction)
+        WHERE abs.domain = $domain
+        RETURN abs
+        ORDER BY abs.level, abs.name
+        """
+
+    @staticmethod
+    def get_abstraction_hierarchy() -> str:
+        """
+        Get the abstraction hierarchy for a concept.
+
+        Parameters:
+        - concept_name: Concept name
+
+        Returns: Path through abstraction hierarchy
+        """
+        return """
+        MATCH (c:Concept {name: $concept_name})
+        OPTIONAL MATCH path = (c)<-[:GENERALIZES*]-(abs:Abstraction)
+        RETURN c, collect(nodes(path)) as hierarchy
+        """
+
+    @staticmethod
+    def create_abstraction() -> str:
+        """
+        Create a new abstraction node.
+
+        Parameters:
+        - uuid: Abstraction UUID (must start with 'abs-')
+        - name: Unique abstraction name
+        - description: Optional description
+        - level: Hierarchy level (0=concrete)
+        - domain: Knowledge domain
+
+        Returns: The created Abstraction node
+        """
+        return """
+        CREATE (abs:Abstraction {
+            uuid: $uuid,
+            name: $name,
+            description: $description,
+            level: $level,
+            domain: $domain,
+            created_at: datetime()
+        })
+        RETURN abs
+        """
+
+    @staticmethod
+    def link_abstraction_generalizes() -> str:
+        """
+        Create a GENERALIZES relationship from abstraction to concept.
+
+        Parameters:
+        - abstraction_uuid: Abstraction UUID
+        - concept_uuid: Concept UUID
+
+        Returns: The created relationship
+        """
+        return """
+        MATCH (abs:Abstraction {uuid: $abstraction_uuid})
+        MATCH (c:Concept {uuid: $concept_uuid})
+        MERGE (abs)-[r:GENERALIZES]->(c)
+        RETURN abs, r, c
+        """
+
+    # ========== CWM-A: Rule Queries ==========
+
+    @staticmethod
+    def find_rule_by_uuid() -> str:
+        """
+        Find a rule by its UUID.
+
+        Parameters:
+        - uuid: Rule UUID (string format, prefix 'rule-')
+
+        Returns: Rule node properties
+        """
+        return """
+        MATCH (r:Rule {uuid: $uuid})
+        RETURN r
+        """
+
+    @staticmethod
+    def find_rule_by_name() -> str:
+        """
+        Find a rule by name within a domain.
+
+        Parameters:
+        - name: Rule name
+        - domain: Optional domain filter
+
+        Returns: Rule node properties
+        """
+        return """
+        MATCH (r:Rule)
+        WHERE r.name = $name
+          AND ($domain IS NULL OR r.domain = $domain)
+        RETURN r
+        """
+
+    @staticmethod
+    def find_rules_by_type() -> str:
+        """
+        Find rules by type.
+
+        Parameters:
+        - rule_type: Rule type (constraint/preference/inference/default)
+        - domain: Optional domain filter
+
+        Returns: List of Rule nodes
+        """
+        return """
+        MATCH (r:Rule)
+        WHERE r.rule_type = $rule_type
+          AND ($domain IS NULL OR r.domain = $domain)
+        RETURN r
+        ORDER BY r.priority DESC
+        """
+
+    @staticmethod
+    def find_rules_for_concept() -> str:
+        """
+        Find rules that apply to a concept.
+
+        Parameters:
+        - concept_uuid: Concept UUID
+
+        Returns: List of Rule nodes with APPLIES_TO relationship
+        """
+        return """
+        MATCH (r:Rule)-[:APPLIES_TO]->(c:Concept {uuid: $concept_uuid})
+        RETURN r
+        ORDER BY r.priority DESC
+        """
+
+    @staticmethod
+    def get_constraint_rules() -> str:
+        """
+        Get all constraint rules for planning.
+
+        Parameters:
+        - domain: Optional domain filter
+
+        Returns: List of constraint Rule nodes
+        """
+        return """
+        MATCH (r:Rule)
+        WHERE r.rule_type = 'constraint'
+          AND ($domain IS NULL OR r.domain = $domain)
+        RETURN r
+        ORDER BY r.priority DESC
+        """
+
+    @staticmethod
+    def create_rule() -> str:
+        """
+        Create a new rule node.
+
+        Parameters:
+        - uuid: Rule UUID (must start with 'rule-')
+        - name: Rule name
+        - condition: Condition expression
+        - consequent: Consequent expression
+        - rule_type: Type (constraint/preference/inference/default)
+        - priority: Optional priority (higher = more important)
+        - confidence: Optional confidence score
+        - domain: Knowledge domain
+
+        Returns: The created Rule node
+        """
+        return """
+        CREATE (r:Rule {
+            uuid: $uuid,
+            name: $name,
+            condition: $condition,
+            consequent: $consequent,
+            rule_type: $rule_type,
+            priority: $priority,
+            confidence: $confidence,
+            domain: $domain,
+            created_at: datetime()
+        })
+        RETURN r
+        """
+
+    @staticmethod
+    def link_rule_applies_to() -> str:
+        """
+        Create an APPLIES_TO relationship from rule to concept.
+
+        Parameters:
+        - rule_uuid: Rule UUID
+        - concept_uuid: Concept UUID
+
+        Returns: The created relationship
+        """
+        return """
+        MATCH (r:Rule {uuid: $rule_uuid})
+        MATCH (c:Concept {uuid: $concept_uuid})
+        MERGE (r)-[rel:APPLIES_TO]->(c)
+        RETURN r, rel, c
+        """
+
+    @staticmethod
+    def link_rule_to_abstraction() -> str:
+        """
+        Create a PART_OF relationship from rule to abstraction.
+
+        Parameters:
+        - rule_uuid: Rule UUID
+        - abstraction_uuid: Abstraction UUID
+
+        Returns: The created relationship
+        """
+        return """
+        MATCH (r:Rule {uuid: $rule_uuid})
+        MATCH (abs:Abstraction {uuid: $abstraction_uuid})
+        MERGE (r)-[rel:PART_OF]->(abs)
+        RETURN r, rel, abs
+        """
