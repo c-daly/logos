@@ -727,3 +727,453 @@ logos:UsesCapabilityRelationshipShape
         rdfs:label "Uses Capability" ;
         rdfs:comment "Process step uses this capability" ;
     ] .
+
+# CWM-A: Abstract/Associative World Model Shapes (logos#288)
+# Validates symbolic knowledge nodes for commonsense reasoning
+
+logos:FactShape
+    a sh:NodeShape ;
+    sh:targetClass logos:Fact ;
+    rdfs:label "Fact Shape" ;
+    rdfs:comment "Validates declarative statements in CWM-A" ;
+    sh:property [
+        sh:path logos:uuid ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:pattern "^fact-.*" ;
+        rdfs:label "UUID" ;
+        rdfs:comment "Unique identifier for fact, must start with 'fact-'" ;
+    ] ;
+    sh:property [
+        sh:path logos:subject ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Subject" ;
+        rdfs:comment "Subject of the statement" ;
+    ] ;
+    sh:property [
+        sh:path logos:predicate ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Predicate" ;
+        rdfs:comment "Relationship or property" ;
+    ] ;
+    sh:property [
+        sh:path logos:object ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Object" ;
+        rdfs:comment "Object or value of the statement" ;
+    ] ;
+    sh:property [
+        sh:path logos:confidence ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ;
+        sh:maxInclusive 1.0 ;
+        rdfs:label "Confidence" ;
+        rdfs:comment "Confidence score (0.0 to 1.0)" ;
+    ] ;
+    sh:property [
+        sh:path logos:status ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ( "hypothesis" "proposed" "canonical" "deprecated" ) ;
+        rdfs:label "Status" ;
+        rdfs:comment "Lifecycle status of the fact" ;
+    ] ;
+    sh:property [
+        sh:path logos:source ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Source" ;
+        rdfs:comment "Where the fact came from" ;
+    ] ;
+    sh:property [
+        sh:path logos:source_type ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ( "knowledge_base" "observation" "inference" "human" ) ;
+        rdfs:label "Source Type" ;
+        rdfs:comment "Type of source for the fact" ;
+    ] ;
+    sh:property [
+        sh:path logos:valid_from ;
+        sh:maxCount 1 ;
+        rdfs:label "Valid From" ;
+        rdfs:comment "Temporal validity start" ;
+    ] ;
+    sh:property [
+        sh:path logos:valid_until ;
+        sh:maxCount 1 ;
+        rdfs:label "Valid Until" ;
+        rdfs:comment "Temporal validity end" ;
+    ] ;
+    sh:property [
+        sh:path logos:domain ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Domain" ;
+        rdfs:comment "Knowledge domain (e.g., 'manipulation', 'navigation')" ;
+    ] ;
+    sh:property [
+        sh:path logos:created_at ;
+        sh:maxCount 1 ;
+        rdfs:label "Created At" ;
+        rdfs:comment "When the fact was created" ;
+    ] ;
+    sh:property [
+        sh:path logos:updated_at ;
+        sh:maxCount 1 ;
+        rdfs:label "Updated At" ;
+        rdfs:comment "When the fact was last modified" ;
+    ] .
+
+logos:AssociationShape
+    a sh:NodeShape ;
+    sh:targetClass logos:Association ;
+    rdfs:label "Association Shape" ;
+    rdfs:comment "Validates weighted links between concepts in CWM-A" ;
+    sh:property [
+        sh:path logos:uuid ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:pattern "^assoc-.*" ;
+        rdfs:label "UUID" ;
+        rdfs:comment "Unique identifier for association, must start with 'assoc-'" ;
+    ] ;
+    sh:property [
+        sh:path logos:source_concept ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Source Concept" ;
+        rdfs:comment "Origin concept name or uuid" ;
+    ] ;
+    sh:property [
+        sh:path logos:target_concept ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Target Concept" ;
+        rdfs:comment "Target concept name or uuid" ;
+    ] ;
+    sh:property [
+        sh:path logos:strength ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ;
+        sh:maxInclusive 1.0 ;
+        rdfs:label "Strength" ;
+        rdfs:comment "Association strength (0.0 to 1.0)" ;
+    ] ;
+    sh:property [
+        sh:path logos:relationship_type ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Relationship Type" ;
+        rdfs:comment "Type of association (e.g., 'temporal', 'causal', 'semantic')" ;
+    ] ;
+    sh:property [
+        sh:path logos:bidirectional ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+        rdfs:label "Bidirectional" ;
+        rdfs:comment "Whether the association is symmetric" ;
+    ] ;
+    sh:property [
+        sh:path logos:context ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Context" ;
+        rdfs:comment "Context where association is valid" ;
+    ] ;
+    sh:property [
+        sh:path logos:source ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Source" ;
+        rdfs:comment "How the association was learned" ;
+    ] ;
+    sh:property [
+        sh:path logos:decay_rate ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ;
+        rdfs:label "Decay Rate" ;
+        rdfs:comment "Strength decay per day" ;
+    ] ;
+    sh:property [
+        sh:path logos:created_at ;
+        sh:maxCount 1 ;
+        rdfs:label "Created At" ;
+        rdfs:comment "When the association was created" ;
+    ] .
+
+logos:AbstractionShape
+    a sh:NodeShape ;
+    sh:targetClass logos:Abstraction ;
+    rdfs:label "Abstraction Shape" ;
+    rdfs:comment "Validates higher-order concepts in CWM-A" ;
+    sh:property [
+        sh:path logos:uuid ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:pattern "^abs-.*" ;
+        rdfs:label "UUID" ;
+        rdfs:comment "Unique identifier for abstraction, must start with 'abs-'" ;
+    ] ;
+    sh:property [
+        sh:path logos:name ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Name" ;
+        rdfs:comment "Unique name for abstraction" ;
+    ] ;
+    sh:property [
+        sh:path logos:description ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Description" ;
+        rdfs:comment "Human-readable description" ;
+    ] ;
+    sh:property [
+        sh:path logos:level ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 0 ;
+        rdfs:label "Level" ;
+        rdfs:comment "Hierarchy level (0=concrete, higher=more abstract)" ;
+    ] ;
+    sh:property [
+        sh:path logos:domain ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Domain" ;
+        rdfs:comment "Knowledge domain" ;
+    ] ;
+    sh:property [
+        sh:path logos:created_at ;
+        sh:maxCount 1 ;
+        rdfs:label "Created At" ;
+        rdfs:comment "When the abstraction was created" ;
+    ] .
+
+logos:RuleShape
+    a sh:NodeShape ;
+    sh:targetClass logos:Rule ;
+    rdfs:label "Rule Shape" ;
+    rdfs:comment "Validates conditional inference rules in CWM-A" ;
+    sh:property [
+        sh:path logos:uuid ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:pattern "^rule-.*" ;
+        rdfs:label "UUID" ;
+        rdfs:comment "Unique identifier for rule, must start with 'rule-'" ;
+    ] ;
+    sh:property [
+        sh:path logos:name ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Name" ;
+        rdfs:comment "Rule name" ;
+    ] ;
+    sh:property [
+        sh:path logos:condition ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Condition" ;
+        rdfs:comment "Condition expression (when rule applies)" ;
+    ] ;
+    sh:property [
+        sh:path logos:consequent ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Consequent" ;
+        rdfs:comment "Consequent expression (what happens)" ;
+    ] ;
+    sh:property [
+        sh:path logos:rule_type ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ( "constraint" "preference" "inference" "default" ) ;
+        rdfs:label "Rule Type" ;
+        rdfs:comment "Type: constraint (must), preference (should), inference (derives), default (unless overridden)" ;
+    ] ;
+    sh:property [
+        sh:path logos:priority ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 0 ;
+        rdfs:label "Priority" ;
+        rdfs:comment "Priority for conflict resolution (higher = more important)" ;
+    ] ;
+    sh:property [
+        sh:path logos:confidence ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ;
+        sh:maxInclusive 1.0 ;
+        rdfs:label "Confidence" ;
+        rdfs:comment "Rule reliability score" ;
+    ] ;
+    sh:property [
+        sh:path logos:domain ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Domain" ;
+        rdfs:comment "Applicable domain" ;
+    ] ;
+    sh:property [
+        sh:path logos:created_at ;
+        sh:maxCount 1 ;
+        rdfs:label "Created At" ;
+        rdfs:comment "When the rule was created" ;
+    ] .
+
+# CWM-A Relationship Shapes
+
+logos:FactAboutRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "ABOUT Relationship Shape" ;
+    rdfs:comment "Validates fact-to-concept/entity relationships" ;
+    sh:targetClass logos:Fact ;
+    sh:property [
+        sh:path logos:ABOUT ;
+        rdfs:label "About" ;
+        rdfs:comment "Fact concerns this concept or entity" ;
+    ] .
+
+logos:FactSupportsRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "SUPPORTS Relationship Shape (Fact)" ;
+    rdfs:comment "Validates fact-to-process support relationships" ;
+    sh:targetClass logos:Fact ;
+    sh:property [
+        sh:path logos:SUPPORTS ;
+        sh:class logos:Process ;
+        rdfs:label "Supports" ;
+        rdfs:comment "Fact supports this process/plan step" ;
+    ] .
+
+logos:FactContradictsRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "CONTRADICTS Relationship Shape" ;
+    rdfs:comment "Validates fact conflict relationships" ;
+    sh:targetClass logos:Fact ;
+    sh:property [
+        sh:path logos:CONTRADICTS ;
+        sh:class logos:Fact ;
+        rdfs:label "Contradicts" ;
+        rdfs:comment "Fact is in conflict with this fact" ;
+    ] .
+
+logos:FactSupersedesRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "SUPERSEDES Relationship Shape" ;
+    rdfs:comment "Validates fact replacement relationships" ;
+    sh:targetClass logos:Fact ;
+    sh:property [
+        sh:path logos:SUPERSEDES ;
+        sh:class logos:Fact ;
+        rdfs:label "Supersedes" ;
+        rdfs:comment "Newer fact replaces this older fact" ;
+    ] .
+
+logos:FactDerivedFromRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "DERIVED_FROM Relationship Shape" ;
+    rdfs:comment "Validates fact provenance relationships" ;
+    sh:targetClass logos:Fact ;
+    sh:property [
+        sh:path logos:DERIVED_FROM ;
+        rdfs:label "Derived From" ;
+        rdfs:comment "Fact was derived from this source (Fact or PerceptionFrame)" ;
+    ] .
+
+logos:AbstractionGeneralizesRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "GENERALIZES Relationship Shape" ;
+    rdfs:comment "Validates abstraction-to-concept generalization" ;
+    sh:targetClass logos:Abstraction ;
+    sh:property [
+        sh:path logos:GENERALIZES ;
+        sh:class logos:Concept ;
+        rdfs:label "Generalizes" ;
+        rdfs:comment "Abstraction generalizes these lower-level concepts" ;
+    ] .
+
+logos:AbstractionPartOfRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "PART_OF Relationship Shape (Abstraction)" ;
+    rdfs:comment "Validates abstraction hierarchy" ;
+    sh:targetClass logos:Abstraction ;
+    sh:property [
+        sh:path logos:PART_OF ;
+        sh:class logos:Abstraction ;
+        rdfs:label "Part Of" ;
+        rdfs:comment "Abstraction is part of a higher-level abstraction" ;
+    ] .
+
+logos:RuleAppliesToRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "APPLIES_TO Relationship Shape (Rule)" ;
+    rdfs:comment "Validates rule scope relationships" ;
+    sh:targetClass logos:Rule ;
+    sh:property [
+        sh:path logos:APPLIES_TO ;
+        rdfs:label "Applies To" ;
+        rdfs:comment "Rule applies to this concept or entity" ;
+    ] .
+
+logos:RuleTriggersRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "TRIGGERS Relationship Shape" ;
+    rdfs:comment "Validates chained rule relationships" ;
+    sh:targetClass logos:Rule ;
+    sh:property [
+        sh:path logos:TRIGGERS ;
+        sh:class logos:Rule ;
+        rdfs:label "Triggers" ;
+        rdfs:comment "This rule triggers another rule" ;
+    ] .
+
+logos:RuleConflictsWithRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "CONFLICTS_WITH Relationship Shape" ;
+    rdfs:comment "Validates mutually exclusive rule relationships" ;
+    sh:targetClass logos:Rule ;
+    sh:property [
+        sh:path logos:CONFLICTS_WITH ;
+        sh:class logos:Rule ;
+        rdfs:label "Conflicts With" ;
+        rdfs:comment "This rule is mutually exclusive with another rule" ;
+    ] .
+
+logos:RulePartOfRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "PART_OF Relationship Shape (Rule)" ;
+    rdfs:comment "Validates rule grouping under abstraction" ;
+    sh:targetClass logos:Rule ;
+    sh:property [
+        sh:path logos:PART_OF ;
+        sh:class logos:Abstraction ;
+        rdfs:label "Part Of" ;
+        rdfs:comment "Rule is grouped under this abstraction" ;
+    ] .

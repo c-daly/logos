@@ -53,6 +53,10 @@ For implementation details, always refer to the service repository. This meta-re
 
 ### HCG / Ontology
 - [CWM State Specification](hcg/CWM_STATE.md) - Unified world model contract
+- [CWM-A Schema](hcg/CWM_A.md) - Abstract/Associative world model (symbolic knowledge)
+- [CWM-G Schema](hcg/CWM_G.md) - Generative world model (JEPA predictions)
+- [CWM-E Schema](hcg/CWM_E.md) - Emotional world model (persona/diary)
+- [Ingestion Flows](hcg/INGESTION.md) - How data enters the CWM
 
 ### SDK
 - [SDK Documentation](sdk/README.md) - Python & TypeScript client libraries

@@ -339,3 +339,352 @@ class Capability(BaseModel):
         if hasattr(v, "to_native"):
             return v.to_native()
         return v
+
+
+# ============================================================================
+# CWM-A: Abstract/Associative World Model Nodes (logos#288)
+# ============================================================================
+
+
+class FactStatus:
+    """Fact lifecycle status constants."""
+
+    HYPOTHESIS = "hypothesis"
+    PROPOSED = "proposed"
+    CANONICAL = "canonical"
+    DEPRECATED = "deprecated"
+
+    ALL = [HYPOTHESIS, PROPOSED, CANONICAL, DEPRECATED]
+
+
+class SourceType:
+    """Fact source type constants."""
+
+    KNOWLEDGE_BASE = "knowledge_base"
+    OBSERVATION = "observation"
+    INFERENCE = "inference"
+    HUMAN = "human"
+
+    ALL = [KNOWLEDGE_BASE, OBSERVATION, INFERENCE, HUMAN]
+
+
+class RuleType:
+    """Rule type constants."""
+
+    CONSTRAINT = "constraint"
+    PREFERENCE = "preference"
+    INFERENCE = "inference"
+    DEFAULT = "default"
+
+    ALL = [CONSTRAINT, PREFERENCE, INFERENCE, DEFAULT]
+
+
+class Fact(BaseModel):
+    """
+    Represents a declarative statement in CWM-A.
+
+    Facts are subject-predicate-object triples with confidence scores
+    and lifecycle status. They represent symbolic knowledge for
+    commonsense reasoning.
+
+    Properties:
+    - uuid: Unique identifier (required, string with 'fact-' prefix)
+    - subject: Subject of the statement (required)
+    - predicate: Relationship or property (required)
+    - object: Object or value (required)
+    - confidence: Confidence score 0.0-1.0 (required)
+    - status: Lifecycle status (required)
+      - 'hypothesis': Unverified, low confidence
+      - 'proposed': Validated, pending integration
+      - 'canonical': Stable, used in planning
+      - 'deprecated': Superseded or invalidated
+
+    Provenance:
+    - source: Where the fact came from
+    - source_type: Type of source (knowledge_base, observation, inference, human)
+
+    Temporal:
+    - valid_from: When the fact becomes valid
+    - valid_until: When the fact expires
+
+    Example:
+        Fact(
+            uuid="fact-mailbox-accepts-letters",
+            subject="mailbox",
+            predicate="accepts",
+            object="stamped_letter",
+            confidence=0.95,
+            status="canonical"
+        )
+    """
+
+    uuid: str
+    subject: str
+    predicate: str
+    object: str
+    confidence: float = Field(..., ge=0.0, le=1.0)
+    status: str
+
+    # Provenance
+    source: str | None = None
+    source_type: str | None = None
+
+    # Temporal validity
+    valid_from: datetime | None = None
+    valid_until: datetime | None = None
+
+    # Domain and timestamps
+    domain: str | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+    # Vector embedding metadata (Section 4.2)
+    embedding_id: str | None = None
+    embedding_model: str | None = None
+    last_sync: datetime | None = None
+
+    # Store any additional properties from Neo4j
+    extra_properties: dict[str, Any] = Field(default_factory=dict)
+
+    model_config = ConfigDict(
+        extra="allow",
+        arbitrary_types_allowed=True,
+    )
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: str) -> str:
+        """Validate status is one of the allowed values."""
+        if v not in FactStatus.ALL:
+            raise ValueError(f"status must be one of {FactStatus.ALL}, got '{v}'")
+        return v
+
+    @field_validator("source_type")
+    @classmethod
+    def validate_source_type(cls, v: str | None) -> str | None:
+        """Validate source_type if provided."""
+        if v is not None and v not in SourceType.ALL:
+            raise ValueError(f"source_type must be one of {SourceType.ALL}, got '{v}'")
+        return v
+
+    @field_validator("created_at", "updated_at", "valid_from", "valid_until", mode="before")
+    @classmethod
+    def parse_neo4j_datetime(cls, v):
+        """Convert Neo4j DateTime to Python datetime."""
+        if v is None:
+            return None
+        if hasattr(v, "to_native"):
+            return v.to_native()
+        return v
+
+
+class Association(BaseModel):
+    """
+    Represents a weighted link between concepts in CWM-A.
+
+    Associations capture learned correlations and semantic relationships
+    between concepts, with strength indicating how strongly the concepts
+    are related.
+
+    Properties:
+    - uuid: Unique identifier (required, string with 'assoc-' prefix)
+    - source_concept: Origin concept name/uuid (required)
+    - target_concept: Target concept name/uuid (required)
+    - strength: Association strength 0.0-1.0 (required)
+
+    Metadata:
+    - relationship_type: Type of association (e.g., 'temporal', 'causal')
+    - bidirectional: Whether the relationship is symmetric
+    - context: Context where association is valid
+    - source: How the association was learned
+    - decay_rate: Strength decay per day
+
+    Example:
+        Association(
+            uuid="assoc-coffee-morning",
+            source_concept="coffee",
+            target_concept="morning",
+            relationship_type="temporal",
+            strength=0.85
+        )
+    """
+
+    uuid: str
+    source_concept: str
+    target_concept: str
+    strength: float = Field(..., ge=0.0, le=1.0)
+
+    # Metadata
+    relationship_type: str | None = None
+    bidirectional: bool = False
+    context: str | None = None
+    source: str | None = None
+    decay_rate: float | None = Field(None, ge=0.0)
+
+    # Timestamps
+    created_at: datetime | None = None
+
+    # Vector embedding metadata (Section 4.2)
+    embedding_id: str | None = None
+    embedding_model: str | None = None
+    last_sync: datetime | None = None
+
+    # Store any additional properties from Neo4j
+    extra_properties: dict[str, Any] = Field(default_factory=dict)
+
+    model_config = ConfigDict(
+        extra="allow",
+        arbitrary_types_allowed=True,
+    )
+
+    @field_validator("created_at", mode="before")
+    @classmethod
+    def parse_neo4j_datetime(cls, v):
+        """Convert Neo4j DateTime to Python datetime."""
+        if v is None:
+            return None
+        if hasattr(v, "to_native"):
+            return v.to_native()
+        return v
+
+
+class Abstraction(BaseModel):
+    """
+    Represents a higher-order concept in CWM-A.
+
+    Abstractions group related concepts and rules, forming a hierarchy
+    for organizing domain knowledge.
+
+    Properties:
+    - uuid: Unique identifier (required, string with 'abs-' prefix)
+    - name: Unique name (required)
+
+    Metadata:
+    - description: Human-readable description
+    - level: Hierarchy level (0=concrete, higher=more abstract)
+    - domain: Knowledge domain
+
+    Example:
+        Abstraction(
+            uuid="abs-grasp-preconditions",
+            name="GraspPreconditions",
+            description="Conditions required for successful grasping",
+            level=1,
+            domain="manipulation"
+        )
+    """
+
+    uuid: str
+    name: str
+
+    # Metadata
+    description: str | None = None
+    level: int | None = Field(None, ge=0)
+    domain: str | None = None
+
+    # Timestamps
+    created_at: datetime | None = None
+
+    # Vector embedding metadata (Section 4.2)
+    embedding_id: str | None = None
+    embedding_model: str | None = None
+    last_sync: datetime | None = None
+
+    # Store any additional properties from Neo4j
+    extra_properties: dict[str, Any] = Field(default_factory=dict)
+
+    model_config = ConfigDict(
+        extra="allow",
+        arbitrary_types_allowed=True,
+    )
+
+    @field_validator("created_at", mode="before")
+    @classmethod
+    def parse_neo4j_datetime(cls, v):
+        """Convert Neo4j DateTime to Python datetime."""
+        if v is None:
+            return None
+        if hasattr(v, "to_native"):
+            return v.to_native()
+        return v
+
+
+class Rule(BaseModel):
+    """
+    Represents a conditional inference rule in CWM-A.
+
+    Rules encode domain knowledge as condition-consequent pairs,
+    used for constraint checking, preference expression, and inference.
+
+    Properties:
+    - uuid: Unique identifier (required, string with 'rule-' prefix)
+    - name: Rule name (required)
+    - condition: When the rule applies (required)
+    - consequent: What happens when the rule fires (required)
+    - rule_type: Type of rule (required)
+      - 'constraint': Must be satisfied
+      - 'preference': Should be satisfied if possible
+      - 'inference': Derives new facts
+      - 'default': Applied unless overridden
+
+    Metadata:
+    - priority: For conflict resolution (higher = more important)
+    - confidence: Rule reliability score
+    - domain: Applicable knowledge domain
+
+    Example:
+        Rule(
+            uuid="rule-fragile-handling",
+            name="FragileObjectHandling",
+            condition="object.fragile == true",
+            consequent="action.force <= 2.0",
+            rule_type="constraint",
+            priority=10,
+            domain="manipulation"
+        )
+    """
+
+    uuid: str
+    name: str
+    condition: str
+    consequent: str
+    rule_type: str
+
+    # Metadata
+    priority: int | None = Field(None, ge=0)
+    confidence: float | None = Field(None, ge=0.0, le=1.0)
+    domain: str | None = None
+
+    # Timestamps
+    created_at: datetime | None = None
+
+    # Vector embedding metadata (Section 4.2)
+    embedding_id: str | None = None
+    embedding_model: str | None = None
+    last_sync: datetime | None = None
+
+    # Store any additional properties from Neo4j
+    extra_properties: dict[str, Any] = Field(default_factory=dict)
+
+    model_config = ConfigDict(
+        extra="allow",
+        arbitrary_types_allowed=True,
+    )
+
+    @field_validator("rule_type")
+    @classmethod
+    def validate_rule_type(cls, v: str) -> str:
+        """Validate rule_type is one of the allowed values."""
+        if v not in RuleType.ALL:
+            raise ValueError(f"rule_type must be one of {RuleType.ALL}, got '{v}'")
+        return v
+
+    @field_validator("created_at", mode="before")
+    @classmethod
+    def parse_neo4j_datetime(cls, v):
+        """Convert Neo4j DateTime to Python datetime."""
+        if v is None:
+            return None
+        if hasattr(v, "to_native"):
+            return v.to_native()
+        return v
