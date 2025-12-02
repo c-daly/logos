@@ -752,7 +752,6 @@ class Provenance(BaseModel):
     - tags: Arbitrary tags for filtering/categorization
     """
 
-
     source_service: str
     author_id: UUID | None = None
     created_at: datetime
@@ -788,7 +787,6 @@ class GoalTarget(BaseModel):
     - state_properties: Optional property values to match (query criteria)
     """
 
-
     entity_uuid: UUID
     concept_uuid: UUID | None = None
     state_properties: dict[str, Any] | None = None
@@ -809,7 +807,6 @@ class Goal(BaseModel):
     - priority: Relative priority for multi-goal planning (higher = more important)
     - provenance: Audit trail (who created, when, from where)
     """
-
 
     uuid: UUID
     description: str
@@ -853,7 +850,6 @@ class PlanStep(BaseModel):
     - provenance: Audit trail
     """
 
-
     uuid: UUID
     name: str | None = None
     index: int = Field(..., ge=0)
@@ -890,7 +886,6 @@ class Plan(BaseModel):
     - provenance: Audit trail
     """
 
-
     uuid: UUID
     goal_uuid: UUID
     steps: list[PlanStep]
@@ -913,4 +908,3 @@ class Plan(BaseModel):
         if v not in PlanStatus.ALL:
             raise ValueError(f"status must be one of {PlanStatus.ALL}, got '{v}'")
         return v
-

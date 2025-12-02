@@ -83,7 +83,7 @@ def seed_pick_and_place_data(client: HCGClient) -> dict:
                 created_at: datetime()
             })
             """,
-            {"uuid": uuids[key], "name": name, "desc": desc}
+            {"uuid": uuids[key], "name": name, "desc": desc},
         )
 
     # Create concepts
@@ -101,21 +101,21 @@ def seed_pick_and_place_data(client: HCGClient) -> dict:
                 description: $desc
             })
             """,
-            {"uuid": uuids[key], "name": name, "desc": desc}
+            {"uuid": uuids[key], "name": name, "desc": desc},
         )
 
     # Link entities to concepts
     client._execute_query(
         "MATCH (e:Entity {uuid: $e}), (c:Concept {uuid: $c}) CREATE (e)-[:IS_A]->(c)",
-        {"e": uuids["red_block"], "c": uuids["graspable"]}
+        {"e": uuids["red_block"], "c": uuids["graspable"]},
     )
     client._execute_query(
         "MATCH (e:Entity {uuid: $e}), (c:Concept {uuid: $c}) CREATE (e)-[:IS_A]->(c)",
-        {"e": uuids["bin"], "c": uuids["container"]}
+        {"e": uuids["bin"], "c": uuids["container"]},
     )
     client._execute_query(
         "MATCH (e:Entity {uuid: $e}), (c:Concept {uuid: $c}) CREATE (e)-[:IS_A]->(c)",
-        {"e": uuids["table"], "c": uuids["surface"]}
+        {"e": uuids["table"], "c": uuids["surface"]},
     )
 
     # Create states
@@ -144,13 +144,13 @@ def seed_pick_and_place_data(client: HCGClient) -> dict:
                 "location": props.get("location", ""),
                 "grasped": props.get("grasped", False),
                 "position": props.get("position", ""),
-            }
+            },
         )
 
     # Link block to its states
     client._execute_query(
         "MATCH (e:Entity {uuid: $e}), (s:State {uuid: $s}) CREATE (e)-[:HAS_STATE]->(s)",
-        {"e": uuids["red_block"], "s": uuids["block_on_table"]}
+        {"e": uuids["red_block"], "s": uuids["block_on_table"]},
     )
 
     # Create processes
@@ -171,7 +171,7 @@ def seed_pick_and_place_data(client: HCGClient) -> dict:
                 duration_ms: $duration
             })
             """,
-            {"uuid": uuids[key], "name": name, "desc": desc, "duration": duration}
+            {"uuid": uuids[key], "name": name, "desc": desc, "duration": duration},
         )
 
     # Create REQUIRES relationships (preconditions)
@@ -191,7 +191,7 @@ def seed_pick_and_place_data(client: HCGClient) -> dict:
             MATCH (p:Process {uuid: $p}), (s:State {uuid: $s})
             CREATE (p)-[:REQUIRES]->(s)
             """,
-            {"p": uuids[proc_key], "s": uuids[state_key]}
+            {"p": uuids[proc_key], "s": uuids[state_key]},
         )
 
     # Create CAUSES relationships (effects)
@@ -211,7 +211,7 @@ def seed_pick_and_place_data(client: HCGClient) -> dict:
             MATCH (p:Process {uuid: $p}), (s:State {uuid: $s})
             CREATE (p)-[:CAUSES]->(s)
             """,
-            {"p": uuids[proc_key], "s": uuids[state_key]}
+            {"p": uuids[proc_key], "s": uuids[state_key]},
         )
 
     print(f"  Created {len(entities)} entities")
@@ -325,6 +325,7 @@ def run_demo():
     except Exception as e:
         print(f"ERROR: Planning failed: {e}")
         import traceback
+
         traceback.print_exc()
 
     finally:

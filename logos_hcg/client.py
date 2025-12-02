@@ -780,9 +780,7 @@ class HCGClient:
         node_props = self._parse_node_to_dict(records[0]["c"])
         return Capability(**node_props)
 
-    def find_capability_for_process(
-        self, process_uuid: str | UUID
-    ) -> "Capability | None":
+    def find_capability_for_process(self, process_uuid: str | UUID) -> "Capability | None":
         """
         Find the capability that can execute a process.
 
