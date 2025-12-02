@@ -851,7 +851,7 @@ class HCGClient:
         if not records:
             return False
 
-        return records[0]["satisfied"]
+        return bool(records[0]["satisfied"])
 
     # ========== Utility Operations ==========
 

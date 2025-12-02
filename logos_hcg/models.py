@@ -889,7 +889,7 @@ class Plan(BaseModel):
     uuid: UUID
     goal_uuid: UUID
     steps: list[PlanStep]
-    current_state_uuid: UUID
+    current_state_uuid: UUID | None = None
     expected_final_state_uuid: UUID | None = None
     status: str = PlanStatus.PENDING
     confidence: float = Field(1.0, ge=0.0, le=1.0)

@@ -119,7 +119,7 @@ def seed_pick_and_place_data(client: HCGClient) -> dict:
     )
 
     # Create states
-    states = [
+    states: list[tuple[str, str, dict[str, object]]] = [
         ("block_on_table", "Block on table", {"location": "table", "grasped": False}),
         ("gripper_at_block", "Gripper at block", {"position": "block"}),
         ("block_grasped", "Block grasped", {"grasped": True}),
