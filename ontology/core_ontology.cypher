@@ -65,9 +65,7 @@ FOR (es:EmotionState)
 ON (es.timestamp);
 
 //// Phase 2: Indexes for Capability catalog (logos#284)
-CREATE INDEX logos_capability_name IF NOT EXISTS
-FOR (cap:Capability)
-ON (cap.name);
+// Note: logos_capability_name constraint already provides index on cap.name
 
 CREATE INDEX logos_capability_executor_type IF NOT EXISTS
 FOR (cap:Capability)
