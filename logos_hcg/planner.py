@@ -92,7 +92,7 @@ class HCGPlanner:
     def plan(
         self,
         goal: Goal,
-        current_state_uuid: UUID,
+        satisfied_states: set[UUID],
         author_id: UUID | None = None,
         trace_id: UUID | None = None,
     ) -> Plan:
@@ -107,7 +107,7 @@ class HCGPlanner:
 
         Args:
             goal: Goal specification with target state
-            current_state_uuid: Starting state UUID
+            satisfied_states: Set of state UUIDs that are currently true
             author_id: Optional author UUID for provenance
             trace_id: Optional trace ID for distributed tracing
 
@@ -136,7 +136,7 @@ class HCGPlanner:
                 self._backward_chain(
                     process=process,
                     target_state=target_state,
-                    current_state_uuid=current_state_uuid,
+                    satisfied_states=satisfied_states,
                     steps=steps,
                     visited=visited,
                     depth=0,
@@ -168,6 +168,9 @@ class HCGPlanner:
             if effects:
                 final_state_uuid = effects[0]
 
+        # Use first satisfied state as current_state_uuid for Plan
+        current_state_uuid = next(iter(satisfied_states)) if satisfied_states else None
+        
         return Plan(
             uuid=uuid4(),
             goal_uuid=goal.uuid,
@@ -210,7 +213,7 @@ class HCGPlanner:
         self,
         process: Process,
         target_state: State,
-        current_state_uuid: UUID,
+        satisfied_states: set[UUID],
         steps: list[PlanStep],
         visited: set[UUID],
         depth: int,
@@ -222,7 +225,7 @@ class HCGPlanner:
         Args:
             process: Process to include in plan
             target_state: State this process achieves
-            current_state_uuid: Current starting state
+            satisfied_states: Set of state UUIDs that are currently satisfied
             steps: List to accumulate steps (modified in place)
             visited: Set of visited process UUIDs (cycle detection)
             depth: Current recursion depth
@@ -247,9 +250,8 @@ class HCGPlanner:
         for precond in preconditions:
             precond_uuid = UUID(precond.uuid) if isinstance(precond.uuid, str) else precond.uuid
             
-            # Check if precondition is already satisfied by current state
-            # (simplified check - in practice would compare state properties)
-            if precond_uuid == current_state_uuid:
+            # Check if precondition is already satisfied
+            if precond_uuid in satisfied_states:
                 continue
 
             # Find processes that cause this precondition state
@@ -257,7 +259,7 @@ class HCGPlanner:
 
             if not achieving_procs:
                 raise GoalUnachievableError(
-                    f"No process found to achieve precondition: {precond.uuid}"
+                    f"No process found to achieve precondition: {precond.uuid} ({precond.name})"
                 )
 
             # Recursively plan for this precondition
@@ -266,7 +268,7 @@ class HCGPlanner:
             self._backward_chain(
                 process=achieving_proc,
                 target_state=precond,
-                current_state_uuid=current_state_uuid,
+                satisfied_states=satisfied_states,
                 steps=steps,
                 visited=visited,
                 depth=depth + 1,
@@ -296,6 +298,7 @@ class HCGPlanner:
 
         step = PlanStep(
             uuid=uuid4(),
+            name=process.name,  # Human-readable label from Process
             index=0,  # Will be set later
             process_uuid=process_uuid,
             precondition_uuids=precond_uuids,

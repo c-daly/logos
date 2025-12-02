@@ -48,7 +48,7 @@ class Entity(BaseModel):
     Represents a concrete instance in the HCG.
 
     Properties:
-    - uuid: Unique identifier (required, string with 'entity-' prefix)
+    - uuid: Unique identifier (required, RFC 4122 UUID)
     - name: Human-readable name
     - description: Optional description
     - created_at: Timestamp of creation
@@ -56,7 +56,7 @@ class Entity(BaseModel):
     - Embedding metadata (Section 4.2): embedding_id, embedding_model, last_sync
     """
 
-    uuid: str
+    uuid: UUID
     name: str | None = None
     description: str | None = None
     created_at: datetime | None = None
@@ -107,13 +107,13 @@ class Concept(BaseModel):
     Represents an abstract category/type in the HCG.
 
     Properties:
-    - uuid: Unique identifier (required, string with 'concept-' prefix)
+    - uuid: Unique identifier (required, RFC 4122 UUID)
     - name: Concept name (required, unique)
     - description: Optional description
     - Embedding metadata (Section 4.2): embedding_id, embedding_model, last_sync
     """
 
-    uuid: str
+    uuid: UUID
     name: str
     description: str | None = None
 
@@ -136,18 +136,21 @@ class State(BaseModel):
     Represents a temporal snapshot of entity properties.
 
     Properties:
-    - uuid: Unique identifier (required, string with 'state-' prefix)
-    - timestamp: Time of state snapshot (required)
+    - uuid: Unique identifier (required, RFC 4122 UUID)
+    - timestamp: Time of state snapshot (optional, for instantiated states)
     - name: Optional state name
     - Position: position_x, position_y, position_z
     - Orientation: orientation_roll, orientation_pitch, orientation_yaw
     - Boolean flags: is_grasped, is_closed, is_empty
     - Physical: grasp_width, applied_force
     - Embedding metadata (Section 4.2): embedding_id, embedding_model, last_sync
+    
+    Note: timestamp is optional to support abstract/template states
+    that define what CAN be true, vs instantiated states that ARE true.
     """
 
-    uuid: str
-    timestamp: datetime
+    uuid: UUID
+    timestamp: datetime | None = None
     name: str | None = None
 
     # Position properties
@@ -199,16 +202,19 @@ class Process(BaseModel):
     Represents an action that causes state changes.
 
     Properties:
-    - uuid: Unique identifier (required, string with 'process-' prefix)
-    - start_time: Process start timestamp (required)
+    - uuid: Unique identifier (required, RFC 4122 UUID)
+    - start_time: Process start timestamp (optional, for instantiated processes)
     - name: Optional process name
     - description: Optional description
     - duration_ms: Duration in milliseconds
     - Embedding metadata (Section 4.2): embedding_id, embedding_model, last_sync
+    
+    Note: start_time is optional to support abstract/template processes
+    that define what CAN happen, vs instantiated processes that DID happen.
     """
 
-    uuid: str
-    start_time: datetime
+    uuid: UUID
+    start_time: datetime | None = None
     name: str | None = None
     description: str | None = None
     duration_ms: int | None = Field(None, ge=0)
@@ -286,7 +292,7 @@ class Capability(BaseModel):
     - created_at, updated_at: Timestamps
     """
 
-    uuid: str
+    uuid: UUID
     name: str
     executor_type: str
     description: str | None = None
@@ -419,7 +425,7 @@ class Fact(BaseModel):
         )
     """
 
-    uuid: str
+    uuid: UUID
     subject: str
     predicate: str
     object: str
@@ -510,7 +516,7 @@ class Association(BaseModel):
         )
     """
 
-    uuid: str
+    uuid: UUID
     source_concept: str
     target_concept: str
     strength: float = Field(..., ge=0.0, le=1.0)
@@ -575,7 +581,7 @@ class Abstraction(BaseModel):
         )
     """
 
-    uuid: str
+    uuid: UUID
     name: str
 
     # Metadata
@@ -645,7 +651,7 @@ class Rule(BaseModel):
         )
     """
 
-    uuid: str
+    uuid: UUID
     name: str
     condition: str
     consequent: str
@@ -836,6 +842,7 @@ class PlanStep(BaseModel):
 
     Properties:
     - uuid: Unique identifier for this step
+    - name: Human-readable label (copied from Process.name)
     - index: Order in the plan (0-based)
     - process_uuid: HCG Process node this step executes
     - precondition_uuids: State UUIDs that must be true before execution
@@ -848,6 +855,7 @@ class PlanStep(BaseModel):
 
 
     uuid: UUID
+    name: str | None = None
     index: int = Field(..., ge=0)
     process_uuid: UUID
     precondition_uuids: list[UUID] = Field(default_factory=list)

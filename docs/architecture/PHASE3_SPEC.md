@@ -3,28 +3,184 @@
 Phase 3 builds on the Phase 2 foundation to deliver adaptive, learning-capable agent behavior through memory systems, event-driven reflection, and episodic learning. This phase transforms LOGOS from a reactive system into one that learns from experience and develops a persistent personality.
 
 ## Goals
-1. **Short-term Memory** — Implement session-scoped ephemeral memory for conversational context and transient reasoning
+1. **Hierarchical Memory** — Implement a three-tier memory system (ephemeral → short-term → long-term) with promotion policies
 2. **Event-driven Reflection** — Create intelligent, selective diary entries based on significant events rather than every interaction
 3. **Selective Diary Entries** — Replace per-turn observation logging with meaningful, curated persona history
 4. **Episodic Memory** — Enable the agent to learn from execution history and improve plan quality over time
 5. **Probabilistic Validation** — Layer Level 2 validation to complement SHACL constraints with uncertainty reasoning
 
+---
+
+## Hierarchical Memory Architecture
+
+Sophia maintains knowledge across three memory tiers with distinct lifetimes, storage backends, and promotion criteria. Information flows upward from ephemeral observations to potentially permanent knowledge, but only when it demonstrates significance and truth.
+
+### Memory Tiers
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           LONG-TERM MEMORY                                  │
+│                          (HCG - Neo4j/Milvus)                               │
+│  • Canonical facts, validated processes, stable relationships              │
+│  • Lifetime: indefinite (decades+)                                         │
+│  • Examples: ontology, proven capabilities, persistent user preferences    │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ▲
+                                    │ Promotion (significance + truth)
+                                    │
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          SHORT-TERM MEMORY                                  │
+│                             (Redis + TTL)                                   │
+│  • Working context that spans multiple sessions                            │
+│  • Lifetime: configurable (hours to weeks, default: 7 days)                │
+│  • Examples: recent reflections, pending hypotheses, accumulated patterns  │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ▲
+                                    │ Promotion (session significance)
+                                    │
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         EPHEMERAL MEMORY                                    │
+│                      (In-memory / Session-scoped)                           │
+│  • Single conversation/session working memory                              │
+│  • Lifetime: session duration (minutes to hours)                           │
+│  • Examples: current topic, pending clarifications, in-flight reasoning    │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Tier Comparison
+
+| Aspect | Ephemeral | Short-term | Long-term |
+|--------|-----------|------------|-----------|
+| **Scope** | Single session | Multi-session | Permanent |
+| **Lifetime** | Session end | Configurable TTL (default 7d) | Indefinite |
+| **Storage** | In-memory | Redis with TTL | Neo4j + Milvus |
+| **CWMState status** | `ephemeral` | `short_term` | `canonical` / `proposed` |
+| **Validation** | None | Light (consistency) | Full (SHACL + probabilistic) |
+| **Queryable by** | Current session only | Cross-session lookups | All subsystems |
+| **Garbage collection** | Session cleanup | TTL expiration | Decay policies |
+
+### Promotion Criteria
+
+Information only moves up the hierarchy when it demonstrates both **significance** and **truth**. Trivia, transient details, and unverified claims remain at lower tiers.
+
+#### Ephemeral → Short-term Promotion
+
+Triggers at session boundary or significant event:
+
+| Criterion | Description | Example |
+|-----------|-------------|---------|
+| **User signal** | User explicitly marked something important | "Remember this for next time" |
+| **Behavioral impact** | Changed how agent should act | User correction that affected plan |
+| **Recurrence** | Same pattern observed multiple times in session | Three similar questions suggest confusion |
+| **Novel fact** | New information not in HCG | User's timezone, project name |
+| **Unresolved question** | Open curiosity that warrants follow-up | "Why did the user reject the verbose plan?" |
+
+**Automatic exclusions**:
+- Individual chat messages (transient)
+- Pending clarifications (resolved or abandoned)
+- Intermediate reasoning steps (only conclusions matter)
+- Temporary UI state (scroll position, collapsed sections)
+
+#### Short-term → Long-term Promotion
+
+Triggers on reflection, validation pass, or explicit approval:
+
+| Criterion | Description | Example |
+|-----------|-------------|---------|
+| **Confidence threshold** | Belief confidence > 0.8 after multiple observations | "User prefers concise responses" confirmed 5x |
+| **Cross-session consistency** | Same pattern observed across multiple sessions | Preference stable over weeks |
+| **Causal verification** | Hypothesis validated by outcome | "Shorter plans succeed more" proven by execution |
+| **Source reliability** | Trusted source (user statement, verified system) | User explicitly stated preference |
+| **Human approval** | Critical facts reviewed by operator | Safety-critical knowledge |
+
+**Automatic exclusions** (remain in short-term until TTL):
+- Unverified hypotheses (confidence < 0.5)
+- Session-specific context (project deadline that passed)
+- Contradicted beliefs (conflicting evidence emerged)
+- Trivia (true but not useful for future reasoning)
+
+### Demotion & Decay
+
+Information can also flow downward:
+
+- **Long-term → Short-term**: Deprecated facts, superseded knowledge, detected inconsistencies
+- **Short-term → Ephemeral**: Failed validation, user contradiction, low-confidence after timeout
+- **Any tier → Garbage**: TTL expiration, explicit deletion, confidence < 0.1
+
+### Example: Annotation-driven Fact Ingestion
+
+This example illustrates the full lifecycle of a fact entering through Hermes annotation and either earning long-term status or decaying:
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 1. INGESTION                                                                 │
+│    Hermes receives image for annotation. Sends to Sophia for semantic parse.│
+│    Sophia detects: "There is a red mug on the desk" — novel fact.            │
+│                                                                              │
+│    → Created in SHORT-TERM memory:                                           │
+│      { type: "State", label: "red_mug_on_desk",                              │
+│        confidence: 0.6, source: "hermes_annotation",                         │
+│        status: "short_term", ttl: "7d" }                                     │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ 2. VALIDATION WINDOW (7 days)                                                │
+│    The fact sits in short-term memory. Confidence can change:                │
+│                                                                              │
+│    ✓ Supported: Another observation confirms red mug → confidence += 0.15   │
+│    ✓ Connected: User mentions "my red mug" → link to user preferences       │
+│    ✓ Validated: Plan uses mug location successfully → causal verification   │
+│    ✗ Contradicted: Later image shows no mug → confidence -= 0.3             │
+│    ✗ Ignored: No reference to mug in any context → confidence decays slowly │
+└──────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                    ┌───────────────┴───────────────┐
+                    ▼                               ▼
+┌──────────────────────────────┐    ┌──────────────────────────────┐
+│ 3a. PROMOTION (confidence    │    │ 3b. DECAY (confidence < 0.5  │
+│     > 0.8 OR explicit        │    │     at TTL expiration)       │
+│     validation)              │    │                              │
+│                              │    │ → Fact expires, logged as    │
+│ → Promoted to LONG-TERM:     │    │   "unverified/unsupported"   │
+│   { status: "canonical",     │    │                              │
+│     promoted_at: "...",      │    │ No pollution of long-term    │
+│     promoted_reason:         │    │ knowledge with unconfirmed   │
+│       "causal_verification"} │    │ observations.                │
+└──────────────────────────────┘    └──────────────────────────────┘
+```
+
+**Key principle**: Facts don't earn permanence just by existing — they must demonstrate relevance through use, corroboration, or explicit validation. This prevents the HCG from accumulating noise.
+
+### Implementation Notes
+
+- All tiers use the `CWMState` envelope with `status` field indicating tier
+- Promotion events are logged for auditability (who/what/when/why)
+- Policies are configurable per deployment (stricter for safety-critical systems)
+- Reflection system is the primary driver of upward promotion
+- Curiosity budget (see below) can trigger investigation of short-term hypotheses
+
+---
+
 ## Milestones
 
-### P3-M1: Short-term Memory Infrastructure
+### P3-M1: Hierarchical Memory Infrastructure
 
-**Objective**: Implement session-scoped ephemeral memory that serves as working context for all agent subsystems.
+**Objective**: Implement the three-tier memory system (ephemeral → short-term → long-term) with promotion pipelines between tiers.
 
 **Deliverables**:
-- **Storage backend**: Redis or in-memory store with TTL support for ephemeral `CWMState` entries
+- **Ephemeral storage**: In-memory store for session-scoped `CWMState` entries
+- **Short-term storage**: Redis with TTL support for multi-session persistence
 - **API endpoints**: 
-  - `POST /api/memory/ephemeral` - Create ephemeral entry
-  - `GET /api/memory/ephemeral` - Query recent entries (by type, time window, session)
-  - `DELETE /api/memory/ephemeral/{id}` - Explicit deletion
-  - `POST /api/memory/promote/{id}` - Promote ephemeral entry to persistent HCG
-- **Session management**: Track session lifecycle, automatic expiration, cleanup
-- **CWMState envelope**: All ephemeral entries use `status="ephemeral"` in unified contract
-- **Promotion policies**: Configurable rules for what gets persisted (logged for auditability)
+  - `POST /api/memory/{tier}` - Create entry at specified tier (ephemeral, short_term)
+  - `GET /api/memory/{tier}` - Query entries (by type, time window, session, confidence)
+  - `DELETE /api/memory/{tier}/{id}` - Explicit deletion
+  - `POST /api/memory/promote/{id}` - Promote entry to next tier (ephemeral→short, short→long)
+  - `POST /api/memory/demote/{id}` - Demote entry (with reason)
+- **Session management**: Track session lifecycle, automatic ephemeral cleanup
+- **CWMState envelope**: Entries use `status` field: `ephemeral`, `short_term`, `proposed`, `canonical`
+- **Promotion policies**: Configurable rules per tier transition (logged for auditability)
+- **Demotion handling**: Track why knowledge was demoted (contradiction, decay, superseded)
 
 **Use cases**:
 - Conversational context (current topic, pending clarifications, in-progress reasoning)
@@ -244,6 +400,80 @@ Phase 3 provides the foundation. Advanced features for later phases:
 - **Deep planner integration**: Reflection-driven strategy adjustment, dynamic capability weighting
 - **Multi-agent memory sharing**: Selective knowledge transfer between LOGOS instances
 - **Memory compression**: Summarize/consolidate old episodes to manage growth
+- **Curiosity-driven exploration**: Autonomous investigation with resource budgets (see below)
+
+### Curiosity Budget & Autonomous Exploration
+
+Sophia maintains a **curiosity budget**—a constrained resource allocation for self-directed exploration. When Sophia is not responding to user requests, she can use this budget to investigate gaps in her knowledge.
+
+#### Curiosity Triggers
+
+Curiosity flags are raised when Sophia encounters:
+
+| Trigger | Description | Example |
+|---------|-------------|---------|
+| **Novel fact** | Information that doesn't fit existing patterns or categories | Encountering an entity type with no ontology match |
+| **Apparent contradiction** | Two beliefs or observations that seem incompatible | State A says object is at Location X, but Process B implies it moved to Y |
+| **Perplexing diary entry** | Reflection that generates confusion, surprise, or high uncertainty | "I don't understand why the user rejected my plan" |
+| **Interesting pattern** | Recurring structure that suggests an underlying connection | Multiple unconnected nodes share similar properties |
+| **Disconnected subgraphs** | Nodes that seem related but lack explicit causal links | Draft → ??? → Published (missing intermediate processes) |
+
+#### Budget Mechanics
+
+The curiosity budget is a scalar value (0.0–1.0) that constrains exploration:
+
+```python
+class CuriosityBudget:
+    value: float           # Current budget (0.0–1.0)
+    min_threshold: float   # Below this, no autonomous exploration
+    recharge_rate: float   # Budget recovery per time unit
+    max_spend_per_action: float  # Cap on single exploration cost
+```
+
+**Budget increases when:**
+- User confirms a hypothesis was useful
+- Exploration discovers a valuable connection (judged by graph coherence improvement)
+- Time passes without exploration (passive recharge)
+- User explicitly grants exploration permission
+
+**Budget decreases when:**
+- Exploration yields no useful results
+- User ignores or rejects findings
+- External API calls are made (Hermes lookups have cost)
+- Exploration time exceeds threshold
+
+#### Exploration Actions
+
+When budget > threshold, Sophia can:
+
+1. **Graph gap analysis**: Identify nodes that *should* be connected but aren't
+2. **Hermes lookup**: Use embedding search or web queries to find missing information
+3. **Hypothesis generation**: Propose new nodes/edges that would resolve contradictions
+4. **Simulation testing**: Use CWM-G to imagine whether proposed changes are plausible
+
+#### Resource Limits
+
+To prevent runaway consumption:
+
+| Resource | Limit | Rationale |
+|----------|-------|-----------|
+| API calls per hour | Configurable (default: 10) | Prevent excessive external queries |
+| Exploration time per session | Configurable (default: 5 min) | Bound compute usage |
+| Concurrent explorations | 1 | Focus attention |
+| Max graph modifications | Proposals only (no auto-commit) | Human-in-the-loop for changes |
+
+#### Integration with Reflection (P3-M2)
+
+Curiosity triggers often emerge from reflection:
+
+```
+Reflection → "This outcome was unexpected"
+           → Curiosity flag: "Why did the user reject the plan?"
+           → If budget allows: Search for similar rejected plans in diary
+           → Propose hypothesis: "Plans with >5 steps are often rejected"
+```
+
+This forms a feedback loop: **Experience → Reflection → Curiosity → Exploration → New Knowledge → Better Plans**
 
 ---
 
