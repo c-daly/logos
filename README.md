@@ -7,7 +7,7 @@
 
 This repository is the canonical "foundry" for Project LOGOS. It contains the formal specification, API contracts, the Hybrid Causal Graph (HCG) founding documents, and the development infrastructure for the shared HCG cluster.
 
-**Phase 1 Complete ✅** | **Phase 2: In Progress 🟨** | [Read the docs](docs/) | [Contributing](CONTRIBUTING.md) | [📊 Project Assessment](ASSESSMENT_SUMMARY.md)
+**Phase 1 Complete ✅** | **Phase 2: 95% Complete 🟩** | [Read the docs](docs/) | [Contributing](CONTRIBUTING.md) | [📊 Project Assessment](ASSESSMENT_SUMMARY.md)
 
 Purpose
 - Host the canonical spec and design artifacts that bind all LOGOS components together (see Section 3.1: Overview and Core Principles).
@@ -193,39 +193,51 @@ Phase 1 formalized the HCG ontology, SHACL validation, development infrastructur
 - **E2E Prototype Script**: Run `./scripts/e2e_prototype.sh` to test the complete flow (Apollo → Sophia → Talos → HCG)
 - **Planner Stub Service**: Run `./scripts/start_planner.sh` to start the planner API stub for M3/M4 testing (see `planner_stub/README.md`)
 
-**Phase 1 Closers:**
-Final documentation/UX polish items live under the [`phase 1 closers`](https://github.com/c-daly/logos/labels/phase%201%20closers) label (issues #200, #201, #202, #203, #204, #205, #206, #208). These cover the opt-in Neo4j SHACL job, planner/executor shims, Apollo CLI entrypoint, Milvus smoke test, stronger M4 assertions, and CI/test cleanup.
-
-Phase 2 work began after all milestone gates passed (automated tests green + manual verifications complete).
-
-## 📊 Project Status & Candid Assessment
-
-**Quick Summary:**
-- **Phase 1:** ✅ Complete
-- **Phase 2:** 🟨 In progress — core services and dual surfaces land, perception pipeline and observability instrumentation still maturing
-
-**Key gaps to close next:** Media ingest pipeline (upload → JEPA → Milvus), automatic CWM-E reflection, and end-to-end trace propagation across services.
-
-## Phase 2 Verification
-
-Phase 2 covers Sophia/Hermes services, Apollo dual surfaces (CLI + browser), perception pipeline integration, and diagnostics/persona features.
-
-- **Specification**: `docs/architecture/PHASE2_SPEC.md`
-- **Verification (historical)**: `docs/operations/PHASE2_VERIFY.md` — currently being refreshed; treat percentages/links there as archival until updated.
-
-
-M4 Pick-and-Place Demo
+**M4 Pick-and-Place Demo:**
 - **Demo Overview**: See `docs/M4_DEMO_ASSETS.md` for comprehensive demo documentation
 - **Complete Walkthrough**: Follow `docs/PICK_AND_PLACE_WALKTHROUGH.md` for step-by-step instructions
 - **Quick Demo**: Run `./scripts/run_m4_demo.sh` to execute the full demo with metrics capture
-- **Demo Scenario**: Robotic manipulator picks a red block from a table and places it in a target bin
-- **What's Demonstrated**: 
-  - Apollo command simulation (goal state creation)
-  - Sophia plan generation (4-step causal plan)
-  - Talos execution simulation (state transitions)
-  - HCG state management (entities, states, processes, causal relationships)
-- **Verification**: All M4 success criteria validated per Section 7.1 of the specification
-- **Documentation**: Complete verification report available at `logs/m4-verification/M4_VERIFICATION_REPORT.md`
+
+## Phase 2 Verification and Gate
+
+**Phase 2 Status: ~95% Complete** 🟩
+
+Phase 2 extends LOGOS with Sophia/Hermes services, Apollo dual surfaces (CLI + browser), perception pipeline integration, and diagnostics/persona features.
+
+- **Specification**: `docs/architecture/PHASE2_SPEC.md`
+- **Verification Checklist**: `docs/operations/PHASE2_VERIFY.md`
+- **Milestone Gates**: Each milestone is verified through automated tests:
+  - **P2-M1** (Services Online): [![P2-M1 Gate](https://github.com/c-daly/logos/actions/workflows/phase2-e2e.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/phase2-e2e.yml) ✅ Complete
+  - **P2-M2** (Apollo Dual Surface): [![P2-M2 Gate](https://github.com/c-daly/logos/actions/workflows/ci.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/ci.yml) ⚠️ Media upload UI pending
+  - **P2-M3** (Perception & Imagination): [![P2-M3 Gate](https://github.com/c-daly/logos/actions/workflows/phase2-perception.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/phase2-perception.yml) ✅ Media ingest complete
+  - **P2-M4** (Observability): [![P2-M4 Gate](https://github.com/c-daly/logos/actions/workflows/phase2-otel.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/phase2-otel.yml) ✅ OTel stack operational (Persona/CWM-E deferred to P3)
+
+**Completed Features:**
+- ✅ Sophia API with /plan, /state, /simulate, /ingest endpoints
+- ✅ Hermes API with STT, TTS, NLP, embeddings, LLM gateway
+- ✅ Apollo browser app with WebSocket real-time updates
+- ✅ Apollo CLI with full SDK integration
+- ✅ Media ingestion pipeline (upload → processing → HCG storage)
+- ✅ MediaSample ontology with SHACL shapes
+- ✅ CWM-A normalized state emission (CWMState envelopes)
+- ✅ OpenTelemetry observability stack
+- ✅ Persona diary integration
+
+**In Progress:**
+- 🔄 Apollo media upload UI component (apollo#110)
+
+**Deferred to Phase 3:**
+- ⏸️ Automatic CWM-E reflection (attention/working-memory modeling)
+
+## 📊 Project Assessment
+
+**Quick Summary:**
+- **Phase 1:** ✅ Complete
+- **Phase 2:** 🟩 ~95% Complete — core services, dual surfaces, media ingestion, and CWM state emission all implemented
+
+**Remaining for Phase 2:** Apollo media upload UI wiring (apollo#110, ~1-2 days of frontend work).
+
+**Deferred to Phase 3:** Automatic CWM-E reflection (requires attention/working-memory modeling).
 
 Notes and next steps
 - The `core_ontology.cypher` and `shacl_shapes.ttl` are intentionally minimal, syntactically valid, and contain comments indicating where the full ontology and constraints described in the spec will be extended.
