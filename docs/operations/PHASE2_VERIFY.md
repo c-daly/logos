@@ -10,6 +10,56 @@
 
 This document provides comprehensive verification criteria, demo instructions, evidence requirements, and CI workflow references for all Phase 2 milestones (P2-M1 through P2-M4).
 
+---
+
+## Verification Evidence
+
+Automated verification evidence was captured on December 2, 2025 using Playwright.
+
+**Evidence Location:** [`apollo/docs/evidence/`](https://github.com/c-daly/apollo/tree/main/docs/evidence)
+
+### P2-M1: Services Online
+| Artifact | Description |
+|----------|-------------|
+| [`hermes_docs_screenshot.png`](https://github.com/c-daly/apollo/blob/main/docs/evidence/p2-m1/hermes_docs_screenshot.png) | Hermes API Swagger docs |
+| [`hermes_health.json`](https://github.com/c-daly/apollo/blob/main/docs/evidence/p2-m1/hermes_health.json) | Hermes health endpoint response |
+| [`apollo_api_docs_screenshot.png`](https://github.com/c-daly/apollo/blob/main/docs/evidence/p2-m1/apollo_api_docs_screenshot.png) | Apollo API Swagger docs |
+| [`apollo_api_health.json`](https://github.com/c-daly/apollo/blob/main/docs/evidence/p2-m1/apollo_api_health.json) | Apollo API health endpoint response |
+
+### P2-M2: Apollo Dual Surface
+| Artifact | Description |
+|----------|-------------|
+| [`apollo_homepage.png`](https://github.com/c-daly/apollo/blob/main/docs/evidence/p2-m2/apollo_homepage.png) | Apollo webapp homepage |
+| [`chat_panel_screenshot.png`](https://github.com/c-daly/apollo/blob/main/docs/evidence/p2-m2/chat_panel_screenshot.png) | Chat panel interface |
+| [`plan_viewer_screenshot.png`](https://github.com/c-daly/apollo/blob/main/docs/evidence/p2-m2/plan_viewer_screenshot.png) | Plan viewer interface |
+| [`graph_explorer_screenshot.png`](https://github.com/c-daly/apollo/blob/main/docs/evidence/p2-m2/graph_explorer_screenshot.png) | HCG graph explorer |
+| [`diagnostics_panel_screenshot.png`](https://github.com/c-daly/apollo/blob/main/docs/evidence/p2-m2/diagnostics_panel_screenshot.png) | Diagnostics panel |
+
+### P2-M3: Perception & Media Upload
+| Artifact | Description |
+|----------|-------------|
+| [`media_upload_screenshot.png`](https://github.com/c-daly/apollo/blob/main/docs/evidence/p2-m3/media_upload_screenshot.png) | Media upload interface |
+| [`hermes_ingest_endpoint_check.txt`](https://github.com/c-daly/apollo/blob/main/docs/evidence/p2-m3/hermes_ingest_endpoint_check.txt) | Hermes `/ingest/media` endpoint verification |
+
+### P2-M4: Diagnostics & Persona
+| Artifact | Description |
+|----------|-------------|
+| [`diagnostics_logs_screenshot.png`](https://github.com/c-daly/apollo/blob/main/docs/evidence/p2-m4/diagnostics_logs_screenshot.png) | Diagnostics logs view |
+| [`diagnostics_api.json`](https://github.com/c-daly/apollo/blob/main/docs/evidence/p2-m4/diagnostics_api.json) | Diagnostics API response |
+
+### Regenerating Evidence
+
+To regenerate verification evidence:
+
+```bash
+cd apollo/webapp
+npx playwright test e2e/phase2-verification.spec.ts --project=chromium
+```
+
+Evidence will be written to `apollo/docs/evidence/`.
+
+---
+
 ## Overview
 
 Phase 2 extends the LOGOS ecosystem with:
