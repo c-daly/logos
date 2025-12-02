@@ -479,9 +479,10 @@ class TestRelationshipTraversal:
         """Test traversing IS_A relationship to find entity type."""
         with neo4j_driver.session() as session:
             # Find robot arm and its type
+            # UUID from test_data_pick_and_place.cypher: RobotArm01
             result = session.run(
                 """
-                MATCH (e:Entity {uuid: 'entity-robot-arm-01'})-[:IS_A]->(c:Concept)
+                MATCH (e:Entity {uuid: 'c551e7ad-c12a-40bc-8c29-3a721fa311cb'})-[:IS_A]->(c:Concept)
                 RETURN e.name AS entity_name, c.name AS concept_name
                 """
             )
@@ -494,9 +495,10 @@ class TestRelationshipTraversal:
         """Test traversing HAS_STATE relationship to find current state."""
         with neo4j_driver.session() as session:
             # Find robot arm's current state
+            # UUID from test_data_pick_and_place.cypher: RobotArm01
             result = session.run(
                 """
-                MATCH (e:Entity {uuid: 'entity-robot-arm-01'})-[:HAS_STATE]->(s:State)
+                MATCH (e:Entity {uuid: 'c551e7ad-c12a-40bc-8c29-3a721fa311cb'})-[:HAS_STATE]->(s:State)
                 RETURN s.name AS state_name, s.timestamp AS timestamp
                 ORDER BY s.timestamp DESC
                 LIMIT 1
@@ -509,25 +511,27 @@ class TestRelationshipTraversal:
     def test_traverse_causes_for_causal_chain(self, neo4j_driver, loaded_test_data):
         """Test traversing CAUSES relationships to trace causal chain."""
         with neo4j_driver.session() as session:
-            # Find what process causes the gripper to close
+            # Find what process causes the block to be grasped
+            # UUID from test_data_pick_and_place.cypher: RedBlockGraspedState
             result = session.run(
                 """
-                MATCH (p:Process)-[:CAUSES]->(s:State {uuid: 'state-gripper-closed-01'})
+                MATCH (p:Process)-[:CAUSES]->(s:State {uuid: 'f25e11ff-f33f-43a7-a4d8-a2839ec39976'})
                 RETURN p.name AS process_name, s.name AS state_name
                 """
             )
             record = result.single()
             assert record is not None
             assert record["process_name"] == "GraspRedBlock"
-            assert record["state_name"] == "GripperClosedState"
+            assert record["state_name"] == "RedBlockGraspedState"
 
     def test_traverse_multi_hop_causal_chain(self, neo4j_driver, loaded_test_data):
         """Test traversing multi-hop causal chains."""
         with neo4j_driver.session() as session:
-            # Find the causal chain from initial grasp to final placement
+            # Find the causal chain from initial home state to final states
+            # UUID from test_data_pick_and_place.cypher: ArmHomeState (start of PRECEDES chain)
             result = session.run(
                 """
-                MATCH path = (s1:State {uuid: 'state-gripper-open-01'})-[:PRECEDES*1..5]->(s2:State)
+                MATCH path = (s1:State {uuid: '1957c02d-a22a-483c-8ccb-cd04e7f03817'})-[:PRECEDES*1..5]->(s2:State)
                 RETURN s2.name AS final_state, length(path) AS chain_length
                 ORDER BY chain_length DESC
                 LIMIT 1
@@ -542,9 +546,10 @@ class TestRelationshipTraversal:
         """Test traversing PART_OF relationships for composition hierarchy."""
         with neo4j_driver.session() as session:
             # Find parts of robot arm
+            # UUID from test_data_pick_and_place.cypher: RobotArm01
             result = session.run(
                 """
-                MATCH (part:Entity)-[:PART_OF]->(whole:Entity {uuid: 'entity-robot-arm-01'})
+                MATCH (part:Entity)-[:PART_OF]->(whole:Entity {uuid: 'c551e7ad-c12a-40bc-8c29-3a721fa311cb'})
                 RETURN part.name AS part_name
                 ORDER BY part.name
                 """
@@ -563,9 +568,10 @@ class TestQueryOperations:
     def test_query_entity_by_uuid(self, neo4j_driver, loaded_test_data):
         """Test querying entity by UUID."""
         with neo4j_driver.session() as session:
+            # UUID from test_data_pick_and_place.cypher: RobotArm01
             result = session.run(
                 "MATCH (e:Entity {uuid: $uuid}) RETURN e.name AS name",
-                uuid="entity-robot-arm-01",
+                uuid="c551e7ad-c12a-40bc-8c29-3a721fa311cb",
             )
             record = result.single()
             assert record is not None
@@ -580,7 +586,8 @@ class TestQueryOperations:
             )
             record = result.single()
             assert record is not None
-            assert record["uuid"] == "entity-robot-arm-01"
+            # UUID from test_data_pick_and_place.cypher: RobotArm01
+            assert record["uuid"] == "c551e7ad-c12a-40bc-8c29-3a721fa311cb"
 
     def test_query_states_by_timestamp(self, neo4j_driver, loaded_test_data):
         """Test querying states by timestamp range."""
