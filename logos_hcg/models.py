@@ -327,9 +327,7 @@ class Capability(BaseModel):
     def validate_executor_type(cls, v: str) -> str:
         """Validate executor_type is one of the allowed values."""
         if v not in ExecutorType.ALL:
-            raise ValueError(
-                f"executor_type must be one of {ExecutorType.ALL}, got '{v}'"
-            )
+            raise ValueError(f"executor_type must be one of {ExecutorType.ALL}, got '{v}'")
         return v
 
     @field_validator("created_at", "updated_at", mode="before")
