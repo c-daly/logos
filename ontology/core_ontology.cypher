@@ -65,9 +65,7 @@ FOR (es:EmotionState)
 ON (es.timestamp);
 
 //// Phase 2: Indexes for Capability catalog (logos#284)
-CREATE INDEX logos_capability_name IF NOT EXISTS
-FOR (cap:Capability)
-ON (cap.name);
+// Note: logos_capability_name constraint already provides index on cap.name
 
 CREATE INDEX logos_capability_executor_type IF NOT EXISTS
 FOR (cap:Capability)
@@ -77,7 +75,7 @@ CREATE INDEX logos_capability_tags IF NOT EXISTS
 FOR (cap:Capability)
 ON (cap.capability_tags);
 
-//// Phase 2 P2-M3: Perception and Imagination node constraints
+//// Phase 2 P2-M3: Perception and Imagination node constraints (CWM-G)
 CREATE CONSTRAINT logos_perception_frame_uuid IF NOT EXISTS
 FOR (pf:PerceptionFrame)
 REQUIRE pf.uuid IS UNIQUE;
@@ -90,7 +88,32 @@ CREATE CONSTRAINT logos_imagined_state_uuid IF NOT EXISTS
 FOR (is:ImaginedState)
 REQUIRE is.uuid IS UNIQUE;
 
-//// Phase 2 P2-M3: Indexes for perception and imagination
+//// CWM-A: Abstract/Associative World Model node constraints
+CREATE CONSTRAINT logos_fact_uuid IF NOT EXISTS
+FOR (f:Fact)
+REQUIRE f.uuid IS UNIQUE;
+
+CREATE CONSTRAINT logos_association_uuid IF NOT EXISTS
+FOR (a:Association)
+REQUIRE a.uuid IS UNIQUE;
+
+CREATE CONSTRAINT logos_abstraction_uuid IF NOT EXISTS
+FOR (abs:Abstraction)
+REQUIRE abs.uuid IS UNIQUE;
+
+CREATE CONSTRAINT logos_rule_uuid IF NOT EXISTS
+FOR (r:Rule)
+REQUIRE r.uuid IS UNIQUE;
+
+CREATE CONSTRAINT logos_abstraction_name IF NOT EXISTS
+FOR (abs:Abstraction)
+REQUIRE abs.name IS UNIQUE;
+
+CREATE CONSTRAINT logos_rule_name_domain IF NOT EXISTS
+FOR (r:Rule)
+REQUIRE (r.name, r.domain) IS UNIQUE;
+
+//// Phase 2 P2-M3: Indexes for perception and imagination (CWM-G)
 CREATE INDEX logos_perception_frame_timestamp IF NOT EXISTS
 FOR (pf:PerceptionFrame)
 ON (pf.timestamp);
@@ -102,6 +125,47 @@ ON (ip.timestamp);
 CREATE INDEX logos_imagined_state_step IF NOT EXISTS
 FOR (is:ImaginedState)
 ON (is.step);
+
+//// CWM-A: Indexes for facts, associations, rules
+CREATE INDEX logos_fact_subject IF NOT EXISTS
+FOR (f:Fact)
+ON (f.subject);
+
+CREATE INDEX logos_fact_predicate IF NOT EXISTS
+FOR (f:Fact)
+ON (f.predicate);
+
+CREATE INDEX logos_fact_status IF NOT EXISTS
+FOR (f:Fact)
+ON (f.status);
+
+CREATE INDEX logos_fact_confidence IF NOT EXISTS
+FOR (f:Fact)
+ON (f.confidence);
+
+CREATE INDEX logos_association_source IF NOT EXISTS
+FOR (a:Association)
+ON (a.source_concept);
+
+CREATE INDEX logos_association_target IF NOT EXISTS
+FOR (a:Association)
+ON (a.target_concept);
+
+CREATE INDEX logos_association_strength IF NOT EXISTS
+FOR (a:Association)
+ON (a.strength);
+
+CREATE INDEX logos_rule_type IF NOT EXISTS
+FOR (r:Rule)
+ON (r.rule_type);
+
+CREATE INDEX logos_rule_domain IF NOT EXISTS
+FOR (r:Rule)
+ON (r.domain);
+
+CREATE INDEX logos_abstraction_domain IF NOT EXISTS
+FOR (abs:Abstraction)
+ON (abs.domain);
 
 //// Base relationship types (Section 4.1)
 //// - (:Entity)-[:IS_A]->(:Concept) — Type membership
@@ -122,10 +186,26 @@ ON (is.step);
 //// - (:EmotionState)-[:TAGGED_ON]->(:Entity) — Emotion tag on entity
 //// - (:EmotionState)-[:GENERATED_BY]->(:PersonaEntry) — Emotion derived from reflection
 
-//// Phase 2 P2-M3: Extended relationship types for perception and imagination
+//// Phase 2 P2-M3: Extended relationship types for perception and imagination (CWM-G)
 //// - (:PerceptionFrame)-[:TRIGGERED_SIMULATION]->(:ImaginedProcess) — Frame that initiated simulation
 //// - (:ImaginedProcess)-[:PREDICTS]->(:ImaginedState) — Process predicting future state
 //// - (:ImaginedState)-[:PRECEDES]->(:ImaginedState) — Temporal ordering of imagined states
+
+//// CWM-A: Relationship types for abstract/associative world model
+//// - (:Fact)-[:ABOUT]->(:Concept|:Entity) — Fact concerns this node
+//// - (:Fact)-[:SUPPORTS]->(:Process) — Fact supports plan step
+//// - (:Fact)-[:CONTRADICTS]->(:Fact) — Facts in conflict
+//// - (:Fact)-[:SUPERSEDES]->(:Fact) — Newer fact replaces older
+//// - (:Fact)-[:DERIVED_FROM]->(:Fact|:PerceptionFrame) — Provenance
+//// - (:Fact)-[:INFERRED_FROM]->(:Fact) — Derived via inference
+//// - (:Association)-[:CONNECTS]->(:Concept) — Association links concepts
+//// - (:Association)-[:LEARNED_FROM]->(:Process) — How association was learned
+//// - (:Abstraction)-[:GENERALIZES]->(:Concept) — Lower-level concepts
+//// - (:Abstraction)-[:PART_OF]->(:Abstraction) — Abstraction hierarchy
+//// - (:Rule)-[:APPLIES_TO]->(:Concept|:Entity) — Rule scope
+//// - (:Rule)-[:TRIGGERS]->(:Rule) — Chained rules
+//// - (:Rule)-[:CONFLICTS_WITH]->(:Rule) — Mutually exclusive rules
+//// - (:Rule)-[:PART_OF]->(:Abstraction) — Rule grouped under abstraction
 
 //// Phase 2: Extended relationship types for capability catalog (logos#284)
 //// - (:Capability)-[:IMPLEMENTS]->(:Concept) — Capability implements action concept (e.g., GraspAction)
@@ -167,6 +247,38 @@ ON (is.step);
 ////            intensity (0.0-1.0 confidence/strength),
 ////            context (brief description),
 ////            source (what triggered this emotion tag)
+////
+//// CWM-A: Fact Properties (declarative statements):
+////   Required: uuid, subject, predicate, object, confidence, status
+////   Optional: source (where fact came from),
+////            source_type (knowledge_base|observation|inference|human),
+////            valid_from (temporal validity start),
+////            valid_until (temporal validity end),
+////            domain (knowledge domain),
+////            created_at, updated_at (timestamps)
+////
+//// CWM-A: Association Properties (weighted links between concepts):
+////   Required: uuid, source_concept, target_concept, strength
+////   Optional: relationship_type (type of association),
+////            bidirectional (is relationship symmetric),
+////            context (where valid),
+////            source (how learned),
+////            decay_rate (strength decay per day),
+////            created_at (timestamp)
+////
+//// CWM-A: Abstraction Properties (higher-order concepts):
+////   Required: uuid, name
+////   Optional: description (human description),
+////            level (hierarchy level, 0=concrete),
+////            domain (knowledge domain),
+////            created_at (timestamp)
+////
+//// CWM-A: Rule Properties (conditional inference rules):
+////   Required: uuid, name, condition, consequent, rule_type
+////   Optional: priority (higher = more important),
+////            confidence (rule reliability),
+////            domain (applicable domain),
+////            created_at (timestamp)
 ////
 //// Phase 2: Capability Properties (logos#284 - Capability Catalog):
 ////   Required: uuid, name, executor_type
