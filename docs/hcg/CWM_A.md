@@ -1,4 +1,4 @@
-# CWM-A: Abstract/Associative World Model
+# CWM-A: Abstract World Model
 
 CWM-A stores symbolic knowledge for commonsense reasoning, declarative facts,
 and abstract associations. It enables Sophia to reason about the world using

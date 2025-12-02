@@ -22,7 +22,7 @@ The CWM provides Sophia with a rich, multi-modal understanding of the world:
 │                    Causal World Model (CWM)                     │
 ├─────────────────────┬─────────────────────┬─────────────────────┤
 │      CWM-A          │       CWM-G         │       CWM-E         │
-│    (Abstract)       │    (Generative)     │    (Emotional)      │
+│    (Abstract)       │    (Grounded)     │    (Emotional)      │
 ├─────────────────────┼─────────────────────┼─────────────────────┤
 │ • Symbolic facts    │ • JEPA predictions  │ • Emotion tags      │
 │ • Associations      │ • Imagined states   │ • Persona diary     │
@@ -66,7 +66,7 @@ CWM-A stores symbolic knowledge for commonsense reasoning:
 
 See: [CWM-A Schema Reference](./CWM_A.md)
 
-### CWM-G: Generative/Grounded World Model
+### CWM-G:Grounded World Model
 
 CWM-G stores learned dynamics and predictions from JEPA:
 
@@ -179,7 +179,7 @@ CWM nodes start as hypotheses and can be promoted to canonical facts:
 ## See Also
 
 - [CWM-A Schema Reference](./CWM_A.md) - Abstract world model details
-- [CWM-G Schema Reference](./CWM_G.md) - Generative world model details
+- [CWM-G Schema Reference](./CWM_G.md) - Grounded world model details
 - [CWM-E Schema Reference](./CWM_E.md) - Emotional world model details
 - [HCG Data Layer](../HCG_DATA_LAYER.md) - Core ontology and queries
 - [Ingestion Flows](./INGESTION.md) - How data enters the CWM

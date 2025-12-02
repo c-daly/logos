@@ -1,4 +1,4 @@
-# CWM-G: Generative/Grounded World Model
+# CWM-G:Grounded World Model
 
 CWM-G stores learned dynamics and predictions from the JEPA (Joint Embedding
 Predictive Architecture) model. It enables Sophia to imagine future states,

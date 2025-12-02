@@ -23,7 +23,7 @@ Data enters the CWM through multiple pathways:
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                           INGESTION SOURCES                                 │
 ├─────────────┬─────────────┬─────────────┬─────────────┬─────────────────────┤
-│   Hermes    │   JEPA      │   Sophia    │  Knowledge  │      Human          │
+│    Talos    │   JEPA      │   Sophia    │  Knowledge  │      Human          │
 │ (sensors)   │ (perception)│ (planner)   │    Base     │    (feedback)       │
 └──────┬──────┴──────┬──────┴──────┬──────┴──────┬──────┴──────────┬──────────┘
        │             │             │             │                 │
@@ -57,9 +57,9 @@ Data enters the CWM through multiple pathways:
 
 ## Ingestion Sources
 
-### Hermes (Sensor Data)
+### Talos (Sensor Data)
 
-Hermes streams real-time sensor data:
+Talos streams real-time sensor data:
 
 | Data Type | Target CWM | Node Type | Example |
 |-----------|------------|-----------|---------|
