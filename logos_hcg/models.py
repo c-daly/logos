@@ -17,6 +17,7 @@ See Project LOGOS spec: Section 4.1 for ontology structure.
 
 from datetime import datetime
 from typing import Any
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -688,3 +689,220 @@ class Rule(BaseModel):
         if hasattr(v, "to_native"):
             return v.to_native()
         return v
+
+
+# ============================================================================
+# Planning Models (logos#157 + sophia#15)
+# ============================================================================
+
+
+class SourceService:
+    """Source service constants for provenance tracking."""
+
+    SOPHIA = "sophia"
+    HERMES = "hermes"
+    TALOS = "talos"
+    APOLLO = "apollo"
+    HUMAN = "human"
+
+    ALL = [SOPHIA, HERMES, TALOS, APOLLO, HUMAN]
+
+
+class GoalStatus:
+    """Goal lifecycle status constants."""
+
+    PENDING = "pending"
+    ACTIVE = "active"
+    ACHIEVED = "achieved"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+    ALL = [PENDING, ACTIVE, ACHIEVED, FAILED, CANCELLED]
+
+
+class PlanStatus:
+    """Plan lifecycle status constants."""
+
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+    ALL = [PENDING, IN_PROGRESS, COMPLETED, FAILED]
+
+
+class Provenance(BaseModel):
+    """
+    Audit trail for any authored artifact (sophia#15).
+
+    Tracks who/what created an artifact and when, supporting
+    governance and debugging across services.
+
+    Properties:
+    - source_service: Which service created this (sophia, hermes, talos, apollo, human)
+    - author_id: UUID of the user or agent that authored this
+    - created_at: When the artifact was created
+    - trace_id: Distributed tracing ID for request correlation
+    - tags: Arbitrary tags for filtering/categorization
+    """
+
+
+    source_service: str
+    author_id: UUID | None = None
+    created_at: datetime
+    trace_id: UUID | None = None
+    tags: list[str] = Field(default_factory=list)
+
+    model_config = ConfigDict(
+        json_encoders={
+            datetime: lambda v: v.isoformat() if v else None,
+        }
+    )
+
+    @field_validator("source_service")
+    @classmethod
+    def validate_source_service(cls, v: str) -> str:
+        """Validate source_service is one of the allowed values."""
+        if v not in SourceService.ALL:
+            raise ValueError(f"source_service must be one of {SourceService.ALL}, got '{v}'")
+        return v
+
+
+class GoalTarget(BaseModel):
+    """
+    Specifies what success looks like for a Goal.
+
+    References HCG nodes to define the desired end state.
+    The planner uses this to find processes that achieve
+    matching states.
+
+    Properties:
+    - entity_uuid: Which entity should be in the target state
+    - concept_uuid: Optional type/category of the desired state
+    - state_properties: Optional property values to match (query criteria)
+    """
+
+
+    entity_uuid: UUID
+    concept_uuid: UUID | None = None
+    state_properties: dict[str, Any] | None = None
+
+
+class Goal(BaseModel):
+    """
+    A planning goal - desired outcome to achieve.
+
+    Goals are domain-agnostic; they specify what success looks like
+    via GoalTarget, and the planner finds processes to achieve it.
+
+    Properties:
+    - uuid: Unique identifier for this goal
+    - description: Human-readable description
+    - target: What success looks like (entity + desired state)
+    - status: Lifecycle status (pending, active, achieved, failed, cancelled)
+    - priority: Relative priority for multi-goal planning (higher = more important)
+    - provenance: Audit trail (who created, when, from where)
+    """
+
+
+    uuid: UUID
+    description: str
+    target: GoalTarget
+    status: str = GoalStatus.PENDING
+    priority: float = 1.0
+    provenance: Provenance
+
+    model_config = ConfigDict(
+        json_encoders={
+            datetime: lambda v: v.isoformat() if v else None,
+        }
+    )
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: str) -> str:
+        """Validate status is one of the allowed values."""
+        if v not in GoalStatus.ALL:
+            raise ValueError(f"status must be one of {GoalStatus.ALL}, got '{v}'")
+        return v
+
+
+class PlanStep(BaseModel):
+    """
+    A single step in an execution plan.
+
+    Each step references an HCG Process node and tracks its
+    preconditions, effects, and execution binding.
+
+    Properties:
+    - uuid: Unique identifier for this step
+    - index: Order in the plan (0-based)
+    - process_uuid: HCG Process node this step executes
+    - precondition_uuids: State UUIDs that must be true before execution
+    - effect_uuids: State UUIDs caused by this step
+    - capability_uuid: Which Capability executes this (executor binding)
+    - estimated_duration_ms: Expected execution time
+    - confidence: Confidence this step will succeed (0.0-1.0)
+    - provenance: Audit trail
+    """
+
+
+    uuid: UUID
+    index: int = Field(..., ge=0)
+    process_uuid: UUID
+    precondition_uuids: list[UUID] = Field(default_factory=list)
+    effect_uuids: list[UUID] = Field(default_factory=list)
+    capability_uuid: UUID | None = None
+    estimated_duration_ms: int | None = Field(None, ge=0)
+    confidence: float = Field(1.0, ge=0.0, le=1.0)
+    provenance: Provenance
+
+    model_config = ConfigDict(
+        json_encoders={
+            datetime: lambda v: v.isoformat() if v else None,
+        }
+    )
+
+
+class Plan(BaseModel):
+    """
+    A complete execution plan to achieve a Goal.
+
+    Plans are ordered sequences of PlanSteps produced by
+    backward chaining over HCG REQUIRES/CAUSES edges.
+
+    Properties:
+    - uuid: Unique identifier for this plan
+    - goal_uuid: The Goal this plan achieves
+    - steps: Ordered list of PlanSteps
+    - current_state_uuid: Starting state for plan execution
+    - expected_final_state_uuid: Predicted state after successful execution
+    - status: Lifecycle status (pending, in_progress, completed, failed)
+    - confidence: Overall plan confidence (0.0-1.0)
+    - provenance: Audit trail
+    """
+
+
+    uuid: UUID
+    goal_uuid: UUID
+    steps: list[PlanStep]
+    current_state_uuid: UUID
+    expected_final_state_uuid: UUID | None = None
+    status: str = PlanStatus.PENDING
+    confidence: float = Field(1.0, ge=0.0, le=1.0)
+    provenance: Provenance
+
+    model_config = ConfigDict(
+        json_encoders={
+            datetime: lambda v: v.isoformat() if v else None,
+        }
+    )
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: str) -> str:
+        """Validate status is one of the allowed values."""
+        if v not in PlanStatus.ALL:
+            raise ValueError(f"status must be one of {PlanStatus.ALL}, got '{v}'")
+        return v
+

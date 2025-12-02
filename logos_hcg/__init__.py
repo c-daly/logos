@@ -22,9 +22,17 @@ from logos_hcg.models import (
     ExecutorType,
     Fact,
     FactStatus,
+    Goal,
+    GoalStatus,
+    GoalTarget,
+    Plan,
+    PlanStatus,
+    PlanStep,
     Process,
+    Provenance,
     Rule,
     RuleType,
+    SourceService,
     SourceType,
     State,
 )
@@ -53,6 +61,16 @@ __all__ = [
     "Abstraction",
     "Rule",
     "RuleType",
+    # Planning models (logos#157, sophia#15)
+    "Goal",
+    "GoalStatus",
+    "GoalTarget",
+    "Plan",
+    "PlanStatus",
+    "PlanStep",
+    "Provenance",
+    "SourceService",
 ]
 
 __version__ = "0.1.0"
+
