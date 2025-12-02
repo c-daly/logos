@@ -684,6 +684,179 @@ class HCGClient:
 
         return states
 
+    # ========== Planning Operations (logos#157) ==========
+
+    def find_processes_causing_state(self, state_uuid: str | UUID) -> list[Process]:
+        """
+        Find all processes that CAUSE a specific state.
+
+        Used in backward chaining to find what actions achieve a goal state.
+
+        Args:
+            state_uuid: Target State UUID
+
+        Returns:
+            List of Process objects that cause this state
+        """
+        state_uuid_str = self._normalize_uuid(state_uuid, "state_uuid")
+        query = HCGQueries.find_processes_causing_state()
+        records = self._execute_read(query, {"state_uuid": state_uuid_str})
+
+        processes = []
+        for record in records:
+            node_props = self._parse_node_to_dict(record["p"])
+            processes.append(Process(**node_props))
+
+        return processes
+
+    def find_processes_by_effect_properties(
+        self, property_key: str, property_value: Any
+    ) -> list[tuple[Process, State]]:
+        """
+        Find processes that cause states matching property criteria.
+
+        Args:
+            property_key: Name of the state property to match
+            property_value: Value to match
+
+        Returns:
+            List of (Process, State) tuples
+        """
+        query = HCGQueries.find_processes_by_effect_properties()
+        records = self._execute_read(
+            query, {"property_key": property_key, "property_value": property_value}
+        )
+
+        results = []
+        for record in records:
+            process_props = self._parse_node_to_dict(record["p"])
+            state_props = self._parse_node_to_dict(record["s"])
+            results.append((Process(**process_props), State(**state_props)))
+
+        return results
+
+    def find_processes_for_entity_state(
+        self, entity_uuid: str | UUID
+    ) -> list[tuple[Process, State]]:
+        """
+        Find processes that cause states for a specific entity.
+
+        Args:
+            entity_uuid: Entity UUID
+
+        Returns:
+            List of (Process, State) tuples
+        """
+        entity_uuid_str = self._normalize_uuid(entity_uuid, "entity_uuid")
+        query = HCGQueries.find_processes_for_entity_state()
+        records = self._execute_read(query, {"entity_uuid": entity_uuid_str})
+
+        results = []
+        for record in records:
+            process_props = self._parse_node_to_dict(record["p"])
+            state_props = self._parse_node_to_dict(record["s"])
+            results.append((Process(**process_props), State(**state_props)))
+
+        return results
+
+    def find_capability_by_uuid(self, uuid: str | UUID) -> "Capability | None":
+        """
+        Find a capability by its UUID.
+
+        Args:
+            uuid: Capability UUID
+
+        Returns:
+            Capability object if found, None otherwise
+        """
+        from logos_hcg.models import Capability
+
+        uuid_str = self._normalize_uuid(uuid, "uuid")
+        query = HCGQueries.find_capability_by_uuid()
+        records = self._execute_read(query, {"uuid": uuid_str})
+
+        if not records:
+            return None
+
+        node_props = self._parse_node_to_dict(records[0]["c"])
+        return Capability(**node_props)
+
+    def find_capability_for_process(
+        self, process_uuid: str | UUID
+    ) -> "Capability | None":
+        """
+        Find the capability that can execute a process.
+
+        Args:
+            process_uuid: Process UUID
+
+        Returns:
+            Capability object if found, None otherwise
+        """
+        from logos_hcg.models import Capability
+
+        process_uuid_str = self._normalize_uuid(process_uuid, "process_uuid")
+        query = HCGQueries.find_capability_for_process()
+        records = self._execute_read(query, {"process_uuid": process_uuid_str})
+
+        if not records or records[0]["capability"] is None:
+            return None
+
+        node_props = self._parse_node_to_dict(records[0]["capability"])
+        return Capability(**node_props)
+
+    def find_current_state_for_entity(self, entity_uuid: str | UUID) -> State | None:
+        """
+        Find the most recent state for an entity.
+
+        Args:
+            entity_uuid: Entity UUID
+
+        Returns:
+            Most recent State object, or None if no states exist
+        """
+        entity_uuid_str = self._normalize_uuid(entity_uuid, "entity_uuid")
+        query = HCGQueries.find_current_state_for_entity()
+        records = self._execute_read(query, {"entity_uuid": entity_uuid_str})
+
+        if not records:
+            return None
+
+        node_props = self._parse_node_to_dict(records[0]["s"])
+        return State(**node_props)
+
+    def check_state_satisfied(
+        self, entity_uuid: str | UUID, property_key: str, property_value: Any
+    ) -> bool:
+        """
+        Check if a state with given properties exists for an entity.
+
+        Used to verify preconditions during planning.
+
+        Args:
+            entity_uuid: Entity UUID
+            property_key: State property to check
+            property_value: Expected value
+
+        Returns:
+            True if matching state exists
+        """
+        entity_uuid_str = self._normalize_uuid(entity_uuid, "entity_uuid")
+        query = HCGQueries.check_state_satisfied()
+        records = self._execute_read(
+            query,
+            {
+                "entity_uuid": entity_uuid_str,
+                "property_key": property_key,
+                "property_value": property_value,
+            },
+        )
+
+        if not records:
+            return False
+
+        return records[0]["satisfied"]
+
     # ========== Utility Operations ==========
 
     def count_nodes_by_type(self) -> dict[str, int]:

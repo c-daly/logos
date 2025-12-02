@@ -36,6 +36,7 @@ from logos_hcg.models import (
     SourceType,
     State,
 )
+from logos_hcg.planner import GoalUnachievableError, HCGPlanner, PlanningError
 from logos_hcg.queries import HCGQueries
 from logos_hcg.sync import HCGMilvusSync, MilvusSyncError
 
@@ -70,6 +71,10 @@ __all__ = [
     "PlanStep",
     "Provenance",
     "SourceService",
+    # Planner (logos#157)
+    "HCGPlanner",
+    "PlanningError",
+    "GoalUnachievableError",
 ]
 
 __version__ = "0.1.0"
