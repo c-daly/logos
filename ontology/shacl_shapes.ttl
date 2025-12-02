@@ -416,6 +416,110 @@ logos:PerceptionFrameShape
         rdfs:comment "Additional metadata about the frame" ;
     ] .
 
+# Phase 2 P2-M3: MediaSample Shape (media ingestion)
+logos:MediaSampleShape
+    a sh:NodeShape ;
+    sh:targetClass logos:MediaSample ;
+    rdfs:label "Media Sample Shape" ;
+    rdfs:comment "Validates ingested media samples (images, video, audio)" ;
+    sh:property [
+        sh:path logos:uuid ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "UUID" ;
+        rdfs:comment "Unique identifier for media sample" ;
+    ] ;
+    sh:property [
+        sh:path logos:media_type ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ("image" "video" "audio" "video_frame") ;
+        rdfs:label "Media Type" ;
+        rdfs:comment "Type of media: image, video, audio, or video_frame" ;
+    ] ;
+    sh:property [
+        sh:path logos:file_path ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "File Path" ;
+        rdfs:comment "Storage path (local or object storage URL)" ;
+    ] ;
+    sh:property [
+        sh:path logos:file_size ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        rdfs:label "File Size" ;
+        rdfs:comment "File size in bytes" ;
+    ] ;
+    sh:property [
+        sh:path logos:file_hash ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "File Hash" ;
+        rdfs:comment "SHA256 hash of file content for deduplication" ;
+    ] ;
+    sh:property [
+        sh:path logos:timestamp ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        rdfs:label "Timestamp" ;
+        rdfs:comment "When the sample was ingested" ;
+    ] ;
+    sh:property [
+        sh:path logos:mime_type ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "MIME Type" ;
+        rdfs:comment "MIME type (e.g., image/jpeg, video/mp4)" ;
+    ] ;
+    sh:property [
+        sh:path logos:original_filename ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Original Filename" ;
+        rdfs:comment "Original filename from upload" ;
+    ] ;
+    sh:property [
+        sh:path logos:width ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        rdfs:label "Width" ;
+        rdfs:comment "Width in pixels (for images/video)" ;
+    ] ;
+    sh:property [
+        sh:path logos:height ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        rdfs:label "Height" ;
+        rdfs:comment "Height in pixels (for images/video)" ;
+    ] ;
+    sh:property [
+        sh:path logos:duration_ms ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        rdfs:label "Duration (ms)" ;
+        rdfs:comment "Duration in milliseconds (for audio/video)" ;
+    ] ;
+    sh:property [
+        sh:path logos:frame_index ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        rdfs:label "Frame Index" ;
+        rdfs:comment "Frame number (for video_frame type)" ;
+    ] ;
+    sh:property [
+        sh:path logos:question ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Perception Question" ;
+        rdfs:comment "Optional question for perception pipeline" ;
+    ] .
+
 logos:ImaginedProcessShape
     a sh:NodeShape ;
     sh:targetClass logos:ImaginedProcess ;
