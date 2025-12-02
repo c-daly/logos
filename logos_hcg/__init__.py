@@ -13,7 +13,7 @@ See Project LOGOS spec: Section 4.1 (Core Ontology and Data Model)
 """
 
 from logos_hcg.client import HCGClient
-from logos_hcg.models import Concept, Entity, Process, State
+from logos_hcg.models import Capability, Concept, Entity, ExecutorType, Process, State
 from logos_hcg.queries import HCGQueries
 from logos_hcg.sync import HCGMilvusSync, MilvusSyncError
 
@@ -26,6 +26,8 @@ __all__ = [
     "Concept",
     "State",
     "Process",
+    "Capability",
+    "ExecutorType",
 ]
 
 __version__ = "0.1.0"

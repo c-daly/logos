@@ -439,5 +439,430 @@ class HCGQueries:
         OPTIONAL MATCH (s:State)
         WITH entity_count, concept_count, count(s) as state_count
         OPTIONAL MATCH (p:Process)
-        RETURN entity_count, concept_count, state_count, count(p) as process_count
+        WITH entity_count, concept_count, state_count, count(p) as process_count
+        OPTIONAL MATCH (cap:Capability)
+        RETURN entity_count, concept_count, state_count, process_count, count(cap) as capability_count
+        """
+
+    # ========== Capability Catalog Queries (logos#284) ==========
+
+    @staticmethod
+    def find_capability_by_uuid() -> str:
+        """
+        Find a capability by its UUID.
+
+        Parameters:
+        - uuid: Capability UUID (string format)
+
+        Returns: Capability node properties
+        """
+        return """
+        MATCH (cap:Capability {uuid: $uuid})
+        RETURN cap
+        """
+
+    @staticmethod
+    def find_capability_by_name() -> str:
+        """
+        Find a capability by exact name.
+
+        Parameters:
+        - name: Capability name (exact match)
+
+        Returns: Capability node properties
+        """
+        return """
+        MATCH (cap:Capability {name: $name})
+        RETURN cap
+        """
+
+    @staticmethod
+    def find_capabilities_by_executor_type() -> str:
+        """
+        Find capabilities by executor type.
+
+        Parameters:
+        - executor_type: Type of executor ('human', 'talos', 'service', 'llm')
+
+        Returns: List of matching Capability nodes
+        """
+        return """
+        MATCH (cap:Capability {executor_type: $executor_type})
+        WHERE cap.deprecated IS NULL OR cap.deprecated = false
+        RETURN cap
+        ORDER BY cap.name
+        """
+
+    @staticmethod
+    def find_capabilities_by_tag() -> str:
+        """
+        Find capabilities that have a specific tag.
+
+        Parameters:
+        - tag: Capability tag to search for
+
+        Returns: List of matching Capability nodes
+        """
+        return """
+        MATCH (cap:Capability)
+        WHERE $tag IN cap.capability_tags
+          AND (cap.deprecated IS NULL OR cap.deprecated = false)
+        RETURN cap
+        ORDER BY cap.name
+        """
+
+    @staticmethod
+    def find_capabilities_by_tags() -> str:
+        """
+        Find capabilities that have ALL of the specified tags.
+
+        Parameters:
+        - tags: List of capability tags (all must match)
+
+        Returns: List of matching Capability nodes
+        """
+        return """
+        MATCH (cap:Capability)
+        WHERE all(tag IN $tags WHERE tag IN cap.capability_tags)
+          AND (cap.deprecated IS NULL OR cap.deprecated = false)
+        RETURN cap
+        ORDER BY cap.name
+        """
+
+    @staticmethod
+    def find_capabilities_by_any_tag() -> str:
+        """
+        Find capabilities that have ANY of the specified tags.
+
+        Parameters:
+        - tags: List of capability tags (any can match)
+
+        Returns: List of matching Capability nodes
+        """
+        return """
+        MATCH (cap:Capability)
+        WHERE any(tag IN $tags WHERE tag IN cap.capability_tags)
+          AND (cap.deprecated IS NULL OR cap.deprecated = false)
+        RETURN cap
+        ORDER BY cap.name
+        """
+
+    @staticmethod
+    def find_capabilities_implementing_concept() -> str:
+        """
+        Find capabilities that implement a specific action concept.
+
+        Parameters:
+        - concept_uuid: UUID of the action concept (e.g., 'concept-grasp')
+
+        Returns: List of Capability nodes that implement the concept
+        """
+        return """
+        MATCH (cap:Capability)-[:IMPLEMENTS]->(c:Concept {uuid: $concept_uuid})
+        WHERE cap.deprecated IS NULL OR cap.deprecated = false
+        RETURN cap
+        ORDER BY cap.success_rate DESC, cap.estimated_cost ASC
+        """
+
+    @staticmethod
+    def find_capabilities_for_entity() -> str:
+        """
+        Find capabilities that can be executed by a specific entity.
+
+        Parameters:
+        - entity_uuid: UUID of the entity
+
+        Returns: List of Capability nodes executable by the entity
+        """
+        return """
+        MATCH (cap:Capability)-[:EXECUTED_BY]->(e:Entity {uuid: $entity_uuid})
+        WHERE cap.deprecated IS NULL OR cap.deprecated = false
+        RETURN cap
+        ORDER BY cap.name
+        """
+
+    @staticmethod
+    def find_capabilities_with_inputs() -> str:
+        """
+        Find capabilities and their required input types.
+
+        Parameters:
+        - capability_uuid: UUID of the capability
+
+        Returns: Capability with list of required input concepts
+        """
+        return """
+        MATCH (cap:Capability {uuid: $capability_uuid})
+        OPTIONAL MATCH (cap)-[:REQUIRES_INPUT]->(input:Concept)
+        RETURN cap, collect(input) as required_inputs
+        """
+
+    @staticmethod
+    def find_capabilities_with_outputs() -> str:
+        """
+        Find capabilities and their output types.
+
+        Parameters:
+        - capability_uuid: UUID of the capability
+
+        Returns: Capability with list of output concepts
+        """
+        return """
+        MATCH (cap:Capability {uuid: $capability_uuid})
+        OPTIONAL MATCH (cap)-[:PRODUCES_OUTPUT]->(output:Concept)
+        RETURN cap, collect(output) as produced_outputs
+        """
+
+    @staticmethod
+    def find_all_capabilities() -> str:
+        """
+        Find all active capabilities with optional pagination.
+
+        Parameters:
+        - skip: Number of records to skip (default 0)
+        - limit: Maximum records to return (default 100)
+        - include_deprecated: Whether to include deprecated capabilities (default false)
+
+        Returns: List of Capability nodes
+        """
+        return """
+        MATCH (cap:Capability)
+        WHERE $include_deprecated = true OR cap.deprecated IS NULL OR cap.deprecated = false
+        RETURN cap
+        ORDER BY cap.name
+        SKIP $skip
+        LIMIT $limit
+        """
+
+    @staticmethod
+    def search_capabilities() -> str:
+        """
+        Search capabilities by name/description (case-insensitive partial match).
+
+        Parameters:
+        - query: Search query string
+
+        Returns: List of matching Capability nodes
+        """
+        return """
+        MATCH (cap:Capability)
+        WHERE (toLower(cap.name) CONTAINS toLower($query)
+               OR toLower(cap.description) CONTAINS toLower($query))
+          AND (cap.deprecated IS NULL OR cap.deprecated = false)
+        RETURN cap
+        ORDER BY cap.name
+        """
+
+    @staticmethod
+    def get_capability_with_full_context() -> str:
+        """
+        Get a capability with all its relationships (inputs, outputs, executors, implements).
+
+        Parameters:
+        - uuid: Capability UUID
+
+        Returns: Capability with all related concepts and entities
+        """
+        return """
+        MATCH (cap:Capability {uuid: $uuid})
+        OPTIONAL MATCH (cap)-[:IMPLEMENTS]->(impl:Concept)
+        OPTIONAL MATCH (cap)-[:REQUIRES_INPUT]->(input:Concept)
+        OPTIONAL MATCH (cap)-[:PRODUCES_OUTPUT]->(output:Concept)
+        OPTIONAL MATCH (cap)-[:EXECUTED_BY]->(executor:Entity)
+        RETURN cap,
+               collect(DISTINCT impl) as implements,
+               collect(DISTINCT input) as required_inputs,
+               collect(DISTINCT output) as produced_outputs,
+               collect(DISTINCT executor) as executors
+        """
+
+    # ========== Capability Mutation Queries ==========
+
+    @staticmethod
+    def create_capability() -> str:
+        """
+        Create a new capability.
+
+        Parameters:
+        - uuid: Capability UUID (must start with 'capability-')
+        - name: Unique capability name
+        - executor_type: Type of executor ('human', 'talos', 'service', 'llm')
+        - description: Optional description
+        - capability_tags: Optional list of tags
+        - version: Optional version string
+        - estimated_duration_ms: Optional duration estimate
+        - estimated_cost: Optional cost estimate
+
+        Returns: Created Capability node
+        """
+        return """
+        CREATE (cap:Capability {
+            uuid: $uuid,
+            name: $name,
+            executor_type: $executor_type,
+            description: $description,
+            capability_tags: $capability_tags,
+            version: $version,
+            estimated_duration_ms: $estimated_duration_ms,
+            estimated_cost: $estimated_cost,
+            success_rate: 1.0,
+            invocation_count: 0,
+            deprecated: false,
+            created_at: datetime(),
+            updated_at: datetime()
+        })
+        RETURN cap
+        """
+
+    @staticmethod
+    def update_capability() -> str:
+        """
+        Update an existing capability.
+
+        Parameters:
+        - uuid: Capability UUID
+        - (other parameters as needed)
+
+        Returns: Updated Capability node
+        """
+        return """
+        MATCH (cap:Capability {uuid: $uuid})
+        SET cap.name = COALESCE($name, cap.name),
+            cap.description = COALESCE($description, cap.description),
+            cap.capability_tags = COALESCE($capability_tags, cap.capability_tags),
+            cap.version = COALESCE($version, cap.version),
+            cap.estimated_duration_ms = COALESCE($estimated_duration_ms, cap.estimated_duration_ms),
+            cap.estimated_cost = COALESCE($estimated_cost, cap.estimated_cost),
+            cap.updated_at = datetime()
+        RETURN cap
+        """
+
+    @staticmethod
+    def deprecate_capability() -> str:
+        """
+        Mark a capability as deprecated.
+
+        Parameters:
+        - uuid: Capability UUID
+
+        Returns: Deprecated Capability node
+        """
+        return """
+        MATCH (cap:Capability {uuid: $uuid})
+        SET cap.deprecated = true,
+            cap.updated_at = datetime()
+        RETURN cap
+        """
+
+    @staticmethod
+    def record_capability_invocation() -> str:
+        """
+        Record a capability invocation and update success statistics.
+
+        Parameters:
+        - uuid: Capability UUID
+        - success: Whether the invocation was successful (boolean)
+
+        Returns: Updated Capability node with new statistics
+        """
+        return """
+        MATCH (cap:Capability {uuid: $uuid})
+        SET cap.invocation_count = COALESCE(cap.invocation_count, 0) + 1,
+            cap.success_rate = CASE
+                WHEN cap.invocation_count IS NULL OR cap.invocation_count = 0
+                THEN CASE WHEN $success THEN 1.0 ELSE 0.0 END
+                ELSE (cap.success_rate * cap.invocation_count + CASE WHEN $success THEN 1 ELSE 0 END) / (cap.invocation_count + 1)
+            END,
+            cap.updated_at = datetime()
+        RETURN cap
+        """
+
+    @staticmethod
+    def link_capability_to_concept() -> str:
+        """
+        Create an IMPLEMENTS relationship from capability to concept.
+
+        Parameters:
+        - capability_uuid: Capability UUID
+        - concept_uuid: Concept UUID
+
+        Returns: The created relationship
+        """
+        return """
+        MATCH (cap:Capability {uuid: $capability_uuid})
+        MATCH (c:Concept {uuid: $concept_uuid})
+        MERGE (cap)-[r:IMPLEMENTS]->(c)
+        RETURN cap, r, c
+        """
+
+    @staticmethod
+    def link_capability_input() -> str:
+        """
+        Create a REQUIRES_INPUT relationship from capability to input type concept.
+
+        Parameters:
+        - capability_uuid: Capability UUID
+        - concept_uuid: Input type Concept UUID
+
+        Returns: The created relationship
+        """
+        return """
+        MATCH (cap:Capability {uuid: $capability_uuid})
+        MATCH (c:Concept {uuid: $concept_uuid})
+        MERGE (cap)-[r:REQUIRES_INPUT]->(c)
+        RETURN cap, r, c
+        """
+
+    @staticmethod
+    def link_capability_output() -> str:
+        """
+        Create a PRODUCES_OUTPUT relationship from capability to output type concept.
+
+        Parameters:
+        - capability_uuid: Capability UUID
+        - concept_uuid: Output type Concept UUID
+
+        Returns: The created relationship
+        """
+        return """
+        MATCH (cap:Capability {uuid: $capability_uuid})
+        MATCH (c:Concept {uuid: $concept_uuid})
+        MERGE (cap)-[r:PRODUCES_OUTPUT]->(c)
+        RETURN cap, r, c
+        """
+
+    @staticmethod
+    def link_capability_executor() -> str:
+        """
+        Create an EXECUTED_BY relationship from capability to executor entity.
+
+        Parameters:
+        - capability_uuid: Capability UUID
+        - entity_uuid: Executor Entity UUID
+
+        Returns: The created relationship
+        """
+        return """
+        MATCH (cap:Capability {uuid: $capability_uuid})
+        MATCH (e:Entity {uuid: $entity_uuid})
+        MERGE (cap)-[r:EXECUTED_BY]->(e)
+        RETURN cap, r, e
+        """
+
+    @staticmethod
+    def link_process_to_capability() -> str:
+        """
+        Create a USES_CAPABILITY relationship from process to capability.
+
+        Parameters:
+        - process_uuid: Process UUID
+        - capability_uuid: Capability UUID
+
+        Returns: The created relationship
+        """
+        return """
+        MATCH (p:Process {uuid: $process_uuid})
+        MATCH (cap:Capability {uuid: $capability_uuid})
+        MERGE (p)-[r:USES_CAPABILITY]->(cap)
+        RETURN p, r, cap
         """
