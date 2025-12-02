@@ -297,6 +297,279 @@ Episode {
 
 ---
 
+## Tentative: Graph Assist API (Hermes ↔ Sophia Integration)
+
+> **Status**: Tentative proposal. Multiple approaches were considered; final design to be refined during implementation.
+
+### Problem Statement
+
+Sophia needs semantic assistance for graph operations without duplicating Hermes's linguistic processing capabilities. Key use cases include:
+
+- **Entity resolution**: "America" → Is this the band, country, continent, or sailing vessel?
+- **Knowledge extraction**: Parse media metadata into structured graph nodes/edges
+- **Relationship inference**: Suggest connections between unlinked entities
+- **Query assistance**: Help users express graph queries in natural language
+- **Ontology extension**: Propose new node types for novel entity categories
+
+The core question: **How should Sophia request semantic assistance from Hermes, and what should the response format be?**
+
+### Approaches Considered
+
+#### Option A: Structured JSON Responses
+
+Sophia sends a natural language query; Hermes responds with structured JSON that Sophia interprets and acts upon.
+
+```python
+# Sophia request
+{
+    "action": "resolve_entity",
+    "context": {
+        "text": "America",
+        "media_type": "audio",
+        "surrounding_metadata": {"album": "Homecoming", "year": 1972}
+    }
+}
+
+# Hermes response
+{
+    "candidates": [
+        {"label": "America (band)", "confidence": 0.92, "uri": "musicbrainz:artist/..."},
+        {"label": "United States", "confidence": 0.05, "uri": "wikidata:Q30"},
+        {"label": "America (ship)", "confidence": 0.03, "uri": null}
+    ],
+    "recommended": "America (band)",
+    "reasoning": "Audio context and album metadata strongly suggest the folk rock band"
+}
+```
+
+**Pros**:
+- Clean separation of concerns
+- Sophia maintains full control over graph operations
+- Responses are predictable and validated
+
+**Cons**:
+- Requires defining a comprehensive action/response schema
+- May be limiting for novel use cases
+- Sophia still needs logic to interpret responses
+
+#### Option B: Hermes Returns Cypher Queries (Preferred)
+
+Sophia sends context; Hermes responds with **executable Cypher** that Sophia runs against Neo4j. Hermes understands the ontology and generates valid graph operations.
+
+```python
+# Sophia request
+{
+    "operation": "ingest_knowledge",
+    "context": {
+        "source": "audio_metadata",
+        "raw": {"artist": "America", "album": "Homecoming", "track": "A Horse with No Name"}
+    }
+}
+
+# Hermes response
+{
+    "queries": [
+        """
+        MERGE (a:MusicArtist {name: 'America', musicbrainz_id: 'xxx'})
+        MERGE (al:Album {title: 'Homecoming', year: 1972})
+        MERGE (t:Track {title: 'A Horse with No Name'})
+        MERGE (a)-[:RELEASED]->(al)
+        MERGE (al)-[:CONTAINS]->(t)
+        """,
+        """
+        MATCH (m:MediaSample {uuid: $sample_uuid})
+        MATCH (t:Track {title: 'A Horse with No Name'})
+        MERGE (m)-[:REPRESENTS]->(t)
+        """
+    ],
+    "confidence": 0.89,
+    "reasoning": "High confidence based on exact metadata match with MusicBrainz"
+}
+```
+
+**Pros**:
+- Sophia becomes a "dumb executor" for semantic operations (clear responsibility split)
+- Hermes has full expressiveness of Cypher
+- Easier to extend without changing Sophia's code
+- Batch operations are natural (multiple queries)
+
+**Cons**:
+- Security: Hermes-generated queries run with full graph access
+- Hermes must deeply understand the ontology schema
+- Debugging harder (must trace through LLM-generated queries)
+- Requires Cypher validation/sandboxing
+
+**Mitigations**:
+- Cypher query validation before execution
+- Read-only mode for exploratory queries
+- Audit logging of all Hermes-generated queries
+- Schema awareness via ontology embedding in Hermes context
+
+#### Option C: Dedicated `/graph-assist` Endpoint
+
+A specialized Hermes endpoint with a fine-tuned prompt for graph operations, distinct from conversational chat.
+
+```
+POST /graph-assist
+{
+    "intent": "verify" | "resolve" | "query" | "link_nodes" | "ingest_knowledge",
+    "payload": { ... context-specific ... }
+}
+```
+
+**Pros**:
+- Specialized prompts can be optimized for graph operations
+- Clear API contract for Sophia
+- Could use smaller, faster models for common operations
+
+**Cons**:
+- Separate codebase to maintain
+- May diverge from main Hermes capabilities over time
+
+### Recommended Approach
+
+**Option B (Cypher responses)** with **Option C's endpoint structure** as implementation detail.
+
+The `/graph-assist` endpoint would:
+1. Accept structured requests with intent classification
+2. Use ontology-aware system prompts
+3. Return validated Cypher queries
+4. Include confidence scores and reasoning
+5. Support read-only mode for queries vs. write mode for ingestion
+
+### Use Cases
+
+| Intent | Description | Example |
+|--------|-------------|---------|
+| `verify` | Check if entity interpretation is correct | "Is 'America' the band in this audio context?" |
+| `resolve` | Disambiguate entity from candidates | Given context, which America is meant? |
+| `query` | Natural language → Cypher for user queries | "What albums did America release in the 1970s?" |
+| `link_nodes` | Propose relationships between existing nodes | MediaSample X seems related to Track Y |
+| `ingest_knowledge` | Parse unstructured data into graph operations | Audio metadata → Artist/Album/Track nodes |
+
+### Security Considerations
+
+- **Query sandboxing**: Validate Cypher before execution; reject DELETE/REMOVE in non-admin mode
+- **Rate limiting**: Prevent runaway graph modifications
+- **Audit trail**: Log all Hermes-generated queries with provenance
+- **Human-in-the-loop**: Optionally require approval for write operations
+- **Schema pinning**: Hermes can only reference node/relationship types in ontology
+
+### Integration with Curiosity System (Phase 4)
+
+When the Curiosity Budget allows autonomous exploration, Sophia can:
+1. Identify a knowledge gap (e.g., "Who produced this album?")
+2. Call `/graph-assist` with `ingest_knowledge` intent
+3. Hermes generates lookup + Cypher
+4. Sophia executes, expanding the knowledge graph
+
+This creates a **Hermes ↔ Sophia symbiosis**: Hermes provides semantic intelligence, Sophia provides structural memory.
+
+### Graph Maintenance & Hygiene
+
+Sophia requires periodic graph maintenance operations, potentially assisted by Hermes for semantic understanding. These operations maintain graph quality as knowledge accumulates.
+
+#### Maintenance Operations
+
+| Operation | Description | Trigger |
+|-----------|-------------|---------|
+| **Pruning** | Remove low-confidence or stale edges | Scheduled / budget-driven |
+| **Deduplication** | Merge nodes representing the same entity | On ingest / periodic scan |
+| **Inference** | Create implicit relationships from patterns | Reflection / curiosity |
+| **Consolidation** | Summarize dense subgraphs into higher-level nodes | Threshold-based |
+| **Orphan cleanup** | Remove disconnected nodes with no value | Scheduled |
+| **Confidence decay** | Reduce certainty of unverified old facts | Time-based |
+
+#### Deduplication Strategy
+
+Entity deduplication is non-trivial—two nodes may represent the same entity with different labels or partial information.
+
+```
+Node A: {name: "America", type: "MusicArtist"}
+Node B: {name: "America (band)", type: "MusicArtist", formed: 1970}
+```
+
+**Approach**:
+1. **Candidate detection**: Embedding similarity + label fuzzy matching
+2. **Hermes verification**: "Are these the same entity?" with full context
+3. **Merge proposal**: Hermes generates `MERGE` Cypher combining properties
+4. **Conflict resolution**: Prefer newer data, higher confidence, or prompt user
+
+#### Inference Patterns
+
+Sophia can infer relationships that aren't explicitly stated:
+
+| Pattern | Inference |
+|---------|-----------|
+| A authored Track T, T is on Album B | A contributed to Album B |
+| MediaSample M represents Track T, T mentions Location L | M is associated with L |
+| User uploaded M1, M2, M3 all featuring Artist A | User has interest in A |
+
+**Implementation**: Hermes generates inference Cypher based on graph patterns:
+
+```python
+# Sophia request
+{
+    "operation": "infer_relationships",
+    "focus_node": "uuid:artist-america-xxx",
+    "max_depth": 2
+}
+
+# Hermes response
+{
+    "inferences": [
+        {
+            "query": "MATCH (a:MusicArtist {uuid: $uuid})-[:RELEASED]->(:Album)<-[:UPLOADED]->(u:User) MERGE (u)-[:INTERESTED_IN {confidence: 0.7, inferred: true}]->(a)",
+            "reasoning": "User uploaded multiple tracks from this artist",
+            "confidence": 0.7
+        }
+    ]
+}
+```
+
+#### Pruning Criteria
+
+Edges/nodes may be pruned based on:
+
+- **Age**: No access or update in N days
+- **Confidence**: Below threshold and unverified
+- **Redundancy**: Superseded by stronger relationship
+- **Isolation**: No connections to active subgraph
+
+**Safeguards**:
+- Never prune user-created content without confirmation
+- Archive before delete (soft delete with recovery window)
+- Pruning proposals reviewed if above threshold count
+
+#### Scheduling
+
+Graph maintenance can be:
+- **Scheduled**: Cron-style jobs during low-activity periods
+- **Budget-driven**: Use Curiosity Budget for autonomous maintenance
+- **Threshold-triggered**: When node/edge count exceeds limits
+- **On-demand**: User or system requests cleanup
+
+### Open Questions
+
+- Should Hermes cache ontology schema, or query it dynamically?
+- How to handle conflicting interpretations (multiple high-confidence candidates)?
+- Transaction semantics: rollback if multi-query batch partially fails?
+- How to measure and improve Cypher generation accuracy?
+- What's the retention policy for pruned/archived nodes?
+- How to balance inference aggressiveness vs. graph noise?
+
+### Milestone Integration
+
+This feature spans milestones if implemented in Phase 3:
+
+- **P3-M1**: Schema awareness (Hermes can query ontology)
+- **P3-M2**: Reflection can trigger resolution requests
+- **P3-M4**: Episodic learning includes Graph Assist interactions
+
+Alternatively, defer to **Phase 4** alongside Curiosity Budget for cohesive autonomous exploration.
+
+---
+
 ## Implementation Notes
 
 ### Short-term Memory Architecture
