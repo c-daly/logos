@@ -23,22 +23,28 @@ Hermes is the stateless language & embedding utility providing:
 Configure the `/llm` gateway by setting `HERMES_LLM_PROVIDER` (`openai`, `local`, `echo`) and the corresponding credentials (e.g., `HERMES_LLM_API_KEY`). Apollo SDKs consume this contract so every surface calls the same endpoint.
 
 ### Sophia API
-**Status:** 🚧 Coming Soon  
-**Repository:** [c-daly/sophia](https://github.com/c-daly/sophia)
+**Status:** ✅ Available  
+**Specification:** [`contracts/sophia.openapi.yaml`](../../contracts/sophia.openapi.yaml)  
+**Documentation:** [View Online](https://c-daly.github.io/logos/api/sophia.html)
 
 Non-linguistic cognitive core with Orchestrator, CWM-A, CWM-G, Planner, and Executor.
+
+### Apollo API
+**Status:** ✅ Available  
+**Specification:** [`contracts/apollo.openapi.yaml`](../../contracts/apollo.openapi.yaml)  
+**Documentation:** [View Online](https://c-daly.github.io/logos/api/apollo.html)
+
+Thin client UI and command layer providing:
+- HCG graph querying (entities, relations, paths)
+- Media upload proxy to Hermes
+- WebSocket diagnostics
+- Plan execution interface
 
 ### Talos API
 **Status:** 🚧 Coming Soon  
 **Repository:** [c-daly/talos](https://github.com/c-daly/talos)
 
 Hardware abstraction layer for sensors and actuators.
-
-### Apollo API
-**Status:** 🚧 Coming Soon  
-**Repository:** [c-daly/apollo](https://github.com/c-daly/apollo)
-
-Thin client UI and command layer.
 
 ## Building Documentation Locally
 

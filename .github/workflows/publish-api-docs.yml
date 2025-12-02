@@ -66,6 +66,12 @@ jobs:
             exit 1
           fi
           
+          # Check for Apollo API docs
+          if [ ! -f "docs/api/apollo.html" ]; then
+            echo "❌ Error: apollo.html not generated"
+            exit 1
+          fi
+          
           # Check for CWM-E API docs
           if [ ! -f "docs/api/cwm-e.html" ]; then
             echo "❌ Error: cwm-e.html not generated"
