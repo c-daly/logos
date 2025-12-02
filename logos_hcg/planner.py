@@ -10,14 +10,11 @@ See logos#157 for design details.
 
 import logging
 from datetime import datetime, timezone
-from typing import Any
 from uuid import UUID, uuid4
 
 from logos_hcg.client import HCGClient
 from logos_hcg.models import (
-    Capability,
     Goal,
-    GoalStatus,
     GoalTarget,
     Plan,
     PlanStatus,
@@ -170,7 +167,7 @@ class HCGPlanner:
 
         # Use first satisfied state as current_state_uuid for Plan
         current_state_uuid = next(iter(satisfied_states)) if satisfied_states else None
-        
+
         return Plan(
             uuid=uuid4(),
             goal_uuid=goal.uuid,
@@ -249,7 +246,7 @@ class HCGPlanner:
         # For each unsatisfied precondition, find a process that achieves it
         for precond in preconditions:
             precond_uuid = UUID(precond.uuid) if isinstance(precond.uuid, str) else precond.uuid
-            
+
             # Check if precondition is already satisfied
             if precond_uuid in satisfied_states:
                 continue

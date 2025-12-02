@@ -21,7 +21,7 @@ from neo4j.exceptions import (
     TransientError,
 )
 
-from logos_hcg.models import Concept, Entity, Process, State
+from logos_hcg.models import Capability, Concept, Entity, Process, State
 from logos_hcg.queries import HCGQueries
 
 logger = logging.getLogger(__name__)
@@ -769,7 +769,6 @@ class HCGClient:
         Returns:
             Capability object if found, None otherwise
         """
-        from logos_hcg.models import Capability
 
         uuid_str = self._normalize_uuid(uuid, "uuid")
         query = HCGQueries.find_capability_by_uuid()
@@ -793,7 +792,6 @@ class HCGClient:
         Returns:
             Capability object if found, None otherwise
         """
-        from logos_hcg.models import Capability
 
         process_uuid_str = self._normalize_uuid(process_uuid, "process_uuid")
         query = HCGQueries.find_capability_for_process()

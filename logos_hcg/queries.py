@@ -376,7 +376,7 @@ class HCGQueries:
     def find_processes_by_effect_properties() -> str:
         """
         Find processes that cause states matching property criteria.
-        
+
         Uses dynamic property matching on the caused State.
         Caller should pass property_key and property_value parameters.
 

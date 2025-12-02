@@ -1,7 +1,7 @@
 """Unit tests for planning models (logos#157 + sophia#15)."""
 
 from datetime import datetime, timezone
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import pytest
 

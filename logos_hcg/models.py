@@ -144,7 +144,7 @@ class State(BaseModel):
     - Boolean flags: is_grasped, is_closed, is_empty
     - Physical: grasp_width, applied_force
     - Embedding metadata (Section 4.2): embedding_id, embedding_model, last_sync
-    
+
     Note: timestamp is optional to support abstract/template states
     that define what CAN be true, vs instantiated states that ARE true.
     """
@@ -208,7 +208,7 @@ class Process(BaseModel):
     - description: Optional description
     - duration_ms: Duration in milliseconds
     - Embedding metadata (Section 4.2): embedding_id, embedding_model, last_sync
-    
+
     Note: start_time is optional to support abstract/template processes
     that define what CAN happen, vs instantiated processes that DID happen.
     """
