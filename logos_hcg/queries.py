@@ -354,6 +354,117 @@ class HCGQueries:
         ORDER BY next.timestamp
         """
 
+    # ========== Planning Queries (logos#157) ==========
+
+    @staticmethod
+    def find_processes_causing_state() -> str:
+        """
+        Find all processes that CAUSE a specific state.
+
+        Parameters:
+        - state_uuid: Target State UUID
+
+        Returns: List of Process nodes that cause this state
+        """
+        return """
+        MATCH (p:Process)-[:CAUSES]->(s:State {uuid: $state_uuid})
+        RETURN p
+        ORDER BY p.start_time DESC
+        """
+
+    @staticmethod
+    def find_processes_by_effect_properties() -> str:
+        """
+        Find processes that cause states matching property criteria.
+
+        Uses dynamic property matching on the caused State.
+        Caller should pass property_key and property_value parameters.
+
+        Parameters:
+        - property_key: Name of the state property to match
+        - property_value: Value to match
+
+        Returns: Process and matching State pairs
+        """
+        return """
+        MATCH (p:Process)-[:CAUSES]->(s:State)
+        WHERE s[$property_key] = $property_value
+        RETURN p, s
+        ORDER BY p.start_time DESC
+        """
+
+    @staticmethod
+    def find_processes_for_entity_state() -> str:
+        """
+        Find processes that cause states for a specific entity.
+
+        Parameters:
+        - entity_uuid: Entity UUID
+
+        Returns: Process, State, and the HAS_STATE relationship
+        """
+        return """
+        MATCH (e:Entity {uuid: $entity_uuid})-[:HAS_STATE]->(s:State)<-[:CAUSES]-(p:Process)
+        RETURN p, s
+        ORDER BY s.timestamp DESC
+        """
+
+    @staticmethod
+    def find_capability_for_process() -> str:
+        """
+        Find the capability that can execute a process.
+
+        Looks for USES_CAPABILITY or IMPLEMENTS relationships.
+
+        Parameters:
+        - process_uuid: Process UUID
+
+        Returns: Capability node if found
+        """
+        return """
+        MATCH (p:Process {uuid: $process_uuid})
+        OPTIONAL MATCH (p)-[:USES_CAPABILITY]->(cap:Capability)
+        OPTIONAL MATCH (p)-[:IS_A]->(c:Concept)<-[:IMPLEMENTS]-(cap2:Capability)
+        RETURN COALESCE(cap, cap2) as capability
+        """
+
+    @staticmethod
+    def find_current_state_for_entity() -> str:
+        """
+        Find the most recent state for an entity.
+
+        Parameters:
+        - entity_uuid: Entity UUID
+
+        Returns: Most recent State node
+        """
+        return """
+        MATCH (e:Entity {uuid: $entity_uuid})-[:HAS_STATE]->(s:State)
+        RETURN s
+        ORDER BY s.timestamp DESC
+        LIMIT 1
+        """
+
+    @staticmethod
+    def check_state_satisfied() -> str:
+        """
+        Check if a state with given properties exists for an entity.
+
+        Used to verify preconditions during planning.
+
+        Parameters:
+        - entity_uuid: Entity UUID
+        - property_key: State property to check
+        - property_value: Expected value
+
+        Returns: Boolean indicating if state exists
+        """
+        return """
+        MATCH (e:Entity {uuid: $entity_uuid})-[:HAS_STATE]->(s:State)
+        WHERE s[$property_key] = $property_value
+        RETURN COUNT(s) > 0 as satisfied
+        """
+
     # ========== Spatial/Physical Queries ==========
 
     @staticmethod

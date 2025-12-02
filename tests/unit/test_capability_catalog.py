@@ -5,6 +5,7 @@ Tests the capability catalog schema and query patterns for logos#284.
 """
 
 from datetime import datetime
+from uuid import uuid4
 
 import pytest
 from pydantic import ValidationError
@@ -37,12 +38,13 @@ class TestCapabilityModel:
 
     def test_minimal_capability(self):
         """Create capability with only required fields."""
+        test_uuid = uuid4()
         cap = Capability(
-            uuid="capability-test",
+            uuid=test_uuid,
             name="TestCapability",
             executor_type="human",
         )
-        assert cap.uuid == "capability-test"
+        assert cap.uuid == test_uuid
         assert cap.name == "TestCapability"
         assert cap.executor_type == "human"
         assert cap.deprecated is False
@@ -52,7 +54,7 @@ class TestCapabilityModel:
         """Create capability with all fields."""
         now = datetime.now()
         cap = Capability(
-            uuid="capability-full",
+            uuid=uuid4(),
             name="FullCapability",
             executor_type="talos",
             description="A complete capability",
@@ -83,7 +85,7 @@ class TestCapabilityModel:
         """Invalid executor type should raise validation error."""
         with pytest.raises(ValidationError) as exc_info:
             Capability(
-                uuid="capability-bad",
+                uuid=uuid4(),
                 name="BadCapability",
                 executor_type="invalid",
             )
@@ -93,7 +95,7 @@ class TestCapabilityModel:
         """Success rate must be between 0 and 1."""
         # Valid success rates
         cap = Capability(
-            uuid="capability-rate",
+            uuid=uuid4(),
             name="RateCapability",
             executor_type="service",
             success_rate=0.5,
@@ -102,7 +104,7 @@ class TestCapabilityModel:
 
         # At boundaries
         cap_low = Capability(
-            uuid="capability-low",
+            uuid=uuid4(),
             name="LowRate",
             executor_type="service",
             success_rate=0.0,
@@ -110,7 +112,7 @@ class TestCapabilityModel:
         assert cap_low.success_rate == 0.0
 
         cap_high = Capability(
-            uuid="capability-high",
+            uuid=uuid4(),
             name="HighRate",
             executor_type="service",
             success_rate=1.0,
@@ -120,7 +122,7 @@ class TestCapabilityModel:
         # Out of bounds
         with pytest.raises(ValidationError):
             Capability(
-                uuid="capability-oob",
+                uuid=uuid4(),
                 name="OOBRate",
                 executor_type="service",
                 success_rate=1.5,
@@ -128,7 +130,7 @@ class TestCapabilityModel:
 
         with pytest.raises(ValidationError):
             Capability(
-                uuid="capability-neg",
+                uuid=uuid4(),
                 name="NegRate",
                 executor_type="service",
                 success_rate=-0.1,
@@ -138,7 +140,7 @@ class TestCapabilityModel:
         """Duration, cost, and invocation count must be non-negative."""
         # Valid values
         cap = Capability(
-            uuid="capability-valid",
+            uuid=uuid4(),
             name="ValidCapability",
             executor_type="llm",
             estimated_duration_ms=0,
@@ -150,7 +152,7 @@ class TestCapabilityModel:
         # Negative values should fail
         with pytest.raises(ValidationError):
             Capability(
-                uuid="capability-neg-dur",
+                uuid=uuid4(),
                 name="NegDuration",
                 executor_type="llm",
                 estimated_duration_ms=-1,
@@ -158,7 +160,7 @@ class TestCapabilityModel:
 
         with pytest.raises(ValidationError):
             Capability(
-                uuid="capability-neg-cost",
+                uuid=uuid4(),
                 name="NegCost",
                 executor_type="llm",
                 estimated_cost=-0.1,
@@ -167,7 +169,7 @@ class TestCapabilityModel:
     def test_human_executor_properties(self):
         """Human executor should have instruction template."""
         cap = Capability(
-            uuid="capability-human",
+            uuid=uuid4(),
             name="HumanTask",
             executor_type="human",
             instruction_template="Please {{action}} the {{object}}.",
@@ -179,7 +181,7 @@ class TestCapabilityModel:
     def test_talos_executor_properties(self):
         """Talos executor should have action name."""
         cap = Capability(
-            uuid="capability-talos",
+            uuid=uuid4(),
             name="TalosAction",
             executor_type="talos",
             action_name="/talos/grasp",
@@ -190,7 +192,7 @@ class TestCapabilityModel:
     def test_service_executor_properties(self):
         """Service executor should have endpoint."""
         cap = Capability(
-            uuid="capability-service",
+            uuid=uuid4(),
             name="ServiceCall",
             executor_type="service",
             service_endpoint="https://api.example.com/action",
@@ -200,7 +202,7 @@ class TestCapabilityModel:
     def test_llm_executor_properties(self):
         """LLM executor should have prompt template."""
         cap = Capability(
-            uuid="capability-llm",
+            uuid=uuid4(),
             name="LLMTask",
             executor_type="llm",
             prompt_template="Analyze the following: {{input}}",

@@ -17,6 +17,7 @@ See Project LOGOS spec: Section 4.1 for ontology structure.
 
 from datetime import datetime
 from typing import Any
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -47,7 +48,7 @@ class Entity(BaseModel):
     Represents a concrete instance in the HCG.
 
     Properties:
-    - uuid: Unique identifier (required, string with 'entity-' prefix)
+    - uuid: Unique identifier (required, RFC 4122 UUID)
     - name: Human-readable name
     - description: Optional description
     - created_at: Timestamp of creation
@@ -55,7 +56,7 @@ class Entity(BaseModel):
     - Embedding metadata (Section 4.2): embedding_id, embedding_model, last_sync
     """
 
-    uuid: str
+    uuid: UUID
     name: str | None = None
     description: str | None = None
     created_at: datetime | None = None
@@ -106,13 +107,13 @@ class Concept(BaseModel):
     Represents an abstract category/type in the HCG.
 
     Properties:
-    - uuid: Unique identifier (required, string with 'concept-' prefix)
+    - uuid: Unique identifier (required, RFC 4122 UUID)
     - name: Concept name (required, unique)
     - description: Optional description
     - Embedding metadata (Section 4.2): embedding_id, embedding_model, last_sync
     """
 
-    uuid: str
+    uuid: UUID
     name: str
     description: str | None = None
 
@@ -135,18 +136,21 @@ class State(BaseModel):
     Represents a temporal snapshot of entity properties.
 
     Properties:
-    - uuid: Unique identifier (required, string with 'state-' prefix)
-    - timestamp: Time of state snapshot (required)
+    - uuid: Unique identifier (required, RFC 4122 UUID)
+    - timestamp: Time of state snapshot (optional, for instantiated states)
     - name: Optional state name
     - Position: position_x, position_y, position_z
     - Orientation: orientation_roll, orientation_pitch, orientation_yaw
     - Boolean flags: is_grasped, is_closed, is_empty
     - Physical: grasp_width, applied_force
     - Embedding metadata (Section 4.2): embedding_id, embedding_model, last_sync
+
+    Note: timestamp is optional to support abstract/template states
+    that define what CAN be true, vs instantiated states that ARE true.
     """
 
-    uuid: str
-    timestamp: datetime
+    uuid: UUID
+    timestamp: datetime | None = None
     name: str | None = None
 
     # Position properties
@@ -198,16 +202,19 @@ class Process(BaseModel):
     Represents an action that causes state changes.
 
     Properties:
-    - uuid: Unique identifier (required, string with 'process-' prefix)
-    - start_time: Process start timestamp (required)
+    - uuid: Unique identifier (required, RFC 4122 UUID)
+    - start_time: Process start timestamp (optional, for instantiated processes)
     - name: Optional process name
     - description: Optional description
     - duration_ms: Duration in milliseconds
     - Embedding metadata (Section 4.2): embedding_id, embedding_model, last_sync
+
+    Note: start_time is optional to support abstract/template processes
+    that define what CAN happen, vs instantiated processes that DID happen.
     """
 
-    uuid: str
-    start_time: datetime
+    uuid: UUID
+    start_time: datetime | None = None
     name: str | None = None
     description: str | None = None
     duration_ms: int | None = Field(None, ge=0)
@@ -285,7 +292,7 @@ class Capability(BaseModel):
     - created_at, updated_at: Timestamps
     """
 
-    uuid: str
+    uuid: UUID
     name: str
     executor_type: str
     description: str | None = None
@@ -418,7 +425,7 @@ class Fact(BaseModel):
         )
     """
 
-    uuid: str
+    uuid: UUID
     subject: str
     predicate: str
     object: str
@@ -509,7 +516,7 @@ class Association(BaseModel):
         )
     """
 
-    uuid: str
+    uuid: UUID
     source_concept: str
     target_concept: str
     strength: float = Field(..., ge=0.0, le=1.0)
@@ -574,7 +581,7 @@ class Abstraction(BaseModel):
         )
     """
 
-    uuid: str
+    uuid: UUID
     name: str
 
     # Metadata
@@ -644,7 +651,7 @@ class Rule(BaseModel):
         )
     """
 
-    uuid: str
+    uuid: UUID
     name: str
     condition: str
     consequent: str
@@ -687,4 +694,217 @@ class Rule(BaseModel):
             return None
         if hasattr(v, "to_native"):
             return v.to_native()
+        return v
+
+
+# ============================================================================
+# Planning Models (logos#157 + sophia#15)
+# ============================================================================
+
+
+class SourceService:
+    """Source service constants for provenance tracking."""
+
+    SOPHIA = "sophia"
+    HERMES = "hermes"
+    TALOS = "talos"
+    APOLLO = "apollo"
+    HUMAN = "human"
+
+    ALL = [SOPHIA, HERMES, TALOS, APOLLO, HUMAN]
+
+
+class GoalStatus:
+    """Goal lifecycle status constants."""
+
+    PENDING = "pending"
+    ACTIVE = "active"
+    ACHIEVED = "achieved"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+    ALL = [PENDING, ACTIVE, ACHIEVED, FAILED, CANCELLED]
+
+
+class PlanStatus:
+    """Plan lifecycle status constants."""
+
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+    ALL = [PENDING, IN_PROGRESS, COMPLETED, FAILED]
+
+
+class Provenance(BaseModel):
+    """
+    Audit trail for any authored artifact (sophia#15).
+
+    Tracks who/what created an artifact and when, supporting
+    governance and debugging across services.
+
+    Properties:
+    - source_service: Which service created this (sophia, hermes, talos, apollo, human)
+    - author_id: UUID of the user or agent that authored this
+    - created_at: When the artifact was created
+    - trace_id: Distributed tracing ID for request correlation
+    - tags: Arbitrary tags for filtering/categorization
+    """
+
+    source_service: str
+    author_id: UUID | None = None
+    created_at: datetime
+    trace_id: UUID | None = None
+    tags: list[str] = Field(default_factory=list)
+
+    model_config = ConfigDict(
+        json_encoders={
+            datetime: lambda v: v.isoformat() if v else None,
+        }
+    )
+
+    @field_validator("source_service")
+    @classmethod
+    def validate_source_service(cls, v: str) -> str:
+        """Validate source_service is one of the allowed values."""
+        if v not in SourceService.ALL:
+            raise ValueError(f"source_service must be one of {SourceService.ALL}, got '{v}'")
+        return v
+
+
+class GoalTarget(BaseModel):
+    """
+    Specifies what success looks like for a Goal.
+
+    References HCG nodes to define the desired end state.
+    The planner uses this to find processes that achieve
+    matching states.
+
+    Properties:
+    - entity_uuid: Which entity should be in the target state
+    - concept_uuid: Optional type/category of the desired state
+    - state_properties: Optional property values to match (query criteria)
+    """
+
+    entity_uuid: UUID
+    concept_uuid: UUID | None = None
+    state_properties: dict[str, Any] | None = None
+
+
+class Goal(BaseModel):
+    """
+    A planning goal - desired outcome to achieve.
+
+    Goals are domain-agnostic; they specify what success looks like
+    via GoalTarget, and the planner finds processes to achieve it.
+
+    Properties:
+    - uuid: Unique identifier for this goal
+    - description: Human-readable description
+    - target: What success looks like (entity + desired state)
+    - status: Lifecycle status (pending, active, achieved, failed, cancelled)
+    - priority: Relative priority for multi-goal planning (higher = more important)
+    - provenance: Audit trail (who created, when, from where)
+    """
+
+    uuid: UUID
+    description: str
+    target: GoalTarget
+    status: str = GoalStatus.PENDING
+    priority: float = 1.0
+    provenance: Provenance
+
+    model_config = ConfigDict(
+        json_encoders={
+            datetime: lambda v: v.isoformat() if v else None,
+        }
+    )
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: str) -> str:
+        """Validate status is one of the allowed values."""
+        if v not in GoalStatus.ALL:
+            raise ValueError(f"status must be one of {GoalStatus.ALL}, got '{v}'")
+        return v
+
+
+class PlanStep(BaseModel):
+    """
+    A single step in an execution plan.
+
+    Each step references an HCG Process node and tracks its
+    preconditions, effects, and execution binding.
+
+    Properties:
+    - uuid: Unique identifier for this step
+    - name: Human-readable label (copied from Process.name)
+    - index: Order in the plan (0-based)
+    - process_uuid: HCG Process node this step executes
+    - precondition_uuids: State UUIDs that must be true before execution
+    - effect_uuids: State UUIDs caused by this step
+    - capability_uuid: Which Capability executes this (executor binding)
+    - estimated_duration_ms: Expected execution time
+    - confidence: Confidence this step will succeed (0.0-1.0)
+    - provenance: Audit trail
+    """
+
+    uuid: UUID
+    name: str | None = None
+    index: int = Field(..., ge=0)
+    process_uuid: UUID
+    precondition_uuids: list[UUID] = Field(default_factory=list)
+    effect_uuids: list[UUID] = Field(default_factory=list)
+    capability_uuid: UUID | None = None
+    estimated_duration_ms: int | None = Field(None, ge=0)
+    confidence: float = Field(1.0, ge=0.0, le=1.0)
+    provenance: Provenance
+
+    model_config = ConfigDict(
+        json_encoders={
+            datetime: lambda v: v.isoformat() if v else None,
+        }
+    )
+
+
+class Plan(BaseModel):
+    """
+    A complete execution plan to achieve a Goal.
+
+    Plans are ordered sequences of PlanSteps produced by
+    backward chaining over HCG REQUIRES/CAUSES edges.
+
+    Properties:
+    - uuid: Unique identifier for this plan
+    - goal_uuid: The Goal this plan achieves
+    - steps: Ordered list of PlanSteps
+    - current_state_uuid: Starting state for plan execution
+    - expected_final_state_uuid: Predicted state after successful execution
+    - status: Lifecycle status (pending, in_progress, completed, failed)
+    - confidence: Overall plan confidence (0.0-1.0)
+    - provenance: Audit trail
+    """
+
+    uuid: UUID
+    goal_uuid: UUID
+    steps: list[PlanStep]
+    current_state_uuid: UUID | None = None
+    expected_final_state_uuid: UUID | None = None
+    status: str = PlanStatus.PENDING
+    confidence: float = Field(1.0, ge=0.0, le=1.0)
+    provenance: Provenance
+
+    model_config = ConfigDict(
+        json_encoders={
+            datetime: lambda v: v.isoformat() if v else None,
+        }
+    )
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: str) -> str:
+        """Validate status is one of the allowed values."""
+        if v not in PlanStatus.ALL:
+            raise ValueError(f"status must be one of {PlanStatus.ALL}, got '{v}'")
         return v

@@ -1,4 +1,4 @@
-# Project LOGOS — Flexible Specification
+# Project LOGOS Specification
 
 This document supersedes the original full specification. It folds in every relevant requirement from the prior spec, records the work delivered during Phase 1, and codifies the flexible deployment philosophy that now guides the roadmap. Treat this file as the single source of truth for architecture, ontology, infrastructure, and milestone expectations. Phase-specific deliverables now live under `docs/phase1/`, `docs/phase2/`, etc., while archival references were moved into `docs/old/`.
 
@@ -126,7 +126,17 @@ Subsystems:
 
 Sophia maintains *multi-layer causal world models*. CWM-A captures commonsense structure—relationships, affordances, and temporal rules encoded in the HCG. CWM-G captures grounded physics or perceptual dynamics: predictions of how the environment changes when a capability fires or how the next observation (video frame, image, sensor reading) should look. CWM-G can be implemented using JEPA-style joint embedding predictive architectures, simulators, or other differentiable models. Plans are only accepted when they are validated against both models: the abstract layer ensures semantic correctness, and the grounded layer enforces physical plausibility (e.g., mass/inertia, reachability, safety) or perceptual consistency. A third optional layer, **CWM-E (emotional/social)**, reflects on stored memories/persona entries to infer confidence, trust, or other affective signals. CWM-E writes its conclusions back into the HCG (e.g., tagging processes or entities with emotional state) so planners and any interaction layer (Apollo or others) can adjust behavior and tone. Additional specialized models can be added later without changing the contracts. All layers publish their updates through a unified `CWMState` envelope (`state_id`, `model_type`, `timestamp`, `confidence`, `links`, `data`, etc.) described in `docs/architecture/PHASE2_SPEC.md`, which keeps APIs, logs, Neo4j records, and diagnostics surfaces consistent even as new models appear.
 
-**Short-term / Ephemeral Memory**: LOGOS optionally maintains a session-scoped buffer of `CWMState` entries (e.g., `status="ephemeral"`) that live in fast storage and expire automatically. These memories capture transient observations, user claims, or heuristics that should influence planning/persona tone during the current interaction but should not persist in the canonical HCG unless promoted. Ephemeral entries still use the `CWMState` contract so planners can weigh them against persistent facts, enabling curiosity loops (e.g., flagging “unknown sensor reading” and motivating a follow-up observation) without contaminating long-term state. Promotion rules (what gets persisted) are policy-driven and logged for auditability.
+**Short-term / Ephemeral Memory**: LOGOS optionally maintains a session-scoped buffer of `CWMState` entries (e.g., `status="ephemeral"`) that live in fast storage and expire automatically. These memories capture transient observations, user claims, or heuristics that should influence planning/persona tone during the current interaction but should not persist in the canonical HCG unless promoted. Ephemeral entries still use the `CWMState` contract so planners can weigh them against persistent facts, enabling curiosity loops (e.g., flagging "unknown sensor reading" and motivating a follow-up observation) without contaminating long-term state. Promotion rules (what gets persisted) are policy-driven and logged for auditability. In future phases, these curiosity flags feed into a **curiosity budget** that gates autonomous exploration—see `docs/architecture/PHASE3_SPEC.md` § *Curiosity Budget & Autonomous Exploration*.
+
+**Hierarchical Memory**: Sophia's memory spans three tiers with distinct lifetimes and promotion policies:
+
+| Tier | Scope | Lifetime | Storage | Promotion criteria |
+|------|-------|----------|---------|-------------------|
+| **Ephemeral** | Single session | Session end | In-memory | Survives to short-term if significant (user signal, behavioral impact, recurrence) |
+| **Short-term** | Multi-session | Configurable TTL (default 7d) | Redis | Survives to long-term if validated (confidence > 0.8, cross-session consistency, causal verification) |
+| **Long-term** | Permanent | Indefinite | Neo4j + Milvus | Canonical knowledge; only demoted if contradicted or superseded |
+
+Information only moves up the hierarchy when it demonstrates both **significance** (worth remembering) and **truth** (verified or high-confidence). Trivia, transient details, and unverified claims decay at lower tiers. See `docs/architecture/PHASE3_SPEC.md` § *Hierarchical Memory Architecture* for full promotion/demotion rules.
 
 **Imagination / Simulation**: CWM-G doubles as a short-horizon simulator. Sophia exposes a `simulate(capability, context)` call that rolls out JEPA-based predictions (or a Talos/Gazebo backend when available). This lets the agent “imagine” outcomes—e.g., testing whether a jump clears a barrier or whether a grasp succeeds—before updating the HCG. Imagined states are recorded with metadata so Apollo/Hermes can explain the reasoning.
 
@@ -267,9 +277,10 @@ Focus on improving reasoning/execution while staying hardware-optional:
 - **Meta-reflection**: Periodic aggregate analysis across diary entries to identify systemic patterns (e.g., "10 reflections about verbosity indicates communication style issue")
 - **Personality evolution tracking**: Long-term monitoring of agent behavior changes, tone adaptation, preference drift
 - **Deep planner integration**: Reflection-driven strategy adjustment, dynamic capability confidence weighting, risk assessment based on emotional state
+- **Curiosity-driven exploration**: Autonomous investigation of novel facts, contradictions, and perplexing diary entries within a resource budget (time, API calls, compute). Triggers include unknown patterns, disconnected subgraphs, and high-uncertainty reflections. See `docs/architecture/PHASE3_SPEC.md` § *Curiosity Budget & Autonomous Exploration* for mechanics.
 - **Continuous learning with safety gates**: Production deployment patterns with rollback, A/B testing, human-in-the-loop validation
 - **Observability enhancements**: Real-time reflection quality metrics, memory usage dashboards, learning curve visualization
-- **Success criteria**: Meta-reflections drive systemic improvements, personality evolution tracked and explainable, planner adapts strategy based on reflection history, production-safe continuous learning demonstrated
+- **Success criteria**: Meta-reflections drive systemic improvements, personality evolution tracked and explainable, planner adapts strategy based on reflection history, curiosity explorations yield measurable knowledge growth, production-safe continuous learning demonstrated
 
 ---
 

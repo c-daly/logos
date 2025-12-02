@@ -7,6 +7,8 @@ This test does not require a running Neo4j instance.
 import re
 from pathlib import Path
 
+import pytest
+
 
 def test_core_ontology_structure():
     """Test that core_ontology.cypher has expected structure."""
@@ -157,33 +159,33 @@ def test_shacl_shapes_structure():
 
 
 def test_uuid_consistency():
-    """Test that UUIDs in test data follow the patterns defined in SHACL."""
+    """Test that UUIDs in test data are valid (RFC 4122 or legacy prefixed format)."""
+    import uuid as uuid_module
+
     test_data_file = Path(__file__).parent.parent / "ontology" / "test_data_pick_and_place.cypher"
     content = test_data_file.read_text()
 
     # Extract all UUIDs
     entity_uuids = re.findall(r"uuid:\s*['\"]([^'\"]+)['\"]", content)
 
-    # Check patterns
-    for uuid in entity_uuids:
-        assert uuid.startswith(
-            ("entity-", "concept-", "state-", "process-")
-        ), f"UUID doesn't follow pattern: {uuid}"
+    # Legacy prefixes that are still valid
+    legacy_prefixes = ("entity-", "concept-", "state-", "process-", "capability-")
 
-    # Check for specific expected UUIDs
-    expected_entities = [
-        "entity-robot-arm-01",
-        "entity-gripper-01",
-        "entity-block-red-01",
-    ]
-    expected_concepts = ["concept-manipulator", "concept-gripper", "concept-graspable"]
-    expected_states = ["state-arm-home-01", "state-gripper-open-01"]
-    expected_processes = ["process-move-pregrasp-01", "process-grasp-red-01"]
+    # Check that all UUIDs are valid (either RFC 4122 or legacy prefixed)
+    for uuid_str in entity_uuids:
+        # Accept legacy prefixed UUIDs
+        if uuid_str.startswith(legacy_prefixes):
+            continue
+        # Otherwise must be valid RFC 4122
+        try:
+            uuid_module.UUID(uuid_str)
+        except ValueError:
+            pytest.fail(f"Invalid UUID format: {uuid_str}")
 
-    for uuid in expected_entities + expected_concepts + expected_states + expected_processes:
-        assert uuid in entity_uuids, f"Expected UUID not found: {uuid}"
+    # Verify we found some UUIDs
+    assert len(entity_uuids) > 0, "No UUIDs found in test data"
 
-    print("✓ UUID consistency verified")
+    print(f"✓ UUID consistency verified ({len(entity_uuids)} valid UUIDs)")
 
 
 def test_property_definitions():
