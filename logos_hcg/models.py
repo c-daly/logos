@@ -235,3 +235,109 @@ class Process(BaseModel):
         if hasattr(v, "to_native"):
             return v.to_native()
         return v
+
+
+class ExecutorType:
+    """Executor type constants for capabilities."""
+
+    HUMAN = "human"
+    TALOS = "talos"
+    SERVICE = "service"
+    LLM = "llm"
+
+    ALL = [HUMAN, TALOS, SERVICE, LLM]
+
+
+class Capability(BaseModel):
+    """
+    Represents a tool/process in the HCG capability catalog (logos#284).
+
+    Capabilities are registered tools that Sophia can use during planning.
+    Each capability defines what it does, how it's executed, and its
+    performance characteristics.
+
+    Properties:
+    - uuid: Unique identifier (required, string with 'capability-' prefix)
+    - name: Capability name (required, unique)
+    - executor_type: How the capability is executed (required)
+      - 'human': Instructions for human operators
+      - 'talos': Robotic actions via Talos
+      - 'service': External API/service calls
+      - 'llm': Language model reasoning
+    - description: What the capability does
+    - capability_tags: Tags for discovery (e.g., ['manipulation', 'pick'])
+
+    Performance:
+    - estimated_duration_ms: Typical execution time
+    - estimated_cost: Relative cost for planning optimization
+    - success_rate: Historical success rate (0.0-1.0)
+    - invocation_count: Usage statistics
+
+    Integration (executor-specific):
+    - service_endpoint: URL for service-type
+    - action_name: ROS action for talos-type
+    - instruction_template: Template for human-type
+    - prompt_template: Template for llm-type
+
+    Versioning:
+    - version: Semantic version
+    - deprecated: Whether capability is deprecated
+    - created_at, updated_at: Timestamps
+    """
+
+    uuid: str
+    name: str
+    executor_type: str
+    description: str | None = None
+    capability_tags: list[str] = Field(default_factory=list)
+
+    # Performance metrics
+    estimated_duration_ms: int | None = Field(None, ge=0)
+    estimated_cost: float | None = Field(None, ge=0)
+    success_rate: float | None = Field(None, ge=0, le=1)
+    invocation_count: int | None = Field(None, ge=0)
+
+    # Integration properties (executor-specific)
+    service_endpoint: str | None = None
+    action_name: str | None = None
+    instruction_template: str | None = None
+    prompt_template: str | None = None
+
+    # Versioning
+    version: str | None = None
+    deprecated: bool = False
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+    # Vector embedding metadata (Section 4.2)
+    embedding_id: str | None = None
+    embedding_model: str | None = None
+    last_sync: datetime | None = None
+
+    # Store any additional properties from Neo4j
+    extra_properties: dict[str, Any] = Field(default_factory=dict)
+
+    model_config = ConfigDict(
+        extra="allow",
+        arbitrary_types_allowed=True,
+    )
+
+    @field_validator("executor_type")
+    @classmethod
+    def validate_executor_type(cls, v: str) -> str:
+        """Validate executor_type is one of the allowed values."""
+        if v not in ExecutorType.ALL:
+            raise ValueError(
+                f"executor_type must be one of {ExecutorType.ALL}, got '{v}'"
+            )
+        return v
+
+    @field_validator("created_at", "updated_at", mode="before")
+    @classmethod
+    def parse_neo4j_datetime(cls, v):
+        """Convert Neo4j DateTime to Python datetime."""
+        if v is None:
+            return None
+        if hasattr(v, "to_native"):
+            return v.to_native()
+        return v

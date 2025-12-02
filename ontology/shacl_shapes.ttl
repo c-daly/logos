@@ -516,3 +516,214 @@ logos:ImaginedStateShape
         rdfs:label "Metadata" ;
         rdfs:comment "Additional metadata about the prediction" ;
     ] .
+
+# Phase 2: Capability Catalog Shapes (logos#284)
+# Validates tool/process definitions for Sophia planning
+
+logos:CapabilityShape
+    a sh:NodeShape ;
+    sh:targetClass logos:Capability ;
+    rdfs:label "Capability Shape" ;
+    rdfs:comment "Validates capability/tool definitions for planner consumption" ;
+    sh:property [
+        sh:path logos:uuid ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:pattern "^capability-.*" ;
+        rdfs:label "UUID" ;
+        rdfs:comment "Unique identifier for capability, must start with 'capability-'" ;
+    ] ;
+    sh:property [
+        sh:path logos:name ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Name" ;
+        rdfs:comment "Unique name for capability" ;
+    ] ;
+    sh:property [
+        sh:path logos:description ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Description" ;
+        rdfs:comment "Human-readable description of what the capability does" ;
+    ] ;
+    sh:property [
+        sh:path logos:executor_type ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ( "human" "talos" "service" "llm" ) ;
+        rdfs:label "Executor Type" ;
+        rdfs:comment "Type of executor: human (instructions), talos (robot), service (API), llm (reasoning)" ;
+    ] ;
+    sh:property [
+        sh:path logos:capability_tags ;
+        sh:datatype xsd:string ;
+        rdfs:label "Capability Tags" ;
+        rdfs:comment "Tags for capability discovery (e.g., 'manipulation', 'navigation', 'communication')" ;
+    ] ;
+    sh:property [
+        sh:path logos:version ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Version" ;
+        rdfs:comment "Semantic version of the capability definition" ;
+    ] ;
+    sh:property [
+        sh:path logos:deprecated ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:boolean ;
+        rdfs:label "Deprecated" ;
+        rdfs:comment "Whether this capability is deprecated" ;
+    ] ;
+    sh:property [
+        sh:path logos:created_at ;
+        sh:maxCount 1 ;
+        rdfs:label "Created At" ;
+        rdfs:comment "When the capability was registered" ;
+    ] ;
+    sh:property [
+        sh:path logos:updated_at ;
+        sh:maxCount 1 ;
+        rdfs:label "Updated At" ;
+        rdfs:comment "When the capability was last modified" ;
+    ] .
+
+# Capability performance metrics shape
+logos:CapabilityPerformanceShape
+    a sh:NodeShape ;
+    sh:targetClass logos:Capability ;
+    rdfs:label "Capability Performance Shape" ;
+    rdfs:comment "Validates performance metrics for capabilities" ;
+    sh:property [
+        sh:path logos:estimated_duration_ms ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 0 ;
+        rdfs:label "Estimated Duration (ms)" ;
+        rdfs:comment "Typical execution time in milliseconds" ;
+    ] ;
+    sh:property [
+        sh:path logos:estimated_cost ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ;
+        rdfs:label "Estimated Cost" ;
+        rdfs:comment "Relative cost metric for planning optimization" ;
+    ] ;
+    sh:property [
+        sh:path logos:success_rate ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:decimal ;
+        sh:minInclusive 0.0 ;
+        sh:maxInclusive 1.0 ;
+        rdfs:label "Success Rate" ;
+        rdfs:comment "Historical success rate (0.0 to 1.0)" ;
+    ] ;
+    sh:property [
+        sh:path logos:invocation_count ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:integer ;
+        sh:minInclusive 0 ;
+        rdfs:label "Invocation Count" ;
+        rdfs:comment "Number of times this capability has been used" ;
+    ] .
+
+# Capability integration shape (executor-specific properties)
+logos:CapabilityIntegrationShape
+    a sh:NodeShape ;
+    sh:targetClass logos:Capability ;
+    rdfs:label "Capability Integration Shape" ;
+    rdfs:comment "Validates executor-specific integration properties" ;
+    sh:property [
+        sh:path logos:service_endpoint ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Service Endpoint" ;
+        rdfs:comment "URL for service-type capabilities" ;
+    ] ;
+    sh:property [
+        sh:path logos:action_name ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Action Name" ;
+        rdfs:comment "ROS action name for talos-type capabilities" ;
+    ] ;
+    sh:property [
+        sh:path logos:instruction_template ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Instruction Template" ;
+        rdfs:comment "Template for generating human instructions" ;
+    ] ;
+    sh:property [
+        sh:path logos:prompt_template ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        rdfs:label "Prompt Template" ;
+        rdfs:comment "Template for LLM-type capabilities" ;
+    ] .
+
+# Capability relationship shapes
+
+logos:ImplementsRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "IMPLEMENTS Relationship Shape" ;
+    rdfs:comment "Validates capability-to-concept implementation relationships" ;
+    sh:targetClass logos:Capability ;
+    sh:property [
+        sh:path logos:IMPLEMENTS ;
+        sh:class logos:Concept ;
+        rdfs:label "Implements" ;
+        rdfs:comment "Capability implements an action concept (e.g., GraspAction)" ;
+    ] .
+
+logos:RequiresInputRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "REQUIRES_INPUT Relationship Shape" ;
+    rdfs:comment "Validates capability input requirements" ;
+    sh:targetClass logos:Capability ;
+    sh:property [
+        sh:path logos:REQUIRES_INPUT ;
+        sh:class logos:Concept ;
+        rdfs:label "Requires Input" ;
+        rdfs:comment "Capability requires this input type" ;
+    ] .
+
+logos:ProducesOutputRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "PRODUCES_OUTPUT Relationship Shape" ;
+    rdfs:comment "Validates capability output specifications" ;
+    sh:targetClass logos:Capability ;
+    sh:property [
+        sh:path logos:PRODUCES_OUTPUT ;
+        sh:class logos:Concept ;
+        rdfs:label "Produces Output" ;
+        rdfs:comment "Capability produces this output type" ;
+    ] .
+
+logos:ExecutedByRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "EXECUTED_BY Relationship Shape" ;
+    rdfs:comment "Validates capability-to-entity execution relationships" ;
+    sh:targetClass logos:Capability ;
+    sh:property [
+        sh:path logos:EXECUTED_BY ;
+        sh:class logos:Entity ;
+        rdfs:label "Executed By" ;
+        rdfs:comment "Entity that can execute this capability" ;
+    ] .
+
+logos:UsesCapabilityRelationshipShape
+    a sh:NodeShape ;
+    rdfs:label "USES_CAPABILITY Relationship Shape" ;
+    rdfs:comment "Validates process-to-capability usage relationships" ;
+    sh:targetClass logos:Process ;
+    sh:property [
+        sh:path logos:USES_CAPABILITY ;
+        sh:class logos:Capability ;
+        rdfs:label "Uses Capability" ;
+        rdfs:comment "Process step uses this capability" ;
+    ] .
