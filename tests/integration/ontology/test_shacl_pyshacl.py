@@ -56,7 +56,7 @@ def test_bad_uuid_prefix_fails(shapes_graph: Graph) -> None:
         @prefix logos: <http://logos.ontology/> .
 
         logos:entity-bad-prefix a logos:Entity ;
-            logos:uuid "wrong-prefix-123" ;
+            logos:uuid "e9d0df99-b7d3-5864-85d0-8ad178453b55" ;
             logos:name "BadEntity" .
     """
     g = Graph()
@@ -69,7 +69,7 @@ def test_missing_required_property_fails(shapes_graph: Graph) -> None:
         @prefix logos: <http://logos.ontology/> .
 
         logos:concept-no-name a logos:Concept ;
-            logos:uuid "concept-missing-name" .
+            logos:uuid "aa69dc66-c0a2-5d8b-b435-e4d01e4563db" .
     """
     g = Graph()
     g.parse(data=ttl, format="turtle")

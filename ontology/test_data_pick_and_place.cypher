@@ -146,35 +146,35 @@ ON CREATE SET
 
 // Robot components
 MATCH (robot_arm:Entity {uuid: 'c551e7ad-c12a-40bc-8c29-3a721fa311cb'})
-MATCH (manip:Concept {uuid: 'concept-manipulator'})
+MATCH (manip:Concept {name: 'Manipulator'})
 MERGE (robot_arm)-[:IS_A]->(manip);
 
 MATCH (robot_gripper:Entity {uuid: '47a157d3-1092-4069-9e39-4e80e6735342'})
-MATCH (grip_concept:Concept {uuid: 'concept-gripper'})
+MATCH (grip_concept:Concept {name: 'Gripper'})
 MERGE (robot_gripper)-[:IS_A]->(grip_concept);
 
 MATCH (joint1:Entity {uuid: '43117773-50b8-43fd-9d79-d10017674116'})
 MATCH (joint2:Entity {uuid: '6a813f24-eca4-4df3-bc85-228c1d001ee8'})
 MATCH (joint3:Entity {uuid: '543ccec9-4e43-4ad6-8b47-a5c1766c274f'})
-MATCH (joint_concept:Concept {uuid: 'concept-joint'})
+MATCH (joint_concept:Concept {name: 'Joint'})
 MERGE (joint1)-[:IS_A]->(joint_concept)
 MERGE (joint2)-[:IS_A]->(joint_concept)
 MERGE (joint3)-[:IS_A]->(joint_concept);
 
 // Workspace components
 MATCH (table:Entity {uuid: 'f4d97052-466f-4466-bfa7-8df1623969f9'})
-MATCH (surf:Concept {uuid: 'concept-surface'})
+MATCH (surf:Concept {name: 'Surface'})
 MERGE (table)-[:IS_A]->(surf);
 
 MATCH (bin:Entity {uuid: '563e215e-3192-497c-8997-57fb9bba3922'})
-MATCH (cont:Concept {uuid: 'concept-container'})
+MATCH (cont:Concept {name: 'Container'})
 MERGE (bin)-[:IS_A]->(cont);
 
 // Graspable objects
 MATCH (block_red:Entity {uuid: '4338a6cc-c125-4531-ac3b-69eca0751aa0'})
 MATCH (block_blue:Entity {uuid: 'ad892f3e-dd35-48fa-b3c8-4e8316e5fe7a'})
 MATCH (cylinder_green:Entity {uuid: '6f69f9f9-50a7-40e3-b915-b95f31d9a00a'})
-MATCH (grasp:Concept {uuid: 'concept-graspable'})
+MATCH (grasp:Concept {name: 'GraspableObject'})
 MERGE (block_red)-[:IS_A]->(grasp)
 MERGE (block_blue)-[:IS_A]->(grasp)
 MERGE (cylinder_green)-[:IS_A]->(grasp);
@@ -233,7 +233,7 @@ MATCH (gripper_state_open:State {uuid: 'a906bb2e-4609-449d-9c2b-503976ec48c5'})
 MERGE (robot_gripper)-[:HAS_STATE]->(gripper_state_open);
 
 MATCH (gripper_state_open2:State {uuid: 'a906bb2e-4609-449d-9c2b-503976ec48c5'})
-MATCH (free:Concept {uuid: 'concept-free'})
+MATCH (free:Concept {name: 'FreeState'})
 MERGE (gripper_state_open2)-[:IS_A]->(free);
 
 // Red block state - on table (INITIAL/CURRENT state)
@@ -252,7 +252,7 @@ MATCH (block_red_state_01:State {uuid: '0c6bf539-0214-4b9e-a212-3cc8c03de716'})
 MERGE (block_red)-[:HAS_STATE]->(block_red_state_01);
 
 MATCH (block_red_state_01_2:State {uuid: '0c6bf539-0214-4b9e-a212-3cc8c03de716'})
-MATCH (positioned:Concept {uuid: 'concept-positioned'})
+MATCH (positioned:Concept {name: 'PositionedState'})
 MERGE (block_red_state_01_2)-[:IS_A]->(positioned);
 
 // Blue block state - on table
@@ -365,7 +365,7 @@ ON CREATE SET
     process_move_pre.duration_ms = 2000;
 
 MATCH (process_move_pre:Process {uuid: '5bbb0f4b-a869-49dc-b61b-be2a1b6d8ebd'})
-MATCH (move_concept:Concept {uuid: 'concept-move'})
+MATCH (move_concept:Concept {name: 'MoveAction'})
 MERGE (process_move_pre)-[:IS_A]->(move_concept);
 
 // Requirements for move-to-pregrasp
@@ -393,7 +393,7 @@ ON CREATE SET
     process_grasp.duration_ms = 1500;
 
 MATCH (process_grasp:Process {uuid: '350e8968-647d-47b3-b2a5-54a6c828256c'})
-MATCH (grasp_concept:Concept {uuid: 'concept-grasp'})
+MATCH (grasp_concept:Concept {name: 'GraspAction'})
 MERGE (process_grasp)-[:IS_A]->(grasp_concept);
 
 // Requirements for grasp
@@ -425,7 +425,7 @@ ON CREATE SET
     process_move_place.duration_ms = 2500;
 
 MATCH (process_move_place:Process {uuid: '492d0005-972b-4b3c-9db4-a6e4cdd4b824'})
-MATCH (move_concept:Concept {uuid: 'concept-move'})
+MATCH (move_concept:Concept {name: 'MoveAction'})
 MERGE (process_move_place)-[:IS_A]->(move_concept);
 
 // Requirements for move-to-place
@@ -449,7 +449,7 @@ ON CREATE SET
     process_release.duration_ms = 1000;
 
 MATCH (process_release:Process {uuid: 'a843ccc0-c597-424a-a8e9-c5227f1af717'})
-MATCH (release_concept:Concept {uuid: 'concept-release'})
+MATCH (release_concept:Concept {name: 'ReleaseAction'})
 MERGE (process_release)-[:IS_A]->(release_concept);
 
 // Requirements for release
@@ -559,15 +559,15 @@ MERGE (process_release)-[:USES_CAPABILITY]->(cap_release);
 // These allow capability lookup via process type (Process -[:IS_A]-> Concept <-[:IMPLEMENTS]- Capability)
 
 MATCH (cap_move:Capability {uuid: '6e618722-6812-4c04-a828-add791c83a9b'})
-MATCH (move_concept:Concept {uuid: 'concept-move'})
+MATCH (move_concept:Concept {name: 'MoveAction'})
 MERGE (cap_move)-[:IMPLEMENTS]->(move_concept);
 
 MATCH (cap_grasp:Capability {uuid: '96d8b91c-6fab-44ac-867f-81e397368b56'})
-MATCH (grasp_concept:Concept {uuid: 'concept-grasp'})
+MATCH (grasp_concept:Concept {name: 'GraspAction'})
 MERGE (cap_grasp)-[:IMPLEMENTS]->(grasp_concept);
 
 MATCH (cap_release:Capability {uuid: 'ebee7aab-9cb8-4fa9-8491-ffb9f8490819'})
-MATCH (release_concept:Concept {uuid: 'concept-release'})
+MATCH (release_concept:Concept {name: 'ReleaseAction'})
 MERGE (cap_release)-[:IMPLEMENTS]->(release_concept);
 
 //// Summary: The Causal Chain for Pick-and-Place

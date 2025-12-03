@@ -322,56 +322,56 @@ ON (abs.domain);
 //// These define the abstract categories for the pick-and-place scenario
 
 // Core Manipulator Concepts
-MERGE (manipulator:Concept {uuid: 'concept-manipulator', name: 'Manipulator'})
+MERGE (manipulator:Concept {uuid: '19544c1b-c1dd-5432-b109-9f9133e3c680', name: 'Manipulator'})
 ON CREATE SET manipulator.description = 'Abstract concept of robotic manipulator';
 
-MERGE (gripper:Concept {uuid: 'concept-gripper', name: 'Gripper'})
+MERGE (gripper:Concept {uuid: 'a8eaa37f-b8f8-5a3c-b217-7cbd266d8d0e', name: 'Gripper'})
 ON CREATE SET gripper.description = 'Abstract concept of end-effector for grasping';
 
-MERGE (joint:Concept {uuid: 'concept-joint', name: 'Joint'})
+MERGE (joint:Concept {uuid: 'd9779b82-aab8-5f89-bcfd-927a812d27af', name: 'Joint'})
 ON CREATE SET joint.description = 'Abstract concept of articulated joint';
 
 // Object Concepts
-MERGE (graspable:Concept {uuid: 'concept-graspable', name: 'GraspableObject'})
+MERGE (graspable:Concept {uuid: 'ddc09a18-3c82-5a8a-bfa1-cd101b581d3f', name: 'GraspableObject'})
 ON CREATE SET graspable.description = 'Object that can be grasped by manipulator';
 
-MERGE (container:Concept {uuid: 'concept-container', name: 'Container'})
+MERGE (container:Concept {uuid: 'a206c6e0-44b9-5490-863b-fa763208ca67', name: 'Container'})
 ON CREATE SET container.description = 'Object that can hold other objects';
 
-MERGE (rigid_body:Concept {uuid: 'concept-rigid-body', name: 'RigidBody'})
+MERGE (rigid_body:Concept {uuid: '15e95cfd-009d-5d35-8e25-5cde0c14e42c', name: 'RigidBody'})
 ON CREATE SET rigid_body.description = 'Physical object with fixed shape';
 
 // Workspace Concepts
-MERGE (surface:Concept {uuid: 'concept-surface', name: 'Surface'})
+MERGE (surface:Concept {uuid: '4fab2e6f-c6ce-5f03-a00c-5a845fc04302', name: 'Surface'})
 ON CREATE SET surface.description = 'Planar surface for object placement';
 
-MERGE (workspace:Concept {uuid: 'concept-workspace', name: 'Workspace'})
+MERGE (workspace:Concept {uuid: '47d1e016-c15c-5c7d-8b1f-611911b25930', name: 'Workspace'})
 ON CREATE SET workspace.description = 'Physical region accessible to manipulator';
 
-MERGE (location:Concept {uuid: 'concept-location', name: 'Location'})
+MERGE (location:Concept {uuid: 'ec43bdde-1ba5-5c5a-bc3b-751525034c07', name: 'Location'})
 ON CREATE SET location.description = 'Spatial position in workspace';
 
 // Action Concepts (Process categories)
-MERGE (grasp_action:Concept {uuid: 'concept-grasp', name: 'GraspAction'})
+MERGE (grasp_action:Concept {uuid: '20adf378-4d92-59fe-bfab-bceada90baf7', name: 'GraspAction'})
 ON CREATE SET grasp_action.description = 'Action of grasping an object';
 
-MERGE (release_action:Concept {uuid: 'concept-release', name: 'ReleaseAction'})
+MERGE (release_action:Concept {uuid: '5c6afac3-e3aa-5230-b121-30889630a12a', name: 'ReleaseAction'})
 ON CREATE SET release_action.description = 'Action of releasing a grasped object';
 
-MERGE (move_action:Concept {uuid: 'concept-move', name: 'MoveAction'})
+MERGE (move_action:Concept {uuid: '7111cb84-eeeb-528a-8140-294ae760d48a', name: 'MoveAction'})
 ON CREATE SET move_action.description = 'Action of moving manipulator or object';
 
-MERGE (place_action:Concept {uuid: 'concept-place', name: 'PlaceAction'})
+MERGE (place_action:Concept {uuid: '7b54d8de-8806-5560-85af-448a5b34e7bf', name: 'PlaceAction'})
 ON CREATE SET place_action.description = 'Action of placing object at location';
 
 // State Concepts
-MERGE (grasped_state:Concept {uuid: 'concept-grasped', name: 'GraspedState'})
+MERGE (grasped_state:Concept {uuid: '433441cd-1dec-5c06-913e-164fe1b006e8', name: 'GraspedState'})
 ON CREATE SET grasped_state.description = 'State where object is held by gripper';
 
-MERGE (free_state:Concept {uuid: 'concept-free', name: 'FreeState'})
+MERGE (free_state:Concept {uuid: '01b3f501-e9e0-52dd-858a-71a31bfab7b4', name: 'FreeState'})
 ON CREATE SET free_state.description = 'State where object is not grasped';
 
-MERGE (positioned_state:Concept {uuid: 'concept-positioned', name: 'PositionedState'})
+MERGE (positioned_state:Concept {uuid: 'd546414d-985e-59c6-bd39-0ebfcbd84916', name: 'PositionedState'})
 ON CREATE SET positioned_state.description = 'State with specific spatial position';
 
 // Establish concept hierarchy
@@ -386,7 +386,7 @@ MERGE (graspable)-[:IS_A]->(rigid_body);
 //// - last_sync: Timestamp of last vector sync
 ////
 //// Example usage (to be integrated in Phase 1):
-//// MERGE (c:Concept {uuid: 'concept-manipulator'})
+//// MERGE (c:Concept {uuid: '19544c1b-c1dd-5432-b109-9f9133e3c680'})
 //// SET c.embedding_id = 'milvus-vector-id-manipulator',
 ////     c.embedding_model = 'sentence-transformers/all-MiniLM-L6-v2',
 ////     c.last_sync = datetime();
@@ -394,19 +394,19 @@ MERGE (graspable)-[:IS_A]->(rigid_body);
 //// Phase 2: Capability Catalog - Executor Type Concepts (logos#284)
 //// These define the abstract executor categories for capabilities
 
-MERGE (executor_type:Concept {uuid: 'concept-executor-type', name: 'ExecutorType'})
+MERGE (executor_type:Concept {uuid: '44a55ece-331b-50c7-b4a4-746a5f17f506', name: 'ExecutorType'})
 ON CREATE SET executor_type.description = 'Abstract category for capability executors';
 
-MERGE (human_executor:Concept {uuid: 'concept-executor-human', name: 'HumanExecutor'})
+MERGE (human_executor:Concept {uuid: 'd0158360-b7e7-52d3-accf-8f9902008d36', name: 'HumanExecutor'})
 ON CREATE SET human_executor.description = 'Capabilities executed by human operators with instructions';
 
-MERGE (talos_executor:Concept {uuid: 'concept-executor-talos', name: 'TalosExecutor'})
+MERGE (talos_executor:Concept {uuid: 'd3e56122-a72d-5953-8fd9-9a2677878ff3', name: 'TalosExecutor'})
 ON CREATE SET talos_executor.description = 'Capabilities executed by Talos robotic system';
 
-MERGE (service_executor:Concept {uuid: 'concept-executor-service', name: 'ServiceExecutor'})
+MERGE (service_executor:Concept {uuid: '43c0bf4b-0c95-5476-a338-277c8c68ec8a', name: 'ServiceExecutor'})
 ON CREATE SET service_executor.description = 'Capabilities executed via external service/API calls';
 
-MERGE (llm_executor:Concept {uuid: 'concept-executor-llm', name: 'LLMExecutor'})
+MERGE (llm_executor:Concept {uuid: 'e4c123eb-7f6d-560b-816b-87bfa06a9426', name: 'LLMExecutor'})
 ON CREATE SET llm_executor.description = 'Capabilities executed by language model reasoning';
 
 // Establish executor type hierarchy
@@ -416,34 +416,34 @@ MERGE (service_executor)-[:IS_A]->(executor_type);
 MERGE (llm_executor)-[:IS_A]->(executor_type);
 
 //// Phase 2: Input/Output Type Concepts for Capability Catalog
-MERGE (input_type:Concept {uuid: 'concept-input-type', name: 'InputType'})
+MERGE (input_type:Concept {uuid: '581ecd07-1956-5788-a5e1-724a6afb8aa5', name: 'InputType'})
 ON CREATE SET input_type.description = 'Abstract category for capability input types';
 
-MERGE (output_type:Concept {uuid: 'concept-output-type', name: 'OutputType'})
+MERGE (output_type:Concept {uuid: '7d8e5f38-67d7-5f6e-915d-ecd422f987a8', name: 'OutputType'})
 ON CREATE SET output_type.description = 'Abstract category for capability output types';
 
 // Common input/output types
-MERGE (text_input:Concept {uuid: 'concept-input-text', name: 'TextInput'})
+MERGE (text_input:Concept {uuid: '4dc6d8fa-932c-50a9-b3d3-f5d6694d13f4', name: 'TextInput'})
 ON CREATE SET text_input.description = 'Text string input';
 MERGE (text_input)-[:IS_A]->(input_type);
 
-MERGE (entity_ref_input:Concept {uuid: 'concept-input-entity-ref', name: 'EntityRefInput'})
+MERGE (entity_ref_input:Concept {uuid: 'e341faf3-7332-575e-9104-0e90ca7a1aaf', name: 'EntityRefInput'})
 ON CREATE SET entity_ref_input.description = 'Reference to an entity in HCG';
 MERGE (entity_ref_input)-[:IS_A]->(input_type);
 
-MERGE (location_input:Concept {uuid: 'concept-input-location', name: 'LocationInput'})
+MERGE (location_input:Concept {uuid: '94a2cfeb-4eae-57fb-8fb5-4ecea4e80181', name: 'LocationInput'})
 ON CREATE SET location_input.description = 'Spatial location coordinates';
 MERGE (location_input)-[:IS_A]->(input_type);
 
-MERGE (state_output:Concept {uuid: 'concept-output-state', name: 'StateOutput'})
+MERGE (state_output:Concept {uuid: 'c25176ff-bebf-5ce3-9e5b-9aae76e1124b', name: 'StateOutput'})
 ON CREATE SET state_output.description = 'New state produced by capability';
 MERGE (state_output)-[:IS_A]->(output_type);
 
-MERGE (text_output:Concept {uuid: 'concept-output-text', name: 'TextOutput'})
+MERGE (text_output:Concept {uuid: '72c98e0d-d3de-58e2-87d8-f75a1f9c8f8b', name: 'TextOutput'})
 ON CREATE SET text_output.description = 'Text string output';
 MERGE (text_output)-[:IS_A]->(output_type);
 
-MERGE (boolean_output:Concept {uuid: 'concept-output-boolean', name: 'BooleanOutput'})
+MERGE (boolean_output:Concept {uuid: 'bdb8893f-901a-5bc7-a045-487ec368947c', name: 'BooleanOutput'})
 ON CREATE SET boolean_output.description = 'Success/failure boolean output';
 MERGE (boolean_output)-[:IS_A]->(output_type);
 
