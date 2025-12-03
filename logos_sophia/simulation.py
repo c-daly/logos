@@ -4,6 +4,7 @@ Simulation service for handling imagination workflows.
 Integrates JEPA runner with Neo4j/Milvus storage.
 """
 
+import json
 import logging
 from typing import Any
 
@@ -105,7 +106,7 @@ class SimulationService:
                 capability_id=process.capability_id,
                 imagined=process.imagined,
                 horizon=process.horizon,
-                assumptions=process.assumptions,
+                assumptions=json.dumps(process.assumptions),
                 model_version=process.model_version,
             )
             result.single()
@@ -138,7 +139,7 @@ class SimulationService:
                 "timestamp": state.timestamp.isoformat(),
                 "step": state.step,
                 "confidence": state.confidence,
-                "metadata": state.metadata,
+                "metadata": json.dumps(state.metadata) if state.metadata else "{}",
             }
             for state in states
         ]
