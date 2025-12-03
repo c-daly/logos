@@ -247,7 +247,7 @@ class HCGLoader:
         seed_queries = [
             # Create Manipulator concept
             """
-            MERGE (c:Concept {uuid: 'concept-manipulator'})
+            MERGE (c:Concept {uuid: '19544c1b-c1dd-5432-b109-9f9133e3c680'})
             ON CREATE SET
                 c.name = 'Manipulator',
                 c.description = 'A robotic manipulator or arm capable of movement and grasping',
@@ -255,7 +255,7 @@ class HCGLoader:
             """,
             # Create RobotArm entity
             """
-            MERGE (e:Entity {uuid: 'entity-robot-arm-01'})
+            MERGE (e:Entity {uuid: '70beb78e-366a-5d71-a26c-c4abe7d24cf7'})
             ON CREATE SET
                 e.name = 'RobotArm01',
                 e.description = 'Canonical six-axis robotic manipulator for M1 verification',
@@ -263,13 +263,13 @@ class HCGLoader:
             """,
             # Create IS_A relationship
             """
-            MATCH (e:Entity {uuid: 'entity-robot-arm-01'})
-            MATCH (c:Concept {uuid: 'concept-manipulator'})
+            MATCH (e:Entity {uuid: '70beb78e-366a-5d71-a26c-c4abe7d24cf7'})
+            MATCH (c:Concept {uuid: '19544c1b-c1dd-5432-b109-9f9133e3c680'})
             MERGE (e)-[:IS_A]->(c)
             """,
             # Create initial state for RobotArm
             """
-            MERGE (s:State {uuid: 'state-robot-arm-01-initial'})
+            MERGE (s:State {uuid: '1cbef772-0189-5f34-80d6-1a1f35a85bda'})
             ON CREATE SET
                 s.name = 'RobotArm01-Idle',
                 s.description = 'Robot arm in idle state',
@@ -277,8 +277,8 @@ class HCGLoader:
             """,
             # Link state to entity
             """
-            MATCH (e:Entity {uuid: 'entity-robot-arm-01'})
-            MATCH (s:State {uuid: 'state-robot-arm-01-initial'})
+            MATCH (e:Entity {uuid: '70beb78e-366a-5d71-a26c-c4abe7d24cf7'})
+            MATCH (s:State {uuid: '1cbef772-0189-5f34-80d6-1a1f35a85bda'})
             MERGE (e)-[:HAS_STATE]->(s)
             """,
         ]

@@ -20,12 +20,6 @@ from neo4j.exceptions import Neo4jError
 
 from logos_test_utils.env import get_repo_root
 
-RUN_NEO4J_SHACL = os.getenv("RUN_NEO4J_SHACL") == "1"
-pytestmark = pytest.mark.skipif(
-    not RUN_NEO4J_SHACL,
-    reason="Neo4j SHACL validation runs only when RUN_NEO4J_SHACL=1",
-)
-
 
 @pytest.fixture(scope="module")
 def neo4j_driver():

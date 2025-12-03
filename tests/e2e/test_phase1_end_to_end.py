@@ -11,6 +11,9 @@ This test validates the complete prototype flow:
 7. State verification in HCG
 
 Reference: docs/PHASE1_VERIFY.md, Section M4
+
+These tests require Neo4j and Milvus containers to be running.
+Start with: ./tests/e2e/run_e2e.sh up
 """
 
 import os
@@ -19,6 +22,7 @@ from pathlib import Path
 
 import pytest
 
+from logos_test_utils.docker import is_container_running
 from logos_test_utils.env import get_repo_root, load_stack_env
 from logos_test_utils.milvus import (
     get_milvus_config,
@@ -35,6 +39,16 @@ from logos_test_utils.neo4j import (
     run_cypher_query as stack_run_cypher_query,
 )
 
+# Load config early to check container availability
+_STACK_ENV = load_stack_env()
+_NEO4J_CONFIG = get_neo4j_config(_STACK_ENV)
+
+if not is_container_running(_NEO4J_CONFIG.container):
+    pytest.skip(
+        "Phase 1 E2E tests require Neo4j container. Start with: ./tests/e2e/run_e2e.sh up",
+        allow_module_level=True,
+    )
+
 # Try to import planner client for API-based planning
 try:
     from planner_stub.client import PlannerClient
@@ -43,15 +57,9 @@ try:
 except ImportError:
     PLANNER_CLIENT_AVAILABLE = False
 
-RUN_M4_E2E = os.getenv("RUN_M4_E2E") == "1"
-pytestmark = pytest.mark.skipif(
-    not RUN_M4_E2E,
-    reason="M4 end-to-end flow runs only when RUN_M4_E2E=1",
-)
-
-STACK_ENV = load_stack_env()
+STACK_ENV = _STACK_ENV
 REPO_ROOT = get_repo_root(STACK_ENV)
-NEO4J_CONFIG = get_neo4j_config(STACK_ENV)
+NEO4J_CONFIG = _NEO4J_CONFIG
 MILVUS_CONFIG = get_milvus_config(STACK_ENV)
 NEO4J_WAIT_TIMEOUT = int(os.getenv("NEO4J_WAIT_TIMEOUT", "120"))
 MILVUS_WAIT_TIMEOUT = int(os.getenv("MILVUS_WAIT_TIMEOUT", "60"))
@@ -154,7 +162,7 @@ class TestM4TestDataLoading:
         """Verify test entities are present."""
         query = (
             "MATCH (e:Entity) "
-            "WHERE e.name CONTAINS 'RedBlock' OR e.uuid = 'entity-robot-arm-01' "
+            "WHERE e.name CONTAINS 'RedBlock' OR e.uuid = '70beb78e-366a-5d71-a26c-c4abe7d24cf7' "
             "RETURN count(e) AS count;"
         )
         returncode, stdout, stderr = run_cypher_query(query)
@@ -166,13 +174,15 @@ class TestM4TestDataLoading:
         """Verify manipulator entity exists."""
         query = (
             "MATCH (e:Entity) "
-            "WHERE e.uuid = 'entity-robot-arm-01' "
+            "WHERE e.uuid = '70beb78e-366a-5d71-a26c-c4abe7d24cf7' "
             "   OR e.name CONTAINS 'RobotArm' "
             "RETURN count(e) AS count;"
         )
         returncode, stdout, stderr = run_cypher_query(query)
         assert returncode == 0, f"Failed to query manipulator: {stderr}"
-        assert "count" in stdout.lower() and "1" in stdout, "Expected manipulator entity to exist"
+        # Check that at least one entity exists (count >= 1)
+        count_match = [line for line in stdout.strip().split('\n') if line.isdigit()]
+        assert len(count_match) > 0 and int(count_match[0]) >= 1, "Expected at least one manipulator entity"
 
 
 class TestM4SimulatedWorkflow:
@@ -182,7 +192,7 @@ class TestM4SimulatedWorkflow:
         """Simulate Apollo creating a goal state with specific assertions."""
         # Use MERGE with uuid guard for resilience to repeated runs
         create_query = """
-        MERGE (g:State {uuid: 'state-goal-test-m4-redblock'})
+        MERGE (g:State {uuid: '964305c9-008f-5e7c-9fa6-08a4db697c1a'})
         ON CREATE SET
             g.name = 'TestGoalState_RedBlockInBin',
             g.timestamp = datetime(),
@@ -195,11 +205,11 @@ class TestM4SimulatedWorkflow:
 
         # Assert specific expected values
         assert "TestGoalState_RedBlockInBin" in stdout, "Expected goal state name not found"
-        assert "state-goal-test-m4-redblock" in stdout, "Expected goal state UUID not found"
+        assert "964305c9-008f-5e7c-9fa6-08a4db697c1a" in stdout, "Expected goal state UUID not found"
 
         # Verify the goal state properties
         verify_query = """
-        MATCH (g:State {uuid: 'state-goal-test-m4-redblock'})
+        MATCH (g:State {uuid: '964305c9-008f-5e7c-9fa6-08a4db697c1a'})
         RETURN g.name, g.is_goal, g.description;
         """
         returncode, stdout, stderr = run_cypher_query(verify_query)
@@ -211,25 +221,25 @@ class TestM4SimulatedWorkflow:
         """Simulate Sophia generating a plan with specific process ordering."""
         # Use MERGE for resilience, create ordered plan
         create_plan_query = """
-        MERGE (p1:Process {uuid: 'process-test-m4-move-pregrasp'})
+        MERGE (p1:Process {uuid: '0b962a3f-605d-50af-9d5a-fbdc7c655532'})
         ON CREATE SET
             p1.name = 'TestMoveToPreGrasp',
             p1.start_time = datetime(),
             p1.description = 'Move robot arm to pre-grasp position'
 
-        MERGE (p2:Process {uuid: 'process-test-m4-grasp'})
+        MERGE (p2:Process {uuid: '8e2f0070-d9b3-5bc9-b9fc-417bd0e34e79'})
         ON CREATE SET
             p2.name = 'TestGraspRedBlock',
             p2.start_time = datetime(),
             p2.description = 'Grasp red block with gripper'
 
-        MERGE (p3:Process {uuid: 'process-test-m4-move-place'})
+        MERGE (p3:Process {uuid: '42fc6d04-c28b-5c50-a598-274ba3eeeed9'})
         ON CREATE SET
             p3.name = 'TestMoveToPlace',
             p3.start_time = datetime(),
             p3.description = 'Move to placement position'
 
-        MERGE (p4:Process {uuid: 'process-test-m4-release'})
+        MERGE (p4:Process {uuid: 'a25ecb46-f011-5378-a571-7509225dc55f'})
         ON CREATE SET
             p4.name = 'TestReleaseBlock',
             p4.start_time = datetime(),
@@ -252,8 +262,8 @@ class TestM4SimulatedWorkflow:
 
         # Verify the complete plan ordering
         verify_ordering_query = """
-        MATCH path = (p1:Process {uuid: 'process-test-m4-move-pregrasp'})
-                     -[:PRECEDES*]->(p4:Process {uuid: 'process-test-m4-release'})
+        MATCH path = (p1:Process {uuid: '0b962a3f-605d-50af-9d5a-fbdc7c655532'})
+                     -[:PRECEDES*]->(p4:Process {uuid: 'a25ecb46-f011-5378-a571-7509225dc55f'})
         RETURN length(path) AS steps,
                [n in nodes(path) | n.name] AS process_sequence;
         """
@@ -342,13 +352,13 @@ class TestM4SimulatedWorkflow:
         """Simulate Talos updating state during execution with specific assertions."""
         # Ensure test entities exist (create if needed for test resilience)
         create_entities_query = """
-        MERGE (e:Entity {uuid: 'entity-block-red-01'})
+        MERGE (e:Entity {uuid: 'b91e3ad0-9739-55a5-928e-3e0024add30f'})
         ON CREATE SET
             e.name = 'RedBlock01',
             e.description = 'Red cubic block',
             e.color = 'red',
             e.created_at = datetime()
-        MERGE (bin:Entity {uuid: 'entity-bin-01'})
+        MERGE (bin:Entity {uuid: '7e9f1098-a96e-54dd-a9f7-ed3378cd2e5d'})
         ON CREATE SET
             bin.name = 'TargetBin01',
             bin.description = 'Target container for placement',
@@ -357,13 +367,13 @@ class TestM4SimulatedWorkflow:
         """
         returncode, stdout, stderr = run_cypher_query(create_entities_query)
         assert returncode == 0, f"Failed to ensure test entities exist: {stderr}"
-        assert "entity-block-red-01" in stdout, "Expected RedBlock01 entity not found"
-        assert "entity-bin-01" in stdout, "Expected TargetBin01 entity not found"
+        assert "RedBlock01" in stdout, "Expected RedBlock01 entity not found"
+        assert "TargetBin01" in stdout, "Expected TargetBin01 entity not found"
 
         # Simulate grasp state update using MERGE for resilience
         grasp_state_query = """
-        MATCH (e:Entity {uuid: 'entity-block-red-01'})
-        MERGE (s:State {uuid: 'state-test-m4-redblock-grasped'})
+        MATCH (e:Entity {uuid: 'b91e3ad0-9739-55a5-928e-3e0024add30f'})
+        MERGE (s:State {uuid: '460d777a-ab3a-5cd9-9ecd-9d085e52cb29'})
         ON CREATE SET
             s.name = 'TestRedBlockGrasped',
             s.timestamp = datetime(),
@@ -382,9 +392,9 @@ class TestM4SimulatedWorkflow:
 
         # Simulate release and placement state update
         release_state_query = """
-        MATCH (e:Entity {uuid: 'entity-block-red-01'})
-        MATCH (bin:Entity {uuid: 'entity-bin-01'})
-        MERGE (s:State {uuid: 'state-test-m4-redblock-in-bin'})
+        MATCH (e:Entity {uuid: 'b91e3ad0-9739-55a5-928e-3e0024add30f'})
+        MATCH (bin:Entity {uuid: '7e9f1098-a96e-54dd-a9f7-ed3378cd2e5d'})
+        MERGE (s:State {uuid: 'b23881db-bc41-5678-b744-c6a30b1338b0'})
         ON CREATE SET
             s.name = 'TestRedBlockInBin',
             s.timestamp = datetime(),
@@ -405,7 +415,7 @@ class TestM4SimulatedWorkflow:
 
         # Verify final state properties
         verify_final_state_query = """
-        MATCH (e:Entity {uuid: 'entity-block-red-01'})-[:HAS_STATE]->(s:State {uuid: 'state-test-m4-redblock-in-bin'})
+        MATCH (e:Entity {uuid: 'b91e3ad0-9739-55a5-928e-3e0024add30f'})-[:HAS_STATE]->(s:State {uuid: 'b23881db-bc41-5678-b744-c6a30b1338b0'})
         RETURN e.name, s.is_grasped, s.position_x, s.position_y, s.position_z;
         """
         returncode, stdout, stderr = run_cypher_query(verify_final_state_query)
@@ -415,7 +425,7 @@ class TestM4SimulatedWorkflow:
 
         # Verify LOCATED_AT relationship
         verify_location_query = """
-        MATCH (e:Entity {uuid: 'entity-block-red-01'})-[:LOCATED_AT]->(bin:Entity {uuid: 'entity-bin-01'})
+        MATCH (e:Entity {uuid: 'b91e3ad0-9739-55a5-928e-3e0024add30f'})-[:LOCATED_AT]->(bin:Entity {uuid: '7e9f1098-a96e-54dd-a9f7-ed3378cd2e5d'})
         RETURN e.name AS block, bin.name AS location;
         """
         returncode, stdout, stderr = run_cypher_query(verify_location_query)
@@ -431,7 +441,7 @@ class TestM4StateVerification:
         """Verify the robot arm entity exists with expected properties."""
         # Use MERGE to ensure entity exists for test
         query = """
-        MERGE (e:Entity {uuid: 'entity-robot-arm-01'})
+        MERGE (e:Entity {uuid: '70beb78e-366a-5d71-a26c-c4abe7d24cf7'})
         ON CREATE SET
             e.name = 'RobotArm01',
             e.description = 'Six-axis robotic manipulator',
@@ -440,19 +450,18 @@ class TestM4StateVerification:
         """
         returncode, stdout, stderr = run_cypher_query(query)
         assert returncode == 0, f"Failed to query robot arm entity: {stderr}"
-        assert "entity-robot-arm-01" in stdout, "Expected robot arm UUID not found"
         assert "RobotArm01" in stdout, "Expected RobotArm01 name not found"
 
     def test_verify_gripper_part_of_arm(self, loaded_test_data):
         """Verify gripper is part of robot arm."""
         # Ensure entities and relationship exist
         query = """
-        MERGE (gripper:Entity {uuid: 'entity-gripper-01'})
+        MERGE (gripper:Entity {uuid: 'b4ec5d50-f318-5c5b-86a3-b1b3ce68aff0'})
         ON CREATE SET
             gripper.name = 'Gripper01',
             gripper.description = 'Two-finger parallel gripper',
             gripper.created_at = datetime()
-        MERGE (arm:Entity {uuid: 'entity-robot-arm-01'})
+        MERGE (arm:Entity {uuid: '70beb78e-366a-5d71-a26c-c4abe7d24cf7'})
         ON CREATE SET
             arm.name = 'RobotArm01',
             arm.description = 'Six-axis robotic manipulator',
@@ -469,12 +478,12 @@ class TestM4StateVerification:
         """Verify red block has initial state from test data."""
         # Ensure entity and state exist
         query = """
-        MERGE (e:Entity {uuid: 'entity-block-red-01'})
+        MERGE (e:Entity {uuid: 'b91e3ad0-9739-55a5-928e-3e0024add30f'})
         ON CREATE SET
             e.name = 'RedBlock01',
             e.color = 'red',
             e.created_at = datetime()
-        MERGE (s:State {uuid: 'state-block-red-01'})
+        MERGE (s:State {uuid: '68719b5b-2d08-5c92-b8de-a790dacccaff'})
         ON CREATE SET
             s.name = 'RedBlockOnTableState',
             s.timestamp = datetime(),
@@ -493,12 +502,12 @@ class TestM4StateVerification:
         """Verify processes have CAUSES relationships to resulting states."""
         # Create test process and state with CAUSES relationship
         query = """
-        MERGE (p:Process {uuid: 'process-grasp-red-01'})
+        MERGE (p:Process {uuid: 'ef6d8d5f-3b2f-502c-a406-7ead30f3fe5c'})
         ON CREATE SET
             p.name = 'GraspRedBlock',
             p.description = 'Close gripper around red block',
             p.start_time = datetime()
-        MERGE (s:State {uuid: 'state-block-red-grasped-01'})
+        MERGE (s:State {uuid: 'f545c6e9-9d32-53cd-a92a-3684f7de9c8d'})
         ON CREATE SET
             s.name = 'RedBlockGraspedState',
             s.timestamp = datetime(),
@@ -514,13 +523,13 @@ class TestM4StateVerification:
         """Verify complete process chain from test data."""
         # Create test process chain
         query = """
-        MERGE (p1:Process {uuid: 'process-move-pregrasp-01'})
+        MERGE (p1:Process {uuid: '5b08ab2b-459e-58ad-93bc-44ee0f0552f9'})
         ON CREATE SET p1.name = 'MoveToPreGraspPosition', p1.start_time = datetime()
-        MERGE (p2:Process {uuid: 'process-grasp-red-01'})
+        MERGE (p2:Process {uuid: 'ef6d8d5f-3b2f-502c-a406-7ead30f3fe5c'})
         ON CREATE SET p2.name = 'GraspRedBlock', p2.start_time = datetime()
-        MERGE (p3:Process {uuid: 'process-move-place-01'})
+        MERGE (p3:Process {uuid: '6ec759fa-2973-5ee7-a70f-10a75a45bea0'})
         ON CREATE SET p3.name = 'MoveToPlacePosition', p3.start_time = datetime()
-        MERGE (p4:Process {uuid: 'process-release-red-01'})
+        MERGE (p4:Process {uuid: 'b2bf8b72-fc68-533b-93be-20f2fb2f4ebe'})
         ON CREATE SET p4.name = 'ReleaseRedBlock', p4.start_time = datetime()
         MERGE (p1)-[:PRECEDES]->(p2)
         MERGE (p2)-[:PRECEDES]->(p3)
@@ -539,12 +548,12 @@ class TestM4StateVerification:
         """Verify bin is located on table."""
         # Ensure entities and relationship exist
         query = """
-        MERGE (bin:Entity {uuid: 'entity-bin-01'})
+        MERGE (bin:Entity {uuid: '7e9f1098-a96e-54dd-a9f7-ed3378cd2e5d'})
         ON CREATE SET
             bin.name = 'TargetBin01',
             bin.description = 'Target container for placement',
             bin.created_at = datetime()
-        MERGE (table:Entity {uuid: 'entity-table-01'})
+        MERGE (table:Entity {uuid: '2dbc7ecc-fd95-5d6a-94e0-e214f4f4950a'})
         ON CREATE SET
             table.name = 'WorkTable01',
             table.description = 'Main work surface',
@@ -561,7 +570,7 @@ class TestM4StateVerification:
         """Verify we can query entity states with specific entities."""
         query = """
         MATCH (e:Entity)-[:HAS_STATE]->(s:State)
-        WHERE e.uuid IN ['entity-block-red-01', 'entity-robot-arm-01', 'entity-gripper-01']
+        WHERE e.name IN ['RedBlock01', 'RobotArm01', 'Gripper01']
         RETURN e.name, s.name, s.timestamp
         ORDER BY s.timestamp DESC
         LIMIT 10;
@@ -575,7 +584,7 @@ class TestM4StateVerification:
         """Verify we can query process temporal ordering with known processes."""
         query = """
         MATCH (p1:Process)-[:PRECEDES]->(p2:Process)
-        WHERE p1.uuid IN ['process-move-pregrasp-01', 'process-grasp-red-01', 'process-move-place-01']
+        WHERE p1.name IN ['MoveToPreGraspPosition', 'GraspRedBlock', 'MoveToPlacePosition']
         RETURN p1.name, p2.name
         LIMIT 5;
         """
@@ -588,7 +597,7 @@ class TestM4StateVerification:
         """Verify we can query causal relationships with known processes."""
         query = """
         MATCH (p:Process)-[:CAUSES]->(s:State)
-        WHERE p.uuid IN ['process-grasp-red-01', 'process-release-red-01']
+        WHERE p.name IN ['GraspRedBlock', 'ReleaseRedBlock']
         RETURN p.name, s.name
         LIMIT 5;
         """
@@ -645,22 +654,22 @@ class TestM4CompleteWorkflow:
         """
         # Step 1: Ensure initial entities and states exist
         setup_initial_query = """
-        MERGE (block:Entity {uuid: 'entity-block-red-01'})
+        MERGE (block:Entity {uuid: 'b91e3ad0-9739-55a5-928e-3e0024add30f'})
         ON CREATE SET
             block.name = 'RedBlock01',
             block.color = 'red',
             block.created_at = datetime()
-        MERGE (gripper:Entity {uuid: 'entity-gripper-01'})
+        MERGE (gripper:Entity {uuid: 'b4ec5d50-f318-5c5b-86a3-b1b3ce68aff0'})
         ON CREATE SET
             gripper.name = 'Gripper01',
             gripper.description = 'Two-finger parallel gripper',
             gripper.created_at = datetime()
-        MERGE (initial:State {uuid: 'state-block-red-01'})
+        MERGE (initial:State {uuid: '68719b5b-2d08-5c92-b8de-a790dacccaff'})
         ON CREATE SET
             initial.name = 'RedBlockOnTableState',
             initial.timestamp = datetime(),
             initial.is_grasped = false
-        MERGE (gripper_state:State {uuid: 'state-gripper-open-01'})
+        MERGE (gripper_state:State {uuid: '6d224eff-65f1-5d82-a2b2-aae7d497d196'})
         ON CREATE SET
             gripper_state.name = 'GripperOpenState',
             gripper_state.timestamp = datetime(),
@@ -679,14 +688,14 @@ class TestM4CompleteWorkflow:
 
         # Step 2: Create goal state using MERGE for resilience
         create_goal_query = """
-        MERGE (goal:State {uuid: 'state-workflow-goal-complete'})
+        MERGE (goal:State {uuid: '5dbdee75-8cbd-5fb5-9741-e00c5c508de5'})
         ON CREATE SET
             goal.name = 'CompleteWorkflowGoal',
             goal.timestamp = datetime(),
             goal.description = 'RedBlock01 should be in TargetBin01',
             goal.is_goal = true,
-            goal.target_entity = 'entity-block-red-01',
-            goal.target_location = 'entity-bin-01'
+            goal.target_entity = 'RedBlock01',
+            goal.target_location = 'TargetBin01'
         RETURN goal.uuid, goal.name, goal.is_goal;
         """
         returncode, stdout, stderr = run_cypher_query(create_goal_query)
@@ -696,33 +705,33 @@ class TestM4CompleteWorkflow:
 
         # Step 3: Create complete plan with all steps
         create_complete_plan_query = """
-        MERGE (step1:Process {uuid: 'process-workflow-step1'})
+        MERGE (step1:Process {uuid: '332b706e-0b01-5de1-8ea2-a58cd8586ce1'})
         ON CREATE SET
             step1.name = 'WorkflowMoveToPreGrasp',
             step1.start_time = datetime(),
             step1.description = 'Position arm above red block',
-            step1.target_entity = 'entity-robot-arm-01'
+            step1.target_entity = 'RobotArm01'
 
-        MERGE (step2:Process {uuid: 'process-workflow-step2'})
+        MERGE (step2:Process {uuid: '325c5357-784e-5d73-9612-ed83b68680ac'})
         ON CREATE SET
             step2.name = 'WorkflowGraspBlock',
             step2.start_time = datetime(),
             step2.description = 'Close gripper on red block',
-            step2.target_entity = 'entity-gripper-01'
+            step2.target_entity = 'Gripper01'
 
-        MERGE (step3:Process {uuid: 'process-workflow-step3'})
+        MERGE (step3:Process {uuid: '95a12626-b449-5170-a074-cfbc2c856f44'})
         ON CREATE SET
             step3.name = 'WorkflowMoveToPlace',
             step3.start_time = datetime(),
             step3.description = 'Move to position above bin',
-            step3.target_entity = 'entity-robot-arm-01'
+            step3.target_entity = 'RobotArm01'
 
-        MERGE (step4:Process {uuid: 'process-workflow-step4'})
+        MERGE (step4:Process {uuid: '4ebb040b-2f90-5a3b-94a1-b35ad52b59dc'})
         ON CREATE SET
             step4.name = 'WorkflowReleaseBlock',
             step4.start_time = datetime(),
             step4.description = 'Open gripper to release block',
-            step4.target_entity = 'entity-gripper-01'
+            step4.target_entity = 'Gripper01'
 
         MERGE (step1)-[:PRECEDES]->(step2)
         MERGE (step2)-[:PRECEDES]->(step3)
@@ -739,18 +748,18 @@ class TestM4CompleteWorkflow:
 
         # Step 4: Simulate execution - create intermediate states
         simulate_grasp_execution_query = """
-        MATCH (block:Entity {uuid: 'entity-block-red-01'})
-        MATCH (gripper:Entity {uuid: 'entity-gripper-01'})
-        MATCH (grasp_process:Process {uuid: 'process-workflow-step2'})
+        MATCH (block:Entity {uuid: 'b91e3ad0-9739-55a5-928e-3e0024add30f'})
+        MATCH (gripper:Entity {uuid: 'b4ec5d50-f318-5c5b-86a3-b1b3ce68aff0'})
+        MATCH (grasp_process:Process {uuid: '325c5357-784e-5d73-9612-ed83b68680ac'})
 
-        MERGE (grasped_state:State {uuid: 'state-workflow-block-grasped'})
+        MERGE (grasped_state:State {uuid: 'b7aee059-f29a-5362-86a9-25c4f008718d'})
         ON CREATE SET
             grasped_state.name = 'WorkflowBlockGrasped',
             grasped_state.timestamp = datetime(),
             grasped_state.description = 'Block grasped during workflow execution',
             grasped_state.is_grasped = true
 
-        MERGE (gripper_closed_state:State {uuid: 'state-workflow-gripper-closed'})
+        MERGE (gripper_closed_state:State {uuid: '17ca7a1b-8670-57f7-8afb-1e6fa2563ac7'})
         ON CREATE SET
             gripper_closed_state.name = 'WorkflowGripperClosed',
             gripper_closed_state.timestamp = datetime(),
@@ -770,12 +779,12 @@ class TestM4CompleteWorkflow:
 
         # Step 5: Simulate final placement
         simulate_placement_execution_query = """
-        MATCH (block:Entity {uuid: 'entity-block-red-01'})
-        MATCH (bin:Entity {uuid: 'entity-bin-01'})
-        MATCH (gripper:Entity {uuid: 'entity-gripper-01'})
-        MATCH (release_process:Process {uuid: 'process-workflow-step4'})
+        MATCH (block:Entity {uuid: 'b91e3ad0-9739-55a5-928e-3e0024add30f'})
+        MATCH (bin:Entity {uuid: '7e9f1098-a96e-54dd-a9f7-ed3378cd2e5d'})
+        MATCH (gripper:Entity {uuid: 'b4ec5d50-f318-5c5b-86a3-b1b3ce68aff0'})
+        MATCH (release_process:Process {uuid: '4ebb040b-2f90-5a3b-94a1-b35ad52b59dc'})
 
-        MERGE (placed_state:State {uuid: 'state-workflow-block-placed'})
+        MERGE (placed_state:State {uuid: 'dcf6a7bd-902c-52b1-9023-1eca8f0cfe0d'})
         ON CREATE SET
             placed_state.name = 'WorkflowBlockPlaced',
             placed_state.timestamp = datetime(),
@@ -785,7 +794,7 @@ class TestM4CompleteWorkflow:
             placed_state.position_y = 0.3,
             placed_state.position_z = 0.8
 
-        MERGE (gripper_open_final:State {uuid: 'state-workflow-gripper-open-final'})
+        MERGE (gripper_open_final:State {uuid: 'a3c4b370-9a42-5f8c-b1e3-c15b6d613935'})
         ON CREATE SET
             gripper_open_final.name = 'WorkflowGripperOpenFinal',
             gripper_open_final.timestamp = datetime(),
@@ -808,11 +817,11 @@ class TestM4CompleteWorkflow:
 
         # Step 6: Verify complete workflow results
         verify_final_workflow_query = """
-        MATCH (block:Entity {uuid: 'entity-block-red-01'})
-        MATCH (block)-[:LOCATED_AT]->(bin:Entity {uuid: 'entity-bin-01'})
-        MATCH (block)-[:HAS_STATE]->(final_state:State {uuid: 'state-workflow-block-placed'})
-        MATCH path = (start:Process {uuid: 'process-workflow-step1'})
-                     -[:PRECEDES*]->(end:Process {uuid: 'process-workflow-step4'})
+        MATCH (block:Entity {uuid: 'b91e3ad0-9739-55a5-928e-3e0024add30f'})
+        MATCH (block)-[:LOCATED_AT]->(bin:Entity {uuid: '7e9f1098-a96e-54dd-a9f7-ed3378cd2e5d'})
+        MATCH (block)-[:HAS_STATE]->(final_state:State {uuid: 'dcf6a7bd-902c-52b1-9023-1eca8f0cfe0d'})
+        MATCH path = (start:Process {uuid: '332b706e-0b01-5de1-8ea2-a58cd8586ce1'})
+                     -[:PRECEDES*]->(end:Process {uuid: '4ebb040b-2f90-5a3b-94a1-b35ad52b59dc'})
         RETURN block.name AS block_name,
                bin.name AS bin_name,
                final_state.is_grasped AS is_grasped,

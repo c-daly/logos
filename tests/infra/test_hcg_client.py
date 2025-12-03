@@ -20,12 +20,6 @@ from logos_test_utils.docker import is_container_running
 from logos_test_utils.neo4j import get_neo4j_config, wait_for_neo4j
 
 # Test configuration - defaults pulled from shared stack env
-RUN_HCG_TESTS = os.getenv("RUN_HCG_TESTS") not in {None, "", "0", "false", "False"}
-pytestmark = pytest.mark.skipif(
-    not RUN_HCG_TESTS,
-    reason="Set RUN_HCG_TESTS=1 and start the shared stack to exercise HCG integration tests.",
-)
-
 NEO4J_CONFIG = get_neo4j_config()
 NEO4J_URI = os.getenv("NEO4J_URI", NEO4J_CONFIG.uri)
 NEO4J_USER = os.getenv("NEO4J_USER", NEO4J_CONFIG.user)

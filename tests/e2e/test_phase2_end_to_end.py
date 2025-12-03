@@ -12,6 +12,9 @@ This test suite validates the complete Phase 2 system working together:
 
 Based on Phase 1's test_m4_end_to_end.py pattern.
 Reference: GitHub issue c-daly/logos#324
+
+These tests require Sophia, Hermes, and Apollo services to be running.
+Start with: ./scripts/start_services.sh start
 """
 
 import os
@@ -19,6 +22,23 @@ from pathlib import Path
 
 import pytest
 import requests
+
+
+def _check_services_available():
+    """Check if required services are running."""
+    sophia_url = os.getenv("SOPHIA_URL", "http://localhost:8001")
+    try:
+        resp = requests.get(f"{sophia_url}/health", timeout=2)
+        return resp.status_code == 200
+    except Exception:
+        return False
+
+
+if not _check_services_available():
+    pytest.skip(
+        "Phase 2 E2E tests require app services. Start with: ./scripts/start_services.sh start",
+        allow_module_level=True,
+    )
 
 from logos_test_utils.env import load_stack_env
 from logos_test_utils.milvus import get_milvus_config
@@ -40,13 +60,6 @@ except ImportError:
     HermesConfig = None  # type: ignore
     PersonaApiConfig = None  # type: ignore
     SophiaConfig = None  # type: ignore
-
-# Environment variable to enable Phase 2 E2E tests
-RUN_P2_E2E = os.getenv("RUN_P2_E2E") == "1"
-pytestmark = pytest.mark.skipif(
-    not RUN_P2_E2E,
-    reason="Phase 2 E2E tests run only when RUN_P2_E2E=1",
-)
 
 # Repository root
 REPO_ROOT = Path(__file__).parent.parent.parent
