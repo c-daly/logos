@@ -8,8 +8,8 @@ System-wide specifications and architectural overviews for Project LOGOS.
 |----------|-------------|
 | [LOGOS_SPEC.md](LOGOS_SPEC.md) | Core architecture, philosophy, deployment modes, and phase roadmap |
 | [PHASE1_SPEC.md](PHASE1_SPEC.md) | Phase 1: HCG foundation, Neo4j, SHACL validation, E2E pipeline ✅ |
-| [PHASE2_SPEC.md](PHASE2_SPEC.md) | Phase 2: Services, Apollo UX, CWM State contract (complete) |
-| [PHASE3_SPEC.md](PHASE3_SPEC.md) | Phase 3: Learning, memory, event-driven reflection (planned) |
+| [PHASE2_SPEC.md](PHASE2_SPEC.md) | Phase 2: Services, Apollo UX, CWM State contract ✅ |
+| [PHASE3_SPEC.md](PHASE3_SPEC.md) | Phase 3: Learning, memory, event-driven reflection (in progress) |
 
 ## Related Resources
 

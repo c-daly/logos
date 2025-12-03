@@ -207,17 +207,17 @@ cat > "${OUTPUT_DIR}/index.html" << 'EOF'
                     <div class="api-description">Memory system for storing activity summaries and sentiments</div>
                 </a>
             </li>
+            <li class="api-item">
+                <a href="apollo.html" class="api-link">
+                    Apollo API
+                    <div class="api-description">HCG graph querying, media upload, WebSocket diagnostics</div>
+                </a>
+            </li>
             <!-- Future APIs will be added here as they become available:
             <li class="api-item">
                 <a href="talos.html" class="api-link">
                     Talos API
                     <div class="api-description">Hardware abstraction layer for sensors and actuators</div>
-                </a>
-            </li>
-            <li class="api-item">
-                <a href="apollo.html" class="api-link">
-                    Apollo API
-                    <div class="api-description">Thin client UI and command layer</div>
                 </a>
             </li>
             -->
