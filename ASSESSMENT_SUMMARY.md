@@ -1,97 +1,67 @@
-# Project LOGOS: Goal Achievement Summary
+# Project LOGOS: Status Summary
 **Date:** December 2025
 
-## TL;DR
+## Overview
 
-**Overall Status:** 🟨 **Phase 2 in progress** — Core services and dual surfaces are working; perception pipeline and full observability/telemetry are still open.
+**Current Status:** Phase 2 Complete
 
-- ✅ **Phase 1:** Complete - All milestones delivered
-- 🔄 **Phase 2:** Active - Services operational, OTEL stack added; perception pipeline and CWM-E automation remain
-- 📋 **Phase 3:** Not started - Planned after Phase 2 closure
+- **Phase 1:** Complete — foundational milestones delivered
+- **Phase 2:** Complete — services operational, dual surfaces verified, media ingestion functional, observability stack deployed
+- **Phase 3:** Planned for Q1 2026
 
-## The Good News 👍
+## Phase 2 Accomplishments
 
-1. **Architecture is Excellent** - HCG design is sound, novel, and well-documented
-2. **Phase 1 Exceeded Expectations** - Neo4j/Milvus infra, SHACL validation, E2E demo all working
-3. **Services Are Operational** - Sophia and Hermes APIs functional with proper contracts
-4. **Apollo Interfaces Work** - Both CLI and browser UI consuming services correctly
-5. **Observability Stack Added** - Local OTEL stack (collector + Jaeger + Prometheus) now available
-6. **Testing Discipline Strong** - 90+ tests passing, CI automation functional (coverage upload disabled)
-7. **Documentation Improving** - Navigation and port references refreshed; OTEL docs added
+### Architecture and Infrastructure
+- Hierarchical Causal Graph (HCG) design implemented with Neo4j and Milvus
+- SHACL-based ontology validation operational
+- Docker Compose orchestration for all services
 
-## Phase 2 Remaining Work 🔄
+### Service Layer
+- Sophia API: `/plan`, `/state`, `/simulate`, `/ingest` endpoints
+- Hermes API: embedding, STT, TTS, NLP, LLM gateway
+- Health checks and structured logging across services
 
-### Next Priority: Perception Pipeline
-**Status:** Core infra ready; media path not implemented.
-- ✅ JEPA runner stub + tests for abstract scenarios
-- ✅ Milvus/Neo4j infra and collections initialized by scripts
-- ✅ Apollo surfaces (CLI/web) in place
-- 🔄 Media ingest service (browser uploads/file watcher/WebRTC)
-- 🔄 MediaSample nodes in HCG ontology
-- 🔄 Media upload UI in Apollo webapp
-- 🔄 Media → JEPA → Milvus pipeline implementation
-- 🔄 Real image/video/audio processing capability
+### User Interfaces
+- Apollo CLI with SDK integration
+- Apollo browser application with WebSocket real-time updates
+- Media upload UI component
 
-### Additional Phase 2 Work Items
+### Perception and Observability
+- Media ingestion pipeline: upload → processing → HCG storage
+- MediaSample ontology nodes with SHACL shapes
+- OpenTelemetry development stack (collector, Jaeger, Prometheus)
 
-1. **CWM-E Automation (P2-M4)**
-   - ✅ Manual reflection API flows work
-   - 🔄 Periodic reflection job (automatic)
-   - 🔄 Planner EmotionState integration (planner reading emotions)
+### Testing and Documentation
+- 90+ tests passing with CI automation
+- OpenAPI specifications for all services
+- API documentation deployed to GitHub Pages
+- Verification evidence archived in `apollo/docs/evidence/`
 
-2. **CWM-A Enhancement**
-   - ✅ CWM-A emits states for core flows
-   - 🔄 Full CWMState envelope emission per unified contract
+## Deferred Work
 
-3. **Observability**
-   - ✅ OTEL dev stack (collector + Jaeger + Prometheus) with docs and scripts
-   - 🔄 Service instrumentation for trace propagation across Apollo → Sophia → Hermes
-   - 🔄 Production-friendly storage/backends for telemetry
+The following items were intentionally deferred to Phase 3:
 
-4. **Phase 3 Planning**
-   - 📋 Learning from experience (planned)
-   - 📋 Short-term memory (planned)
-   - 📋 Event-driven reflection (planned)
+1. **CWM-E Automation** — automatic periodic reflection and attention/working-memory modeling
+2. **Production Telemetry** — production-grade OpenTelemetry deployment
+3. **EmotionState Integration** — planner consumption of emotional context
 
-## Status Summary
+## Phase 3 Scope
 
-**Phase 2 is actively in progress.** The architecture proves non-linguistic cognition is viable. The code quality is good. The main gaps are media/perception, automated reflection, and end-to-end telemetry.
+**Estimated Duration:** 4-6 weeks
 
-## Remaining Phase 2 Work
+1. **CWM-E Automation** (~1-2 weeks)
+   - Periodic reflection background task
+   - Attention and working-memory modeling
 
-**Estimated Effort to Complete Phase 2:** ~4-6 weeks
+2. **Learning from Experience** (~2 weeks)
+   - Short-term memory patterns
+   - Event-driven reflection mechanisms
 
-1. **Media Ingest Pipeline** (~2 weeks)
-   - Build FastAPI media upload service
-   - Add MediaSample nodes to ontology
-   - Create Apollo upload UI component
-   - Wire pipeline: upload → JEPA → Milvus → Neo4j
+3. **Perception Enhancements** (~2 weeks)
+   - Real camera/sensor integration
+   - JEPA model refinements
 
-2. **CWM-E Automation** (~1 week)
-   - Implement periodic reflection background task
-   - Integrate EmotionState reading into planner
+## References
 
-3. **CWM-A State Envelope** (~1 week)
-   - Make CWM-A emit proper CWMState with entity/relationship diffs
-
-**Upon Completion:** Demonstrate with real camera/sensor, validate embodiment, prepare for Phase 3.
-
-## Phase 2 Completion Benefits
-
-**Upon Phase 2 completion:**
-- Proven alternative to linguistic AI architectures
-- Publishable research contribution
-- Demonstrable real-world embodiment capability
-- Strong foundation for Phase 3 learning systems
-
-## Current Development Focus
-
-**Active Phase 2 work continues** with clear remaining milestones and effort estimates. The project is progressing steadily toward Phase 2 completion before expanding into Phase 3 scope.
-
----
-
-**Full Assessment:** See `docs/operations/CANDID_ASSESSMENT_2025_12.md` for comprehensive analysis (architecture, execution, technical debt, research positioning, and recommendations).
-
-**Grade: B (84%)** - Exceptional architecture, incomplete execution. 
-
-**Next Milestone:** Phase 2 completion target: Aim for end of December 2025 with perception pipeline + trace propagation in place.
+- **Phase 2 Verification Checklist:** `docs/operations/PHASE2_VERIFY.md`
+- **Phase 2 Verification Screenshots:** `apollo/docs/evidence/`
