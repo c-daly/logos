@@ -231,9 +231,7 @@ class Neo4jSHACLValidator:
                     for i, violation in enumerate(violations, 1):
                         report_lines.append(f"Violation {i}:")
                         report_lines.append(f"  Focus Node: {violation['focusNode']}")
-                        report_lines.append(
-                            f"  Property Shape: {violation['propertyShape']}"
-                        )
+                        report_lines.append(f"  Property Shape: {violation['propertyShape']}")
                         report_lines.append(f"  Severity: {violation['severity']}")
                         report_lines.append(f"  Message: {violation['resultMessage']}")
                         report_lines.append("")
@@ -259,9 +257,7 @@ class Neo4jSHACLValidator:
 
 def main():
     """Main entry point for SHACL validation script."""
-    parser = argparse.ArgumentParser(
-        description="Load SHACL shapes into Neo4j and run validation"
-    )
+    parser = argparse.ArgumentParser(description="Load SHACL shapes into Neo4j and run validation")
     parser.add_argument(
         "--uri",
         default="bolt://localhost:7687",
@@ -274,8 +270,8 @@ def main():
     )
     parser.add_argument(
         "--password",
-        default="logosdev",
-        help="Neo4j password (default: logosdev)",
+        default="neo4jtest",
+        help="Neo4j password (default: neo4jtest)",
     )
     parser.add_argument(
         "--shapes",

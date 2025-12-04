@@ -7,6 +7,7 @@ services are properly configured and accessible.
 
 import subprocess
 import time
+from pathlib import Path
 
 import pytest
 import requests
@@ -15,10 +16,13 @@ import requests
 @pytest.fixture(scope="module")
 def otel_stack():
     """Start the OTel stack for testing."""
+    # Get the project root directory (where docker-compose.otel.yml is)
+    project_root = Path(__file__).parent.parent.parent.absolute()
+
     # Start the stack
     subprocess.run(
         ["docker", "compose", "-f", "docker-compose.otel.yml", "up", "-d"],
-        cwd="/home/fearsidhe/projects/LOGOS/logos",
+        cwd=str(project_root),
         check=True,
         capture_output=True,
     )
@@ -31,7 +35,7 @@ def otel_stack():
     # Cleanup
     subprocess.run(
         ["docker", "compose", "-f", "docker-compose.otel.yml", "down"],
-        cwd="/home/fearsidhe/projects/LOGOS/logos",
+        cwd=str(project_root),
         check=True,
         capture_output=True,
     )

@@ -34,7 +34,7 @@ M1 Milestone: "HCG can store and retrieve entities" has been verified end-to-end
 ## Acceptance Criteria Met
 
 1. ✅ Schema + seed data load - Automated via `python -m logos_hcg.load_hcg`
-2. ✅ SHACL validation - `pytest tests/phase1/test_shacl_pyshacl.py -k entity_round_trip` passes
+2. ✅ SHACL validation - `pytest tests/integration/ontology/test_shacl_pyshacl.py -k entity_round_trip` passes
 3. ✅ Retrieval API - Demonstrated via `python -m logos_hcg.demo_retrieval`
 4. ✅ Documentation - Updated PHASE1_VERIFY.md with comprehensive instructions
 5. ✅ Evidence - Logs captured in this directory
@@ -43,7 +43,7 @@ M1 Milestone: "HCG can store and retrieve entities" has been verified end-to-end
 
 - `logos_hcg/load_hcg.py` - Deterministic ontology and seed data loader
 - `logos_hcg/demo_retrieval.py` - Entity retrieval demonstration script
-- `tests/phase1/test_shacl_pyshacl.py::test_entity_round_trip` - SHACL round-trip test
+- `tests/integration/ontology/test_shacl_pyshacl.py::test_entity_round_trip` - SHACL round-trip test
 - `docs/PHASE1_VERIFY.md` - Updated verification documentation
 
 ## Reference

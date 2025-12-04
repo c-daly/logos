@@ -10,13 +10,15 @@ For Phase 1, this demonstrates the planner API contract and integration points.
 
 import json
 import uuid
-from pathlib import Path
 from typing import Any, cast
+
+from logos_test_utils.env import get_repo_root
 
 from .models import PlanRequest, PlanResponse, ProcessStep, StateDescription
 
 # Load plan scenarios from fixtures
-FIXTURES_DIR = Path(__file__).parent.parent / "tests" / "phase1" / "fixtures"
+REPO_ROOT = get_repo_root()
+FIXTURES_DIR = REPO_ROOT / "tests" / "integration" / "planning" / "fixtures"
 SCENARIOS_FILE = FIXTURES_DIR / "plan_scenarios.json"
 
 
@@ -35,9 +37,7 @@ class SimplePlanner:
     def __init__(self):
         """Initialize the planner with scenario fixtures."""
         self.scenarios_data = load_scenarios()
-        self.scenarios = {
-            s["name"]: s for s in self.scenarios_data.get("scenarios", [])
-        }
+        self.scenarios = {s["name"]: s for s in self.scenarios_data.get("scenarios", [])}
 
     def generate_plan(self, request: PlanRequest) -> PlanResponse:
         """
@@ -58,9 +58,7 @@ class SimplePlanner:
             return self._build_response_from_scenario(scenario)
 
         # Try to match based on goal state
-        matched_scenario = self._match_scenario(
-            request.initial_state, request.goal_state
-        )
+        matched_scenario = self._match_scenario(request.initial_state, request.goal_state)
         if matched_scenario:
             return self._build_response_from_scenario(matched_scenario)
 

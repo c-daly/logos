@@ -43,9 +43,7 @@ class PlanRequest(BaseModel):
 class PlanResponse(BaseModel):
     """Response containing the generated plan."""
 
-    plan: list[ProcessStep] = Field(
-        ..., description="Ordered sequence of process steps"
-    )
+    plan: list[ProcessStep] = Field(..., description="Ordered sequence of process steps")
     success: bool = Field(..., description="Whether plan generation succeeded")
     message: str | None = Field(None, description="Status or error message")
     scenario_name: str | None = Field(None, description="Scenario name if applicable")

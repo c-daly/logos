@@ -49,7 +49,7 @@ Both services should show status `Up`.
 ### 3. Verify Neo4j Connectivity
 
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "RETURN 'Connected!' AS status;"
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "RETURN 'Connected!' AS status;"
 ```
 
 Expected output:
@@ -72,7 +72,7 @@ The core ontology defines node types (Entity, Concept, State, Process), constrai
 From the repository root:
 
 ```bash
-docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p logosdev < ontology/core_ontology.cypher
+docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest < ontology/core_ontology.cypher
 ```
 
 Expected output (abbreviated):
@@ -86,7 +86,7 @@ Created 3 relationships
 ### Verify Constraints
 
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "SHOW CONSTRAINTS;"
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "SHOW CONSTRAINTS;"
 ```
 
 You should see at least these constraints:
@@ -99,7 +99,7 @@ You should see at least these constraints:
 ### Verify Indexes
 
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "SHOW INDEXES;"
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "SHOW INDEXES;"
 ```
 
 You should see indexes for:
@@ -110,7 +110,7 @@ You should see indexes for:
 ### Verify Concepts Loaded
 
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
   "MATCH (c:Concept) RETURN c.name ORDER BY c.name;"
 ```
 
@@ -139,7 +139,7 @@ The test data creates a complete pick-and-place scenario with robot entities, wo
 ### Load Pick-and-Place Scenario
 
 ```bash
-docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p logosdev < ontology/test_data_pick_and_place.cypher
+docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest < ontology/test_data_pick_and_place.cypher
 ```
 
 Expected output:
@@ -152,7 +152,7 @@ Set ~200 properties
 ### Verify Entities Loaded
 
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
   "MATCH (e:Entity) RETURN e.name, labels(e) AS labels ORDER BY e.name;"
 ```
 
@@ -170,7 +170,7 @@ You should see entities including:
 Count nodes by type:
 
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
   "MATCH (n) RETURN labels(n)[0] AS type, count(n) AS count ORDER BY type;"
 ```
 
@@ -185,14 +185,14 @@ Expected counts (approximate):
 ### 1. Check Node Type Distribution
 
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
   "MATCH (n) RETURN DISTINCT labels(n) AS nodeTypes, count(n) AS count;"
 ```
 
 ### 2. Verify Relationship Types
 
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
   "MATCH ()-[r]->() RETURN DISTINCT type(r) AS relationshipType, count(r) AS count ORDER BY relationshipType;"
 ```
 
@@ -210,7 +210,7 @@ Expected relationship types:
 Check that all UUIDs follow the required patterns:
 
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
   "MATCH (e:Entity) WHERE NOT e.uuid STARTS WITH 'entity-' RETURN count(e) AS invalid_entity_uuids;"
 ```
 
@@ -221,7 +221,7 @@ Should return 0 for all node types (Entity, Concept, State, Process).
 Verify that processes have proper causal relationships:
 
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
   "MATCH (p:Process) WHERE NOT EXISTS((p)-[:CAUSES]->()) RETURN p.name AS processWithoutCausedState;"
 ```
 
@@ -232,7 +232,7 @@ Should return no rows (all processes should cause at least one state).
 Check that state transitions have proper temporal ordering:
 
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
   "MATCH (s1:State)-[:PRECEDES]->(s2:State) WHERE s1.timestamp > s2.timestamp RETURN s1.name, s2.name, s1.timestamp, s2.timestamp;"
 ```
 
@@ -250,7 +250,7 @@ RETURN e.name AS object, e.uuid AS uuid, e.mass AS mass;
 From command line:
 
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
   "MATCH (e:Entity)-[:IS_A]->(c:Concept {name: 'GraspableObject'}) RETURN e.name AS object, e.uuid AS uuid, e.mass AS mass;"
 ```
 
@@ -357,7 +357,7 @@ docker stats logos-hcg-neo4j logos-hcg-milvus
 **Warning**: This deletes all graph data but preserves constraints and indexes.
 
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
   "MATCH (n) DETACH DELETE n;"
 ```
 
@@ -381,10 +381,10 @@ docker compose -f infra/docker-compose.hcg.dev.yml up -d
 sleep 15
 
 # Reload ontology
-docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p logosdev < ontology/core_ontology.cypher
+docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest < ontology/core_ontology.cypher
 
 # Reload test data
-docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p logosdev < ontology/test_data_pick_and_place.cypher
+docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest < ontology/test_data_pick_and_place.cypher
 ```
 
 ### Selective Reset: Remove Only Test Data
@@ -392,14 +392,14 @@ docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p logosdev < ontology/test
 **Warning**: This removes entities and states but preserves concepts and constraints.
 
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
   "MATCH (n) WHERE n:Entity OR n:State OR n:Process DETACH DELETE n;"
 ```
 
 After selective reset, you can reload just the test data:
 
 ```bash
-docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p logosdev < ontology/test_data_pick_and_place.cypher
+docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest < ontology/test_data_pick_and_place.cypher
 ```
 
 ## Next Steps
@@ -413,7 +413,7 @@ from neo4j import GraphDatabase
 
 driver = GraphDatabase.driver(
     "bolt://localhost:7687",
-    auth=("neo4j", "logosdev")
+    auth=("neo4j", "neo4jtest")
 )
 
 # Example: Query for graspable objects

@@ -28,6 +28,15 @@ CREATE CONSTRAINT logos_emotion_state_uuid IF NOT EXISTS
 FOR (es:EmotionState)
 REQUIRE es.uuid IS UNIQUE;
 
+//// Phase 2: Capability catalog node constraints (logos#284)
+CREATE CONSTRAINT logos_capability_uuid IF NOT EXISTS
+FOR (cap:Capability)
+REQUIRE cap.uuid IS UNIQUE;
+
+CREATE CONSTRAINT logos_capability_name IF NOT EXISTS
+FOR (cap:Capability)
+REQUIRE cap.name IS UNIQUE;
+
 //// Concept uniqueness
 CREATE CONSTRAINT logos_concept_name IF NOT EXISTS
 FOR (c:Concept)
@@ -55,7 +64,18 @@ CREATE INDEX logos_emotion_state_timestamp IF NOT EXISTS
 FOR (es:EmotionState)
 ON (es.timestamp);
 
-//// Phase 2 P2-M3: Perception and Imagination node constraints
+//// Phase 2: Indexes for Capability catalog (logos#284)
+// Note: logos_capability_name constraint already provides index on cap.name
+
+CREATE INDEX logos_capability_executor_type IF NOT EXISTS
+FOR (cap:Capability)
+ON (cap.executor_type);
+
+CREATE INDEX logos_capability_tags IF NOT EXISTS
+FOR (cap:Capability)
+ON (cap.capability_tags);
+
+//// Phase 2 P2-M3: Perception and Imagination node constraints (CWM-G)
 CREATE CONSTRAINT logos_perception_frame_uuid IF NOT EXISTS
 FOR (pf:PerceptionFrame)
 REQUIRE pf.uuid IS UNIQUE;
@@ -68,7 +88,49 @@ CREATE CONSTRAINT logos_imagined_state_uuid IF NOT EXISTS
 FOR (is:ImaginedState)
 REQUIRE is.uuid IS UNIQUE;
 
-//// Phase 2 P2-M3: Indexes for perception and imagination
+//// Phase 2 P2-M3: MediaSample node constraints (media ingestion)
+CREATE CONSTRAINT logos_media_sample_uuid IF NOT EXISTS
+FOR (ms:MediaSample)
+REQUIRE ms.uuid IS UNIQUE;
+
+CREATE INDEX logos_media_sample_media_type IF NOT EXISTS
+FOR (ms:MediaSample)
+ON (ms.media_type);
+
+CREATE INDEX logos_media_sample_timestamp IF NOT EXISTS
+FOR (ms:MediaSample)
+ON (ms.timestamp);
+
+CREATE INDEX logos_media_sample_file_hash IF NOT EXISTS
+FOR (ms:MediaSample)
+ON (ms.file_hash);
+
+//// CWM-A: Abstract/Associative World Model node constraints
+CREATE CONSTRAINT logos_fact_uuid IF NOT EXISTS
+FOR (f:Fact)
+REQUIRE f.uuid IS UNIQUE;
+
+CREATE CONSTRAINT logos_association_uuid IF NOT EXISTS
+FOR (a:Association)
+REQUIRE a.uuid IS UNIQUE;
+
+CREATE CONSTRAINT logos_abstraction_uuid IF NOT EXISTS
+FOR (abs:Abstraction)
+REQUIRE abs.uuid IS UNIQUE;
+
+CREATE CONSTRAINT logos_rule_uuid IF NOT EXISTS
+FOR (r:Rule)
+REQUIRE r.uuid IS UNIQUE;
+
+CREATE CONSTRAINT logos_abstraction_name IF NOT EXISTS
+FOR (abs:Abstraction)
+REQUIRE abs.name IS UNIQUE;
+
+CREATE CONSTRAINT logos_rule_name_domain IF NOT EXISTS
+FOR (r:Rule)
+REQUIRE (r.name, r.domain) IS UNIQUE;
+
+//// Phase 2 P2-M3: Indexes for perception and imagination (CWM-G)
 CREATE INDEX logos_perception_frame_timestamp IF NOT EXISTS
 FOR (pf:PerceptionFrame)
 ON (pf.timestamp);
@@ -80,6 +142,47 @@ ON (ip.timestamp);
 CREATE INDEX logos_imagined_state_step IF NOT EXISTS
 FOR (is:ImaginedState)
 ON (is.step);
+
+//// CWM-A: Indexes for facts, associations, rules
+CREATE INDEX logos_fact_subject IF NOT EXISTS
+FOR (f:Fact)
+ON (f.subject);
+
+CREATE INDEX logos_fact_predicate IF NOT EXISTS
+FOR (f:Fact)
+ON (f.predicate);
+
+CREATE INDEX logos_fact_status IF NOT EXISTS
+FOR (f:Fact)
+ON (f.status);
+
+CREATE INDEX logos_fact_confidence IF NOT EXISTS
+FOR (f:Fact)
+ON (f.confidence);
+
+CREATE INDEX logos_association_source IF NOT EXISTS
+FOR (a:Association)
+ON (a.source_concept);
+
+CREATE INDEX logos_association_target IF NOT EXISTS
+FOR (a:Association)
+ON (a.target_concept);
+
+CREATE INDEX logos_association_strength IF NOT EXISTS
+FOR (a:Association)
+ON (a.strength);
+
+CREATE INDEX logos_rule_type IF NOT EXISTS
+FOR (r:Rule)
+ON (r.rule_type);
+
+CREATE INDEX logos_rule_domain IF NOT EXISTS
+FOR (r:Rule)
+ON (r.domain);
+
+CREATE INDEX logos_abstraction_domain IF NOT EXISTS
+FOR (abs:Abstraction)
+ON (abs.domain);
 
 //// Base relationship types (Section 4.1)
 //// - (:Entity)-[:IS_A]->(:Concept) — Type membership
@@ -100,10 +203,40 @@ ON (is.step);
 //// - (:EmotionState)-[:TAGGED_ON]->(:Entity) — Emotion tag on entity
 //// - (:EmotionState)-[:GENERATED_BY]->(:PersonaEntry) — Emotion derived from reflection
 
-//// Phase 2 P2-M3: Extended relationship types for perception and imagination
+//// Phase 2 P2-M3: Extended relationship types for perception and imagination (CWM-G)
 //// - (:PerceptionFrame)-[:TRIGGERED_SIMULATION]->(:ImaginedProcess) — Frame that initiated simulation
 //// - (:ImaginedProcess)-[:PREDICTS]->(:ImaginedState) — Process predicting future state
 //// - (:ImaginedState)-[:PRECEDES]->(:ImaginedState) — Temporal ordering of imagined states
+
+//// Phase 2 P2-M3: Extended relationship types for media ingestion
+//// - (:MediaSample)-[:HAS_EMBEDDING]->(:Embedding) — Media linked to Milvus embedding
+//// - (:MediaSample)-[:EXTRACTED_FROM]->(:MediaSample) — Frame extracted from video
+//// - (:MediaSample)-[:FEEDS]->(:SimulationContext) — Media used as simulation input
+//// - (:MediaSample)-[:PRODUCES]->(:PerceptionFrame) — Media processed into perception frame
+//// - (:MediaSample)-[:UPLOADED_BY]->(:Session) — Upload session tracking
+
+//// CWM-A: Relationship types for abstract/associative world model
+//// - (:Fact)-[:ABOUT]->(:Concept|:Entity) — Fact concerns this node
+//// - (:Fact)-[:SUPPORTS]->(:Process) — Fact supports plan step
+//// - (:Fact)-[:CONTRADICTS]->(:Fact) — Facts in conflict
+//// - (:Fact)-[:SUPERSEDES]->(:Fact) — Newer fact replaces older
+//// - (:Fact)-[:DERIVED_FROM]->(:Fact|:PerceptionFrame) — Provenance
+//// - (:Fact)-[:INFERRED_FROM]->(:Fact) — Derived via inference
+//// - (:Association)-[:CONNECTS]->(:Concept) — Association links concepts
+//// - (:Association)-[:LEARNED_FROM]->(:Process) — How association was learned
+//// - (:Abstraction)-[:GENERALIZES]->(:Concept) — Lower-level concepts
+//// - (:Abstraction)-[:PART_OF]->(:Abstraction) — Abstraction hierarchy
+//// - (:Rule)-[:APPLIES_TO]->(:Concept|:Entity) — Rule scope
+//// - (:Rule)-[:TRIGGERS]->(:Rule) — Chained rules
+//// - (:Rule)-[:CONFLICTS_WITH]->(:Rule) — Mutually exclusive rules
+//// - (:Rule)-[:PART_OF]->(:Abstraction) — Rule grouped under abstraction
+
+//// Phase 2: Extended relationship types for capability catalog (logos#284)
+//// - (:Capability)-[:IMPLEMENTS]->(:Concept) — Capability implements action concept (e.g., GraspAction)
+//// - (:Capability)-[:REQUIRES_INPUT]->(:Concept) — Input type required by capability
+//// - (:Capability)-[:PRODUCES_OUTPUT]->(:Concept) — Output type produced by capability
+//// - (:Capability)-[:EXECUTED_BY]->(:Entity) — Entity that can execute this capability
+//// - (:Process)-[:USES_CAPABILITY]->(:Capability) — Plan step uses specific capability
 
 //// Property Schemas by Node Type (see ontology/README_PICK_AND_PLACE.md for details)
 ////
@@ -138,6 +271,50 @@ ON (is.step);
 ////            intensity (0.0-1.0 confidence/strength),
 ////            context (brief description),
 ////            source (what triggered this emotion tag)
+////
+//// CWM-A: Fact Properties (declarative statements):
+////   Required: uuid, subject, predicate, object, confidence, status
+////   Optional: source (where fact came from),
+////            source_type (knowledge_base|observation|inference|human),
+////            valid_from (temporal validity start),
+////            valid_until (temporal validity end),
+////            domain (knowledge domain),
+////            created_at, updated_at (timestamps)
+////
+//// CWM-A: Association Properties (weighted links between concepts):
+////   Required: uuid, source_concept, target_concept, strength
+////   Optional: relationship_type (type of association),
+////            bidirectional (is relationship symmetric),
+////            context (where valid),
+////            source (how learned),
+////            decay_rate (strength decay per day),
+////            created_at (timestamp)
+////
+//// CWM-A: Abstraction Properties (higher-order concepts):
+////   Required: uuid, name
+////   Optional: description (human description),
+////            level (hierarchy level, 0=concrete),
+////            domain (knowledge domain),
+////            created_at (timestamp)
+////
+//// CWM-A: Rule Properties (conditional inference rules):
+////   Required: uuid, name, condition, consequent, rule_type
+////   Optional: priority (higher = more important),
+////            confidence (rule reliability),
+////            domain (applicable domain),
+////            created_at (timestamp)
+////
+//// Phase 2: Capability Properties (logos#284 - Capability Catalog):
+////   Required: uuid, name, executor_type
+////   Core: executor_type (enum: human|talos|service|llm),
+////         description (what the capability does),
+////         capability_tags (list of string tags for discovery)
+////   Performance: estimated_duration_ms, estimated_cost,
+////                success_rate (0.0-1.0), invocation_count
+////   Versioning: version, created_at, updated_at, deprecated (boolean)
+////   Integration: service_endpoint (for service type),
+////                action_name (for talos type),
+////                instruction_template (for human type)
 ////
 //// See shacl_shapes.ttl for validation constraints
 
@@ -214,4 +391,60 @@ MERGE (graspable)-[:IS_A]->(rigid_body);
 ////     c.embedding_model = 'sentence-transformers/all-MiniLM-L6-v2',
 ////     c.last_sync = datetime();
 
-RETURN "core ontology extended with pick-and-place domain (no-op if already present)";
+//// Phase 2: Capability Catalog - Executor Type Concepts (logos#284)
+//// These define the abstract executor categories for capabilities
+
+MERGE (executor_type:Concept {uuid: 'concept-executor-type', name: 'ExecutorType'})
+ON CREATE SET executor_type.description = 'Abstract category for capability executors';
+
+MERGE (human_executor:Concept {uuid: 'concept-executor-human', name: 'HumanExecutor'})
+ON CREATE SET human_executor.description = 'Capabilities executed by human operators with instructions';
+
+MERGE (talos_executor:Concept {uuid: 'concept-executor-talos', name: 'TalosExecutor'})
+ON CREATE SET talos_executor.description = 'Capabilities executed by Talos robotic system';
+
+MERGE (service_executor:Concept {uuid: 'concept-executor-service', name: 'ServiceExecutor'})
+ON CREATE SET service_executor.description = 'Capabilities executed via external service/API calls';
+
+MERGE (llm_executor:Concept {uuid: 'concept-executor-llm', name: 'LLMExecutor'})
+ON CREATE SET llm_executor.description = 'Capabilities executed by language model reasoning';
+
+// Establish executor type hierarchy
+MERGE (human_executor)-[:IS_A]->(executor_type);
+MERGE (talos_executor)-[:IS_A]->(executor_type);
+MERGE (service_executor)-[:IS_A]->(executor_type);
+MERGE (llm_executor)-[:IS_A]->(executor_type);
+
+//// Phase 2: Input/Output Type Concepts for Capability Catalog
+MERGE (input_type:Concept {uuid: 'concept-input-type', name: 'InputType'})
+ON CREATE SET input_type.description = 'Abstract category for capability input types';
+
+MERGE (output_type:Concept {uuid: 'concept-output-type', name: 'OutputType'})
+ON CREATE SET output_type.description = 'Abstract category for capability output types';
+
+// Common input/output types
+MERGE (text_input:Concept {uuid: 'concept-input-text', name: 'TextInput'})
+ON CREATE SET text_input.description = 'Text string input';
+MERGE (text_input)-[:IS_A]->(input_type);
+
+MERGE (entity_ref_input:Concept {uuid: 'concept-input-entity-ref', name: 'EntityRefInput'})
+ON CREATE SET entity_ref_input.description = 'Reference to an entity in HCG';
+MERGE (entity_ref_input)-[:IS_A]->(input_type);
+
+MERGE (location_input:Concept {uuid: 'concept-input-location', name: 'LocationInput'})
+ON CREATE SET location_input.description = 'Spatial location coordinates';
+MERGE (location_input)-[:IS_A]->(input_type);
+
+MERGE (state_output:Concept {uuid: 'concept-output-state', name: 'StateOutput'})
+ON CREATE SET state_output.description = 'New state produced by capability';
+MERGE (state_output)-[:IS_A]->(output_type);
+
+MERGE (text_output:Concept {uuid: 'concept-output-text', name: 'TextOutput'})
+ON CREATE SET text_output.description = 'Text string output';
+MERGE (text_output)-[:IS_A]->(output_type);
+
+MERGE (boolean_output:Concept {uuid: 'concept-output-boolean', name: 'BooleanOutput'})
+ON CREATE SET boolean_output.description = 'Success/failure boolean output';
+MERGE (boolean_output)-[:IS_A]->(output_type);
+
+RETURN "core ontology extended with pick-and-place domain and capability catalog (no-op if already present)";

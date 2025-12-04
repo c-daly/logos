@@ -6,7 +6,7 @@
 
 Name | Type
 ------------ | -------------
-`goal` | string
+`goal` | [PlanRequestGoal](PlanRequestGoal.md)
 `context` | { [key: string]: any; }
 `constraints` | Array&lt;string&gt;
 `priority` | string

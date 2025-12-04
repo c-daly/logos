@@ -1,0 +1,104 @@
+defaults:
+  compose_filename: docker-compose.test.yml
+  env_filename: .env.test
+  path: .
+  context:
+    service_prefix: logos-test
+    volume_prefix: logos_test
+    network_name: logos-test-network
+    neo4j_version: "5.14.0"
+    neo4j_username: neo4j
+    neo4j_password: neo4jtest
+    neo4j_http_port: "7474"
+    neo4j_bolt_port: "7687"
+    etcd_version: "v3.5.15"
+    minio_version: "RELEASE.2024-11-07T00-52-20Z"
+    minio_root_user: minioadmin
+    minio_root_password: minioadmin
+    minio_api_port: "9000"
+    minio_console_port: "9001"
+    milvus_version: "v2.4.15"
+    milvus_grpc_port: "19530"
+    milvus_metrics_port: "9091"
+  env:
+    NEO4J_URI: "bolt://neo4j:{neo4j_bolt_port}"
+    NEO4J_USER: "{neo4j_username}"
+    NEO4J_PASSWORD: "{neo4j_password}"
+    MILVUS_HOST: milvus
+    MILVUS_PORT: "{milvus_grpc_port}"
+    MILVUS_HEALTHCHECK: "http://milvus:{milvus_metrics_port}/healthz"
+repos:
+  logos:
+    path: .
+    service_prefix: logos-phase2-test
+    volume_prefix: logos_phase2_test
+    services:
+      - neo4j
+      - milvus-etcd
+      - milvus-minio
+      - milvus
+
+  apollo:
+    path: ../apollo
+    service_prefix: apollo-test
+    volume_prefix: apollo_test
+    services:
+      - neo4j
+      - milvus-etcd
+      - milvus-minio
+      - milvus
+    context:
+      neo4j_http_port: "27474"
+      neo4j_bolt_port: "27687"
+      milvus_grpc_port: "29530"
+      milvus_metrics_port: "29091"
+    env:
+      NEO4J_URI: "bolt://neo4j:{neo4j_bolt_port}"
+
+  hermes:
+    path: ../hermes
+    service_prefix: hermes-test
+    volume_prefix: hermes_test
+    services:
+      - milvus-etcd
+      - milvus-minio
+      - milvus
+    context:
+      milvus_grpc_port: "18530"
+      milvus_metrics_port: "18091"
+    env:
+      NEO4J_URI: "bolt://neo4j:7687"
+      MILVUS_HOST: milvus
+      MILVUS_PORT: "{milvus_grpc_port}"
+
+  sophia:
+    path: ../sophia
+    service_prefix: sophia-test
+    volume_prefix: sophia_test
+    services:
+      - neo4j
+      - milvus-etcd
+      - milvus-minio
+      - milvus
+    context:
+      neo4j_http_port: "37474"
+      neo4j_bolt_port: "37687"
+      milvus_grpc_port: "39530"
+      milvus_metrics_port: "39091"
+    env:
+      NEO4J_URI: "bolt://neo4j:{neo4j_bolt_port}"
+
+  talos:
+    path: ../talos
+    service_prefix: talos-test
+    volume_prefix: talos_test
+    services:
+      - neo4j
+      - milvus
+    context:
+      neo4j_http_port: "47474"
+      neo4j_bolt_port: "47687"
+      milvus_grpc_port: "49530"
+      milvus_metrics_port: "49091"
+    env:
+      NEO4J_URI: "bolt://neo4j:{neo4j_bolt_port}"

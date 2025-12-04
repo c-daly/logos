@@ -60,7 +60,7 @@ docker compose -f docker-compose.hcg.dev.yml up -d
 
 **Verification:**
 - Neo4j browser UI: http://localhost:7474
-- Credentials: neo4j / logosdev
+- Credentials: neo4j / neo4jtest
 
 Wait approximately 10-15 seconds for Neo4j to fully initialize.
 
@@ -69,7 +69,7 @@ Wait approximately 10-15 seconds for Neo4j to fully initialize.
 Load the LOGOS ontology constraints and core concepts:
 
 ```bash
-docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p logosdev < ontology/core_ontology.cypher
+docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest < ontology/core_ontology.cypher
 ```
 
 **What This Does:**
@@ -89,7 +89,7 @@ Expected: At least 4 constraints starting with `logos_`
 Load the test scenario entities and initial states:
 
 ```bash
-docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p logosdev < ontology/test_data_pick_and_place.cypher
+docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest < ontology/test_data_pick_and_place.cypher
 ```
 
 **Entities Created:**
@@ -114,7 +114,7 @@ Expected: At least 5 entities including RedBlock01, RobotArm01, etc.
 Apollo receives user command and creates a goal state in the HCG:
 
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "
 MATCH (block:Entity)
 WHERE block.name CONTAINS 'RedBlock'
 MATCH (bin:Entity)
@@ -145,7 +145,7 @@ You should see output showing the goal UUID, name, and target bin name.
 Sophia analyzes the goal and generates a 4-step plan with causal relationships:
 
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "
 // Create the 4-step plan with PRECEDES relationships
 CREATE (p1:Process {
     uuid: 'process-move-pregrasp',
@@ -203,7 +203,7 @@ Talos executes each step and updates the HCG with resulting states:
 
 #### Execute Step 1: MoveToPreGrasp
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "
 MATCH (e:Entity)
 WHERE e.name CONTAINS 'Arm'
 CREATE (s:State {
@@ -222,7 +222,7 @@ RETURN e.name, s.name;
 
 #### Execute Step 2: GraspRedBlock
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "
 MATCH (e:Entity)
 WHERE e.name CONTAINS 'RedBlock'
 CREATE (s:State {
@@ -242,7 +242,7 @@ RETURN e.name, s.name;
 
 #### Execute Step 4: ReleaseBlock
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "
 MATCH (e:Entity)
 WHERE e.name CONTAINS 'RedBlock'
 MATCH (bin:Entity)
@@ -273,7 +273,7 @@ Query the HCG to verify the demonstration completed successfully:
 
 #### Check Final Block Location
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "
 MATCH (block:Entity)-[:LOCATED_AT]->(bin:Entity)
 WHERE block.name CONTAINS 'RedBlock'
 RETURN block.name AS Object, bin.name AS Location;
@@ -288,7 +288,7 @@ RedBlock01    TargetBin01
 
 #### Check Block State History
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "
 MATCH (e:Entity)-[:HAS_STATE]->(s:State)
 WHERE e.name CONTAINS 'RedBlock'
 RETURN e.name, s.name, s.description, s.timestamp
@@ -301,7 +301,7 @@ Expected: Multiple states showing progression (Initial → Grasped → InBin)
 
 #### Verify Plan Execution Order
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "
 MATCH (p:Process)
 WHERE p.name CONTAINS 'Move' OR p.name CONTAINS 'Grasp' OR p.name CONTAINS 'Release'
 RETURN p.step_number, p.name, p.description
@@ -313,7 +313,7 @@ Expected: 4 processes in order (steps 1-4)
 
 #### Verify Causal Relationships
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "
 MATCH (p:Process)-[:CAUSES]->(s:State)
 RETURN p.name AS Action, s.name AS ResultingState;
 "
@@ -387,14 +387,14 @@ docker compose -f infra/docker-compose.hcg.dev.yml restart logos-hcg-neo4j
 **Symptom:** "Constraint already exists" when loading ontology
 **Solution:** This is normal if ontology was loaded previously. You can safely ignore these errors or clear the database:
 ```bash
-docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "MATCH (n) DETACH DELETE n;"
+docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "MATCH (n) DETACH DELETE n;"
 ```
 
 ### No Entities Found
 **Symptom:** Queries return no results
 **Solution:** Ensure test data was loaded successfully:
 ```bash
-docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p logosdev < ontology/test_data_pick_and_place.cypher
+docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest < ontology/test_data_pick_and_place.cypher
 ```
 
 ### Permission Denied on Scripts
@@ -411,7 +411,7 @@ chmod +x scripts/e2e_prototype.sh
 Run the complete M4 test suite:
 
 ```bash
-pytest tests/phase1/test_m4_end_to_end.py -v
+pytest tests/e2e/test_phase1_end_to_end.py -v
 ```
 
 **Test Coverage:**
@@ -441,7 +441,7 @@ Output saved to `demo_output/` directory with manifest.
 ### Exploring the Graph in Neo4j Browser
 
 1. Open Neo4j browser: http://localhost:7474
-2. Login: neo4j / logosdev
+2. Login: neo4j / neo4jtest
 3. Run exploratory queries:
 
 **Visualize Full Graph:**

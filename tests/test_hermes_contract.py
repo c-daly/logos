@@ -9,12 +9,8 @@ import yaml
 
 
 def _load_hermes_contract() -> dict[str, Any]:
-    contract_path = (
-        Path(__file__).resolve().parent.parent / "contracts" / "hermes.openapi.yaml"
-    )
-    return cast(
-        dict[str, Any], yaml.safe_load(contract_path.read_text(encoding="utf-8"))
-    )
+    contract_path = Path(__file__).resolve().parent.parent / "contracts" / "hermes.openapi.yaml"
+    return cast(dict[str, Any], yaml.safe_load(contract_path.read_text(encoding="utf-8")))
 
 
 def test_llm_endpoint_is_documented() -> None:
@@ -27,10 +23,7 @@ def test_llm_endpoint_is_documented() -> None:
     assert llm_post, "POST /llm definition missing"
 
     request_schema = (
-        llm_post.get("requestBody", {})
-        .get("content", {})
-        .get("application/json", {})
-        .get("schema")
+        llm_post.get("requestBody", {}).get("content", {}).get("application/json", {}).get("schema")
     )
     assert request_schema == {
         "$ref": "#/components/schemas/LLMRequest"

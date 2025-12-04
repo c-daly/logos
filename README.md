@@ -1,13 +1,15 @@
 # Project LOGOS — Meta Repository
 
 [![Validate LOGOS Artifacts](https://github.com/c-daly/logos/actions/workflows/validate-artifacts.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/validate-artifacts.yml)
+[![Phase 2 E2E](https://github.com/c-daly/logos/actions/workflows/phase2-e2e.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/phase2-e2e.yml)
+[![Phase 2 OTEL](https://github.com/c-daly/logos/actions/workflows/phase2-otel.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/phase2-otel.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 > **A Non-Linguistic Cognitive Architecture for Autonomous Agents**
 
 This repository is the canonical "foundry" for Project LOGOS. It contains the formal specification, API contracts, the Hybrid Causal Graph (HCG) founding documents, and the development infrastructure for the shared HCG cluster.
 
-**Phase 1 Complete ✅** | **Phase 2: 86% Complete 🟨** | [Read the docs](docs/) | [Contributing](CONTRIBUTING.md) | [📊 Project Assessment](ASSESSMENT_SUMMARY.md)
+**[Phase 1 Complete ✅](docs/evidence/PHASE1.md)** | **[Phase 2 Complete ✅](docs/evidence/PHASE2.md)** | **Phase 3: Planning 📋** | [Read the docs](docs/) | [Contributing](CONTRIBUTING.md) | [📊 Project Assessment](ASSESSMENT_SUMMARY.md)
 
 Purpose
 - Host the canonical spec and design artifacts that bind all LOGOS components together (see Section 3.1: Overview and Core Principles).
@@ -25,18 +27,23 @@ Embodiment &amp; UX flexibility
 - Talos exposes capabilities via APIs, not a fixed robot. A LOGOS deployment may plug in simulators, one robot, many robots, or no hardware at all without changing Sophia or the HCG.
 - Apollo is any interaction surface that drives the documented goal/plan/state APIs: today that is a CLI; future touch/voice interfaces or kiosks remain fully compliant as long as they use the same contracts.
 
-Documentation layout & phases
-- `docs/architecture/LOGOS_SPEC_FLEXIBLE.md` is the living architecture spec.
-- `docs/phase1/`, `docs/phase2/`, … hold the active specs/checklists for each phase.
-- `docs/adr/` contains Architecture Decision Records documenting key technical decisions.
-- `docs/old/` preserves the original Phase 1 docs, action items, and research notes for reference.
+Documentation layout
+- Architecture specs live in `docs/architecture/` (see `PHASE1_SPEC.md`, `PHASE2_SPEC.md`, `PHASE3_SPEC.md`).
+- Operations/CI/testing/verification live in `docs/operations/`.
+- Observability references live in `docs/observability/`.
+- API docs (generated) live in `docs/api/` and are published to GitHub Pages.
 
-Phase roadmap (see `docs/phase*/` folders for details):
-- **Phase 1 – Formalize HCG & Abstract Pipeline**: Ontology, SHACL, Compose infra, CLI prototype. Spec: `docs/phase1/PHASE1_SPEC.md`.
-- **Phase 2 – Perception & Apollo UX**: Sophia/Hermes services, Apollo browser + CLI, perception pipeline, diagnostics/persona. Spec: `docs/architecture/PHASE2_SPEC.md` | Verification: `docs/operations/PHASE2_VERIFY.md`.
-- **Phase 3 – Learning & Embodiment Options**: Episodic memory, probabilistic validation, optional physical demos (manipulator, touchscreen), multi-agent prep. Spec TBD (`docs/phase3/`).
-- **Phase 4 – Operational Autonomy**: Continuous learning with safety gates, observability/rollback tooling, production deployment patterns. Spec TBD (`docs/phase4/`).
-- **Phase 5 – Networked Agents / Swarm**: LOGOS instances collaborating, sharing HCG slices, coordinating Talos fleets. Spec TBD (`docs/phase5/`).
+Phase roadmap (see `docs/architecture/` for specs):
+- **Phase 1 – Formalize HCG & Abstract Pipeline** ✅: Ontology, SHACL, Compose infra, CLI prototype. Spec: `docs/architecture/PHASE1_SPEC.md` | [Verification Evidence](docs/evidence/PHASE1.md).
+- **Phase 2 – Perception & Apollo UX** ✅: Sophia/Hermes services, Apollo browser + CLI, perception pipeline, diagnostics/persona. Spec: `docs/architecture/PHASE2_SPEC.md` | [Verification Evidence](docs/evidence/PHASE2.md).
+- **Phase 3 – Learning & Embodiment Options**: Episodic memory, probabilistic validation, optional physical demos (manipulator, touchscreen), multi-agent prep. Spec: `docs/architecture/PHASE3_SPEC.md`.
+- **Phase 4 – Operational Autonomy**: Continuous learning with safety gates, observability/rollback tooling, production deployment patterns. Spec TBD.
+- **Phase 5 – Networked Agents / Swarm**: LOGOS instances collaborating, sharing HCG slices, coordinating Talos fleets. Spec TBD.
+
+What’s new
+- Added OpenTelemetry dev stack (collector + Jaeger + Prometheus); see `docs/observability/OTEL_INFRASTRUCTURE.md`.
+- Milvus test stack ports shifted to 18530/18091 (update client configs accordingly).
+- CI no longer uploads coverage to Codecov; Poetry is used in perception workflows.
 
 Infrastructure Setup
 
@@ -79,7 +86,7 @@ The LOGOS ecosystem requires a development infrastructure cluster consisting of:
    This creates vector collections for Entity, Concept, State, and Process embeddings.
 
 5. **Verify the setup:**
-   - Neo4j Browser: http://localhost:7474 (credentials: `neo4j/logosdev`)
+   - Neo4j Browser: http://localhost:7474 (credentials: `neo4j/neo4jtest`)
    - SHACL Validation API: http://localhost:8081/docs
    - Check health: `python3 infra/check_hcg_health.py`
 
@@ -150,11 +157,11 @@ CI/CD and Validation
 
 SHACL Validation Strategy
 - **Default CI Gate (pyshacl)**: Fast, connectionless validation runs automatically on every push/PR ✅
-  - Tests in `tests/phase1/test_shacl_pyshacl.py` validate shapes against fixtures without requiring Neo4j
+  - Tests in `tests/integration/ontology/test_shacl_pyshacl.py` validate shapes against fixtures without requiring Neo4j
   - Ensures SHACL shapes are syntactically correct and fixtures conform to expectations
   - **This is the primary gate** - PRs must pass these tests to merge
 - **Integration Tests (Neo4j+n10s)**: Opt-in validation for comprehensive testing 🔧
-  - Tests in `tests/phase1/test_shacl_neo4j_validation.py` validate data using Neo4j's n10s plugin
+  - Tests in `tests/integration/ontology/test_shacl_neo4j_validation.py` validate data using Neo4j's n10s plugin
   - Requires Neo4j with n10s plugin installed and `RUN_NEO4J_SHACL=1` environment variable
   - Runs weekly or can be triggered manually via workflow dispatch
   - For local setup instructions, see `docs/PHASE1_VERIFY.md` - M2 section "Neo4j n10s Integration Tests (Opt-In)"
@@ -188,96 +195,50 @@ Phase 1 formalized the HCG ontology, SHACL validation, development infrastructur
 - **E2E Prototype Script**: Run `./scripts/e2e_prototype.sh` to test the complete flow (Apollo → Sophia → Talos → HCG)
 - **Planner Stub Service**: Run `./scripts/start_planner.sh` to start the planner API stub for M3/M4 testing (see `planner_stub/README.md`)
 
-**Phase 1 Closers:**
-Final documentation/UX polish items live under the [`phase 1 closers`](https://github.com/c-daly/logos/labels/phase%201%20closers) label (issues #200, #201, #202, #203, #204, #205, #206, #208). These cover the opt-in Neo4j SHACL job, planner/executor shims, Apollo CLI entrypoint, Milvus smoke test, stronger M4 assertions, and CI/test cleanup.
-
-Phase 2 work began after all milestone gates passed (automated tests green + manual verifications complete).
-
-## 📊 Project Status & Candid Assessment
-
-**Quick Summary:**
-- **Phase 1:** ✅ 100% Complete - Exceeded expectations
-- **Phase 2:** 🟨 86% Complete - Core systems work, critical perception gaps remain
-- **Grade:** B (84%) - Exceptional architecture, incomplete execution
-
-**Critical Gap:** Media ingest pipeline not implemented - cannot process real images, video, or audio despite spec requirements.
-
-## Phase 2 Verification
-
-**Phase 2 Status: 86% Complete** ✅🚧
-
-Phase 2 delivers Sophia/Hermes services, Apollo dual surfaces (CLI + browser), perception pipeline integration, and diagnostics/persona features.
-
-- **Specification**: See `docs/architecture/PHASE2_SPEC.md` for complete requirements
-- **Verification Document**: See `docs/operations/PHASE2_VERIFY.md` for detailed status and gap analysis
-- **Milestone Gates**: Each milestone is verified through tests and implementation evidence:
-  - **P2-M1** (Sophia & Hermes Services): [![P2-M1](https://img.shields.io/badge/P2--M1-complete-brightgreen)](https://github.com/c-daly/logos/labels/P2-M1) **100%**
-  - **P2-M2** (Apollo Dual Surfaces): [![P2-M2](https://img.shields.io/badge/P2--M2-85%25-yellow)](https://github.com/c-daly/logos/labels/P2-M2) **85%** (media upload UI missing)
-  - **P2-M3** (Perception Pipeline): [![P2-M3](https://img.shields.io/badge/P2--M3-70%25-yellow)](https://github.com/c-daly/logos/labels/P2-M3) **70%** (media pipeline not implemented)
-  - **P2-M4** (Diagnostics & Persona): [![P2-M4](https://img.shields.io/badge/P2--M4-90%25-yellow)](https://github.com/c-daly/logos/labels/P2-M4) **90%** (CWM-E automation missing)
-
-**Completed Features:**
-- ✅ Sophia FastAPI service with `/plan`, `/state`, `/simulate` endpoints
-- ✅ Hermes FastAPI service with language/embedding utilities
-- ✅ Apollo CLI and browser webapp consuming Sophia/Hermes APIs
-- ✅ JEPA simulation endpoint functional with 20 passing tests
-- ✅ OpenTelemetry observability stack with Tempo/Grafana
-- ✅ Persona diary system with reflection and emotion tracking
-- ✅ 61 webapp tests + 20 perception tests passing
-
-**Critical Gaps:**
-
-*P2-M3 Perception Pipeline (30% gap):*
-- ❌ Media ingest service API (browser uploads, file watcher, WebRTC)
-- ❌ MediaSample nodes in HCG ontology
-- ❌ Media → JEPA → Milvus processing pipeline
-- ❌ Media upload UI component for Apollo webapp
-
-*P2-M4 CWM-E Integration (10% gap):*
-- ❌ CWM-E periodic reflection job (spec requires automatic background task)
-- ❌ Planner integration with EmotionState nodes (spec requires planner reads emotions to adjust strategy)
-
-*CWM-A Implementation (partial):*
-- ⚠️ CWM-A doesn't emit full CWMState envelope with normalized entity/relationship diffs per spec
-
-**Next Steps:**
-1. Implement media ingest service API
-2. Add MediaSample nodes to HCG ontology
-3. Build Apollo media upload component
-4. Wire media pipeline: upload → JEPA → vector storage
-5. Implement CWM-E periodic reflection job
-6. Integrate EmotionState into planner decision-making
-
-For complete gap analysis and verification evidence, see `docs/operations/PHASE2_VERIFY.md`.
-
-## OpenTelemetry Observability
-
-LOGOS uses OpenTelemetry for distributed tracing across all services (Sophia, Hermes, Apollo).
-
-**Start OTel Stack:**
-```bash
-cd logos
-./scripts/start-otel-stack.sh
-```
-
-**View Traces:**
-- Jaeger UI: http://localhost:16686
-- Prometheus: http://localhost:9090
-
-**Documentation:** See [docs/observability/OTEL_INFRASTRUCTURE.md](docs/observability/OTEL_INFRASTRUCTURE.md) for complete setup and troubleshooting.
-
-M4 Pick-and-Place Demo
+**M4 Pick-and-Place Demo:**
 - **Demo Overview**: See `docs/M4_DEMO_ASSETS.md` for comprehensive demo documentation
 - **Complete Walkthrough**: Follow `docs/PICK_AND_PLACE_WALKTHROUGH.md` for step-by-step instructions
 - **Quick Demo**: Run `./scripts/run_m4_demo.sh` to execute the full demo with metrics capture
-- **Demo Scenario**: Robotic manipulator picks a red block from a table and places it in a target bin
-- **What's Demonstrated**: 
-  - Apollo command simulation (goal state creation)
-  - Sophia plan generation (4-step causal plan)
-  - Talos execution simulation (state transitions)
-  - HCG state management (entities, states, processes, causal relationships)
-- **Verification**: All M4 success criteria validated per Section 7.1 of the specification
-- **Documentation**: Complete verification report available at `logs/m4-verification/M4_VERIFICATION_REPORT.md`
+
+## Phase 2 Verification and Gate
+
+**Phase 2 Status: ✅ COMPLETE**
+
+Phase 2 extends LOGOS with Sophia/Hermes services, Apollo dual surfaces (CLI + browser), perception pipeline integration, and diagnostics/persona features.
+
+- **Specification**: `docs/architecture/PHASE2_SPEC.md`
+- **Verification Checklist**: `docs/operations/PHASE2_VERIFY.md`
+- **Verification Evidence**: `apollo/docs/evidence/` (screenshots + API responses)
+- **Milestone Gates**: Each milestone verified through automated tests:
+  - **P2-M1** (Services Online): [![P2-M1 Gate](https://github.com/c-daly/logos/actions/workflows/phase2-e2e.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/phase2-e2e.yml) ✅ Complete
+  - **P2-M2** (Apollo Dual Surface): [![Apollo CI](https://github.com/c-daly/apollo/actions/workflows/ci.yml/badge.svg)](https://github.com/c-daly/apollo/actions/workflows/ci.yml) [![Apollo E2E](https://github.com/c-daly/apollo/actions/workflows/e2e.yml/badge.svg)](https://github.com/c-daly/apollo/actions/workflows/e2e.yml) ✅ Complete
+  - **P2-M3** (Perception & Imagination): [![Hermes CI](https://github.com/c-daly/hermes/actions/workflows/ci.yml/badge.svg)](https://github.com/c-daly/hermes/actions/workflows/ci.yml) [![Sophia CI](https://github.com/c-daly/sophia/actions/workflows/ci.yml/badge.svg)](https://github.com/c-daly/sophia/actions/workflows/ci.yml) ✅ Complete
+  - **P2-M4** (Observability): [![P2-M4 Gate](https://github.com/c-daly/logos/actions/workflows/phase2-otel.yml/badge.svg)](https://github.com/c-daly/logos/actions/workflows/phase2-otel.yml) ✅ Complete (CWM-E deferred to P3)
+
+**Completed Features:**
+- ✅ Sophia API with /plan, /state, /simulate, /ingest endpoints
+- ✅ Hermes API with STT, TTS, NLP, embeddings, LLM gateway
+- ✅ Apollo browser app with WebSocket real-time updates
+- ✅ Apollo CLI with full SDK integration
+- ✅ Media ingestion pipeline (upload → processing → HCG storage)
+- ✅ Apollo media upload UI component (apollo#110 merged)
+- ✅ MediaSample ontology with SHACL shapes
+- ✅ CWM-A normalized state emission (CWMState envelopes)
+- ✅ OpenTelemetry observability stack
+- ✅ Persona diary integration
+
+**Deferred to Phase 3:**
+- ⏸️ Automatic CWM-E reflection (attention/working-memory modeling)
+
+## 📊 Project Assessment
+
+**Quick Summary:**
+- **Phase 1:** ✅ Complete
+- **Phase 2:** ✅ Complete — core services, dual surfaces, media ingestion, and CWM state emission all verified
+
+**Phase 2 Evidence:** Playwright verification screenshots and API responses in `apollo/docs/evidence/`.
+
+**Deferred to Phase 3:** Automatic CWM-E reflection (requires attention/working-memory modeling).
 
 Notes and next steps
 - The `core_ontology.cypher` and `shacl_shapes.ttl` are intentionally minimal, syntactically valid, and contain comments indicating where the full ontology and constraints described in the spec will be extended.

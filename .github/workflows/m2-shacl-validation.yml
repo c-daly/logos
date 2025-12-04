@@ -31,16 +31,23 @@ jobs:
         with:
           python-version: '3.11'
       
-      - name: Install dependencies
+      - name: Install Poetry
         run: |
-          python -m pip install --upgrade pip
-          pip install -e .
-          pip install pytest pytest-cov rdflib pyshacl
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
+      - name: Configure Poetry
+        run: |
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project true
+      
+      - name: Install dependencies
+        run: poetry install --with test,dev
       
       - name: Run M2 SHACL Validation Tests
         run: |
           echo "## M2: SHACL Validation Tests" >> $GITHUB_STEP_SUMMARY
-          pytest tests/phase1/test_m2_shacl_validation.py -v --tb=short
+          poetry run pytest tests/integration/ontology/test_shacl_validation.py -v --tb=short
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "✅ **M2 GATE PASSED**: SHACL validation catches errors" >> $GITHUB_STEP_SUMMARY
           echo "See \`docs/PHASE1_VERIFY.md\` for complete M2 checklist." >> $GITHUB_STEP_SUMMARY

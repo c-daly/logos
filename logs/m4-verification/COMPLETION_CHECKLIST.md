@@ -48,7 +48,7 @@
 ## Testing Results ✅
 
 ### Automated Integration Tests
-- **File:** `tests/phase1/test_m4_end_to_end.py`
+- **File:** `tests/e2e/test_phase1_end_to_end.py`
 - **Status:** ✅ PASS
 - **Results:** 22 passed, 1 skipped (optional planner service)
 - **Execution Time:** 85 seconds

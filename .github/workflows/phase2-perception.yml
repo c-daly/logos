@@ -6,7 +6,7 @@ on:
     paths:
       - 'logos_perception/**'
       - 'logos_sophia/**'
-      - 'tests/phase2/perception/**'
+      - 'tests/integration/perception/**'
       - 'ontology/core_ontology.cypher'
       - 'ontology/shacl_shapes.ttl'
       - '.github/workflows/phase2-perception.yml'
@@ -15,7 +15,7 @@ on:
     paths:
       - 'logos_perception/**'
       - 'logos_sophia/**'
-      - 'tests/phase2/perception/**'
+      - 'tests/integration/perception/**'
       - 'ontology/core_ontology.cypher'
       - 'ontology/shacl_shapes.ttl'
 
@@ -35,33 +35,31 @@ jobs:
         with:
           python-version: '3.11'
       
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
+      - name: Configure Poetry
+        run: |
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project true
+      
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -e .
-          pip install pytest pytest-cov httpx
+          poetry install --with dev,test
       
       - name: Run JEPA runner tests
         run: |
-          pytest tests/phase2/perception/test_jepa_runner.py -v --cov=logos_perception --cov-report=xml
+          poetry run pytest tests/integration/perception/test_jepa_runner.py -v --cov=logos_perception --cov-report=xml
       
       - name: Run simulation service tests
         run: |
-          pytest tests/phase2/perception/test_simulation_service.py -v --cov=logos_sophia --cov-append --cov-report=xml
+          poetry run pytest tests/integration/perception/test_simulation_service.py -v --cov=logos_sophia --cov-append --cov-report=xml
       
       - name: Run simulate API tests
         run: |
-          pytest tests/phase2/perception/test_simulate_api.py -v --cov=logos_sophia --cov-append --cov-report=xml
-      
-      - name: Upload coverage reports
-        uses: codecov/codecov-action@v4
-        if: always()
-        with:
-          files: ./coverage.xml
-          flags: perception
-          name: perception-coverage
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          poetry run pytest tests/integration/perception/test_simulate_api.py -v --cov=logos_sophia --cov-append --cov-report=xml
       
       - name: Test summary
         if: always()
@@ -85,10 +83,19 @@ jobs:
         with:
           python-version: '3.11'
       
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
+      - name: Configure Poetry
+        run: |
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project true
+      
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -e .
+          poetry install --with dev,test
       
       - name: Validate ontology syntax
         run: |
@@ -101,7 +108,7 @@ jobs:
       - name: Validate SHACL shapes
         run: |
           # Validate SHACL syntax using Python
-          python -c "
+          poetry run python -c "
           from rdflib import Graph
           g = Graph()
           g.parse('ontology/shacl_shapes.ttl', format='turtle')

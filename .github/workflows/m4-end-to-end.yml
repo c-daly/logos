@@ -23,6 +23,11 @@ permissions:
   contents: read
   pull-requests: read
 
+env:
+  NEO4J_CONTAINER: logos-hcg-neo4j
+  MILVUS_CONTAINER: logos-hcg-milvus
+  RUN_HCG_TESTS: "1"
+
 jobs:
   e2e-prototype-test:
     name: End-to-End Prototype Demo
@@ -37,16 +42,23 @@ jobs:
         with:
           python-version: '3.11'
       
-      - name: Install dependencies
+      - name: Install Poetry
         run: |
-          python -m pip install --upgrade pip
-          pip install -e .
-          pip install pytest pytest-cov rdflib pyshacl httpx
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
+      - name: Configure Poetry
+        run: |
+          poetry config virtualenvs.create true
+          poetry config virtualenvs.in-project true
+      
+      - name: Install dependencies
+        run: poetry install --with test,dev
       
       - name: Start planner stub service
         run: |
           echo "Starting planner stub service on port 8001..."
-          python -m planner_stub.app &
+          poetry run python -m planner_stub.app &
           PLANNER_PID=$!
           echo "PLANNER_PID=$PLANNER_PID" >> $GITHUB_ENV
           
@@ -74,7 +86,7 @@ jobs:
         run: |
           # Wait up to 2 minutes for Neo4j to be ready
           for i in {1..24}; do
-            if docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "RETURN 1;" > /dev/null 2>&1; then
+            if docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "RETURN 1;" > /dev/null 2>&1; then
               echo "Neo4j is ready!"
               break
             fi
@@ -83,18 +95,18 @@ jobs:
           done
           
           # Verify Neo4j is actually ready
-          docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "RETURN 1 AS test;"
+          docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "RETURN 1 AS test;"
       
       - name: Load ontology and test data
         run: |
           echo "Loading core ontology..."
-          cat ontology/core_ontology.cypher | docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p logosdev || true
+          cat ontology/core_ontology.cypher | docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest || true
           
           echo "Loading pick-and-place test data..."
-          cat ontology/test_data_pick_and_place.cypher | docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p logosdev || true
+          cat ontology/test_data_pick_and_place.cypher | docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest || true
           
           echo "Verifying data loaded..."
-          docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "MATCH (c:Concept) RETURN count(c) AS concepts;"
+          docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "MATCH (c:Concept) RETURN count(c) AS concepts;"
       
       - name: Run M4 integration tests
         id: m4_tests
@@ -111,7 +123,7 @@ jobs:
           fi
 
           export RUN_M4_E2E=1
-          pytest tests/phase1/test_m4_end_to_end.py -v --tb=short 2>&1 | tee m4_output.txt
+          poetry run pytest tests/e2e/test_phase1_end_to_end.py -v --tb=short 2>&1 | tee m4_output.txt
           
           if [ ${PIPESTATUS[0]} -eq 0 ]; then
             echo "✅ **PASSED**: End-to-end integration working" >> $GITHUB_STEP_SUMMARY

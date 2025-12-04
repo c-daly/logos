@@ -21,7 +21,7 @@ docker compose -f docker-compose.hcg.dev.yml up -d neo4j milvus-standalone
 ### 2. Run Automated Tests
 ```bash
 export RUN_M4_E2E=1
-pytest tests/phase1/test_m4_end_to_end.py -v
+pytest tests/e2e/test_phase1_end_to_end.py -v
 ```
 
 ### 3. Run End-to-End Script

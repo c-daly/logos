@@ -1,0 +1,1442 @@
+openapi: 3.1.0
+info:
+  title: Apollo HCG API
+  description: REST API for querying HCG graph data from Neo4j
+  version: 0.1.0
+paths:
+  /api/hcg/health:
+    get:
+      summary: Health Check
+      description: Health check endpoint.
+      operationId: health_check_api_hcg_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /api/hcg/entities:
+    get:
+      summary: Get Entities
+      description: Get entities from HCG graph.
+      operationId: get_entities_api_hcg_entities_get
+      parameters:
+      - name: type
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Filter by entity type
+          title: Type
+        description: Filter by entity type
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 500
+          minimum: 1
+          description: Maximum number of entities
+          default: 100
+          title: Limit
+        description: Maximum number of entities
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          description: Number of entities to skip
+          default: 0
+          title: Offset
+        description: Number of entities to skip
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Entity'
+                title: Response Get Entities Api Hcg Entities Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/hcg/entities/{entity_id}:
+    get:
+      summary: Get Entity
+      description: Get a specific entity by ID.
+      operationId: get_entity_api_hcg_entities__entity_id__get
+      parameters:
+      - name: entity_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entity Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Entity'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/hcg/states:
+    get:
+      summary: Get States
+      description: Get state entities from HCG graph.
+      operationId: get_states_api_hcg_states_get
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 500
+          minimum: 1
+          description: Maximum number of states
+          default: 100
+          title: Limit
+        description: Maximum number of states
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          description: Number of states to skip
+          default: 0
+          title: Offset
+        description: Number of states to skip
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/State'
+                title: Response Get States Api Hcg States Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/hcg/processes:
+    get:
+      summary: Get Processes
+      description: Get process entities from HCG graph.
+      operationId: get_processes_api_hcg_processes_get
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Filter by process status
+          title: Status
+        description: Filter by process status
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 500
+          minimum: 1
+          description: Maximum number of processes
+          default: 100
+          title: Limit
+        description: Maximum number of processes
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          description: Number of processes to skip
+          default: 0
+          title: Offset
+        description: Number of processes to skip
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Process'
+                title: Response Get Processes Api Hcg Processes Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/hcg/edges:
+    get:
+      summary: Get Causal Edges
+      description: Get causal edges from HCG graph.
+      operationId: get_causal_edges_api_hcg_edges_get
+      parameters:
+      - name: entity_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Filter by source or target entity
+          title: Entity Id
+        description: Filter by source or target entity
+      - name: edge_type
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Filter by edge type
+          title: Edge Type
+        description: Filter by edge type
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 500
+          minimum: 1
+          description: Maximum number of edges
+          default: 100
+          title: Limit
+        description: Maximum number of edges
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CausalEdge'
+                title: Response Get Causal Edges Api Hcg Edges Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/hcg/plans:
+    get:
+      summary: Get Plan History
+      description: Get plan history from HCG graph.
+      operationId: get_plan_history_api_hcg_plans_get
+      parameters:
+      - name: goal_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Filter by goal ID
+          title: Goal Id
+        description: Filter by goal ID
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          description: Maximum number of plans
+          default: 10
+          title: Limit
+        description: Maximum number of plans
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlanHistory'
+                title: Response Get Plan History Api Hcg Plans Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/hcg/history:
+    get:
+      summary: Get State History
+      description: Get state change history from HCG graph.
+      operationId: get_state_history_api_hcg_history_get
+      parameters:
+      - name: state_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Filter by state ID
+          title: State Id
+        description: Filter by state ID
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 200
+          minimum: 1
+          description: Maximum number of history records
+          default: 50
+          title: Limit
+        description: Maximum number of history records
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StateHistory'
+                title: Response Get State History Api Hcg History Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/hcg/snapshot:
+    get:
+      summary: Get Graph Snapshot
+      description: Get a snapshot of the HCG graph.
+      operationId: get_graph_snapshot_api_hcg_snapshot_get
+      parameters:
+      - name: entity_types
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Comma-separated list of entity types
+          title: Entity Types
+        description: Comma-separated list of entity types
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 1000
+          minimum: 1
+          description: Maximum number of entities
+          default: 200
+          title: Limit
+        description: Maximum number of entities
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GraphSnapshot'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/chat/stream:
+    post:
+      summary: Chat Stream
+      description: Stream Hermes completions back to the client while logging telemetry/persona.
+      operationId: chat_stream_api_chat_stream_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatStreamRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/diagnostics/logs:
+    get:
+      summary: Diagnostics Logs
+      description: Return recent diagnostic log entries.
+      operationId: diagnostics_logs_api_diagnostics_logs_get
+      parameters:
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 200
+          minimum: 1
+          description: Maximum number of log entries
+          default: 50
+          title: Limit
+        description: Maximum number of log entries
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DiagnosticLogEntry'
+                title: Response Diagnostics Logs Api Diagnostics Logs Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/diagnostics/llm:
+    post:
+      summary: Diagnostics Llm Ingest
+      description: Ingest Hermes LLM telemetry so the dashboard reflects chat activity.
+      operationId: diagnostics_llm_ingest_api_diagnostics_llm_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LLMTelemetryPayload'
+        required: true
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: string
+                type: object
+                title: Response Diagnostics Llm Ingest Api Diagnostics Llm Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/diagnostics/metrics:
+    get:
+      summary: Diagnostics Metrics
+      description: Return latest telemetry metrics snapshot.
+      operationId: diagnostics_metrics_api_diagnostics_metrics_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelemetrySnapshot'
+  /api/persona/entries:
+    post:
+      summary: Create Persona Entry
+      description: Create a new persona diary entry.
+      operationId: create_persona_entry_api_persona_entries_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePersonaEntryRequest'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonaEntry'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    get:
+      summary: Get Persona Entries
+      description: Get persona diary entries with optional filtering.
+      operationId: get_persona_entries_api_persona_entries_get
+      parameters:
+      - name: entry_type
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Filter by entry type
+          title: Entry Type
+        description: Filter by entry type
+      - name: sentiment
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Filter by sentiment
+          title: Sentiment
+        description: Filter by sentiment
+      - name: related_process_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Filter by related process ID
+          title: Related Process Id
+        description: Filter by related process ID
+      - name: related_goal_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Filter by related goal ID
+          title: Related Goal Id
+        description: Filter by related goal ID
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 500
+          minimum: 1
+          description: Maximum number of entries
+          default: 100
+          title: Limit
+        description: Maximum number of entries
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          description: Number of entries to skip
+          default: 0
+          title: Offset
+        description: Number of entries to skip
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PersonaEntry'
+                title: Response Get Persona Entries Api Persona Entries Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/persona/entries/{entry_id}:
+    get:
+      summary: Get Persona Entry
+      description: Get a specific persona diary entry by ID.
+      operationId: get_persona_entry_api_persona_entries__entry_id__get
+      parameters:
+      - name: entry_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Entry Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonaEntry'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/media/upload:
+    post:
+      summary: Upload Media
+      description: "Proxy media upload to Hermes /ingest/media endpoint.\n\nHermes\
+        \ processes the media (STT, embeddings) and forwards to Sophia\nfor storage\
+        \ and perception workflows.\n\nArgs:\n    file: Media file to upload (image/video/audio)\n\
+        \    media_type: Type of media (IMAGE, VIDEO, AUDIO)\n    question: Optional\
+        \ question context for the media\n\nReturns:\n    Media ingestion response\
+        \ with sample_id, metadata, and processing results\n\nRaises:\n    HTTPException:\
+        \ 413 if file exceeds 100 MB limit\n    HTTPException: 503 if Hermes service\
+        \ unavailable"
+      operationId: upload_media_api_media_upload_post
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Body_upload_media_api_media_upload_post'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Upload Media Api Media Upload Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/media/samples:
+    get:
+      summary: List Media Samples
+      description: "Proxy request to Sophia GET /media/samples endpoint.\n\nArgs:\n\
+        \    media_type: Optional filter by media type (IMAGE, VIDEO, AUDIO)\n   \
+        \ limit: Maximum number of samples to return\n    offset: Number of samples\
+        \ to skip for pagination\n\nReturns:\n    List of media samples with metadata"
+      operationId: list_media_samples_api_media_samples_get
+      parameters:
+      - name: media_type
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Filter by media type
+          title: Media Type
+        description: Filter by media type
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          description: Maximum number of samples
+          default: 20
+          title: Limit
+        description: Maximum number of samples
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          description: Number of samples to skip
+          default: 0
+          title: Offset
+        description: Number of samples to skip
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response List Media Samples Api Media Samples Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/media/samples/{sample_id}:
+    get:
+      summary: Get Media Sample
+      description: "Proxy request to Sophia GET /media/samples/{sample_id} endpoint.\n\
+        \nArgs:\n    sample_id: Media sample ID to retrieve\n\nReturns:\n    Media\
+        \ sample details with metadata"
+      operationId: get_media_sample_api_media_samples__sample_id__get
+      parameters:
+      - name: sample_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Sample Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+                title: Response Get Media Sample Api Media Samples  Sample Id  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    Body_upload_media_api_media_upload_post:
+      properties:
+        file:
+          type: string
+          format: binary
+          title: File
+        media_type:
+          type: string
+          title: Media Type
+        question:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Question
+      type: object
+      required:
+      - file
+      - media_type
+      title: Body_upload_media_api_media_upload_post
+    CausalEdge:
+      properties:
+        id:
+          type: string
+          title: Id
+          description: Unique edge identifier
+        source_id:
+          type: string
+          title: Source Id
+          description: Source entity ID
+        target_id:
+          type: string
+          title: Target Id
+          description: Target entity ID
+        edge_type:
+          type: string
+          title: Edge Type
+          description: Edge type (e.g., 'causes', 'requires', 'produces')
+        properties:
+          additionalProperties: true
+          type: object
+          title: Properties
+          description: Edge properties
+        weight:
+          type: number
+          title: Weight
+          description: Edge weight or strength
+          default: 1.0
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+          description: Creation timestamp
+      type: object
+      required:
+      - id
+      - source_id
+      - target_id
+      - edge_type
+      - created_at
+      title: CausalEdge
+      description: 'Causal edge representing relationships between entities in HCG.
+
+
+        Edges define causal relationships, dependencies, and transformations.'
+    ChatMessagePayload:
+      properties:
+        role:
+          type: string
+          title: Role
+        content:
+          type: string
+          title: Content
+      type: object
+      required:
+      - role
+      - content
+      title: ChatMessagePayload
+      description: Represents an inbound chat message.
+    ChatStreamRequest:
+      properties:
+        messages:
+          items:
+            $ref: '#/components/schemas/ChatMessagePayload'
+          type: array
+          title: Messages
+        metadata:
+          additionalProperties: true
+          type: object
+          title: Metadata
+        provider:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Provider
+        model:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Model
+        temperature:
+          anyOf:
+          - type: number
+            maximum: 2.0
+            minimum: 0.0
+          - type: 'null'
+          title: Temperature
+        max_tokens:
+          anyOf:
+          - type: integer
+            minimum: 1.0
+          - type: 'null'
+          title: Max Tokens
+      type: object
+      required:
+      - messages
+      title: ChatStreamRequest
+      description: Request envelope for streaming chat completions.
+    CreatePersonaEntryRequest:
+      properties:
+        entry_type:
+          type: string
+          title: Entry Type
+        content:
+          type: string
+          title: Content
+        summary:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Summary
+        sentiment:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Sentiment
+        confidence:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Confidence
+        related_process_ids:
+          items:
+            type: string
+          type: array
+          title: Related Process Ids
+          default: []
+        related_goal_ids:
+          items:
+            type: string
+          type: array
+          title: Related Goal Ids
+          default: []
+        emotion_tags:
+          items:
+            type: string
+          type: array
+          title: Emotion Tags
+          default: []
+        metadata:
+          additionalProperties: true
+          type: object
+          title: Metadata
+          default: {}
+      type: object
+      required:
+      - entry_type
+      - content
+      title: CreatePersonaEntryRequest
+      description: Request model for creating a persona entry.
+    DiagnosticLogEntry:
+      properties:
+        id:
+          type: string
+          title: Id
+        timestamp:
+          type: string
+          format: date-time
+          title: Timestamp
+        level:
+          type: string
+          title: Level
+        message:
+          type: string
+          title: Message
+      type: object
+      required:
+      - id
+      - timestamp
+      - level
+      - message
+      title: DiagnosticLogEntry
+    Entity:
+      properties:
+        id:
+          type: string
+          title: Id
+          description: Unique identifier for the entity
+        type:
+          type: string
+          title: Type
+          description: Entity type (e.g., 'goal', 'state', 'action')
+        properties:
+          additionalProperties: true
+          type: object
+          title: Properties
+          description: Entity properties
+        labels:
+          items:
+            type: string
+          type: array
+          title: Labels
+          description: Neo4j labels for the entity
+        created_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Created At
+          description: Creation timestamp
+        updated_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Updated At
+          description: Last update timestamp
+      type: object
+      required:
+      - id
+      - type
+      title: Entity
+      description: 'Base entity in HCG ontology.
+
+
+        Represents any node in the Hybrid Causal Graph.'
+    GraphSnapshot:
+      properties:
+        entities:
+          items:
+            $ref: '#/components/schemas/Entity'
+          type: array
+          title: Entities
+          description: All entities in the graph
+        edges:
+          items:
+            $ref: '#/components/schemas/CausalEdge'
+          type: array
+          title: Edges
+          description: All causal edges
+        timestamp:
+          type: string
+          format: date-time
+          title: Timestamp
+          description: Snapshot timestamp
+        metadata:
+          additionalProperties: true
+          type: object
+          title: Metadata
+          description: Snapshot metadata
+      type: object
+      required:
+      - timestamp
+      title: GraphSnapshot
+      description: 'Complete snapshot of HCG graph state.
+
+
+        Used for visualization and analysis of the entire graph.'
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    HealthResponse:
+      properties:
+        status:
+          type: string
+          title: Status
+        timestamp:
+          type: string
+          title: Timestamp
+        neo4j_connected:
+          type: boolean
+          title: Neo4J Connected
+      type: object
+      required:
+      - status
+      - timestamp
+      - neo4j_connected
+      title: HealthResponse
+      description: Health check response.
+    LLMTelemetryPayload:
+      properties:
+        latency_ms:
+          type: number
+          exclusiveMinimum: 0.0
+          title: Latency Ms
+          description: Round-trip latency in ms
+        prompt_tokens:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Prompt Tokens
+          description: Prompt token count
+        completion_tokens:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Completion Tokens
+          description: Completion token count
+        total_tokens:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Total Tokens
+          description: Total token count
+        persona_sentiment:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Persona Sentiment
+          description: Persona sentiment label
+        persona_confidence:
+          anyOf:
+          - type: number
+            maximum: 1.0
+            minimum: 0.0
+          - type: 'null'
+          title: Persona Confidence
+          description: Confidence for persona sentiment
+        metadata:
+          additionalProperties: true
+          type: object
+          title: Metadata
+          description: Additional diagnostic metadata
+      type: object
+      required:
+      - latency_ms
+      title: LLMTelemetryPayload
+      description: Schema for ingesting Hermes LLM telemetry.
+    PersonaEntry:
+      properties:
+        id:
+          type: string
+          title: Id
+          description: Unique entry identifier
+        timestamp:
+          type: string
+          format: date-time
+          title: Timestamp
+          description: Entry creation timestamp
+        entry_type:
+          type: string
+          title: Entry Type
+          description: 'Entry type: ''belief'', ''decision'', ''observation'', or
+            ''reflection'''
+        content:
+          type: string
+          title: Content
+          description: The main content/narrative of the entry
+        summary:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Summary
+          description: Brief summary for quick reference
+        sentiment:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Sentiment
+          description: 'Sentiment: ''positive'', ''negative'', ''neutral'', or ''mixed'''
+        confidence:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Confidence
+          description: Confidence level (0.0-1.0) for decisions/beliefs
+        related_process_ids:
+          items:
+            type: string
+          type: array
+          title: Related Process Ids
+          description: IDs of related processes/actions
+        related_goal_ids:
+          items:
+            type: string
+          type: array
+          title: Related Goal Ids
+          description: IDs of related goals
+        emotion_tags:
+          items:
+            type: string
+          type: array
+          title: Emotion Tags
+          description: Emotion tags associated with this entry
+        metadata:
+          additionalProperties: true
+          type: object
+          title: Metadata
+          description: Additional metadata
+      type: object
+      required:
+      - id
+      - timestamp
+      - entry_type
+      - content
+      title: PersonaEntry
+      description: 'Persona diary entry capturing agent''s internal reasoning and
+        experiences.
+
+
+        Used for building a narrative of the agent''s decision-making process
+
+        and providing context to LLM-based chat interfaces.'
+    PlanHistory:
+      properties:
+        id:
+          type: string
+          title: Id
+          description: Unique plan identifier
+        goal_id:
+          type: string
+          title: Goal Id
+          description: Associated goal ID
+        status:
+          type: string
+          title: Status
+          description: Plan status (pending, executing, completed, failed)
+        steps:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+          title: Steps
+          description: Plan steps
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+          description: Plan creation time
+        started_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Started At
+          description: Execution start time
+        completed_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Completed At
+          description: Completion time
+        result:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Result
+          description: Execution result
+      type: object
+      required:
+      - id
+      - goal_id
+      - status
+      - created_at
+      title: PlanHistory
+      description: 'Historical record of a plan in HCG.
+
+
+        Tracks plan generation, execution, and outcomes.'
+    Process:
+      properties:
+        id:
+          type: string
+          title: Id
+          description: Unique process identifier
+        type:
+          type: string
+          title: Type
+          description: Entity type
+          default: process
+        name:
+          type: string
+          title: Name
+          description: Process name
+        description:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Description
+          description: Process description
+        status:
+          type: string
+          title: Status
+          description: Process status (pending, running, completed)
+          default: pending
+        inputs:
+          items:
+            type: string
+          type: array
+          title: Inputs
+          description: Input state IDs
+        outputs:
+          items:
+            type: string
+          type: array
+          title: Outputs
+          description: Output state IDs
+        properties:
+          additionalProperties: true
+          type: object
+          title: Properties
+          description: Additional properties
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+          description: Creation timestamp
+        completed_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Completed At
+          description: Completion timestamp
+      type: object
+      required:
+      - id
+      - name
+      - created_at
+      title: Process
+      description: 'Process entity representing actions or transformations in HCG.
+
+
+        Processes transform states and create causal relationships.'
+    State:
+      properties:
+        id:
+          type: string
+          title: Id
+          description: Unique state identifier
+        type:
+          type: string
+          title: Type
+          description: Entity type
+          default: state
+        description:
+          type: string
+          title: Description
+          description: State description
+        variables:
+          additionalProperties: true
+          type: object
+          title: Variables
+          description: State variables
+        timestamp:
+          type: string
+          format: date-time
+          title: Timestamp
+          description: State timestamp
+        properties:
+          additionalProperties: true
+          type: object
+          title: Properties
+          description: Additional properties
+      type: object
+      required:
+      - id
+      - description
+      - timestamp
+      title: State
+      description: 'State entity representing agent or world state in HCG.
+
+
+        States are snapshots of the world or agent at a point in time.'
+    StateHistory:
+      properties:
+        id:
+          type: string
+          title: Id
+          description: Unique history entry identifier
+        state_id:
+          type: string
+          title: State Id
+          description: State identifier
+        timestamp:
+          type: string
+          format: date-time
+          title: Timestamp
+          description: Change timestamp
+        changes:
+          additionalProperties: true
+          type: object
+          title: Changes
+          description: State changes
+        previous_values:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Previous Values
+          description: Previous state values
+        trigger:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Trigger
+          description: What triggered the state change
+      type: object
+      required:
+      - id
+      - state_id
+      - timestamp
+      title: StateHistory
+      description: 'Historical record of state changes in HCG.
+
+
+        Tracks state transitions over time for visualization and analysis.'
+    TelemetrySnapshot:
+      properties:
+        api_latency_ms:
+          type: number
+          title: Api Latency Ms
+        request_count:
+          type: integer
+          title: Request Count
+        success_rate:
+          type: number
+          title: Success Rate
+        active_plans:
+          type: integer
+          title: Active Plans
+        last_update:
+          type: string
+          format: date-time
+          title: Last Update
+        active_websockets:
+          type: integer
+          title: Active Websockets
+          default: 0
+        last_broadcast:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Last Broadcast
+        llm_latency_ms:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Llm Latency Ms
+        llm_prompt_tokens:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Llm Prompt Tokens
+        llm_completion_tokens:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Llm Completion Tokens
+        llm_total_tokens:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Llm Total Tokens
+        persona_sentiment:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Persona Sentiment
+        persona_confidence:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Persona Confidence
+        last_llm_update:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Last Llm Update
+        last_llm_session:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Last Llm Session
+      type: object
+      required:
+      - api_latency_ms
+      - request_count
+      - success_rate
+      - active_plans
+      - last_update
+      title: TelemetrySnapshot
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+

@@ -13,6 +13,14 @@
  */
 
 import { mapValues } from '../runtime';
+import type { PlanRequestGoal } from './PlanRequestGoal';
+import {
+    PlanRequestGoalFromJSON,
+    PlanRequestGoalFromJSONTyped,
+    PlanRequestGoalToJSON,
+    PlanRequestGoalToJSONTyped,
+} from './PlanRequestGoal';
+
 /**
  * 
  * @export
@@ -20,11 +28,11 @@ import { mapValues } from '../runtime';
  */
 export interface PlanRequest {
     /**
-     * Natural-language goal or structured identifier
-     * @type {string}
+     * 
+     * @type {PlanRequestGoal}
      * @memberof PlanRequest
      */
-    goal: string;
+    goal: PlanRequestGoal;
     /**
      * Optional context (entities, constraints, media references)
      * @type {{ [key: string]: any; }}
@@ -69,7 +77,7 @@ export function PlanRequestFromJSONTyped(json: any, ignoreDiscriminator: boolean
     }
     return {
         
-        'goal': json['goal'],
+        'goal': PlanRequestGoalFromJSON(json['goal']),
         'context': json['context'] == null ? undefined : json['context'],
         'constraints': json['constraints'] == null ? undefined : json['constraints'],
         'priority': json['priority'] == null ? undefined : json['priority'],
@@ -88,7 +96,7 @@ export function PlanRequestToJSONTyped(value?: PlanRequest | null, ignoreDiscrim
 
     return {
         
-        'goal': value['goal'],
+        'goal': PlanRequestGoalToJSON(value['goal']),
         'context': value['context'],
         'constraints': value['constraints'],
         'priority': value['priority'],

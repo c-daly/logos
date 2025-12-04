@@ -16,9 +16,7 @@ class TestPlannerModels:
 
     def test_state_description_model(self):
         """Test StateDescription model."""
-        state = StateDescription(
-            properties={"gripper": "open", "object_grasped": False}
-        )
+        state = StateDescription(properties={"gripper": "open", "object_grasped": False})
         assert "gripper" in state.properties
         assert state.properties["gripper"] == "open"
 

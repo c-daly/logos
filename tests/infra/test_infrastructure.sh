@@ -25,19 +25,19 @@ echo ""
 
 # Test 3: Wait for Neo4j to be ready
 echo "Test 3: Waiting for Neo4j to be ready..."
-timeout 60 bash -c 'until docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "RETURN 1 AS test;" 2>/dev/null; do sleep 2; done' > /dev/null
+timeout 60 bash -c 'until docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "RETURN 1 AS test;" 2>/dev/null; do sleep 2; done' > /dev/null
 echo "✓ Neo4j is ready"
 echo ""
 
 # Test 4: Load ontology
 echo "Test 4: Loading core ontology..."
-docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p logosdev < "${REPO_ROOT}/ontology/core_ontology.cypher" > /dev/null 2>&1
+docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest < "${REPO_ROOT}/ontology/core_ontology.cypher" > /dev/null 2>&1
 echo "✓ Ontology loaded"
 echo ""
 
 # Test 5: Verify constraints
 echo "Test 5: Verifying Neo4j constraints..."
-CONSTRAINT_COUNT=$(docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "SHOW CONSTRAINTS;" 2>/dev/null | grep -c "logos_")
+CONSTRAINT_COUNT=$(docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "SHOW CONSTRAINTS;" 2>/dev/null | grep -c "logos_")
 if [ "$CONSTRAINT_COUNT" -ge 5 ]; then
   echo "✓ Found $CONSTRAINT_COUNT LOGOS constraints"
 else
@@ -48,7 +48,7 @@ echo ""
 
 # Test 6: Verify indexes
 echo "Test 6: Verifying Neo4j indexes..."
-INDEX_COUNT=$(docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev "SHOW INDEXES;" 2>/dev/null | grep -c "logos_")
+INDEX_COUNT=$(docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "SHOW INDEXES;" 2>/dev/null | grep -c "logos_")
 if [ "$INDEX_COUNT" -ge 7 ]; then
   echo "✓ Found $INDEX_COUNT LOGOS indexes"
 else
@@ -59,7 +59,7 @@ echo ""
 
 # Test 7: Verify APOC is loaded
 echo "Test 7: Verifying APOC plugin..."
-APOC_COUNT=$(docker exec logos-hcg-neo4j cypher-shell -u neo4j -p logosdev \
+APOC_COUNT=$(docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
   "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'apoc' RETURN count(name) AS count;" 2>/dev/null | tail -1)
 if [ "$APOC_COUNT" -gt 0 ]; then
   echo "✓ APOC loaded with $APOC_COUNT procedures"
@@ -119,7 +119,7 @@ echo ""
 echo "=== All Tests Passed ==="
 echo ""
 echo "Infrastructure is ready for development!"
-echo "- Neo4j Browser: http://localhost:7474 (neo4j/logosdev)"
+echo "- Neo4j Browser: http://localhost:7474 (neo4j/neo4jtest)"
 echo "- Neo4j Bolt: bolt://localhost:7687"
 echo "- Milvus gRPC: localhost:19530"
 echo "- Milvus Collections: 4 initialized (Entity, Concept, State, Process)"

@@ -25,7 +25,7 @@ def neo4j_driver():
     driver.close()
 ```
 
-**Logos Phase 2** (`logos/tests/phase2/fixtures.py`):
+**Logos Phase 2** (`logos/tests/e2e/fixtures.py`):
 ```python
 @pytest.fixture
 def sophia_client():
@@ -134,7 +134,7 @@ def neo4j_driver():
     """Provide Neo4j driver with configurable URI."""
     uri = os.getenv("NEO4J_URI", "bolt://localhost:7687")
     auth = (os.getenv("NEO4J_USER", "neo4j"), 
-            os.getenv("NEO4J_PASSWORD", "logosdev"))
+            os.getenv("NEO4J_PASSWORD", "neo4jtest"))
     driver = GraphDatabase.driver(uri, auth=auth)
     yield driver
     driver.close()
@@ -247,7 +247,7 @@ def wait_for_neo4j(uri: str, auth: tuple, timeout: int = 30) -> bool:
 
 ### Phase 5: Logos Phase 2 Tests
 - [ ] Update Phase 2 E2E tests to use `logos_test_utils`
-- [ ] Remove duplicated fixtures from `tests/phase2/fixtures.py`
+- [ ] Remove duplicated fixtures from `tests/e2e/fixtures.py`
 
 ### Phase 6: Documentation & Best Practices
 - [ ] Create `logos_test_utils/README.md`

@@ -6,7 +6,7 @@ This script provides a deterministic way to bootstrap the HCG with:
 2. Seed entities (RobotArm, Manipulator, etc.)
 
 Usage:
-    python -m logos_hcg.load_hcg --uri bolt://localhost:7687 --user neo4j --password logosdev
+    python -m logos_hcg.load_hcg --uri bolt://localhost:7687 --user neo4j --password neo4jtest
 
     Or with environment variables:
     NEO4J_URI=bolt://localhost:7687 python -m logos_hcg.load_hcg
@@ -116,9 +116,7 @@ class HCGLoader:
                         # Log meaningful operations
                         counters = summary.counters
                         if counters.constraints_added > 0:
-                            logger.info(
-                                f"  ✓ Added {counters.constraints_added} constraint(s)"
-                            )
+                            logger.info(f"  ✓ Added {counters.constraints_added} constraint(s)")
                         if counters.indexes_added > 0:
                             logger.info(f"  ✓ Added {counters.indexes_added} index(es)")
                         if counters.nodes_created > 0:
@@ -130,10 +128,7 @@ class HCGLoader:
 
                     except Neo4jError as e:
                         # Some errors are expected (e.g., constraint already exists)
-                        if (
-                            "already exists" in str(e).lower()
-                            or "equivalent" in str(e).lower()
-                        ):
+                        if "already exists" in str(e).lower() or "equivalent" in str(e).lower():
                             logger.debug("  (skipped - already exists)")
                         else:
                             logger.warning(f"  Warning on statement {i+1}: {e}")
@@ -328,9 +323,7 @@ class HCGLoader:
 
         # Check if basic requirements are met
         if not all(constraints.values()):
-            logger.warning(
-                "⚠ Some constraints are missing - they may have been created previously"
-            )
+            logger.warning("⚠ Some constraints are missing - they may have been created previously")
 
         # Step 3: Create seed entities
         logger.info("")
@@ -370,9 +363,7 @@ class HCGLoader:
 
 def main():
     """Main entry point for the HCG loader."""
-    parser = argparse.ArgumentParser(
-        description="Load LOGOS HCG ontology and seed data into Neo4j"
-    )
+    parser = argparse.ArgumentParser(description="Load LOGOS HCG ontology and seed data into Neo4j")
     parser.add_argument(
         "--uri",
         default=os.getenv("NEO4J_URI", "bolt://localhost:7687"),
@@ -385,8 +376,8 @@ def main():
     )
     parser.add_argument(
         "--password",
-        default=os.getenv("NEO4J_PASSWORD", "logosdev"),
-        help="Neo4j password (default: logosdev)",
+        default=os.getenv("NEO4J_PASSWORD", "neo4jtest"),
+        help="Neo4j password (default: neo4jtest)",
     )
     parser.add_argument(
         "--repo-root",

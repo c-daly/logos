@@ -29,7 +29,7 @@ All acceptance criteria have been met and verified.
 
 **Usage:**
 ```bash
-python -m logos_hcg.load_hcg --uri bolt://localhost:7687 --user neo4j --password logosdev
+python -m logos_hcg.load_hcg --uri bolt://localhost:7687 --user neo4j --password neo4jtest
 ```
 
 **Evidence:** `logs/m1-verification/01-load-output.log`
@@ -47,13 +47,13 @@ python -m logos_hcg.load_hcg --uri bolt://localhost:7687 --user neo4j --password
 
 **Usage:**
 ```bash
-python -m logos_hcg.demo_retrieval --uri bolt://localhost:7687 --user neo4j --password logosdev
+python -m logos_hcg.demo_retrieval --uri bolt://localhost:7687 --user neo4j --password neo4jtest
 ```
 
 **Evidence:** `logs/m1-verification/02-retrieval-demo.log`
 
 ### 3. SHACL Validation Test
-**File:** `tests/phase1/test_shacl_pyshacl.py::test_entity_round_trip`
+**File:** `tests/integration/ontology/test_shacl_pyshacl.py::test_entity_round_trip`
 
 **Features:**
 - Creates entity with valid UUID format (entity-* prefix)
@@ -63,7 +63,7 @@ python -m logos_hcg.demo_retrieval --uri bolt://localhost:7687 --user neo4j --pa
 
 **Usage:**
 ```bash
-pytest tests/phase1/test_shacl_pyshacl.py -k entity_round_trip -v
+pytest tests/integration/ontology/test_shacl_pyshacl.py -k entity_round_trip -v
 ```
 
 **Evidence:** `logs/m1-verification/03-shacl-test.log`

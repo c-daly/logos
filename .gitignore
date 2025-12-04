@@ -95,3 +95,9 @@ volumes/
 
 # Development backups
 infra/backups/
+
+# Generated test stack previews
+infra/test_stack/out/
+
+# Agents
+AGENTS.md

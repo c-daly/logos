@@ -7,7 +7,7 @@ services:
     image: neo4j:5.11.0
     container_name: logos-phase2-neo4j-test
     environment:
-      - NEO4J_AUTH=neo4j/logosdev
+      - NEO4J_AUTH=neo4j/neo4jtest
       - NEO4J_PLUGINS=["apoc"]
       - NEO4J_dbms_security_procedures_unrestricted=apoc.*
       - NEO4J_dbms_security_procedures_allowlist=apoc.*
@@ -19,7 +19,7 @@ services:
       - neo4j_test_data:/data
       - neo4j_test_logs:/logs
     healthcheck:
-      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "logosdev", "RETURN 1"]
+      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "neo4jtest", "RETURN 1"]
       interval: 10s
       timeout: 5s
       retries: 5

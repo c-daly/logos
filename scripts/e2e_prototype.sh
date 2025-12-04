@@ -11,10 +11,12 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 LOG_DIR="${REPO_ROOT}/logs/e2e"
 
 # Configuration
-NEO4J_CONTAINER="${NEO4J_CONTAINER:-logos-hcg-neo4j}"
+DOCKER_COMPOSE_FILE="${DOCKER_COMPOSE_FILE:-${REPO_ROOT}/tests/e2e/stack/logos/docker-compose.test.yml}"
+NEO4J_CONTAINER="${NEO4J_CONTAINER:-logos-phase2-test-neo4j}"
 NEO4J_USER="${NEO4J_USER:-neo4j}"
-NEO4J_PASSWORD="${NEO4J_PASSWORD:-logosdev}"
+NEO4J_PASSWORD="${NEO4J_PASSWORD:-neo4jtest}"
 NEO4J_URI="${NEO4J_URI:-bolt://localhost:7687}"
+MILVUS_CONTAINER="${MILVUS_CONTAINER:-logos-phase2-test-milvus}"
 
 # Colors for output
 RED='\033[0;31m'
@@ -88,7 +90,7 @@ wait_for_neo4j() {
 
 # Function to check if Milvus is available
 check_milvus() {
-    if docker ps --format '{{.Names}}' | grep -q "logos-hcg-milvus"; then
+    if docker ps --format '{{.Names}}' | grep -q "${MILVUS_CONTAINER}"; then
         return 0
     fi
     return 1
@@ -98,14 +100,12 @@ check_milvus() {
 start_infrastructure() {
     print_header "Step 1: Starting HCG Infrastructure"
     
-    cd "${REPO_ROOT}/infra"
-    
     # Check if containers are already running
-    if docker ps --format '{{.Names}}' | grep -q "logos-hcg-neo4j"; then
+    if docker ps --format '{{.Names}}' | grep -q "${NEO4J_CONTAINER}"; then
         print_info "Neo4j container is already running"
     else
         print_info "Starting docker-compose services..."
-        docker compose -f docker-compose.hcg.dev.yml up -d
+        docker compose -f "${DOCKER_COMPOSE_FILE}" up -d
     fi
     
     # Wait for services to be ready
@@ -346,7 +346,7 @@ capture_logs() {
     fi
     
     # Capture Milvus logs if available
-    if docker logs logos-hcg-milvus --tail 50 > "${LOG_DIR}/milvus.log" 2>&1; then
+    if docker logs "${MILVUS_CONTAINER}" --tail 50 > "${LOG_DIR}/milvus.log" 2>&1; then
         print_success "Milvus logs captured"
     else
         print_warn "Milvus logs not available"

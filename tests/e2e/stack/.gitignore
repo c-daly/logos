@@ -1,0 +1,5 @@
+# Ignore generated stacks for other repos (only logos/ and shared/ are tracked in LOGOS repo)
+apollo/
+hermes/
+sophia/
+talos/

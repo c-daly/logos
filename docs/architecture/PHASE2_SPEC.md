@@ -14,7 +14,7 @@ Phase 2 extends the Phase 1 prototype into a Talos-optional, perception-driven a
 - **Sophia service**
   - FastAPI app exposing `/plan`, `/state`, `/simulate`.
   - Uses the Neo4j driver + SHACL validation helpers shipped in this repo.
-  - Planner/executor implementation pulled from `logos/tests/phase1` seeds and expanded to consume CWM-G/CWM-E metadata.
+  - Planner/executor implementation pulled from `logos/tests/integration/planning` seeds and expanded to consume CWM-G/CWM-E metadata.
   - Docker image + Compose definition that can be launched alongside Neo4j/Milvus.
 - **Hermes service**
   - FastAPI app exposing `/embed_text`, `/simple_nlp`, `/stt`, `/tts`.

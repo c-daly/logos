@@ -78,9 +78,7 @@ def create_sophia_api(
         """
         with tracer.start_as_current_span("simulate") as span:
             try:
-                logger.info(
-                    f"Received simulation request for capability {request.capability_id}"
-                )
+                logger.info(f"Received simulation request for capability {request.capability_id}")
 
                 result = simulation_service.run_simulation(request)
 
@@ -99,9 +97,7 @@ def create_sophia_api(
             except Exception as e:
                 logger.error(f"Simulation failed: {e}", exc_info=True)
                 span.set_status(trace.Status(trace.StatusCode.ERROR, str(e)))
-                raise HTTPException(
-                    status_code=500, detail=f"Simulation failed: {str(e)}"
-                ) from e
+                raise HTTPException(status_code=500, detail=f"Simulation failed: {str(e)}") from e
 
     @router.get("/simulate/{process_uuid}")
     def get_simulation(process_uuid: str):

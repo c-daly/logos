@@ -9,6 +9,7 @@ export * from './CWMStateData';
 export * from './CWMStateLinks';
 export * from './HealthResponse';
 export * from './PlanRequest';
+export * from './PlanRequestGoal';
 export * from './PlanResponse';
 export * from './SimulationRequest';
 export * from './SimulationResponse';

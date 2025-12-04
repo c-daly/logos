@@ -50,8 +50,7 @@ def gh_json(args: list[str]) -> list[dict]:
 
 def sync_labels(repo: str, labels: list[dict[str, str]]) -> None:
     existing = {
-        label["name"]: label
-        for label in gh_json(["api", f"repos/{repo}/labels?per_page=100"])
+        label["name"]: label for label in gh_json(["api", f"repos/{repo}/labels?per_page=100"])
     }
 
     for label in labels:
