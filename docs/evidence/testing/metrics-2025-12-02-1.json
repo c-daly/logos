@@ -1,0 +1,52 @@
+{
+    "date": "2025-12-02",
+    "timestamp": "2025-12-02T20:36:02-05:00",
+    "phase": "2.5",
+    "repos": {
+        "sophia": {
+            "passed": 254,
+            "failed": 0,
+            "skipped": 0,
+            "total": 254,
+            "skip_pct": 0.0,
+            "coverage": 84,
+            "mock_lines": 273
+        },
+        "hermes": {
+            "passed": 97,
+            "failed": 0,
+            "skipped": 93,
+            "total": 190,
+            "skip_pct": 48.9,
+            "coverage": 68,
+            "mock_lines": 95
+        },
+        "apollo": {
+            "passed": 155,
+            "failed": 8,
+            "skipped": 8,
+            "total": 171,
+            "skip_pct": 4.7,
+            "coverage": 65,
+            "mock_lines": 620
+        },
+        "talos": {
+            "passed": 253,
+            "failed": 0,
+            "skipped": 13,
+            "total": 266,
+            "skip_pct": 4.9,
+            "coverage": 99,
+            "mock_lines": 252
+        },
+        "logos": {
+            "passed": 191,
+            "failed": 1,
+            "skipped": 102,
+            "total": 294,
+            "skip_pct": 34.7,
+            "coverage": 0,
+            "mock_lines": 194
+        }
+    }
+}
