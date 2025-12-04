@@ -1,0 +1,55 @@
+name: Fetch Container by Digest
+
+on:
+  workflow_call:
+    inputs:
+      digest:
+        description: 'The container digest to fetch (e.g., sha256:abc123...)'
+        required: true
+        type: string
+      image:
+        description: 'The container image name (without tag/digest)'
+        required: false
+        type: string
+        default: 'ghcr.io/c-daly/logos-foundry'
+    outputs:
+      digest:
+        description: 'The verified digest of the fetched container'
+        value: ${{ jobs.fetch.outputs.digest }}
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.verify.outputs.digest }}
+
+    steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull container by digest
+        run: |
+          docker pull ${{ inputs.image }}@${{ inputs.digest }}
+
+      - name: Verify digest
+        id: verify
+        run: |
+          # Get the digest of what we actually pulled
+          PULLED_DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${{ inputs.image }}@${{ inputs.digest }} | cut -d'@' -f2)
+          
+          # Verify it matches what we requested
+          if [ "$PULLED_DIGEST" != "${{ inputs.digest }}" ]; then
+            echo "::error::Digest mismatch! Requested ${{ inputs.digest }} but got $PULLED_DIGEST"
+            exit 1
+          fi
+          
+          echo "digest=$PULLED_DIGEST" >> $GITHUB_OUTPUT
+          echo "✅ Successfully fetched and verified container with digest: $PULLED_DIGEST"
