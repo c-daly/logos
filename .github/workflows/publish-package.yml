@@ -1,6 +1,16 @@
 name: Publish Package Container
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'logos_*/**'
+      - 'sdk/**'
+      - 'planner_stub/**'
+      - 'utils/**'
+      - 'Dockerfile.foundry'
+      - 'pyproject.toml'
+      - 'poetry.lock'
   release:
     types: [published]
   workflow_dispatch:  # Allow manual trigger
