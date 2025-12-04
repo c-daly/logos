@@ -55,6 +55,7 @@ jobs:
           echo "Building version: $VERSION"
       
       - name: Build and push container
+        id: build
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -74,5 +75,6 @@ jobs:
       
       - name: Output package info
         run: |
-          echo "Published logos-foundry version $(poetry version -s)"
+          echo "Published logos-foundry version ${{ steps.version.outputs.version }}"
+          echo "Digest: ${{ steps.build.outputs.digest }}"
           echo "Available at: https://github.com/c-daly/logos/packages"
