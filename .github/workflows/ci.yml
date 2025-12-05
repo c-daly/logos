@@ -32,6 +32,14 @@ jobs:
           fi
           sleep 2
         done
+        echo "Waiting for Milvus..."
+        for i in {1..90}; do
+          if curl -sf http://localhost:9091/healthz >/dev/null 2>&1; then
+            echo "Milvus is ready"
+            break
+          fi
+          sleep 2
+        done
       pytest_env_script: |
         export NEO4J_URI=bolt://localhost:17687
         export NEO4J_USER=neo4j
