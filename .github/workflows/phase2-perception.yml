@@ -57,9 +57,9 @@ jobs:
         run: |
           poetry run pytest tests/integration/perception/test_simulation_service.py -v --cov=logos_sophia --cov-append --cov-report=xml
       
-      - name: Run simulate API tests
+      - name: Run simulate API integration tests
         run: |
-          poetry run pytest tests/integration/perception/test_simulate_api.py -v --cov=logos_sophia --cov-append --cov-report=xml
+          poetry run pytest tests/integration/perception/test_simulate_api_integration.py -v --cov=logos_sophia --cov-append --cov-report=xml
       
       - name: Test summary
         if: always()
