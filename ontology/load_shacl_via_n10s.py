@@ -103,8 +103,7 @@ def main() -> int:
                 session.run("CALL n10s.validation.shacl.clear();")
             elif "n10s.validation.shacl.dropShapes" in procedures:
                 print(
-                    "Clearing existing SHACL shapes with "
-                    "n10s.validation.shacl.dropShapes()..."
+                    "Clearing existing SHACL shapes with " "n10s.validation.shacl.dropShapes()..."
                 )
                 session.run("CALL n10s.validation.shacl.dropShapes();")
             else:
@@ -131,8 +130,7 @@ def main() -> int:
                     except Neo4jError as exc2:
                         if "UriNamespaceHasNoAssociatedPrefix" in str(exc2):
                             print(
-                                "Namespace error persists even after "
-                                "rewrite/SHORTEN; aborting."
+                                "Namespace error persists even after " "rewrite/SHORTEN; aborting."
                             )
                             raise
                         else:

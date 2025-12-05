@@ -33,8 +33,7 @@ def ensure_neo4j_ready():
     """Fail tests if Neo4j is not available."""
     if not is_container_running(NEO4J_CONFIG.container):
         pytest.fail(
-            "Neo4j not available. Start with: "
-            "docker compose -f docker-compose.test.yml up -d"
+            "Neo4j not available. Start with: " "docker compose -f docker-compose.test.yml up -d"
         )
 
     try:

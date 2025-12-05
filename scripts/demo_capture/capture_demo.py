@@ -136,7 +136,7 @@ class DemoCapture:
             print("Then exit the shell when done: exit")
             print("\nOr use this script with --commands flag:")
             print(
-                '  python capture_demo.py --mode cli '
+                "  python capture_demo.py --mode cli "
                 '--commands "logos-cli status" "logos-cli plan ..."'
             )
 
