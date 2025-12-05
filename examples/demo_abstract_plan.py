@@ -8,7 +8,7 @@ writing a research paper. Shows the planner is domain-agnostic.
 Run: poetry run python examples/demo_abstract_plan.py
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from logos_hcg.client import HCGClient
@@ -47,7 +47,7 @@ def main():
         status=GoalStatus.PENDING,
         provenance=Provenance(
             source_service=SourceService.HUMAN,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         ),
     )
 

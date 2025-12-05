@@ -211,7 +211,8 @@ class TestSimulateAPIIntegration:
         with neo4j_driver.session() as session:
             result = session.run(
                 """
-                MATCH (f:PerceptionFrame {uuid: $frame_uuid})-[:TRIGGERED_SIMULATION]->(p:ImaginedProcess {uuid: $process_uuid})
+                MATCH (f:PerceptionFrame {uuid: $frame_uuid})
+                      -[:TRIGGERED_SIMULATION]->(p:ImaginedProcess {uuid: $process_uuid})
                 RETURN p, f
                 """,
                 process_uuid=process_uuid,

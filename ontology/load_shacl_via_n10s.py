@@ -102,11 +102,15 @@ def main() -> int:
                 print("Clearing existing SHACL shapes with n10s.validation.shacl.clear()...")
                 session.run("CALL n10s.validation.shacl.clear();")
             elif "n10s.validation.shacl.dropShapes" in procedures:
-                print("Clearing existing SHACL shapes with n10s.validation.shacl.dropShapes()...")
+                print(
+                    "Clearing existing SHACL shapes with "
+                    "n10s.validation.shacl.dropShapes()..."
+                )
                 session.run("CALL n10s.validation.shacl.dropShapes();")
             else:
                 print(
-                    "⚠️ No SHACL clear/drop procedure available; continuing without clearing existing shapes."
+                    "⚠️ No SHACL clear/drop procedure available; "
+                    "continuing without clearing existing shapes."
                 )
 
             configure_n10s(session, vocab_mode="MAP")
@@ -118,14 +122,18 @@ def main() -> int:
                 # Retry with SHORTEN if namespace-awareness still not honored
                 if "UriNamespaceHasNoAssociatedPrefix" in str(exc):
                     print(
-                        "Namespace error during import; retrying after reconfiguring with SHORTEN..."
+                        "Namespace error during import; "
+                        "retrying after reconfiguring with SHORTEN..."
                     )
                     configure_n10s(session, vocab_mode="SHORTEN")
                     try:
                         import_shapes(session, rdf_rewritten)
                     except Neo4jError as exc2:
                         if "UriNamespaceHasNoAssociatedPrefix" in str(exc2):
-                            print("Namespace error persists even after rewrite/SHORTEN; aborting.")
+                            print(
+                                "Namespace error persists even after "
+                                "rewrite/SHORTEN; aborting."
+                            )
                             raise
                         else:
                             raise

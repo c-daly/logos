@@ -350,7 +350,8 @@ class TestRelationshipCreation:
 
             # Cleanup
             session.run(
-                "MATCH (e:Entity {uuid: $e_uuid})-[r:IS_A]->(c:Concept {uuid: $c_uuid}) DELETE r, e, c",
+                "MATCH (e:Entity {uuid: $e_uuid})-[r:IS_A]->(c:Concept {uuid: $c_uuid}) "
+                "DELETE r, e, c",
                 e_uuid=entity_uuid,
                 c_uuid=concept_uuid,
             )
@@ -388,7 +389,8 @@ class TestRelationshipCreation:
 
             # Cleanup
             session.run(
-                "MATCH (e:Entity {uuid: $e_uuid})-[r:HAS_STATE]->(s:State {uuid: $s_uuid}) DELETE r, e, s",
+                "MATCH (e:Entity {uuid: $e_uuid})-[r:HAS_STATE]->(s:State {uuid: $s_uuid}) "
+                "DELETE r, e, s",
                 e_uuid=entity_uuid,
                 s_uuid=state_uuid,
             )
@@ -425,7 +427,8 @@ class TestRelationshipCreation:
 
             # Cleanup
             session.run(
-                "MATCH (p:Process {uuid: $p_uuid})-[r:CAUSES]->(s:State {uuid: $s_uuid}) DELETE r, p, s",
+                "MATCH (p:Process {uuid: $p_uuid})-[r:CAUSES]->(s:State {uuid: $s_uuid}) "
+                "DELETE r, p, s",
                 p_uuid=process_uuid,
                 s_uuid=state_uuid,
             )
@@ -464,7 +467,8 @@ class TestRelationshipCreation:
 
             # Cleanup
             session.run(
-                "MATCH (part:Entity {uuid: $part_uuid})-[r:PART_OF]->(whole:Entity {uuid: $whole_uuid}) DELETE r, part, whole",
+                "MATCH (part:Entity {uuid: $part_uuid})-[r:PART_OF]->"
+                "(whole:Entity {uuid: $whole_uuid}) DELETE r, part, whole",
                 part_uuid=part_uuid,
                 whole_uuid=whole_uuid,
             )
@@ -496,7 +500,8 @@ class TestRelationshipTraversal:
             # UUID from test_data_pick_and_place.cypher: RobotArm01
             result = session.run(
                 """
-                MATCH (e:Entity {uuid: 'c551e7ad-c12a-40bc-8c29-3a721fa311cb'})-[:HAS_STATE]->(s:State)
+                MATCH (e:Entity {uuid: 'c551e7ad-c12a-40bc-8c29-3a721fa311cb'})
+                      -[:HAS_STATE]->(s:State)
                 RETURN s.name AS state_name, s.timestamp AS timestamp
                 ORDER BY s.timestamp DESC
                 LIMIT 1
@@ -513,7 +518,8 @@ class TestRelationshipTraversal:
             # UUID from test_data_pick_and_place.cypher: RedBlockGraspedState
             result = session.run(
                 """
-                MATCH (p:Process)-[:CAUSES]->(s:State {uuid: 'f25e11ff-f33f-43a7-a4d8-a2839ec39976'})
+                MATCH (p:Process)
+                      -[:CAUSES]->(s:State {uuid: 'f25e11ff-f33f-43a7-a4d8-a2839ec39976'})
                 RETURN p.name AS process_name, s.name AS state_name
                 """
             )
@@ -529,7 +535,8 @@ class TestRelationshipTraversal:
             # UUID from test_data_pick_and_place.cypher: ArmHomeState (start of PRECEDES chain)
             result = session.run(
                 """
-                MATCH path = (s1:State {uuid: '1957c02d-a22a-483c-8ccb-cd04e7f03817'})-[:PRECEDES*1..5]->(s2:State)
+                MATCH path = (s1:State {uuid: '1957c02d-a22a-483c-8ccb-cd04e7f03817'})
+                             -[:PRECEDES*1..5]->(s2:State)
                 RETURN s2.name AS final_state, length(path) AS chain_length
                 ORDER BY chain_length DESC
                 LIMIT 1
@@ -547,7 +554,8 @@ class TestRelationshipTraversal:
             # UUID from test_data_pick_and_place.cypher: RobotArm01
             result = session.run(
                 """
-                MATCH (part:Entity)-[:PART_OF]->(whole:Entity {uuid: 'c551e7ad-c12a-40bc-8c29-3a721fa311cb'})
+                MATCH (part:Entity)
+                      -[:PART_OF]->(whole:Entity {uuid: 'c551e7ad-c12a-40bc-8c29-3a721fa311cb'})
                 RETURN part.name AS part_name
                 ORDER BY part.name
                 """

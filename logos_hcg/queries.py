@@ -552,7 +552,8 @@ class HCGQueries:
         OPTIONAL MATCH (p:Process)
         WITH entity_count, concept_count, state_count, count(p) as process_count
         OPTIONAL MATCH (cap:Capability)
-        RETURN entity_count, concept_count, state_count, process_count, count(cap) as capability_count
+        RETURN entity_count, concept_count, state_count, process_count,
+               count(cap) as capability_count
         """
 
     # ========== Capability Catalog Queries (logos#284) ==========
@@ -882,7 +883,8 @@ class HCGQueries:
             cap.success_rate = CASE
                 WHEN cap.invocation_count IS NULL OR cap.invocation_count = 0
                 THEN CASE WHEN $success THEN 1.0 ELSE 0.0 END
-                ELSE (cap.success_rate * cap.invocation_count + CASE WHEN $success THEN 1 ELSE 0 END) / (cap.invocation_count + 1)
+                ELSE (cap.success_rate * cap.invocation_count +
+                      CASE WHEN $success THEN 1 ELSE 0 END) / (cap.invocation_count + 1)
             END,
             cap.updated_at = datetime()
         RETURN cap

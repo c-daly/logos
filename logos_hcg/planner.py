@@ -9,7 +9,7 @@ See logos#157 for design details.
 """
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from logos_hcg.client import HCGClient
@@ -81,7 +81,7 @@ class HCGPlanner:
         return Provenance(
             source_service=self._source_service,
             author_id=author_id,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             trace_id=trace_id,
             tags=["planner", "backward-chain"],
         )

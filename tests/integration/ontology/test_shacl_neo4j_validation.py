@@ -131,7 +131,9 @@ def setup_neo4j(neo4j_session):
 
         try:
             neo4j_session.run(
-                "CALL n10s.graphconfig.init({handleVocabUris:'KEEP',handleRDFTypes:'LABELS',handleMultival:'ARRAY',keepLangTag:true})"
+                "CALL n10s.graphconfig.init({"
+                "handleVocabUris:'KEEP',handleRDFTypes:'LABELS',"
+                "handleMultival:'ARRAY',keepLangTag:true})"
             )
             print("DEBUG: Initialized n10s with KEEP")
         except Exception as e:
@@ -140,7 +142,8 @@ def setup_neo4j(neo4j_session):
     # Ensure constraint exists (n10s requires it)
     try:
         neo4j_session.run(
-            "CREATE CONSTRAINT n10s_unique_uri IF NOT EXISTS FOR (r:Resource) REQUIRE r.uri IS UNIQUE"
+            "CREATE CONSTRAINT n10s_unique_uri IF NOT EXISTS "
+            "FOR (r:Resource) REQUIRE r.uri IS UNIQUE"
         )
     except Exception as e:
         print(f"DEBUG: Create constraint failed: {e}")
@@ -231,7 +234,8 @@ def test_validate_valid_entities(setup_neo4j):
     # If there are any violations, the test should fail
     if violations:
         pytest.fail(
-            f"Valid data should not have violations. Found {len(violations)} violations: {violations}"
+            f"Valid data should not have violations. "
+            f"Found {len(violations)} violations: {violations}"
         )
 
     print("✓ Valid entities passed SHACL validation in Neo4j")

@@ -280,9 +280,8 @@ class TestP2CWMStateEnvelope:
         assert response.success, f"State retrieval failed: {response.error}"
 
         if response.data:
-            print(
-                f"✓ /state endpoint returned {len(response.data) if isinstance(response.data, list) else 1} states"
-            )
+            count = len(response.data) if isinstance(response.data, list) else 1
+            print(f"✓ /state endpoint returned {count} states")
 
     @pytest.mark.skip(reason="Blocked by logos#240 - media ingestion service not implemented")
     def test_simulate_endpoint_returns_cwmstate(self, sophia_client):
@@ -359,7 +358,8 @@ class TestP2M3PerceptionImagination:
                 print(f"✓ JEPA simulation endpoint responsive: {data}")
             else:
                 print(
-                    f"⚠ JEPA simulation endpoint returned {response.status_code} (may not be implemented yet)"
+                    f"⚠ JEPA simulation endpoint returned {response.status_code} "
+                    f"(may not be implemented yet)"
                 )
         except requests.exceptions.RequestException as e:
             pytest.skip(f"JEPA simulation endpoint not available: {e}")

@@ -8,7 +8,7 @@ HCGPlanner to generate a plan to move a block from table to bin.
 Run with: python -m logos_hcg.demo_planner
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 from logos_hcg import (
@@ -257,7 +257,7 @@ def run_demo():
         priority=1.0,
         provenance=Provenance(
             source_service=SourceService.HUMAN,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             tags=["demo", "pick-and-place"],
         ),
     )
