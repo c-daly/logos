@@ -181,8 +181,10 @@ class TestM4TestDataLoading:
         returncode, stdout, stderr = run_cypher_query(query)
         assert returncode == 0, f"Failed to query manipulator: {stderr}"
         # Check that at least one entity exists (count >= 1)
-        count_match = [line for line in stdout.strip().split('\n') if line.isdigit()]
-        assert len(count_match) > 0 and int(count_match[0]) >= 1, "Expected at least one manipulator entity"
+        count_match = [line for line in stdout.strip().split("\n") if line.isdigit()]
+        assert (
+            len(count_match) > 0 and int(count_match[0]) >= 1
+        ), "Expected at least one manipulator entity"
 
 
 class TestM4SimulatedWorkflow:
@@ -205,7 +207,9 @@ class TestM4SimulatedWorkflow:
 
         # Assert specific expected values
         assert "TestGoalState_RedBlockInBin" in stdout, "Expected goal state name not found"
-        assert "964305c9-008f-5e7c-9fa6-08a4db697c1a" in stdout, "Expected goal state UUID not found"
+        assert (
+            "964305c9-008f-5e7c-9fa6-08a4db697c1a" in stdout
+        ), "Expected goal state UUID not found"
 
         # Verify the goal state properties
         verify_query = """

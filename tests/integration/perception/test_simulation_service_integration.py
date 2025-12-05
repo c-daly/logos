@@ -200,9 +200,7 @@ class TestSimulationServiceIntegration:
         result = simulation_service.get_simulation_results("nonexistent-uuid-12345")
         assert result is None
 
-    def test_run_simulation_with_custom_config(
-        self, neo4j_driver, cleanup_simulations
-    ):
+    def test_run_simulation_with_custom_config(self, neo4j_driver, cleanup_simulations):
         """Test simulation with custom JEPA configuration stores correct data."""
         config = JEPAConfig(
             model_version="jepa-v0.3-test",

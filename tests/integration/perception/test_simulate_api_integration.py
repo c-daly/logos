@@ -122,9 +122,7 @@ class TestSimulateAPIIntegration:
             assert process["capability_id"] == "test-integration-capability"
             assert process["imagined"] is True
 
-    def test_simulate_creates_states_in_neo4j(
-        self, test_client, neo4j_driver, cleanup_simulations
-    ):
+    def test_simulate_creates_states_in_neo4j(self, test_client, neo4j_driver, cleanup_simulations):
         """Test that simulation creates ImaginedState nodes in Neo4j."""
         payload = {
             "capability_id": "test-states-capability",

@@ -23,6 +23,10 @@ from pathlib import Path
 import pytest
 import requests
 
+from logos_test_utils.env import load_stack_env
+from logos_test_utils.milvus import get_milvus_config
+from logos_test_utils.neo4j import get_neo4j_config
+
 
 def _check_services_available():
     """Check if required services are running."""
@@ -40,9 +44,6 @@ if not _check_services_available():
         allow_module_level=True,
     )
 
-from logos_test_utils.env import load_stack_env
-from logos_test_utils.milvus import get_milvus_config
-from logos_test_utils.neo4j import get_neo4j_config
 
 # Try to import Apollo SDK clients
 try:
