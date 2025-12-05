@@ -3,6 +3,10 @@ Integration tests for /simulate API endpoint.
 
 Tests the FastAPI endpoint with real Neo4j database.
 Validates that simulation results are properly stored and retrieved.
+
+To run:
+    1. Start test stack: docker compose -f docker-compose.test.yml up -d
+    2. pytest tests/integration/perception/test_simulate_api_integration.py -v
 """
 
 import os
@@ -26,17 +30,17 @@ NEO4J_WAIT_TIMEOUT = int(os.getenv("NEO4J_WAIT_TIMEOUT", "120"))
 
 @pytest.fixture(scope="module", autouse=True)
 def ensure_neo4j_ready():
-    """Skip tests if Neo4j is not available."""
+    """Fail tests if Neo4j is not available."""
     if not is_container_running(NEO4J_CONFIG.container):
-        pytest.skip(
+        pytest.fail(
             "Neo4j not available. Start with: "
-            "docker compose -f tests/e2e/stack/logos/docker-compose.test.yml up -d"
+            "docker compose -f docker-compose.test.yml up -d"
         )
 
     try:
         wait_for_neo4j(NEO4J_CONFIG, timeout=NEO4J_WAIT_TIMEOUT)
     except (RuntimeError, FileNotFoundError) as exc:
-        pytest.skip(f"Neo4j not ready: {exc}")
+        pytest.fail(f"Neo4j not ready: {exc}")
 
 
 @pytest.fixture(scope="module")
