@@ -16,11 +16,28 @@ jobs:
       python_versions: '["3.11","3.12"]'
       python_package_manager: 'poetry'
       python_command_prefix: 'poetry run '
-      poetry_install_args: '--with dev'
+      poetry_install_args: '--with dev,test'
       python_lint_paths: '.'
       mypy_targets: '.'
       pytest_command: 'pytest -v --cov --cov-report=term-missing --cov-report=xml'
       coverage_python_version: '3.11'
       upload_coverage: false
+      docker_compose_file: 'tests/e2e/stack/logos/docker-compose.test.yml'
+      docker_compose_wait_script: |
+        echo "Waiting for Neo4j..."
+        for i in {1..60}; do
+          if docker exec logos-phase2-test-neo4j cypher-shell -u neo4j -p neo4jtest "RETURN 1" 2>/dev/null; then
+            echo "Neo4j is ready"
+            break
+          fi
+          sleep 2
+        done
+      pytest_env_script: |
+        export NEO4J_URI=bolt://localhost:17687
+        export NEO4J_USER=neo4j
+        export NEO4J_PASSWORD=neo4jtest
+        export NEO4J_CONTAINER=logos-phase2-test-neo4j
+        export MILVUS_HOST=localhost
+        export MILVUS_PORT=19530
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
