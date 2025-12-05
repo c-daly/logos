@@ -26,7 +26,6 @@ TEST_STACK_DIR = ROOT / "infra" / "test_stack"
 SERVICES_FILE = TEST_STACK_DIR / "services.yaml"
 REPOS_FILE = TEST_STACK_DIR / "repos.yaml"
 OVERLAYS_DIR = TEST_STACK_DIR / "overlays"
-DEFAULT_OUTPUT_ROOT = ROOT / "tests" / "e2e" / "stack"
 
 
 class RenderError(RuntimeError):
@@ -45,8 +44,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--output-root",
-        default=str(DEFAULT_OUTPUT_ROOT),
-        help="Where to stage generated files (default: tests/e2e/stack).",
+        default=None,
+        help="Override output location. Default renders to each repo's path from repos.yaml.",
     )
     parser.add_argument(
         "--check",
@@ -243,8 +242,8 @@ def render_repo(
     repo_name: str,
     repo_cfg: Mapping[str, Any],
     template: dict[str, Any],
-    output_root: Path,
     check_only: bool,
+    output_root: Path | None = None,
 ) -> bool:
     context = repo_cfg["context"]
     compose_doc = build_compose_doc(
@@ -257,7 +256,10 @@ def render_repo(
     env_content = render_env(repo_cfg["env"], context)
     stack_version = compute_stack_version(repo_name, compose_doc, env_content)
 
-    repo_output_dir = output_root / repo_name
+    if output_root:
+        repo_output_dir = output_root / repo_name
+    else:
+        repo_output_dir = (TEST_STACK_DIR / repo_cfg["path"]).resolve()
     compose_path = repo_output_dir / repo_cfg["compose_filename"]
     env_path = repo_output_dir / repo_cfg["env_filename"]
     version_path = repo_output_dir / "STACK_VERSION"
@@ -280,12 +282,12 @@ def main() -> int:
     template = load_yaml(SERVICES_FILE)
     repo_config_data = load_yaml(REPOS_FILE)
     resolved_repos = resolve_repo_configs(repo_config_data, args.repos)
-    output_root = Path(args.output_root).resolve()
+    output_root = Path(args.output_root).resolve() if args.output_root else None
 
     all_ok = True
     for repo_name, repo_cfg in resolved_repos.items():
         try:
-            ok = render_repo(repo_name, repo_cfg, template, output_root, args.check)
+            ok = render_repo(repo_name, repo_cfg, template, args.check, output_root)
         except RenderError as exc:
             print(f"[error] {repo_name}: {exc}", file=sys.stderr)
             return 1
