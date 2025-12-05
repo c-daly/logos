@@ -187,7 +187,7 @@ class TestMilvusIntegration:
             pytest.skip(f"Collection {collection_name} not initialized")
 
         collection = Collection(name=collection_name)
-        
+
         # Load collection - skip if it takes too long (Milvus under load)
         try:
             collection.load(_async=False, _refresh=False)

@@ -12,7 +12,6 @@ Tests the M1 milestone requirements:
 Reference: docs/PHASE1_VERIFY.md - M1 checklist
 """
 
-import os
 from uuid import uuid4
 
 import pytest
