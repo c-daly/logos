@@ -30,16 +30,16 @@ NEO4J_WAIT_TIMEOUT = int(os.getenv("NEO4J_WAIT_TIMEOUT", "120"))
 
 @pytest.fixture(scope="module", autouse=True)
 def ensure_neo4j_ready():
-    """Fail tests if Neo4j is not available."""
+    """Skip tests if Neo4j is not available."""
     if not is_container_running(NEO4J_CONFIG.container):
-        pytest.fail(
+        pytest.skip(
             "Neo4j not available. Start with: " "docker compose -f docker-compose.test.yml up -d"
         )
 
     try:
         wait_for_neo4j(NEO4J_CONFIG, timeout=NEO4J_WAIT_TIMEOUT)
     except (RuntimeError, FileNotFoundError) as exc:
-        pytest.fail(f"Neo4j not ready: {exc}")
+        pytest.skip(f"Neo4j not ready: {exc}")
 
 
 @pytest.fixture(scope="module")

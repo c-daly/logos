@@ -13,8 +13,8 @@ services:
       - NEO4J_dbms_security_procedures_allowlist=apoc.*
       - NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
     ports:
-      - "7687:7687"
-      - "7474:7474"
+      - "17687:7687"
+      - "17474:7474"
     volumes:
       - neo4j_test_data:/data
       - neo4j_test_logs:/logs
@@ -67,8 +67,8 @@ services:
     volumes:
       - milvus_test_data:/var/lib/milvus
     ports:
-      - "19530:19530"
-      - "9091:9091"
+      - "17530:19530"
+      - "17091:9091"
     depends_on:
       - milvus-etcd
       - milvus-minio
