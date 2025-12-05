@@ -1,3 +1,17 @@
+# LOGOS Ecosystem Test Stack Configuration
+#
+# Port allocation standard: Each repo uses a consistent Nxxxx prefix for ALL ports
+#   hermes:  1xxxx  (h for 1)
+#   apollo:  2xxxx  (a for 2)
+#   logos:   3xxxx  (l for 3)
+#   sophia:  4xxxx  (s for 4)
+#   talos:   5xxxx  (t for 5)
+#
+# Base port patterns (replace leading digit with repo prefix):
+#   Neo4j HTTP: x7474, Bolt: x7687
+#   Milvus gRPC: x9530, Metrics: x9091
+#   MinIO API: x9000, Console: x9001
+
 defaults:
   compose_filename: docker-compose.test.yml
   env_filename: .env.test
@@ -27,17 +41,27 @@ defaults:
     MILVUS_HOST: milvus
     MILVUS_PORT: "{milvus_grpc_port}"
     MILVUS_HEALTHCHECK: "http://milvus:{milvus_metrics_port}/healthz"
+
 repos:
-  logos:
-    path: .
-    service_prefix: logos-phase2-test
-    volume_prefix: logos_phase2_test
+  # hermes: 1xxxx prefix (Milvus only, no Neo4j)
+  hermes:
+    path: ../hermes
+    service_prefix: hermes-test
+    volume_prefix: hermes_test
     services:
-      - neo4j
       - milvus-etcd
       - milvus-minio
       - milvus
+    context:
+      milvus_grpc_port: "19530"
+      milvus_metrics_port: "19091"
+      minio_api_port: "19000"
+      minio_console_port: "19001"
+    env:
+      MILVUS_HOST: milvus
+      MILVUS_PORT: "{milvus_grpc_port}"
 
+  # apollo: 2xxxx prefix
   apollo:
     path: ../apollo
     service_prefix: apollo-test
@@ -52,29 +76,17 @@ repos:
       neo4j_bolt_port: "27687"
       milvus_grpc_port: "29530"
       milvus_metrics_port: "29091"
+      minio_api_port: "29000"
+      minio_console_port: "29001"
     env:
       NEO4J_URI: "bolt://neo4j:{neo4j_bolt_port}"
 
-  hermes:
-    path: ../hermes
-    service_prefix: hermes-test
-    volume_prefix: hermes_test
-    services:
-      - milvus-etcd
-      - milvus-minio
-      - milvus
-    context:
-      milvus_grpc_port: "18530"
-      milvus_metrics_port: "18091"
-    env:
-      NEO4J_URI: "bolt://neo4j:7687"
-      MILVUS_HOST: milvus
-      MILVUS_PORT: "{milvus_grpc_port}"
-
-  sophia:
-    path: ../sophia
-    service_prefix: sophia-test
-    volume_prefix: sophia_test
+  # logos: 3xxxx prefix
+  logos:
+    path: .
+    service_prefix: logos-test
+    volume_prefix: logos_test
+    network_name: logos-test-network
     services:
       - neo4j
       - milvus-etcd
@@ -85,20 +97,47 @@ repos:
       neo4j_bolt_port: "37687"
       milvus_grpc_port: "39530"
       milvus_metrics_port: "39091"
+      minio_api_port: "39000"
+      minio_console_port: "39001"
     env:
       NEO4J_URI: "bolt://neo4j:{neo4j_bolt_port}"
 
-  talos:
-    path: ../talos
-    service_prefix: talos-test
-    volume_prefix: talos_test
+  # sophia: 4xxxx prefix
+  sophia:
+    path: ../sophia
+    service_prefix: sophia-test
+    volume_prefix: sophia_test
     services:
       - neo4j
+      - milvus-etcd
+      - milvus-minio
       - milvus
     context:
       neo4j_http_port: "47474"
       neo4j_bolt_port: "47687"
       milvus_grpc_port: "49530"
       milvus_metrics_port: "49091"
+      minio_api_port: "49000"
+      minio_console_port: "49001"
+    env:
+      NEO4J_URI: "bolt://neo4j:{neo4j_bolt_port}"
+
+  # talos: 5xxxx prefix
+  talos:
+    path: ../talos
+    service_prefix: talos-test
+    volume_prefix: talos_test
+    services:
+      - neo4j
+      - milvus-etcd
+      - milvus-minio
+      - milvus
+    context:
+      neo4j_http_port: "57474"
+      neo4j_bolt_port: "57687"
+      milvus_grpc_port: "59530"
+      milvus_metrics_port: "59091"
+      minio_api_port: "59000"
+      minio_console_port: "59001"
     env:
       NEO4J_URI: "bolt://neo4j:{neo4j_bolt_port}"
