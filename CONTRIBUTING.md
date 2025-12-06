@@ -180,6 +180,42 @@ Maintainers will expect the checklist in the PR template to be completed before 
 
 All LOGOS repositories follow standardized CI/CD patterns for consistency and maintainability.
 
+#### Standard CI Workflow
+
+All repos use the reusable CI workflow at `c-daly/logos/.github/workflows/reusable-standard-ci.yml`:
+
+```yaml
+# Example ci.yml for a LOGOS repo
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    uses: c-daly/logos/.github/workflows/reusable-standard-ci.yml@main
+    with:
+      python_package_manager: poetry
+      run_ruff: true
+      run_black: true
+      run_mypy: true
+      run_pytest: true
+      pytest_command: 'pytest --cov --cov-report=term --cov-report=xml -m "not requires_torch"'
+      upload_coverage: true
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+```
+
+**Key inputs:**
+- `python_package_manager`: `poetry` or `pip`
+- `run_ruff`, `run_black`, `run_mypy`, `run_pytest`: Enable/disable linting steps
+- `pytest_command`: Customize pytest invocation (e.g., exclude GPU tests)
+- `enable_node`: Set `true` for repos with webapp/ (e.g., Apollo)
+- `docker_compose_file`: Path to test infrastructure compose file
+
 #### Publish Workflow
 
 All repos use the reusable workflow at `c-daly/logos/.github/workflows/reusable-publish.yml`:
