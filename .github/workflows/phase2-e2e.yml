@@ -18,8 +18,8 @@ on:
   workflow_dispatch:
 
 env:
-  NEO4J_CONTAINER: logos-hcg-neo4j
-  MILVUS_CONTAINER: logos-hcg-milvus
+  NEO4J_CONTAINER: logos-phase2-test-neo4j
+  MILVUS_CONTAINER: logos-phase2-test-milvus
   RUN_HCG_TESTS: "1"
 
 jobs:
@@ -73,7 +73,7 @@ jobs:
         run: |
           echo "Waiting for Milvus..."
           for i in {1..60}; do
-            if curl -f http://localhost:9091/healthz 2>/dev/null; then
+            if curl -f http://localhost:39091/healthz 2>/dev/null; then
               echo "Milvus is ready"
               exit 0
             fi
@@ -189,11 +189,11 @@ jobs:
           echo "Services failed to start in time"
           exit 1
         env:
-          NEO4J_URI: bolt://localhost:7687
+          NEO4J_URI: bolt://localhost:37687
           NEO4J_USER: neo4j
           NEO4J_PASSWORD: neo4jtest
           MILVUS_HOST: localhost
-          MILVUS_PORT: 19530
+          MILVUS_PORT: 39530
           SOPHIA_API_KEY: test-ci-key
           HERMES_PORT: 8002
           APOLLO_PORT: 8003
@@ -206,11 +206,11 @@ jobs:
           SOPHIA_URL: http://localhost:8001
           HERMES_URL: http://localhost:8002
           APOLLO_URL: http://localhost:8003
-          NEO4J_URI: bolt://localhost:7687
+          NEO4J_URI: bolt://localhost:37687
           NEO4J_USER: neo4j
           NEO4J_PASSWORD: neo4jtest
           MILVUS_HOST: localhost
-          MILVUS_PORT: 19530
+          MILVUS_PORT: 39530
           SOPHIA_API_KEY: test-ci-key
       
       - name: Stop services
@@ -226,7 +226,7 @@ jobs:
           cat scripts/.pids/*.pid 2>/dev/null || echo "No PID files found"
           
           echo -e "\n=== Port status ==="
-          netstat -tlnp 2>/dev/null | grep -E ':(8001|8002|8003|7687|19530)' || echo "No services listening"
+          netstat -tlnp 2>/dev/null | grep -E ':(8001|8002|8003|37687|39530)' || echo "No services listening"
           
           echo -e "\n=== Neo4j logs ==="
           docker logs logos-phase2-test-neo4j --tail=100 || true
