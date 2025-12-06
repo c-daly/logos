@@ -34,18 +34,18 @@ jobs:
         done
         echo "Waiting for Milvus..."
         for i in {1..90}; do
-          if curl -sf http://localhost:9091/healthz >/dev/null 2>&1; then
+          if curl -sf http://localhost:39091/healthz >/dev/null 2>&1; then
             echo "Milvus is ready"
             break
           fi
           sleep 2
         done
       pytest_env_script: |
-        export NEO4J_URI=bolt://localhost:17687
+        export NEO4J_URI=bolt://localhost:37687
         export NEO4J_USER=neo4j
         export NEO4J_PASSWORD=neo4jtest
         export NEO4J_CONTAINER=logos-phase2-test-neo4j
         export MILVUS_HOST=localhost
-        export MILVUS_PORT=19530
+        export MILVUS_PORT=39530
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
