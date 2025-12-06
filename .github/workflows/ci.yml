@@ -40,10 +40,6 @@ jobs:
           fi
           sleep 2
         done
-        echo "Initializing Milvus collections..."
-        export MILVUS_HOST=localhost
-        export MILVUS_PORT=39530
-        ./infra/init_milvus.sh || echo "Milvus init failed (may already exist)"
       pytest_env_script: |
         export NEO4J_URI=bolt://localhost:37687
         export NEO4J_USER=neo4j
@@ -51,5 +47,7 @@ jobs:
         export NEO4J_CONTAINER=logos-phase2-test-neo4j
         export MILVUS_HOST=localhost
         export MILVUS_PORT=39530
+        echo "Initializing Milvus collections..."
+        poetry run python infra/init_milvus_collections.py --host localhost --port 39530 || echo "Milvus init failed (may already exist)"
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
