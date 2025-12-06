@@ -50,14 +50,17 @@ This repository defines the canonical standards for the entire LOGOS ecosystem. 
 | Git workflow | `docs/GIT_PROJECT_STANDARDS.md` |
 | Port allocation | `docs/TESTING_STANDARDS.md` (Port Allocation section) |
 
-### Port allocation (+10000 offset, alphabetical)
-| Repo | Neo4j HTTP | Neo4j Bolt | Milvus gRPC | Milvus Health | API |
-|------|------------|------------|-------------|---------------|-----|
-| apollo | 17474 | 17687 | 29530 | 19091 | 18000 |
-| hermes | 27474 | 27687 | 39530 | 29091 | 28000 |
-| logos | 37474 | 37687 | 49530 | 39091 | 38000 |
-| sophia | 47474 | 47687 | 59530 | 49091 | 48000 |
-| talos | 57474 | 57687 | 69530 | 59091 | 58000 |
+### Port allocation (base + offset)
+
+Each repo has a unique offset to prevent conflicts when running test stacks in parallel:
+
+| Repo | Offset | Neo4j HTTP | Neo4j Bolt | Milvus gRPC | Milvus Health | API |
+|------|--------|------------|------------|-------------|---------------|-----|
+| hermes | +10000 | 17474 | 17687 | 29530 | 19091 | 18000 |
+| apollo | +20000 | 27474 | 27687 | 39530 | 29091 | 28000 |
+| logos | +30000 | 37474 | 37687 | 49530 | 39091 | 38000 |
+| sophia | +40000 | 47474 | 47687 | 59530 | 49091 | 48000 |
+| talos | +50000 | 57474 | 57687 | 69530 | 59091 | 58000 |
 
 ---
 

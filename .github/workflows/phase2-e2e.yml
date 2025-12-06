@@ -203,7 +203,7 @@ jobs:
           NEO4J_USER: neo4j
           NEO4J_PASSWORD: neo4jtest
           MILVUS_HOST: localhost
-          MILVUS_PORT: 39530
+          MILVUS_PORT: 49530
           SOPHIA_API_KEY: test-ci-key
           HERMES_PORT: 8002
           APOLLO_PORT: 8003
@@ -220,7 +220,7 @@ jobs:
           NEO4J_USER: neo4j
           NEO4J_PASSWORD: neo4jtest
           MILVUS_HOST: localhost
-          MILVUS_PORT: 39530
+          MILVUS_PORT: 49530
           SOPHIA_API_KEY: test-ci-key
       
       - name: Stop services
