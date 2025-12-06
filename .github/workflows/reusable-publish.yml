@@ -1,0 +1,134 @@
+name: Reusable Publish Container
+
+# Standardized container publishing workflow for LOGOS ecosystem
+# All repos should call this workflow for consistent publish behavior
+#
+# Usage in downstream repos:
+#   jobs:
+#     publish:
+#       uses: c-daly/logos/.github/workflows/reusable-publish.yml@main
+#       with:
+#         image_name: sophia
+#       secrets:
+#         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+on:
+  workflow_call:
+    inputs:
+      image_name:
+        description: 'Container image name (e.g., sophia, hermes, apollo, talos)'
+        required: true
+        type: string
+      dockerfile:
+        description: 'Path to Dockerfile'
+        type: string
+        default: 'Dockerfile'
+      context:
+        description: 'Docker build context path'
+        type: string
+        default: '.'
+      registry:
+        description: 'Container registry'
+        type: string
+        default: 'ghcr.io'
+      registry_owner:
+        description: 'Registry owner/namespace'
+        type: string
+        default: 'c-daly'
+      platforms:
+        description: 'Target platforms for multi-arch builds'
+        type: string
+        default: 'linux/amd64'
+      push:
+        description: 'Push image to registry'
+        type: boolean
+        default: true
+      tag_override:
+        description: 'Override tag (empty = auto from version/ref)'
+        type: string
+        default: ''
+    secrets:
+      GITHUB_TOKEN:
+        required: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version from pyproject.toml
+        id: version
+        run: |
+          if [ -f pyproject.toml ]; then
+            VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/' | head -1)
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "Extracted version: $VERSION"
+          else
+            echo "version=0.0.0" >> $GITHUB_OUTPUT
+            echo "No pyproject.toml found, using 0.0.0"
+          fi
+
+      - name: Determine tags
+        id: tags
+        run: |
+          REGISTRY="${{ inputs.registry }}"
+          OWNER="${{ inputs.registry_owner }}"
+          IMAGE="${{ inputs.image_name }}"
+          VERSION="${{ steps.version.outputs.version }}"
+          TAG_OVERRIDE="${{ inputs.tag_override }}"
+          
+          BASE_IMAGE="${REGISTRY}/${OWNER}/${IMAGE}"
+          
+          if [ -n "$TAG_OVERRIDE" ]; then
+            # Manual override
+            TAGS="${BASE_IMAGE}:${TAG_OVERRIDE}"
+          elif [ "${{ github.event_name }}" = "release" ]; then
+            # Release: use release tag + latest
+            RELEASE_TAG="${{ github.event.release.tag_name }}"
+            TAGS="${BASE_IMAGE}:${RELEASE_TAG},${BASE_IMAGE}:latest"
+          elif [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            # Push to main: use version + latest
+            TAGS="${BASE_IMAGE}:${VERSION},${BASE_IMAGE}:latest"
+          else
+            # Other branches: use SHA
+            SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+            TAGS="${BASE_IMAGE}:${SHORT_SHA}"
+          fi
+          
+          echo "tags=$TAGS" >> $GITHUB_OUTPUT
+          echo "Generated tags: $TAGS"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ inputs.registry }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push container image
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ inputs.context }}
+          file: ${{ inputs.dockerfile }}
+          platforms: ${{ inputs.platforms }}
+          push: ${{ inputs.push }}
+          tags: ${{ steps.tags.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ steps.version.outputs.version }}
+
+      - name: Image digest
+        if: ${{ inputs.push }}
+        run: echo "Published ${{ steps.tags.outputs.tags }}"
