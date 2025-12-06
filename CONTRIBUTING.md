@@ -176,6 +176,111 @@ Maintainers will expect the checklist in the PR template to be completed before 
 
 ## Coding Standards
 
+### CI/CD Standards
+
+All LOGOS repositories follow standardized CI/CD patterns for consistency and maintainability.
+
+#### Standard CI Workflow
+
+All repos use the reusable CI workflow at `c-daly/logos/.github/workflows/reusable-standard-ci.yml`:
+
+```yaml
+# Example ci.yml for a LOGOS repo
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    uses: c-daly/logos/.github/workflows/reusable-standard-ci.yml@main
+    with:
+      python_package_manager: poetry
+      run_ruff: true
+      run_black: true
+      run_mypy: true
+      run_pytest: true
+      pytest_command: 'pytest --cov --cov-report=term --cov-report=xml -m "not requires_torch"'
+      upload_coverage: true
+    secrets:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+```
+
+**Key inputs:**
+- `python_package_manager`: `poetry` or `pip`
+- `run_ruff`, `run_black`, `run_mypy`, `run_pytest`: Enable/disable linting steps
+- `pytest_command`: Customize pytest invocation (e.g., exclude GPU tests)
+- `enable_node`: Set `true` for repos with webapp/ (e.g., Apollo)
+- `docker_compose_file`: Path to test infrastructure compose file
+
+#### Publish Workflow
+
+All repos use the reusable workflow at `c-daly/logos/.github/workflows/reusable-publish.yml`:
+
+```yaml
+# Example publish.yml for a LOGOS repo
+name: Publish Container
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'Dockerfile'
+      - 'pyproject.toml'
+      - 'poetry.lock'
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    uses: c-daly/logos/.github/workflows/reusable-publish.yml@main
+    with:
+      image_name: <repo-name>  # sophia, hermes, apollo, talos
+    secrets: inherit
+```
+
+**Standard triggers** (all repos must have):
+- `push: branches: [main]` with path filters for source changes
+- `release: types: [published]`
+- `workflow_dispatch` for manual runs
+
+#### Port Allocation
+
+Each service has a designated port range to avoid conflicts:
+
+| Service | Port Range | Example Ports |
+|---------|------------|---------------|
+| Hermes  | 1xxxx      | 10000, 10001  |
+| Apollo  | 2xxxx      | 20000, 20080  |
+| Logos   | 3xxxx      | 30000         |
+| Sophia  | 4xxxx      | 40000, 40080  |
+| Talos   | 5xxxx      | 50000         |
+
+See `config/repos.yaml` for the canonical port assignments.
+
+#### SDK Dependencies
+
+For repos that depend on LOGOS SDKs (e.g., Apollo):
+
+```toml
+# Preferred: use branch reference for latest
+logos-sophia-sdk = {git = "https://github.com/c-daly/logos.git", branch = "main", subdirectory = "sdk/python/sophia"}
+
+# Alternative: pinned revision for stability
+logos-sophia-sdk = {git = "https://github.com/c-daly/logos.git", rev = "abc123...", subdirectory = "sdk/python/sophia"}
+```
+
+When using pinned revisions, update them regularly or configure Dependabot/Renovate.
+
 ### Python Code
 
 - Follow PEP 8 style guidelines
