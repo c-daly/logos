@@ -57,9 +57,7 @@ jobs:
         run: |
           poetry run pytest tests/integration/perception/test_simulation_service.py -v --cov=logos_sophia --cov-append --cov-report=xml
       
-      - name: Run simulate API tests
-        run: |
-          poetry run pytest tests/integration/perception/test_simulate_api.py -v --cov=logos_sophia --cov-append --cov-report=xml
+      # Note: test_simulate_api_integration.py requires Neo4j and is run in phase2-e2e.yml
       
       - name: Test summary
         if: always()
@@ -67,7 +65,6 @@ jobs:
           echo "## Perception Pipeline Test Results" >> $GITHUB_STEP_SUMMARY
           echo "✅ JEPA runner smoke tests completed" >> $GITHUB_STEP_SUMMARY
           echo "✅ Simulation service tests completed" >> $GITHUB_STEP_SUMMARY
-          echo "✅ /simulate API endpoint tests completed" >> $GITHUB_STEP_SUMMARY
 
   ontology-validation:
     runs-on: ubuntu-latest

@@ -30,8 +30,8 @@ permissions:
   contents: read
 
 env:
-  NEO4J_CONTAINER: logos-hcg-neo4j
-  MILVUS_CONTAINER: logos-hcg-milvus
+  NEO4J_CONTAINER: logos-phase2-test-neo4j
+  MILVUS_CONTAINER: logos-phase2-test-milvus
 
 jobs:
   shacl-neo4j-validation:
@@ -75,27 +75,26 @@ jobs:
       
       - name: Start Neo4j and install n10s
         run: |
-          cd infra
           # Start Neo4j with APOC only (override auto-download)
-          NEO4JLABS_PLUGINS='["apoc"]' docker compose -f docker-compose.hcg.dev.yml up -d neo4j
+          NEO4JLABS_PLUGINS='["apoc"]' docker compose -f tests/e2e/stack/logos/docker-compose.test.yml up -d neo4j
           echo "✓ Neo4j container started"
           
           # Wait for container to be up before copying files
           sleep 5
           
           # Copy n10s plugin into container early (before Neo4j fully starts)
-          docker cp ../neosemantics-5.11.0.0.jar logos-hcg-neo4j:/plugins/neosemantics-5.11.0.0.jar
-          docker exec logos-hcg-neo4j chown neo4j:neo4j /plugins/neosemantics-5.11.0.0.jar
-          docker exec logos-hcg-neo4j chmod 644 /plugins/neosemantics-5.11.0.0.jar
+          docker cp neosemantics-5.11.0.0.jar logos-phase2-test-neo4j:/plugins/neosemantics-5.11.0.0.jar
+          docker exec logos-phase2-test-neo4j chown neo4j:neo4j /plugins/neosemantics-5.11.0.0.jar
+          docker exec logos-phase2-test-neo4j chmod 644 /plugins/neosemantics-5.11.0.0.jar
           
           echo "✓ n10s plugin copied, plugins directory:"
-          docker exec logos-hcg-neo4j ls -lh /plugins/
+          docker exec logos-phase2-test-neo4j ls -lh /plugins/
           echo "Waiting for Neo4j to start and load all plugins..."
       
       - name: Wait for Neo4j to be ready
         run: |
           echo "Waiting for Neo4j to be ready with APOC + n10s..."
-          timeout 180 bash -c 'until docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "RETURN 1 AS test" 2>/dev/null | grep -q "test"; do 
+          timeout 180 bash -c 'until docker exec logos-phase2-test-neo4j cypher-shell -u neo4j -p neo4jtest "RETURN 1 AS test" 2>/dev/null | grep -q "test"; do 
             echo "  still waiting..." 
             sleep 5
           done'
@@ -106,20 +105,20 @@ jobs:
       - name: Check Neo4j logs
         run: |
           echo "Checking Neo4j logs for plugin initialization..."
-          docker logs logos-hcg-neo4j 2>&1 | tail -100
+          docker logs logos-phase2-test-neo4j 2>&1 | tail -100
       
       - name: Verify n10s plugin is loaded
         run: |
           echo "Verifying n10s plugin procedures are available..."
-          docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
+          docker exec logos-phase2-test-neo4j cypher-shell -u neo4j -p neo4jtest \
             "SHOW PROCEDURES YIELD name WHERE name STARTS WITH 'n10s' RETURN name LIMIT 5" || {
             echo "❌ Failed to verify n10s plugin"
             echo "Checking plugins directory:"
-            docker exec logos-hcg-neo4j ls -la /plugins/
+            docker exec logos-phase2-test-neo4j ls -la /plugins/
             echo "Checking Neo4j version:"
-            docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "CALL dbms.components() YIELD name, versions RETURN name, versions"
+            docker exec logos-phase2-test-neo4j cypher-shell -u neo4j -p neo4jtest "CALL dbms.components() YIELD name, versions RETURN name, versions"
             echo "Full Neo4j logs:"
-            docker logs logos-hcg-neo4j
+            docker logs logos-phase2-test-neo4j
             exit 1
           }
           echo "✓ n10s plugin verified"
@@ -128,7 +127,7 @@ jobs:
         run: |
           echo "Loading core ontology into Neo4j..."
           cat ontology/core_ontology.cypher | \
-            docker exec -i logos-hcg-neo4j \
+            docker exec -i logos-phase2-test-neo4j \
             cypher-shell -u neo4j -p neo4jtest
           echo "✓ Core ontology loaded"
       
@@ -137,7 +136,7 @@ jobs:
           echo "## SHACL Validation via Neo4j n10s" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           poetry run python ontology/load_shacl_via_n10s.py \
-            --uri bolt://localhost:7687 \
+            --uri bolt://localhost:37687 \
             --user neo4j \
             --password neo4jtest \
             --shapes ontology/shacl_shapes.ttl
@@ -148,7 +147,7 @@ jobs:
           echo "## Running SHACL Neo4j Validation Tests" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          export NEO4J_URI=bolt://localhost:7687
+          export NEO4J_URI=bolt://localhost:37687
           export NEO4J_USER=neo4j
           export NEO4J_PASSWORD=neo4jtest
           export RUN_NEO4J_SHACL=1
@@ -175,8 +174,7 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          cd infra
-          docker compose -f docker-compose.hcg.dev.yml down -v
+          docker compose -f tests/e2e/stack/logos/docker-compose.test.yml down -v
       
       - name: Summary
         if: success()

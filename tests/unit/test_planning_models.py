@@ -1,6 +1,6 @@
 """Unit tests for planning models (logos#157 + sophia#15)."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import pytest
@@ -25,7 +25,7 @@ class TestProvenance:
         prov = Provenance(
             source_service=SourceService.SOPHIA,
             author_id=uuid4(),
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             trace_id=uuid4(),
             tags=["test", "unit"],
         )
@@ -36,7 +36,7 @@ class TestProvenance:
         """Test Provenance with only required fields."""
         prov = Provenance(
             source_service=SourceService.HUMAN,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
         assert prov.author_id is None
         assert prov.trace_id is None
@@ -47,7 +47,7 @@ class TestProvenance:
         with pytest.raises(ValueError, match="source_service must be one of"):
             Provenance(
                 source_service="invalid_service",
-                created_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
             )
 
 
@@ -84,7 +84,7 @@ class TestGoal:
         """Create a sample provenance for tests."""
         return Provenance(
             source_service=SourceService.SOPHIA,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
 
     @pytest.fixture
@@ -136,7 +136,7 @@ class TestPlanStep:
         """Create a sample provenance for tests."""
         return Provenance(
             source_service=SourceService.SOPHIA,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
 
     def test_valid_plan_step(self, sample_provenance):
@@ -199,7 +199,7 @@ class TestPlan:
         """Create a sample provenance for tests."""
         return Provenance(
             source_service=SourceService.SOPHIA,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
         )
 
     @pytest.fixture

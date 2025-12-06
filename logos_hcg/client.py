@@ -166,7 +166,8 @@ class HCGClient:
         except TransientError as e:
             if retry_count < self.max_retry_attempts:
                 logger.warning(
-                    f"Transient error on query, retrying ({retry_count + 1}/{self.max_retry_attempts}): {e}"
+                    f"Transient error on query, retrying "
+                    f"({retry_count + 1}/{self.max_retry_attempts}): {e}"
                 )
                 return self._execute_query(query, parameters, retry_count + 1)
             else:

@@ -14,8 +14,8 @@ services:
     container_name: logos-phase2-test-neo4j
     image: neo4j:5.14.0
     ports:
-    - 7474:7474
-    - 7687:7687
+    - 37474:7474
+    - 37687:7687
     environment:
     - NEO4J_AUTH=neo4j/neo4jtest
     - NEO4J_PLUGINS=["apoc","n10s"]
@@ -57,6 +57,11 @@ services:
     - /etcd
     volumes:
     - logos_phase2_test_milvus_etcd:/etcd
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
     - default
   milvus-minio:
@@ -83,8 +88,8 @@ services:
       timeout: 20s
       retries: 3
     ports:
-    - 9000:9000
-    - 9001:9001
+    - 39000:9000
+    - 39001:9001
     networks:
     - default
   milvus:
@@ -98,13 +103,15 @@ services:
     - ETCD_ENDPOINTS=milvus-etcd:2379
     - MINIO_ADDRESS=milvus-minio:9000
     depends_on:
-    - milvus-etcd
-    - milvus-minio
+      milvus-etcd:
+        condition: service_healthy
+      milvus-minio:
+        condition: service_healthy
     volumes:
     - logos_phase2_test_milvus:/var/lib/milvus
     ports:
-    - 19530:19530
-    - 9091:9091
+    - 39530:19530
+    - 39091:9091
     healthcheck:
       test:
       - CMD

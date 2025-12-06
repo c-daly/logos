@@ -55,7 +55,8 @@ def validate_cypher_file(filepath: Path) -> tuple[bool, list[str]]:
 
     if not found_uuids and "MERGE" in content:
         issues.append(
-            "Warning: No properly formatted UUIDs found (should start with entity-, concept-, state-, or process-)"
+            "Warning: No properly formatted UUIDs found "
+            "(should start with entity-, concept-, state-, or process-)"
         )
 
     return len(issues) == 0, issues

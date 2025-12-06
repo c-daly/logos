@@ -419,7 +419,8 @@ class TestM4SimulatedWorkflow:
 
         # Verify final state properties
         verify_final_state_query = """
-        MATCH (e:Entity {uuid: 'b91e3ad0-9739-55a5-928e-3e0024add30f'})-[:HAS_STATE]->(s:State {uuid: 'b23881db-bc41-5678-b744-c6a30b1338b0'})
+        MATCH (e:Entity {uuid: 'b91e3ad0-9739-55a5-928e-3e0024add30f'})
+              -[:HAS_STATE]->(s:State {uuid: 'b23881db-bc41-5678-b744-c6a30b1338b0'})
         RETURN e.name, s.is_grasped, s.position_x, s.position_y, s.position_z;
         """
         returncode, stdout, stderr = run_cypher_query(verify_final_state_query)
@@ -429,7 +430,8 @@ class TestM4SimulatedWorkflow:
 
         # Verify LOCATED_AT relationship
         verify_location_query = """
-        MATCH (e:Entity {uuid: 'b91e3ad0-9739-55a5-928e-3e0024add30f'})-[:LOCATED_AT]->(bin:Entity {uuid: '7e9f1098-a96e-54dd-a9f7-ed3378cd2e5d'})
+        MATCH (e:Entity {uuid: 'b91e3ad0-9739-55a5-928e-3e0024add30f'})
+              -[:LOCATED_AT]->(bin:Entity {uuid: '7e9f1098-a96e-54dd-a9f7-ed3378cd2e5d'})
         RETURN e.name AS block, bin.name AS location;
         """
         returncode, stdout, stderr = run_cypher_query(verify_location_query)
@@ -822,8 +824,10 @@ class TestM4CompleteWorkflow:
         # Step 6: Verify complete workflow results
         verify_final_workflow_query = """
         MATCH (block:Entity {uuid: 'b91e3ad0-9739-55a5-928e-3e0024add30f'})
-        MATCH (block)-[:LOCATED_AT]->(bin:Entity {uuid: '7e9f1098-a96e-54dd-a9f7-ed3378cd2e5d'})
-        MATCH (block)-[:HAS_STATE]->(final_state:State {uuid: 'dcf6a7bd-902c-52b1-9023-1eca8f0cfe0d'})
+        MATCH (block)
+              -[:LOCATED_AT]->(bin:Entity {uuid: '7e9f1098-a96e-54dd-a9f7-ed3378cd2e5d'})
+        MATCH (block)
+              -[:HAS_STATE]->(final_state:State {uuid: 'dcf6a7bd-902c-52b1-9023-1eca8f0cfe0d'})
         MATCH path = (start:Process {uuid: '332b706e-0b01-5de1-8ea2-a58cd8586ce1'})
                      -[:PRECEDES*]->(end:Process {uuid: '4ebb040b-2f90-5a3b-94a1-b35ad52b59dc'})
         RETURN block.name AS block_name,

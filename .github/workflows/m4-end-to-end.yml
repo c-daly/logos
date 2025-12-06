@@ -24,9 +24,14 @@ permissions:
   pull-requests: read
 
 env:
-  NEO4J_CONTAINER: logos-hcg-neo4j
-  MILVUS_CONTAINER: logos-hcg-milvus
+  NEO4J_CONTAINER: logos-phase2-test-neo4j
+  MILVUS_CONTAINER: logos-phase2-test-milvus
   RUN_HCG_TESTS: "1"
+  NEO4J_URI: bolt://localhost:37687
+  NEO4J_USER: neo4j
+  NEO4J_PASSWORD: neo4jtest
+  MILVUS_HOST: localhost
+  MILVUS_PORT: 39530
 
 jobs:
   e2e-prototype-test:
@@ -77,8 +82,7 @@ jobs:
       
       - name: Start HCG infrastructure
         run: |
-          cd infra
-          docker compose -f docker-compose.hcg.dev.yml up -d
+          docker compose -f tests/e2e/stack/logos/docker-compose.test.yml up -d
           echo "Waiting for Neo4j to be ready..."
           sleep 30
       
@@ -86,7 +90,7 @@ jobs:
         run: |
           # Wait up to 2 minutes for Neo4j to be ready
           for i in {1..24}; do
-            if docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "RETURN 1;" > /dev/null 2>&1; then
+            if docker exec logos-phase2-test-neo4j cypher-shell -u neo4j -p neo4jtest "RETURN 1;" > /dev/null 2>&1; then
               echo "Neo4j is ready!"
               break
             fi
@@ -95,18 +99,18 @@ jobs:
           done
           
           # Verify Neo4j is actually ready
-          docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "RETURN 1 AS test;"
+          docker exec logos-phase2-test-neo4j cypher-shell -u neo4j -p neo4jtest "RETURN 1 AS test;"
       
       - name: Load ontology and test data
         run: |
           echo "Loading core ontology..."
-          cat ontology/core_ontology.cypher | docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest || true
+          cat ontology/core_ontology.cypher | docker exec -i logos-phase2-test-neo4j cypher-shell -u neo4j -p neo4jtest || true
           
           echo "Loading pick-and-place test data..."
-          cat ontology/test_data_pick_and_place.cypher | docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest || true
+          cat ontology/test_data_pick_and_place.cypher | docker exec -i logos-phase2-test-neo4j cypher-shell -u neo4j -p neo4jtest || true
           
           echo "Verifying data loaded..."
-          docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest "MATCH (c:Concept) RETURN count(c) AS concepts;"
+          docker exec logos-phase2-test-neo4j cypher-shell -u neo4j -p neo4jtest "MATCH (c:Concept) RETURN count(c) AS concepts;"
       
       - name: Run M4 integration tests
         id: m4_tests
@@ -180,7 +184,7 @@ jobs:
         if: always()
         run: |
           echo "Capturing Neo4j logs..."
-          docker logs logos-hcg-neo4j > neo4j_container.log 2>&1 || true
+          docker logs logos-phase2-test-neo4j > neo4j_container.log 2>&1 || true
       
       - name: Upload Neo4j logs
         if: always()
@@ -199,8 +203,7 @@ jobs:
           fi
           
           # Stop Docker containers
-          cd infra
-          docker compose -f docker-compose.hcg.dev.yml down -v || true
+          docker compose -f tests/e2e/stack/logos/docker-compose.test.yml down -v || true
       
       - name: Fail if M4 tests failed
         if: steps.m4_tests.outputs.m4_status == 'failed'

@@ -6,10 +6,10 @@
 
 | Service | Port |
 |---------|------|
-| **Neo4j HTTP** | 7474 |
-| **Neo4j Bolt** | 7687 |
-| **Milvus gRPC** | 18530 |
-| **Milvus Metrics** | 18091 |
+| **Neo4j HTTP** | 17474 |
+| **Neo4j Bolt** | 17687 |
+| **Milvus gRPC** | 17530 |
+| **Milvus Metrics** | 17091 |
 | **OTLP gRPC (collector)** | 4319 |
 | **OTLP HTTP (collector)** | 4320 |
 | **Prometheus UI** | 9090 |
@@ -19,11 +19,11 @@
 
 ## Connection Strings (logos test stack)
 ```bash
-NEO4J_URI=bolt://neo4j:7687
+NEO4J_URI=bolt://localhost:17687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=neo4jtest
-MILVUS_HOST=milvus
-MILVUS_PORT=18530
+MILVUS_HOST=localhost
+MILVUS_PORT=17530
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4319
 ```
 
@@ -43,11 +43,11 @@ docker ps --filter "name=apollo-test"
 
 ## Why These Ports?
 
-- **logos**: Standard ports (7xxx, 19xxx) - "home base"
-- **apollo**: 2xxxx range - easy to remember "2=Apollo"
-- **hermes**: Uses logos' Milvus (no Neo4j in tests)
-- **sophia**: 3xxxx range
-- **talos**: 4xxxx range (only Neo4j)
+- **logos**: 17xxx offsets (home base)
+- **apollo**: 27xxx offsets (Neo4j + Milvus)
+- **hermes**: 18xxx offsets (Milvus only)
+- **sophia**: 47xxx offsets (Neo4j + Milvus)
+- **talos**: 57xxx offsets (Neo4j + Milvus)
 
 ## Common Issues
 

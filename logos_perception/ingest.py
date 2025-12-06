@@ -128,7 +128,8 @@ class MediaIngestService:
             collection.insert(data)
 
             logger.info(
-                f"Stored embedding for frame {frame_id} in Milvus collection {self.milvus_collection_name}"
+                f"Stored embedding for frame {frame_id} "
+                f"in Milvus collection {self.milvus_collection_name}"
             )
 
             return frame_id
