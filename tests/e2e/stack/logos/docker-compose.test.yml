@@ -57,6 +57,11 @@ services:
     - /etcd
     volumes:
     - logos_phase2_test_milvus_etcd:/etcd
+    healthcheck:
+      test: ["CMD", "etcdctl", "endpoint", "health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
     - default
   milvus-minio:
@@ -98,8 +103,10 @@ services:
     - ETCD_ENDPOINTS=milvus-etcd:2379
     - MINIO_ADDRESS=milvus-minio:9000
     depends_on:
-    - milvus-etcd
-    - milvus-minio
+      milvus-etcd:
+        condition: service_healthy
+      milvus-minio:
+        condition: service_healthy
     volumes:
     - logos_phase2_test_milvus:/var/lib/milvus
     ports:
