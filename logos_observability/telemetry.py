@@ -1,8 +1,9 @@
 """
 OpenTelemetry setup and structured logging for LOGOS components.
 
-Provides tracer and logger instances configured with OpenTelemetry SDK.
+Provides tracer, meter, and logger instances configured with OpenTelemetry SDK.
 Captures plan/state updates, process execution, and diagnostic events.
+Metrics support for counters, histograms, and gauges.
 """
 
 import json
@@ -10,20 +11,27 @@ import logging
 from datetime import datetime
 from typing import Any
 
-from opentelemetry import trace
+from opentelemetry import metrics, trace
+from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics.export import (
+    ConsoleMetricExporter,
+    PeriodicExportingMetricReader,
+)
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
 
 try:
+    from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
     from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 
     OTLP_AVAILABLE = True
 except ImportError:
     OTLP_AVAILABLE = False
 
-# Global tracer provider
+# Global providers
 _tracer_provider: TracerProvider | None = None
+_meter_provider: MeterProvider | None = None
 
 
 class StructuredLogger:
@@ -220,3 +228,67 @@ def get_logger(name: str, level: int = logging.INFO) -> StructuredLogger:
         StructuredLogger instance
     """
     return StructuredLogger(name, level)
+
+
+def setup_metrics(
+    service_name: str = "logos-service",
+    export_to_console: bool = True,
+    otlp_endpoint: str | None = None,
+    export_interval_millis: int = 60000,
+) -> MeterProvider:
+    """
+    Setup OpenTelemetry meter provider for metrics.
+
+    Args:
+        service_name: Name of the service for metric identification
+        export_to_console: If True, export metrics to console (dev mode)
+        otlp_endpoint: Optional OTLP collector endpoint (e.g., "http://localhost:4317")
+        export_interval_millis: Metric export interval in milliseconds (default: 60000)
+
+    Returns:
+        Configured MeterProvider instance
+    """
+    global _meter_provider
+
+    # Create resource with service name
+    resource = Resource.create({"service.name": service_name})
+
+    # Build metric readers
+    readers = []
+
+    if export_to_console:
+        console_reader = PeriodicExportingMetricReader(
+            ConsoleMetricExporter(),
+            export_interval_millis=export_interval_millis,
+        )
+        readers.append(console_reader)
+
+    # Add OTLP exporter if endpoint provided and available
+    if otlp_endpoint and OTLP_AVAILABLE:
+        otlp_reader = PeriodicExportingMetricReader(
+            OTLPMetricExporter(endpoint=otlp_endpoint, insecure=True),
+            export_interval_millis=export_interval_millis,
+        )
+        readers.append(otlp_reader)
+
+    # Create meter provider
+    _meter_provider = MeterProvider(resource=resource, metric_readers=readers)
+
+    # Set as global meter provider
+    metrics.set_meter_provider(_meter_provider)
+
+    return _meter_provider
+
+
+def get_meter(name: str, version: str = "1.0.0") -> metrics.Meter:
+    """
+    Get a meter instance for the given name.
+
+    Args:
+        name: Name/module for the meter (e.g., "sophia.jepa")
+        version: Optional version string for the meter
+
+    Returns:
+        Meter instance for creating counters, histograms, gauges
+    """
+    return metrics.get_meter(name, version=version)
