@@ -41,13 +41,13 @@ root = get_repo_root()
 
 Each repo has a consistent port offset to avoid conflicts when running multiple services:
 
-| Repo | Offset | Neo4j HTTP | Neo4j Bolt | Milvus | API |
-|------|--------|------------|------------|--------|-----|
-| hermes | +10000 | 17474 | 17687 | 29530 | 18000 |
-| apollo | +20000 | 27474 | 27687 | 39530 | 28000 |
-| logos | +30000 | 37474 | 37687 | 49530 | 38000 |
-| sophia | +40000 | 47474 | 47687 | 59530 | 48000 |
-| talos | +50000 | 57474 | 57687 | 69530 | 58000 |
+| Repo | Prefix | Neo4j HTTP | Neo4j Bolt | Milvus gRPC | API |
+|------|--------|------------|------------|-------------|-----|
+| hermes | 17xxx | 17474 | 17687 | 17530 | 17000 |
+| apollo | 27xxx | 27474 | 27687 | 27530 | 27000 |
+| logos | 37xxx | 37474 | 37687 | 37530 | 37000 |
+| sophia | 47xxx | 47474 | 47687 | 47530 | 47000 |
+| talos | 57xxx | 57474 | 57687 | 57530 | 57000 |
 
 ```python
 from logos_config import get_repo_ports, SOPHIA_PORTS
