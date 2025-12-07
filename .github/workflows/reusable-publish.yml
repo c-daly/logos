@@ -47,9 +47,6 @@ on:
         description: 'Override tag (empty = auto from version/ref)'
         type: string
         default: ''
-    secrets:
-      GITHUB_TOKEN:
-        required: true
 
 permissions:
   contents: read
