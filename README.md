@@ -102,26 +102,44 @@ Each repo uses unique ports for test isolation:
 
 ## Roadmap
 
-### Done
-- Hybrid Cognitive Graph (Neo4j + Milvus + SHACL validation)
-- Sophia planning/execution/simulation API
-- Hermes language services (STT, TTS, embeddings, LLM gateway)
-- Apollo CLI + React web dashboard
-- JEPA perception pipeline (image/video ingestion)
-- Python & TypeScript SDK generation
-- CI/CD with reusable workflows
+```
+═══════════════════════════════════════════════════════════════════════════════════════
 
-### In Progress
-- Documentation consolidation
-- Learning from experience
+FOUNDATION                          INTELLIGENCE                        AUTONOMY
+───────────────────────────────────────────────────────────────────────────────────────
 
-### Planned
-- Episodic memory and retrieval
-- Physical robot integration (Talos → real hardware)
-- Multi-agent coordination
+Graph & Storage                     Perception                          Learning
+  ✅ Neo4j graph database             ✅ JEPA visual encoder               🔧 Episodic memory store
+  ✅ Milvus vector store              ✅ Image ingestion                   ◯ Experience replay
+  ✅ SHACL validation                 ✅ Video frame extraction            ◯ Causal discovery
+  ✅ HCG ontology                     ✅ Embedding generation              ◯ Skill abstraction
+                                      ◯ Audio/speech perception           ◯ Transfer learning
 
-### Historical
-Phase 1-2 architecture specs are preserved in [docs/architecture/](docs/architecture/) as reference for what was built.
+Core Services                       Reasoning                           Embodiment
+  ✅ Sophia planning API              ✅ Backward-chain planner            ✅ Talos simulation
+  ✅ Sophia execution API             ✅ World state modeling              ◯ Sensor integration
+  ✅ Sophia simulation API            🔧 Counterfactual reasoning          ◯ Motor control
+  ✅ Hermes STT/TTS                   ◯ Temporal reasoning                ◯ Real robot hardware
+  ✅ Hermes embeddings                ◯ Uncertainty handling              ◯ Safety constraints
+  ✅ Hermes LLM gateway
+
+Interfaces                          Language                            Multi-Agent
+  ✅ Apollo CLI                       ✅ Text embeddings                   ◯ Agent communication
+  ✅ Apollo web dashboard             ✅ LLM integration                   ◯ Shared world model
+  ✅ Python SDK                       ◯ Grounded language                 ◯ Coordination protocols
+  ✅ TypeScript SDK                   ◯ Dialogue management               ◯ Collective learning
+  🔧 SDK documentation                ◯ Instruction following
+
+Infrastructure
+  ✅ Docker Compose stacks
+  ✅ CI/CD pipelines                  ✅ Done    🔧 In Progress    ◯ Planned
+  ✅ Test isolation (ports)
+  🔧 Documentation
+
+───────────────────────────────────────────────────────────────────────────────────────
+```
+
+Phase 1-2 architecture specs are preserved in [docs/architecture/](docs/architecture/) as historical reference.
 
 ## License
 
