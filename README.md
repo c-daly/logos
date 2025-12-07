@@ -123,16 +123,18 @@ Core Services                       Reasoning                           Embodime
   ✅ Hermes embeddings                ◯ Uncertainty handling              ◯ Safety constraints
   ✅ Hermes LLM gateway
 
-Interfaces                          Language                            Multi-Agent
-  ✅ Apollo CLI                       ✅ Text embeddings                   ◯ Agent communication
-  ✅ Apollo web dashboard             ✅ LLM integration                   ◯ Shared world model
-  ✅ Python SDK                       ◯ Grounded language                 ◯ Coordination protocols
-  ✅ TypeScript SDK                   ◯ Dialogue management               ◯ Collective learning
-  🔧 SDK documentation                ◯ Instruction following
+Interfaces                          Language                            Emotion & Affect
+  ✅ Apollo CLI                       ✅ Text embeddings                   ✅ CWM-E schema
+  ✅ Apollo web dashboard             ✅ LLM integration                   ✅ Persona/diary store
+  ✅ Python SDK                       ◯ Grounded language                 ◯ Affective reasoning
+  ✅ TypeScript SDK                   ◯ Dialogue management               ◯ Motivation modeling
+  🔧 SDK documentation                ◯ Instruction following             ◯ Social cognition
 
-Infrastructure
-  ✅ Docker Compose stacks
-  ✅ CI/CD pipelines                  ✅ Done    🔧 In Progress    ◯ Planned
+Infrastructure                                                          Multi-Agent
+  ✅ Docker Compose stacks                                                ◯ Agent communication
+  ✅ CI/CD pipelines                  ✅ Done    🔧 In Progress    ◯ Planned   ◯ Shared world model
+  ✅ Test isolation (ports)                                               ◯ Coordination protocols
+  🔧 Documentation                                                        ◯ Collective learning
   ✅ Test isolation (ports)
   🔧 Documentation
 
