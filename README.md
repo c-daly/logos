@@ -106,37 +106,41 @@ Each repo uses unique ports for test isolation:
 FOUNDATION                          INTELLIGENCE                        AUTONOMY
 ─────────────────────────────────────────────────────────────────────────────────────────────
 
-Graph & Storage                     Perception                          Learning
-  ✅ Neo4j graph database             ✅ JEPA visual encoder               ◯ Experience replay
-  ✅ Milvus vector store              ✅ Image ingestion                   ◯ Causal discovery
-  ✅ SHACL validation                 ✅ Video frame extraction            ◯ Skill abstraction
-  ✅ HCG ontology                     ✅ Embedding generation              ◯ Transfer learning
-                                      ◯ Audio/speech perception
+Graph & Storage                     Perception                          Memory (3-tier)
+  ✅ Neo4j graph database             ✅ JEPA visual encoder               ✅ Ephemeral (session)
+  ✅ Milvus vector store              ✅ Image ingestion                   🔧 Short/mid-term (probationary)
+  ✅ SHACL validation                 ✅ Video frame extraction            ◯ Long-term (accepted)
+  ✅ HCG ontology                     ✅ Embedding generation              ◯ Reflection job
+                                      ◯ Audio/speech perception           ◯ Promotion/pruning
 
-Core Services                       Reasoning                           Memory (3-tier)
-  ✅ Sophia planning API              ✅ Backward-chain planner            ✅ Ephemeral (session)
-  ✅ Sophia execution API             ✅ World state modeling              🔧 Short/mid-term (probationary)
-  ✅ Sophia simulation API            🔧 Counterfactual reasoning          ◯ Long-term (accepted)
-  ✅ Hermes STT/TTS                   ◯ Temporal reasoning                ◯ Reflection job
-  ✅ Hermes embeddings                ◯ Uncertainty handling              ◯ Promotion/pruning
-  ✅ Hermes LLM gateway                                                   ◯ Reflection → Persona loop
+Core Services                       Reasoning                           Persona
+  ✅ Sophia planning API              ✅ Backward-chain planner            ✅ CWM-E schema
+  ✅ Sophia execution API             ✅ World state modeling              ✅ Diary store
+  ✅ Sophia simulation API            🔧 Counterfactual reasoning          ◯ Reflection entries
+  ✅ Hermes STT/TTS                   ◯ Temporal reasoning                ◯ Identity modeling
+  ✅ Hermes embeddings                ◯ Uncertainty handling              ◯ Voice/style
+  ✅ Hermes LLM gateway
 
-Interfaces                          Language                            Embodiment
-  ✅ Apollo CLI                       ✅ Text embeddings                   ✅ Talos simulation
-  ✅ Apollo web dashboard             ✅ LLM integration                   ◯ Sensor integration
-  ✅ Python SDK                       ◯ Grounded language                 ◯ Motor control
-  ✅ TypeScript SDK                   ◯ Dialogue management               ◯ Real robot hardware
-  🔧 SDK documentation                ◯ Instruction following             ◯ Safety constraints
+Interfaces                          Language                            Affect & Motivation
+  ✅ Apollo CLI                       ✅ Text embeddings                   ◯ Emotional reasoning
+  ✅ Apollo web dashboard             ✅ LLM integration                   ◯ Drive/goal prioritization
+  ✅ Python SDK                       ◯ Grounded language                 ◯ Social cognition
+  ✅ TypeScript SDK                   ◯ Dialogue management               ◯ Empathy modeling
+  🔧 SDK documentation                ◯ Instruction following
 
-Infrastructure                      Emotion & Affect                    Multi-Agent
-  ✅ Docker Compose stacks            ✅ CWM-E schema                      ◯ Agent communication
-  ✅ CI/CD pipelines                  ✅ Persona/diary store               ◯ Shared world model
-  ✅ Test isolation (ports)           ◯ Affective reasoning               ◯ Coordination protocols
-  🔧 Documentation                    ◯ Motivation modeling               ◯ Collective learning
-                                      ◯ Social cognition
+Infrastructure                      Learning                            Embodiment
+  ✅ Docker Compose stacks            ◯ Experience replay                 ✅ Talos simulation
+  ✅ CI/CD pipelines                  ◯ Causal discovery                  ◯ Sensor integration
+  ✅ Test isolation (ports)           ◯ Skill abstraction                 ◯ Motor control
+  🔧 Documentation                    ◯ Transfer learning                 ◯ Real robot hardware
+                                                                          ◯ Safety constraints
 
+                                                                        Multi-Agent
+                                   ✅ Done                                ◯ Agent communication
+                                   🔧 In Progress                         ◯ Shared world model
+                                   ◯ Planned                              ◯ Coordination protocols
+                                                                          ◯ Collective learning
 ─────────────────────────────────────────────────────────────────────────────────────────────
-                                   ✅ Done    🔧 In Progress    ◯ Planned
 ```
 
 Phase 1-2 architecture specs are preserved in [docs/architecture/](docs/architecture/) as historical reference.
