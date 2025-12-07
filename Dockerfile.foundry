@@ -16,6 +16,7 @@ RUN curl -sSL https://install.python-poetry.org | python3 - && \
 
 # Copy project files
 COPY pyproject.toml poetry.lock README.md ./
+COPY logos_config/ ./logos_config/
 COPY logos_test_utils/ ./logos_test_utils/
 COPY logos_hcg/ ./logos_hcg/
 COPY logos_observability/ ./logos_observability/

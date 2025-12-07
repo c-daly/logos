@@ -29,6 +29,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 packages = [
+    { include = "logos_config" },
     { include = "logos_tools" },
     { include = "logos_hcg" },
     { include = "logos_observability" },
@@ -45,6 +46,7 @@ python = "^3.11"
 fastapi = "^0.115.0"
 uvicorn = {extras = ["standard"], version = "^0.32.0"}
 pydantic = "^2.0.0"
+pydantic-settings = "^2.0.0"
 
 # Test utilities are available but optional (dev/test only)
 [tool.poetry.group.test.dependencies]
@@ -86,7 +88,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["logos_tools", "logos_hcg", "logos_observability", "logos_persona", "logos_cwm_e"]
+source = ["logos_config", "logos_tools", "logos_hcg", "logos_observability", "logos_persona", "logos_cwm_e"]
 omit = ["*/tests/*", "*/test_*.py"]
 
 [tool.coverage.report]
