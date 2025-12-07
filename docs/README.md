@@ -8,14 +8,14 @@ This repository is the canonical source of architecture and process docs for the
 
 | Directory | Purpose |
 |-----------|----------|
+| `guides/` | Getting started, testing, infrastructure guides |
 | `architecture/` | System specs and phase specifications |
-| `adr/` | Architecture Decision Records |
+| `standards/` | Project standards (git, testing) |
 | `hcg/` | Hybrid Cognitive Graph ontology, CWM schemas |
-| `operations/` | CI/CD, testing, verification, demos, observability |
+| `operations/` | CI/CD, verification, demos, observability |
 | `sdk/` | SDK installation and usage guides |
 | `api/` | Generated API docs (GitHub Pages) |
-| `outreach/` | Blog posts, papers, marketing materials |
-| `research/` | Academic research and paper drafts |
+| `evidence/` | Demo recordings and verification artifacts |
 
 ---
 

@@ -35,17 +35,17 @@ poetry install
 poetry run pytest tests/unit/ -v
 ```
 
-📖 **[Full Getting Started Guide](docs/GETTING_STARTED.md)**
+📖 **[Full Getting Started Guide](docs/guides/GETTING_STARTED.md)**
 
 ## Documentation
 
 | Guide | Description |
 |-------|-------------|
-| [Getting Started](docs/GETTING_STARTED.md) | Clone repos, run everything, first test |
-| [Architecture](docs/ARCHITECTURE.md) | How repos connect, data flow, APIs |
-| [SDK Guide](docs/SDK_GUIDE.md) | Using and regenerating client SDKs |
-| [Testing](docs/TESTING.md) | Test categories, ports, running integration tests |
-| [Infrastructure](docs/INFRASTRUCTURE.md) | Neo4j, Milvus, observability setup |
+| [Getting Started](docs/guides/GETTING_STARTED.md) | Clone repos, run everything, first test |
+| [Architecture](docs/architecture/ARCHITECTURE.md) | How repos connect, data flow, APIs |
+| [SDK Guide](docs/sdk/SDK_GUIDE.md) | Using and regenerating client SDKs |
+| [Testing](docs/guides/TESTING.md) | Test categories, ports, running integration tests |
+| [Infrastructure](docs/guides/INFRASTRUCTURE.md) | Neo4j, Milvus, observability setup |
 
 ### Reference
 
