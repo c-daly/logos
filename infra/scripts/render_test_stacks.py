@@ -140,7 +140,7 @@ def get_port_context(repo_name: str) -> dict[str, str]:
     # All ports share the same prefix (e.g., 17xxx for hermes)
     # Extract prefix from api port (e.g., 17000 -> 17)
     prefix = ports.api // 1000
-    minio_api_port = prefix * 1000 + 900    # e.g., 17900
+    minio_api_port = prefix * 1000 + 900  # e.g., 17900
     minio_console_port = prefix * 1000 + 901  # e.g., 17901
 
     return {
