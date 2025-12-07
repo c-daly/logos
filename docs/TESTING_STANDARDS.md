@@ -85,12 +85,15 @@ def test_complete_workflow():
 
 Each repository uses a unique port offset to prevent conflicts when running multiple test stacks simultaneously.
 
-### Standard Offset (+10000 × alphabetical position)
+### Standard Offset (base + repo offset)
+
+Each repo has a unique offset to prevent conflicts when running test stacks in parallel.
+The single source of truth for these values is `logos_config.ports` in the logos-foundry package.
 
 | Repo | Offset | Neo4j HTTP | Neo4j Bolt | Milvus gRPC | Milvus Health | API |
 |------|--------|------------|------------|-------------|---------------|-----|
-| apollo | +10000 | 17474 | 17687 | 29530 | 19091 | 18000 |
-| hermes | +20000 | 27474 | 27687 | 39530 | 29091 | 28000 |
+| hermes | +10000 | 17474 | 17687 | 29530 | 19091 | 18000 |
+| apollo | +20000 | 27474 | 27687 | 39530 | 29091 | 28000 |
 | logos | +30000 | 37474 | 37687 | 49530 | 39091 | 38000 |
 | sophia | +40000 | 47474 | 47687 | 59530 | 49091 | 48000 |
 | talos | +50000 | 57474 | 57687 | 69530 | 59091 | 58000 |

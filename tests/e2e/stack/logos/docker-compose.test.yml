@@ -110,7 +110,7 @@ services:
     volumes:
     - logos_phase2_test_milvus:/var/lib/milvus
     ports:
-    - 39530:19530
+    - 49530:19530
     - 39091:9091
     healthcheck:
       test:
