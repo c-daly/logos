@@ -17,8 +17,6 @@ from logos_config.ports import (
     LOGOS_PORTS,
     SOPHIA_PORTS,
     TALOS_PORTS,
-    BasePorts,
-    RepoOffset,
     RepoPorts,
     get_repo_ports,
 )
@@ -30,8 +28,6 @@ __all__ = [
     "get_repo_root",
     "load_env_file",
     # ports
-    "BasePorts",
-    "RepoOffset",
     "RepoPorts",
     "get_repo_ports",
     "HERMES_PORTS",

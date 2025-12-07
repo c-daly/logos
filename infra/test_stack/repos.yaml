@@ -35,17 +35,19 @@ defaults:
     MILVUS_HEALTHCHECK: "http://milvus:{milvus_metrics_port}/healthz"
 
 repos:
-  # hermes: +10000 offset (Milvus only, no Neo4j)
+  # hermes: +10000 offset
   # Ports from logos_config.HERMES_PORTS
   hermes:
     path: ../hermes
     service_prefix: hermes-test
     volume_prefix: hermes_test
     services:
+      - neo4j
       - milvus-etcd
       - milvus-minio
       - milvus
     env:
+      NEO4J_URI: "bolt://neo4j:{neo4j_bolt_port}"
       MILVUS_HOST: milvus
       MILVUS_PORT: "{milvus_grpc_port}"
 

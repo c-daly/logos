@@ -30,7 +30,6 @@ from logos_config.ports import (
     LOGOS_PORTS,
     SOPHIA_PORTS,
     TALOS_PORTS,
-    BasePorts,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -138,11 +137,11 @@ def get_port_context(repo_name: str) -> dict[str, str]:
         raise RenderError(f"No port configuration for repo '{repo_name}' in logos_config")
 
     ports = REPO_PORTS[repo_name]
-    # MinIO ports use a different offset calculation (base 9000 + repo offset)
-    # Calculate from the milvus_metrics offset since that uses base 9091
-    offset = ports.milvus_metrics - BasePorts.MILVUS_METRICS
-    minio_api_port = 9000 + offset
-    minio_console_port = 9001 + offset
+    # All ports share the same prefix (e.g., 17xxx for hermes)
+    # Extract prefix from api port (e.g., 17000 -> 17)
+    prefix = ports.api // 1000
+    minio_api_port = prefix * 1000 + 900    # e.g., 17900
+    minio_console_port = prefix * 1000 + 901  # e.g., 17901
 
     return {
         "neo4j_http_port": str(ports.neo4j_http),
