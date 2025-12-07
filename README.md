@@ -100,15 +100,28 @@ Each repo uses unique ports for test isolation:
 | sophia | 47xxx | 47474/47687 | 47530 |
 | talos | 57xxx | 57474/57687 | 57530 |
 
-## Phase Status
+## Roadmap
 
-| Phase | Description | Status |
-|-------|-------------|--------|
-| 1 | HCG foundation, ontology, CLI prototype | ✅ Complete |
-| 2 | Services, Apollo UI, perception pipeline | ✅ Complete |
-| 3 | Learning, episodic memory, physical demos | 📋 Planning |
-| 4 | Continuous learning, production deployment | Future |
-| 5 | Multi-agent coordination | Future |
+### Done
+- Hybrid Cognitive Graph (Neo4j + Milvus + SHACL validation)
+- Sophia planning/execution/simulation API
+- Hermes language services (STT, TTS, embeddings, LLM gateway)
+- Apollo CLI + React web dashboard
+- JEPA perception pipeline (image/video ingestion)
+- Python & TypeScript SDK generation
+- CI/CD with reusable workflows
+
+### In Progress
+- Documentation consolidation
+- Learning from experience
+
+### Planned
+- Episodic memory and retrieval
+- Physical robot integration (Talos → real hardware)
+- Multi-agent coordination
+
+### Historical
+Phase 1-2 architecture specs are preserved in [docs/architecture/](docs/architecture/) as reference for what was built.
 
 ## License
 
