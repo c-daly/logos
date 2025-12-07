@@ -389,7 +389,6 @@ git rebase main
 ## Related Documentation
 
 - [Testing Standards](TESTING_STANDARDS.md)
-- [Contributing Guide](../CONTRIBUTING.md)
 - [CI/CD Documentation](operations/ci/README.md)
 
 ---

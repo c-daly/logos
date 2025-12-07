@@ -9,7 +9,7 @@
 
 This repository is the canonical "foundry" for Project LOGOS. It contains the formal specification, API contracts, the Hybrid Causal Graph (HCG) founding documents, and the development infrastructure for the shared HCG cluster.
 
-**[Phase 1 Complete ✅](docs/evidence/PHASE1.md)** | **[Phase 2 Complete ✅](docs/evidence/PHASE2.md)** | **Phase 3: Planning 📋** | [Read the docs](docs/) | [Contributing](CONTRIBUTING.md) | [📊 Project Assessment](ASSESSMENT_SUMMARY.md)
+**[Phase 1 Complete ✅](docs/evidence/PHASE1.md)** | **[Phase 2 Complete ✅](docs/evidence/PHASE2.md)** | **Phase 3: Planning 📋** | [Read the docs](docs/) | [📊 Project Assessment](ASSESSMENT_SUMMARY.md)
 
 Purpose
 - Host the canonical spec and design artifacts that bind all LOGOS components together (see Section 3.1: Overview and Core Principles).
@@ -247,11 +247,9 @@ Notes and next steps
 
 ## Contributing
 
-We welcome contributions from the community! Project LOGOS is open source under the MIT License.
+Project LOGOS is not currently accepting external contributions.
 
-**Getting Started:**
-- Read [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guidelines
-- Check out [good first issues](https://github.com/c-daly/logos/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+**Resources:**
 - Review the [Code of Conduct](CODE_OF_CONDUCT.md)
 - See [SECURITY.md](SECURITY.md) for security policies
 

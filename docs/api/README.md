@@ -148,7 +148,6 @@ If the published documentation is not updating:
 ## Related Documentation
 
 - [LOGOS Specification](../spec/project_logos_full.md) - Section 3.4 covers Hermes API endpoints
-- [Contributing Guide](../../CONTRIBUTING.md) - General contribution guidelines
 - [Development Guide](../../DEVELOPMENT.md) - Setting up the development environment
 
 ## License

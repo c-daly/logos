@@ -34,7 +34,6 @@ Key directories:
 
 ### Key documentation
 - `README.md` – Project overview and getting started
-- `CONTRIBUTING.md` – Contribution guidelines
 - `docs/TESTING_STANDARDS.md` – Ecosystem testing conventions
 - `docs/GIT_PROJECT_STANDARDS.md` – Git workflow and cross-repo patterns
 

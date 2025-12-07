@@ -207,5 +207,4 @@ The documentation uses Redocly CLI via `npx`, which always fetches the latest ve
 
 If you encounter issues not covered in this guide:
 1. Check the GitHub Actions logs for detailed error messages
-2. Review the [LOGOS Contributing Guide](../../CONTRIBUTING.md)
-3. Open an issue on GitHub with the "documentation" label
+2. Open an issue on GitHub with the "documentation" label

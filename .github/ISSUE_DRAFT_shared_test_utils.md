@@ -252,7 +252,6 @@ def wait_for_neo4j(uri: str, auth: tuple, timeout: int = 30) -> bool:
 ### Phase 6: Documentation & Best Practices
 - [ ] Create `logos_test_utils/README.md`
 - [ ] Add examples to TESTING_STRATEGY.md
-- [ ] Document in CONTRIBUTING.md
 - [ ] Add to Development Setup guide
 
 ## Package Distribution
