@@ -79,7 +79,13 @@ class TestGetRepoPorts:
     def test_computes_hermes_offset(self) -> None:
         """Hermes ports have +10000 offset."""
         # Clear any env vars that might interfere
-        for var in ["NEO4J_HTTP_PORT", "NEO4J_BOLT_PORT", "MILVUS_PORT", "MILVUS_METRICS_PORT", "API_PORT"]:
+        for var in [
+            "NEO4J_HTTP_PORT",
+            "NEO4J_BOLT_PORT",
+            "MILVUS_PORT",
+            "MILVUS_METRICS_PORT",
+            "API_PORT",
+        ]:
             os.environ.pop(var, None)
 
         ports = get_repo_ports("hermes")
@@ -91,7 +97,13 @@ class TestGetRepoPorts:
 
     def test_computes_apollo_offset(self) -> None:
         """Apollo ports have +20000 offset."""
-        for var in ["NEO4J_HTTP_PORT", "NEO4J_BOLT_PORT", "MILVUS_PORT", "MILVUS_METRICS_PORT", "API_PORT"]:
+        for var in [
+            "NEO4J_HTTP_PORT",
+            "NEO4J_BOLT_PORT",
+            "MILVUS_PORT",
+            "MILVUS_METRICS_PORT",
+            "API_PORT",
+        ]:
             os.environ.pop(var, None)
 
         ports = get_repo_ports("apollo")
@@ -103,7 +115,13 @@ class TestGetRepoPorts:
 
     def test_computes_logos_offset(self) -> None:
         """Logos ports have +30000 offset."""
-        for var in ["NEO4J_HTTP_PORT", "NEO4J_BOLT_PORT", "MILVUS_PORT", "MILVUS_METRICS_PORT", "API_PORT"]:
+        for var in [
+            "NEO4J_HTTP_PORT",
+            "NEO4J_BOLT_PORT",
+            "MILVUS_PORT",
+            "MILVUS_METRICS_PORT",
+            "API_PORT",
+        ]:
             os.environ.pop(var, None)
 
         ports = get_repo_ports("logos")
@@ -115,7 +133,13 @@ class TestGetRepoPorts:
 
     def test_computes_sophia_offset(self) -> None:
         """Sophia ports have +40000 offset."""
-        for var in ["NEO4J_HTTP_PORT", "NEO4J_BOLT_PORT", "MILVUS_PORT", "MILVUS_METRICS_PORT", "API_PORT"]:
+        for var in [
+            "NEO4J_HTTP_PORT",
+            "NEO4J_BOLT_PORT",
+            "MILVUS_PORT",
+            "MILVUS_METRICS_PORT",
+            "API_PORT",
+        ]:
             os.environ.pop(var, None)
 
         ports = get_repo_ports("sophia")
@@ -127,7 +151,13 @@ class TestGetRepoPorts:
 
     def test_computes_talos_offset(self) -> None:
         """Talos ports have +50000 offset."""
-        for var in ["NEO4J_HTTP_PORT", "NEO4J_BOLT_PORT", "MILVUS_PORT", "MILVUS_METRICS_PORT", "API_PORT"]:
+        for var in [
+            "NEO4J_HTTP_PORT",
+            "NEO4J_BOLT_PORT",
+            "MILVUS_PORT",
+            "MILVUS_METRICS_PORT",
+            "API_PORT",
+        ]:
             os.environ.pop(var, None)
 
         ports = get_repo_ports("talos")
@@ -139,7 +169,13 @@ class TestGetRepoPorts:
 
     def test_case_insensitive(self) -> None:
         """Repo name is case-insensitive."""
-        for var in ["NEO4J_HTTP_PORT", "NEO4J_BOLT_PORT", "MILVUS_PORT", "MILVUS_METRICS_PORT", "API_PORT"]:
+        for var in [
+            "NEO4J_HTTP_PORT",
+            "NEO4J_BOLT_PORT",
+            "MILVUS_PORT",
+            "MILVUS_METRICS_PORT",
+            "API_PORT",
+        ]:
             os.environ.pop(var, None)
 
         assert get_repo_ports("HERMES") == get_repo_ports("hermes")
