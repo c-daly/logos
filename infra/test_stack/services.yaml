@@ -59,11 +59,11 @@ services:
       - server
       - /minio_data
       - "--console-address"
-      - ":{minio_console_port}"
+      - ":9001"
     volumes:
       - "{volume_prefix}_milvus_minio:/minio_data"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:{minio_api_port}/minio/health/live"]
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
       timeout: 20s
       retries: 3

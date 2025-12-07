@@ -29,6 +29,7 @@ Key directories:
 - `contracts/` – OpenAPI specifications
 - `ontology/` – Cypher schemas and SHACL shapes
 - `logos_hcg/` – Hybrid Causal Graph client library
+- `logos_config/` – **Shared configuration utilities** (env, ports, settings, health)
 - `docs/` – Ecosystem-wide documentation and standards
 - `.github/workflows/` – Reusable CI workflows
 
@@ -60,6 +61,26 @@ Each repo has a unique offset to prevent conflicts when running test stacks in p
 | logos | +30000 | 37474 | 37687 | 49530 | 39091 | 38000 |
 | sophia | +40000 | 47474 | 47687 | 59530 | 49091 | 48000 |
 | talos | +50000 | 57474 | 57687 | 69530 | 59091 | 58000 |
+
+### Shared configuration (`logos_config`)
+
+The `logos_config` package is the **source of truth** for configuration across all LOGOS repos. All repos should use it instead of duplicating config helpers.
+
+```python
+from logos_config import get_env_value, get_repo_ports, Neo4jConfig, SOPHIA_PORTS
+
+# Environment variables
+db_host = get_env_value("DB_HOST", default="localhost")
+
+# Port allocation
+ports = get_repo_ports("sophia")
+print(ports.neo4j_http)  # 47474
+
+# Service configuration
+neo4j = Neo4jConfig()  # Reads from NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
+```
+
+See `logos_config/README.md` for full documentation.
 
 ---
 

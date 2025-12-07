@@ -70,7 +70,7 @@ services:
     - server
     - /minio_data
     - --console-address
-    - :49001
+    - :9001
     volumes:
     - sophia_test_milvus_minio:/minio_data
     healthcheck:
@@ -78,13 +78,13 @@ services:
       - CMD
       - curl
       - -f
-      - http://localhost:49000/minio/health/live
+      - http://localhost:9000/minio/health/live
       interval: 30s
       timeout: 20s
       retries: 3
     ports:
-    - 49000:9000
-    - 49001:9001
+    - 47900:9000
+    - 47901:9001
     networks:
     - default
   milvus:
@@ -103,8 +103,8 @@ services:
     volumes:
     - sophia_test_milvus:/var/lib/milvus
     ports:
-    - 49530:19530
-    - 49091:9091
+    - 47530:19530
+    - 47091:9091
     healthcheck:
       test:
       - CMD

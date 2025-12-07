@@ -13,51 +13,9 @@ from logos_config.ports import (
     LOGOS_PORTS,
     SOPHIA_PORTS,
     TALOS_PORTS,
-    BasePorts,
-    RepoOffset,
     RepoPorts,
     get_repo_ports,
 )
-
-
-class TestBasePorts:
-    """Tests for BasePorts enum."""
-
-    def test_neo4j_defaults(self) -> None:
-        """Neo4j ports match official defaults."""
-        assert BasePorts.NEO4J_HTTP == 7474
-        assert BasePorts.NEO4J_BOLT == 7687
-
-    def test_milvus_defaults(self) -> None:
-        """Milvus ports match official defaults."""
-        assert BasePorts.MILVUS_GRPC == 19530
-        assert BasePorts.MILVUS_METRICS == 9091
-
-    def test_api_default(self) -> None:
-        """API port matches FastAPI/Uvicorn default."""
-        assert BasePorts.API == 8000
-
-
-class TestRepoOffset:
-    """Tests for RepoOffset enum."""
-
-    def test_offsets_are_multiples_of_10000(self) -> None:
-        """Each offset is a multiple of 10000."""
-        for offset in RepoOffset:
-            assert offset % 10000 == 0
-
-    def test_offsets_are_unique(self) -> None:
-        """Each repo has a unique offset."""
-        offsets = [offset.value for offset in RepoOffset]
-        assert len(offsets) == len(set(offsets))
-
-    def test_offset_values(self) -> None:
-        """Verify specific offset values."""
-        assert RepoOffset.HERMES == 10000
-        assert RepoOffset.APOLLO == 20000
-        assert RepoOffset.LOGOS == 30000
-        assert RepoOffset.SOPHIA == 40000
-        assert RepoOffset.TALOS == 50000
 
 
 class TestRepoPorts:
@@ -73,12 +31,33 @@ class TestRepoPorts:
         assert ports.api == 5
 
 
+class TestPortConsistency:
+    """Tests that all ports for a repo share the same prefix."""
+
+    @pytest.mark.parametrize(
+        "ports,expected_prefix",
+        [
+            (HERMES_PORTS, 17),
+            (APOLLO_PORTS, 27),
+            (LOGOS_PORTS, 37),
+            (SOPHIA_PORTS, 47),
+            (TALOS_PORTS, 57),
+        ],
+    )
+    def test_all_ports_share_prefix(self, ports: RepoPorts, expected_prefix: int) -> None:
+        """All ports for a repo should start with the same two-digit prefix."""
+        for port in ports:
+            prefix = port // 1000
+            assert (
+                prefix == expected_prefix
+            ), f"Port {port} has prefix {prefix}, expected {expected_prefix}"
+
+
 class TestGetRepoPorts:
     """Tests for get_repo_ports function."""
 
-    def test_computes_hermes_offset(self) -> None:
-        """Hermes ports have +10000 offset."""
-        # Clear any env vars that might interfere
+    def test_returns_hermes_ports(self) -> None:
+        """get_repo_ports returns correct hermes ports."""
         for var in [
             "NEO4J_HTTP_PORT",
             "NEO4J_BOLT_PORT",
@@ -89,14 +68,10 @@ class TestGetRepoPorts:
             os.environ.pop(var, None)
 
         ports = get_repo_ports("hermes")
-        assert ports.neo4j_http == 17474
-        assert ports.neo4j_bolt == 17687
-        assert ports.milvus_grpc == 29530
-        assert ports.milvus_metrics == 19091
-        assert ports.api == 18000
+        assert ports == HERMES_PORTS
 
-    def test_computes_apollo_offset(self) -> None:
-        """Apollo ports have +20000 offset."""
+    def test_returns_apollo_ports(self) -> None:
+        """get_repo_ports returns correct apollo ports."""
         for var in [
             "NEO4J_HTTP_PORT",
             "NEO4J_BOLT_PORT",
@@ -107,14 +82,10 @@ class TestGetRepoPorts:
             os.environ.pop(var, None)
 
         ports = get_repo_ports("apollo")
-        assert ports.neo4j_http == 27474
-        assert ports.neo4j_bolt == 27687
-        assert ports.milvus_grpc == 39530
-        assert ports.milvus_metrics == 29091
-        assert ports.api == 28000
+        assert ports == APOLLO_PORTS
 
-    def test_computes_logos_offset(self) -> None:
-        """Logos ports have +30000 offset."""
+    def test_returns_logos_ports(self) -> None:
+        """get_repo_ports returns correct logos ports."""
         for var in [
             "NEO4J_HTTP_PORT",
             "NEO4J_BOLT_PORT",
@@ -125,14 +96,10 @@ class TestGetRepoPorts:
             os.environ.pop(var, None)
 
         ports = get_repo_ports("logos")
-        assert ports.neo4j_http == 37474
-        assert ports.neo4j_bolt == 37687
-        assert ports.milvus_grpc == 49530
-        assert ports.milvus_metrics == 39091
-        assert ports.api == 38000
+        assert ports == LOGOS_PORTS
 
-    def test_computes_sophia_offset(self) -> None:
-        """Sophia ports have +40000 offset."""
+    def test_returns_sophia_ports(self) -> None:
+        """get_repo_ports returns correct sophia ports."""
         for var in [
             "NEO4J_HTTP_PORT",
             "NEO4J_BOLT_PORT",
@@ -143,14 +110,10 @@ class TestGetRepoPorts:
             os.environ.pop(var, None)
 
         ports = get_repo_ports("sophia")
-        assert ports.neo4j_http == 47474
-        assert ports.neo4j_bolt == 47687
-        assert ports.milvus_grpc == 59530
-        assert ports.milvus_metrics == 49091
-        assert ports.api == 48000
+        assert ports == SOPHIA_PORTS
 
-    def test_computes_talos_offset(self) -> None:
-        """Talos ports have +50000 offset."""
+    def test_returns_talos_ports(self) -> None:
+        """get_repo_ports returns correct talos ports."""
         for var in [
             "NEO4J_HTTP_PORT",
             "NEO4J_BOLT_PORT",
@@ -161,11 +124,7 @@ class TestGetRepoPorts:
             os.environ.pop(var, None)
 
         ports = get_repo_ports("talos")
-        assert ports.neo4j_http == 57474
-        assert ports.neo4j_bolt == 57687
-        assert ports.milvus_grpc == 69530
-        assert ports.milvus_metrics == 59091
-        assert ports.api == 58000
+        assert ports == TALOS_PORTS
 
     def test_case_insensitive(self) -> None:
         """Repo name is case-insensitive."""
@@ -182,16 +141,15 @@ class TestGetRepoPorts:
         assert get_repo_ports("Apollo") == get_repo_ports("apollo")
 
     def test_env_var_override(self) -> None:
-        """Environment variables override computed defaults."""
+        """Environment variables override defaults."""
         with mock.patch.dict(os.environ, {"MILVUS_PORT": "12345"}):
             ports = get_repo_ports("hermes")
             assert ports.milvus_grpc == 12345
-            # Others should still be computed
-            assert ports.neo4j_http == 17474
+            # Others should still be defaults
+            assert ports.neo4j_http == HERMES_PORTS.neo4j_http
 
     def test_env_mapping_override(self) -> None:
-        """Provided env mapping overrides computed defaults."""
-        # Clear OS env
+        """Provided env mapping overrides defaults."""
         os.environ.pop("NEO4J_HTTP_PORT", None)
 
         ports = get_repo_ports("hermes", env={"NEO4J_HTTP_PORT": "9999"})
@@ -214,21 +172,21 @@ class TestPrecomputedPorts:
     """Tests for pre-computed port constants."""
 
     def test_hermes_ports(self) -> None:
-        """HERMES_PORTS matches expected values."""
-        assert HERMES_PORTS == RepoPorts(17474, 17687, 29530, 19091, 18000)
+        """HERMES_PORTS has consistent 17xxx prefix."""
+        assert HERMES_PORTS == RepoPorts(17474, 17687, 17530, 17091, 17000)
 
     def test_apollo_ports(self) -> None:
-        """APOLLO_PORTS matches expected values."""
-        assert APOLLO_PORTS == RepoPorts(27474, 27687, 39530, 29091, 28000)
+        """APOLLO_PORTS has consistent 27xxx prefix."""
+        assert APOLLO_PORTS == RepoPorts(27474, 27687, 27530, 27091, 27000)
 
     def test_logos_ports(self) -> None:
-        """LOGOS_PORTS matches expected values."""
-        assert LOGOS_PORTS == RepoPorts(37474, 37687, 49530, 39091, 38000)
+        """LOGOS_PORTS has consistent 37xxx prefix."""
+        assert LOGOS_PORTS == RepoPorts(37474, 37687, 37530, 37091, 37000)
 
     def test_sophia_ports(self) -> None:
-        """SOPHIA_PORTS matches expected values."""
-        assert SOPHIA_PORTS == RepoPorts(47474, 47687, 59530, 49091, 48000)
+        """SOPHIA_PORTS has consistent 47xxx prefix."""
+        assert SOPHIA_PORTS == RepoPorts(47474, 47687, 47530, 47091, 47000)
 
     def test_talos_ports(self) -> None:
-        """TALOS_PORTS matches expected values."""
-        assert TALOS_PORTS == RepoPorts(57474, 57687, 69530, 59091, 58000)
+        """TALOS_PORTS has consistent 57xxx prefix."""
+        assert TALOS_PORTS == RepoPorts(57474, 57687, 57530, 57091, 57000)

@@ -11,8 +11,6 @@ from __future__ import annotations
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from .ports import BasePorts
-
 
 class Neo4jConfig(BaseSettings):
     """Neo4j connection configuration.
@@ -34,8 +32,8 @@ class Neo4jConfig(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="NEO4J_")
 
     host: str = Field(default="localhost")
-    http_port: int = Field(default=BasePorts.NEO4J_HTTP)
-    bolt_port: int = Field(default=BasePorts.NEO4J_BOLT)
+    http_port: int = Field(default=7474)
+    bolt_port: int = Field(default=7687)
     user: str = Field(default="neo4j")
     password: str = Field(...)  # REQUIRED - no default for secrets
 
@@ -70,7 +68,7 @@ class MilvusConfig(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="MILVUS_")
 
     host: str = Field(default="localhost")
-    port: int = Field(default=BasePorts.MILVUS_GRPC)
+    port: int = Field(default=19530)
     collection_name: str = Field(default="embeddings")
 
 

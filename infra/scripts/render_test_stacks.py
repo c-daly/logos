@@ -4,6 +4,8 @@ This script reads the canonical test-stack template defined under
 `infra/test_stack/` and emits staged outputs for each repo into
 `tests/e2e/stack/<repo>/`.
 
+Port values come from logos_config.ports (single source of truth).
+
 Future automation can copy those outputs into the downstream repos or
 compare them against committed files to detect drift.
 """
@@ -21,11 +23,29 @@ from typing import Any
 
 import yaml
 
+# Import port configuration from logos_config (single source of truth)
+from logos_config.ports import (
+    APOLLO_PORTS,
+    HERMES_PORTS,
+    LOGOS_PORTS,
+    SOPHIA_PORTS,
+    TALOS_PORTS,
+)
+
 ROOT = Path(__file__).resolve().parents[2]
 TEST_STACK_DIR = ROOT / "infra" / "test_stack"
 SERVICES_FILE = TEST_STACK_DIR / "services.yaml"
 REPOS_FILE = TEST_STACK_DIR / "repos.yaml"
 OVERLAYS_DIR = TEST_STACK_DIR / "overlays"
+
+# Map repo names to their port configs from logos_config
+REPO_PORTS = {
+    "hermes": HERMES_PORTS,
+    "apollo": APOLLO_PORTS,
+    "logos": LOGOS_PORTS,
+    "sophia": SOPHIA_PORTS,
+    "talos": TALOS_PORTS,
+}
 
 
 class RenderError(RuntimeError):
@@ -108,6 +128,32 @@ def normalize_context(
     return context
 
 
+def get_port_context(repo_name: str) -> dict[str, str]:
+    """Get port values from logos_config for a repo.
+
+    This is the single source of truth for port allocation.
+    """
+    if repo_name not in REPO_PORTS:
+        raise RenderError(f"No port configuration for repo '{repo_name}' in logos_config")
+
+    ports = REPO_PORTS[repo_name]
+    # All ports share the same prefix (e.g., 17xxx for hermes)
+    # Extract prefix from api port (e.g., 17000 -> 17)
+    prefix = ports.api // 1000
+    minio_api_port = prefix * 1000 + 900  # e.g., 17900
+    minio_console_port = prefix * 1000 + 901  # e.g., 17901
+
+    return {
+        "neo4j_http_port": str(ports.neo4j_http),
+        "neo4j_bolt_port": str(ports.neo4j_bolt),
+        "milvus_grpc_port": str(ports.milvus_grpc),
+        "milvus_metrics_port": str(ports.milvus_metrics),
+        "minio_api_port": str(minio_api_port),
+        "minio_console_port": str(minio_console_port),
+        "api_port": str(ports.api),
+    }
+
+
 def resolve_repo_configs(
     config: dict[str, Any], selected: Iterable[str] | None
 ) -> dict[str, dict[str, Any]]:
@@ -130,9 +176,16 @@ def resolve_repo_configs(
     for name in repo_names:
         repo_entry = repos[name] or {}
         repo_context_overrides = repo_entry.get("context", {})
+
+        # Get port values from logos_config (single source of truth)
+        port_context = get_port_context(name)
+
         context = normalize_context(
             default_context,
             {
+                # Ports from logos_config take priority
+                **port_context,
+                # Then any explicit overrides from repos.yaml (for non-port values)
                 **repo_context_overrides,
                 **{
                     "service_prefix": repo_entry.get(

@@ -70,7 +70,7 @@ services:
     - server
     - /minio_data
     - --console-address
-    - :59001
+    - :9001
     volumes:
     - talos_test_milvus_minio:/minio_data
     healthcheck:
@@ -78,13 +78,13 @@ services:
       - CMD
       - curl
       - -f
-      - http://localhost:59000/minio/health/live
+      - http://localhost:9000/minio/health/live
       interval: 30s
       timeout: 20s
       retries: 3
     ports:
-    - 59000:9000
-    - 59001:9001
+    - 57900:9000
+    - 57901:9001
     networks:
     - default
   milvus:
@@ -103,8 +103,8 @@ services:
     volumes:
     - talos_test_milvus:/var/lib/milvus
     ports:
-    - 59530:19530
-    - 59091:9091
+    - 57530:19530
+    - 57091:9091
     healthcheck:
       test:
       - CMD
