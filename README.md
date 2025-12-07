@@ -103,42 +103,40 @@ Each repo uses unique ports for test isolation:
 ## Roadmap
 
 ```
-═══════════════════════════════════════════════════════════════════════════════════════
-
 FOUNDATION                          INTELLIGENCE                        AUTONOMY
-───────────────────────────────────────────────────────────────────────────────────────
+─────────────────────────────────────────────────────────────────────────────────────────────
 
 Graph & Storage                     Perception                          Learning
-  ✅ Neo4j graph database             ✅ JEPA visual encoder               🔧 Episodic memory store
-  ✅ Milvus vector store              ✅ Image ingestion                   ◯ Experience replay
-  ✅ SHACL validation                 ✅ Video frame extraction            ◯ Causal discovery
-  ✅ HCG ontology                     ✅ Embedding generation              ◯ Skill abstraction
-                                      ◯ Audio/speech perception           ◯ Transfer learning
+  ✅ Neo4j graph database             ✅ JEPA visual encoder               ◯ Experience replay
+  ✅ Milvus vector store              ✅ Image ingestion                   ◯ Causal discovery
+  ✅ SHACL validation                 ✅ Video frame extraction            ◯ Skill abstraction
+  ✅ HCG ontology                     ✅ Embedding generation              ◯ Transfer learning
+                                      ◯ Audio/speech perception
 
-Core Services                       Reasoning                           Embodiment
-  ✅ Sophia planning API              ✅ Backward-chain planner            ✅ Talos simulation
-  ✅ Sophia execution API             ✅ World state modeling              ◯ Sensor integration
-  ✅ Sophia simulation API            🔧 Counterfactual reasoning          ◯ Motor control
-  ✅ Hermes STT/TTS                   ◯ Temporal reasoning                ◯ Real robot hardware
-  ✅ Hermes embeddings                ◯ Uncertainty handling              ◯ Safety constraints
-  ✅ Hermes LLM gateway
+Core Services                       Reasoning                           Memory (3-tier)
+  ✅ Sophia planning API              ✅ Backward-chain planner            ✅ Ephemeral (session)
+  ✅ Sophia execution API             ✅ World state modeling              🔧 Short/mid-term (probationary)
+  ✅ Sophia simulation API            🔧 Counterfactual reasoning          ◯ Long-term (accepted)
+  ✅ Hermes STT/TTS                   ◯ Temporal reasoning                ◯ Reflection job
+  ✅ Hermes embeddings                ◯ Uncertainty handling              ◯ Promotion/pruning
+  ✅ Hermes LLM gateway                                                   ◯ Reflection → Persona loop
 
-Interfaces                          Language                            Emotion & Affect
-  ✅ Apollo CLI                       ✅ Text embeddings                   ✅ CWM-E schema
-  ✅ Apollo web dashboard             ✅ LLM integration                   ✅ Persona/diary store
-  ✅ Python SDK                       ◯ Grounded language                 ◯ Affective reasoning
-  ✅ TypeScript SDK                   ◯ Dialogue management               ◯ Motivation modeling
-  🔧 SDK documentation                ◯ Instruction following             ◯ Social cognition
+Interfaces                          Language                            Embodiment
+  ✅ Apollo CLI                       ✅ Text embeddings                   ✅ Talos simulation
+  ✅ Apollo web dashboard             ✅ LLM integration                   ◯ Sensor integration
+  ✅ Python SDK                       ◯ Grounded language                 ◯ Motor control
+  ✅ TypeScript SDK                   ◯ Dialogue management               ◯ Real robot hardware
+  🔧 SDK documentation                ◯ Instruction following             ◯ Safety constraints
 
-Infrastructure                                                          Multi-Agent
-  ✅ Docker Compose stacks                                                ◯ Agent communication
-  ✅ CI/CD pipelines                  ✅ Done    🔧 In Progress    ◯ Planned   ◯ Shared world model
-  ✅ Test isolation (ports)                                               ◯ Coordination protocols
-  🔧 Documentation                                                        ◯ Collective learning
-  ✅ Test isolation (ports)
-  🔧 Documentation
+Infrastructure                      Emotion & Affect                    Multi-Agent
+  ✅ Docker Compose stacks            ✅ CWM-E schema                      ◯ Agent communication
+  ✅ CI/CD pipelines                  ✅ Persona/diary store               ◯ Shared world model
+  ✅ Test isolation (ports)           ◯ Affective reasoning               ◯ Coordination protocols
+  🔧 Documentation                    ◯ Motivation modeling               ◯ Collective learning
+                                      ◯ Social cognition
 
-───────────────────────────────────────────────────────────────────────────────────────
+─────────────────────────────────────────────────────────────────────────────────────────────
+                                   ✅ Done    🔧 In Progress    ◯ Planned
 ```
 
 Phase 1-2 architecture specs are preserved in [docs/architecture/](docs/architecture/) as historical reference.
