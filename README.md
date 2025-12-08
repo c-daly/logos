@@ -121,12 +121,12 @@ Core Services                       Reasoning                           Persona
   ✅ Hermes embeddings                ◯ Uncertainty handling              ◯ Voice/style
   ✅ Hermes LLM gateway
 
-Interfaces                          Language                            Affect & Motivation
+Interfaces                          Language                            Emotion & Affect
   ✅ Apollo CLI                       ✅ Text embeddings                   ◯ Emotional reasoning
-  ✅ Apollo web dashboard             ✅ LLM integration                   ◯ Drive/goal prioritization
-  ✅ Python SDK                       ◯ Grounded language                 ◯ Social cognition
-  ✅ TypeScript SDK                   ◯ Dialogue management               ◯ Empathy modeling
-  🔧 SDK documentation                ◯ Instruction following
+  ✅ Apollo web dashboard             ✅ LLM integration                   ◯ Motivation modeling
+  ✅ Python SDK                       ◯ Grounded language                 ◯ Drive prioritization
+  ✅ TypeScript SDK                   ◯ Dialogue management               ◯ Social cognition
+  🔧 SDK documentation                ◯ Instruction following             ◯ Empathy modeling
 
 Infrastructure                      Learning                            Embodiment
   ✅ Docker Compose stacks            ◯ Experience replay                 ✅ Talos simulation
@@ -136,11 +136,13 @@ Infrastructure                      Learning                            Embodime
                                                                           ◯ Safety constraints
 
                                                                         Multi-Agent
-                                   ✅ Done                                ◯ Agent communication
-                                   🔧 In Progress                         ◯ Shared world model
-                                   ◯ Planned                              ◯ Coordination protocols
+                                                                          ◯ Agent communication
+                                                                          ◯ Shared world model
+                                                                          ◯ Coordination protocols
                                                                           ◯ Collective learning
+
 ─────────────────────────────────────────────────────────────────────────────────────────────
+                                   ✅ Done    🔧 In Progress    ◯ Planned
 ```
 
 Phase 1-2 architecture specs are preserved in [docs/architecture/](docs/architecture/) as historical reference.
