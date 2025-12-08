@@ -35,17 +35,17 @@ poetry install
 poetry run pytest tests/unit/ -v
 ```
 
-📖 **[Full Getting Started Guide](docs/GETTING_STARTED.md)**
+📖 **[Full Getting Started Guide](docs/guides/GETTING_STARTED.md)**
 
 ## Documentation
 
 | Guide | Description |
 |-------|-------------|
-| [Getting Started](docs/GETTING_STARTED.md) | Clone repos, run everything, first test |
-| [Architecture](docs/ARCHITECTURE.md) | How repos connect, data flow, APIs |
-| [SDK Guide](docs/SDK_GUIDE.md) | Using and regenerating client SDKs |
-| [Testing](docs/TESTING.md) | Test categories, ports, running integration tests |
-| [Infrastructure](docs/INFRASTRUCTURE.md) | Neo4j, Milvus, observability setup |
+| [Getting Started](docs/guides/GETTING_STARTED.md) | Clone repos, run everything, first test |
+| [Architecture](docs/architecture/ARCHITECTURE.md) | How repos connect, data flow, APIs |
+| [SDK Guide](docs/sdk/SDK_GUIDE.md) | Using and regenerating client SDKs |
+| [Testing](docs/guides/TESTING.md) | Test categories, ports, running integration tests |
+| [Infrastructure](docs/guides/INFRASTRUCTURE.md) | Neo4j, Milvus, observability setup |
 
 ### Reference
 
@@ -100,15 +100,41 @@ Each repo uses unique ports for test isolation:
 | sophia | 47xxx | 47474/47687 | 47530 |
 | talos | 57xxx | 57474/57687 | 57530 |
 
-## Phase Status
+## What's Built
 
-| Phase | Description | Status |
-|-------|-------------|--------|
-| 1 | HCG foundation, ontology, CLI prototype | ✅ Complete |
-| 2 | Services, Apollo UI, perception pipeline | ✅ Complete |
-| 3 | Learning, episodic memory, physical demos | 📋 Planning |
-| 4 | Continuous learning, production deployment | Future |
-| 5 | Multi-agent coordination | Future |
+**Stable**
+- Graph & Storage: Neo4j, Milvus, SHACL validation
+- Hermes: Embeddings, LLM gateway
+- Infrastructure: Docker stacks, CI/CD, test isolation
+
+**Working (needs refinement)**
+- Sophia: Planning, execution, simulation APIs
+- Apollo: CLI, web dashboard
+- SDKs: Python & TypeScript (generated)
+- Perception: JEPA encoder, image/video ingestion
+- Persona: CWM-E schema, diary store
+- Ontology: Core HCG schema, domain concepts
+
+## Roadmap
+
+**Persona**
+- 3-tier memory (ephemeral → short-term → long-term)
+- Reflection job and promotion
+- Identity modeling, voice/style
+- Emotional reasoning, motivation
+
+**Intelligence**
+- Ontology evolution and concept extraction
+- Temporal reasoning, uncertainty handling
+- Grounded language, dialogue management
+- STT/TTS
+
+**Autonomy**
+- Learning from experience
+- Physical robot integration (Talos → real hardware)
+- Multi-agent coordination
+
+Phase 1-2 architecture specs are preserved in [docs/architecture/](docs/architecture/) as historical reference.
 
 ## License
 
