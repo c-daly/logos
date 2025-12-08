@@ -128,11 +128,13 @@ Interfaces                    Language                      Emotion & Affect    
   ✅ TypeScript SDK             ◯ Dialogue management         ◯ Social cognition            ◯ Collective learning
   🔧 SDK documentation          ◯ Instruction following       ◯ Empathy modeling
 
-Infrastructure
-  ✅ Docker Compose stacks
-  ✅ CI/CD pipelines                         ✅ Done    🔧 In Progress    ◯ Planned
-  ✅ Test isolation (ports)
-  🔧 Documentation
+Infrastructure                Ontology & Knowledge
+  ✅ Docker Compose stacks      ✅ Core HCG schema
+  ✅ CI/CD pipelines            ✅ SHACL validation                   ✅ Done    🔧 In Progress    ◯ Planned
+  ✅ Test isolation (ports)     🔧 Domain concepts
+  🔧 Documentation              ◯ Schema evolution
+                                ◯ Concept extraction
+                                ◯ External alignment
 
 ───────────────────────────────────────────────────────────────────────────────────────────────────────────
 ```
