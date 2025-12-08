@@ -100,44 +100,39 @@ Each repo uses unique ports for test isolation:
 | sophia | 47xxx | 47474/47687 | 47530 |
 | talos | 57xxx | 57474/57687 | 57530 |
 
+## What's Built
+
+**Stable**
+- Graph & Storage: Neo4j, Milvus, SHACL validation
+- Hermes: Embeddings, LLM gateway
+- Infrastructure: Docker stacks, CI/CD, test isolation
+
+**Working (needs refinement)**
+- Sophia: Planning, execution, simulation APIs
+- Apollo: CLI, web dashboard
+- SDKs: Python & TypeScript (generated)
+- Perception: JEPA encoder, image/video ingestion
+- Persona: CWM-E schema, diary store
+- Ontology: Core HCG schema, domain concepts
+
 ## Roadmap
 
-```
-FOUNDATION                    INTELLIGENCE                  PERSONA                       AUTONOMY
-───────────────────────────────────────────────────────────────────────────────────────────────────────────
+**Persona**
+- 3-tier memory (ephemeral → short-term → long-term)
+- Reflection job and promotion
+- Identity modeling, voice/style
+- Emotional reasoning, motivation
 
-Graph & Storage               Perception                    Memory (3-tier)               Learning
-  ✅ Neo4j graph database       ✅ JEPA visual encoder         ✅ Ephemeral (session)         ◯ Experience replay
-  ✅ Milvus vector store        ✅ Image ingestion             🔧 Short/mid-term (probation)  ◯ Causal discovery
-  ✅ SHACL validation           ✅ Video frame extraction      ◯ Long-term (accepted)        ◯ Skill abstraction
-  ✅ HCG ontology               ✅ Embedding generation        ◯ Reflection job              ◯ Transfer learning
-                                ◯ Audio/speech                ◯ Promotion/pruning
+**Intelligence**
+- Ontology evolution and concept extraction
+- Temporal reasoning, uncertainty handling
+- Grounded language, dialogue management
+- STT/TTS
 
-Core Services                 Reasoning                     Identity                      Embodiment
-  ✅ Sophia planning API        ✅ Backward-chain planner      ✅ CWM-E schema                ✅ Talos simulation
-  ✅ Sophia execution API       ✅ World state modeling        ✅ Diary store                 ◯ Sensor integration
-  ✅ Sophia simulation API      🔧 Counterfactual reasoning    ◯ Reflection entries          ◯ Motor control
-  ◯ Hermes STT/TTS             ◯ Temporal reasoning          ◯ Identity modeling           ◯ Real robot hardware
-  ✅ Hermes embeddings          ◯ Uncertainty handling        ◯ Voice/style                 ◯ Safety constraints
-  ✅ Hermes LLM gateway
-
-Interfaces                    Language                      Emotion & Affect              Multi-Agent
-  ✅ Apollo CLI                 ✅ Text embeddings             ◯ Emotional reasoning         ◯ Agent communication
-  ✅ Apollo web dashboard       ✅ LLM integration             ◯ Motivation modeling         ◯ Shared world model
-  ✅ Python SDK                 ◯ Grounded language           ◯ Drive prioritization        ◯ Coordination protocols
-  ✅ TypeScript SDK             ◯ Dialogue management         ◯ Social cognition            ◯ Collective learning
-  🔧 SDK documentation          ◯ Instruction following       ◯ Empathy modeling
-
-Infrastructure                Ontology & Knowledge
-  ✅ Docker Compose stacks      ✅ Core HCG schema
-  ✅ CI/CD pipelines            ✅ SHACL validation                   ✅ Done    🔧 In Progress    ◯ Planned
-  ✅ Test isolation (ports)     🔧 Domain concepts
-  🔧 Documentation              ◯ Schema evolution
-                                ◯ Concept extraction
-                                ◯ External alignment
-
-───────────────────────────────────────────────────────────────────────────────────────────────────────────
-```
+**Autonomy**
+- Learning from experience
+- Physical robot integration (Talos → real hardware)
+- Multi-agent coordination
 
 Phase 1-2 architecture specs are preserved in [docs/architecture/](docs/architecture/) as historical reference.
 
