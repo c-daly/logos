@@ -117,7 +117,7 @@ Core Services                 Reasoning                     Identity            
   ✅ Sophia planning API        ✅ Backward-chain planner      ✅ CWM-E schema                ✅ Talos simulation
   ✅ Sophia execution API       ✅ World state modeling        ✅ Diary store                 ◯ Sensor integration
   ✅ Sophia simulation API      🔧 Counterfactual reasoning    ◯ Reflection entries          ◯ Motor control
-  ✅ Hermes STT/TTS             ◯ Temporal reasoning          ◯ Identity modeling           ◯ Real robot hardware
+  ◯ Hermes STT/TTS             ◯ Temporal reasoning          ◯ Identity modeling           ◯ Real robot hardware
   ✅ Hermes embeddings          ◯ Uncertainty handling        ◯ Voice/style                 ◯ Safety constraints
   ✅ Hermes LLM gateway
 
