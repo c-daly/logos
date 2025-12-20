@@ -80,7 +80,7 @@ jobs:
           echo "Checking minio:"
           docker logs logos-phase2-test-milvus-minio --tail=20 || true
           for i in {1..60}; do
-            if curl -f http://localhost:39091/healthz 2>/dev/null; then
+            if curl -f http://localhost:37091/healthz 2>/dev/null; then
               echo "Milvus is ready"
               exit 0
             fi
@@ -203,7 +203,7 @@ jobs:
           NEO4J_USER: neo4j
           NEO4J_PASSWORD: neo4jtest
           MILVUS_HOST: localhost
-          MILVUS_PORT: 49530
+          MILVUS_PORT: 37530
           SOPHIA_API_KEY: test-ci-key
           HERMES_PORT: 8002
           APOLLO_PORT: 8003
@@ -220,7 +220,7 @@ jobs:
           NEO4J_USER: neo4j
           NEO4J_PASSWORD: neo4jtest
           MILVUS_HOST: localhost
-          MILVUS_PORT: 49530
+          MILVUS_PORT: 37530
           SOPHIA_API_KEY: test-ci-key
       
       - name: Stop services
@@ -236,7 +236,7 @@ jobs:
           cat scripts/.pids/*.pid 2>/dev/null || echo "No PID files found"
           
           echo -e "\n=== Port status ==="
-          netstat -tlnp 2>/dev/null | grep -E ':(8001|8002|8003|37687|39530)' || echo "No services listening"
+          netstat -tlnp 2>/dev/null | grep -E ':(8001|8002|8003|37687|37530)' || echo "No services listening"
           
           echo -e "\n=== Neo4j logs ==="
           docker logs logos-phase2-test-neo4j --tail=100 || true

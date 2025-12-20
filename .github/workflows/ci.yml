@@ -34,7 +34,7 @@ jobs:
         done
         echo "Waiting for Milvus..."
         for i in {1..90}; do
-          if curl -sf http://localhost:39091/healthz >/dev/null 2>&1; then
+          if curl -sf http://localhost:37091/healthz >/dev/null 2>&1; then
             echo "Milvus is ready"
             break
           fi
@@ -46,8 +46,8 @@ jobs:
         export NEO4J_PASSWORD=neo4jtest
         export NEO4J_CONTAINER=logos-phase2-test-neo4j
         export MILVUS_HOST=localhost
-        export MILVUS_PORT=39530
+        export MILVUS_PORT=37530
         echo "Initializing Milvus collections..."
-        poetry run python infra/init_milvus_collections.py --host localhost --port 39530 || echo "Milvus init failed (may already exist)"
+        poetry run python infra/init_milvus_collections.py --host localhost --port 37530 || echo "Milvus init failed (may already exist)"
     secrets:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

@@ -101,13 +101,13 @@ class TestMilvusConfig:
             os.environ,
             {
                 "MILVUS_HOST": "milvus-server",
-                "MILVUS_PORT": "29530",
+                "MILVUS_PORT": "37530",
                 "MILVUS_COLLECTION_NAME": "my_embeddings",
             },
         ):
             config = MilvusConfig()
             assert config.host == "milvus-server"
-            assert config.port == 29530
+            assert config.port == 37530
             assert config.collection_name == "my_embeddings"
 
 

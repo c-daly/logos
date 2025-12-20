@@ -26,7 +26,7 @@ env:
   NEO4J_USER: neo4j
   NEO4J_PASSWORD: neo4jtest
   MILVUS_HOST: localhost
-  MILVUS_PORT: 39530
+  MILVUS_PORT: 37530
 
 jobs:
   m1-neo4j-crud:
