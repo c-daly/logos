@@ -59,10 +59,10 @@ class MilvusConfig(BaseSettings):
         19530
 
         # With env vars set:
-        # MILVUS_PORT=29530
+        # MILVUS_PORT=37530
         >>> config = MilvusConfig()
         >>> config.port
-        29530
+        37530
     """
 
     model_config = SettingsConfigDict(env_prefix="MILVUS_")

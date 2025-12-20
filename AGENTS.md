@@ -50,17 +50,17 @@ This repository defines the canonical standards for the entire LOGOS ecosystem. 
 | Git workflow | `docs/GIT_PROJECT_STANDARDS.md` |
 | Port allocation | `docs/TESTING_STANDARDS.md` (Port Allocation section) |
 
-### Port allocation (base + offset)
+### Port allocation (prefix-based)
 
-Each repo has a unique offset to prevent conflicts when running test stacks in parallel:
+Each repo has a unique prefix to prevent conflicts when running test stacks in parallel:
 
-| Repo | Offset | Neo4j HTTP | Neo4j Bolt | Milvus gRPC | Milvus Health | API |
+| Repo | Prefix | Neo4j HTTP | Neo4j Bolt | Milvus gRPC | Milvus Health | API |
 |------|--------|------------|------------|-------------|---------------|-----|
-| hermes | +10000 | 17474 | 17687 | 29530 | 19091 | 18000 |
-| apollo | +20000 | 27474 | 27687 | 39530 | 29091 | 28000 |
-| logos | +30000 | 37474 | 37687 | 49530 | 39091 | 38000 |
-| sophia | +40000 | 47474 | 47687 | 59530 | 49091 | 48000 |
-| talos | +50000 | 57474 | 57687 | 69530 | 59091 | 58000 |
+| hermes | 17xxx | 17474 | 17687 | 17530 | 17091 | 17000 |
+| apollo | 27xxx | 27474 | 27687 | 27530 | 27091 | 27000 |
+| logos | 37xxx | 37474 | 37687 | 37530 | 37091 | 37000 |
+| sophia | 47xxx | 47474 | 47687 | 47530 | 47091 | 47000 |
+| talos | 57xxx | 57474 | 57687 | 57530 | 57091 | 57000 |
 
 ### Shared configuration (`logos_config`)
 
@@ -402,7 +402,7 @@ Ensure environment variables match the port allocation:
 ```bash
 export NEO4J_URI=bolt://localhost:37687
 export MILVUS_HOST=localhost
-export MILVUS_PORT=49530
+export MILVUS_PORT=37530
 ```
 Or use `./scripts/run_tests.sh` which sets these automatically.
 
@@ -414,14 +414,14 @@ Or use `./scripts/run_tests.sh` which sets these automatically.
 ```
 
 ### Cross-repo changes: wrong ports
-Each repo has its own port offset. Check `docs/TESTING_STANDARDS.md` for the full table:
-| Repo | Offset |
+Each repo has its own port prefix. Check `docs/TESTING_STANDARDS.md` for the full table:
+| Repo | Prefix |
 |------|--------|
-| apollo | +10000 |
-| hermes | +20000 |
-| logos | +30000 |
-| sophia | +40000 |
-| talos | +50000 |
+| hermes | 17xxx |
+| apollo | 27xxx |
+| logos | 37xxx |
+| sophia | 47xxx |
+| talos | 57xxx |
 
 ### Import errors after pulling
 ```bash

@@ -107,7 +107,7 @@ Each repo's test stack should set these automatically, but for manual runs:
 export NEO4J_URI=bolt://localhost:37687
 export NEO4J_HTTP=http://localhost:37474
 export MILVUS_HOST=localhost
-export MILVUS_PORT=49530
+export MILVUS_PORT=37530
 ```
 
 ---

@@ -67,8 +67,8 @@ services:
     volumes:
       - milvus_test_data:/var/lib/milvus
     ports:
-      - "49530:19530"
-      - "39091:9091"
+      - "37530:19530"
+      - "37091:9091"
     depends_on:
       - milvus-etcd
       - milvus-minio
