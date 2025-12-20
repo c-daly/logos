@@ -10,8 +10,10 @@ from pathlib import Path
 from neo4j import GraphDatabase
 from neo4j.exceptions import ServiceUnavailable
 
+from logos_config import get_repo_ports
+
+from .config import ServiceConfig, get_env_value, resolve_service_config
 from .docker import resolve_container_name, wait_for_container_health
-from .env import get_env_value, load_stack_env
 
 
 @dataclass(frozen=True)
@@ -22,11 +24,22 @@ class Neo4jConfig:
     container: str
 
 
-def get_neo4j_config(env: Mapping[str, str] | None = None) -> Neo4jConfig:
+def get_neo4j_config(
+    env: Mapping[str, str] | None = None,
+    repo: str = "logos",
+) -> Neo4jConfig:
     """Build a ``Neo4jConfig`` from environment sources."""
 
-    values = env or load_stack_env()
-    uri = get_env_value("NEO4J_URI", values, "bolt://localhost:7687") or "bolt://localhost:7687"
+    values = env or {}
+    ports = get_repo_ports(repo, values)
+    defaults = ServiceConfig(
+        host="localhost",
+        port=ports.neo4j_bolt,
+        url=f"http://localhost:{ports.neo4j_bolt}",
+    )
+    service = resolve_service_config("NEO4J_HOST", "NEO4J_BOLT_PORT", defaults, values)
+    default_uri = f"bolt://{service.host}:{service.port}"
+    uri = get_env_value("NEO4J_URI", values, default_uri) or default_uri
     user = get_env_value("NEO4J_USER", values, "neo4j") or "neo4j"
     password = get_env_value("NEO4J_PASSWORD", values, "neo4jtest") or "neo4jtest"
     container = resolve_container_name(
