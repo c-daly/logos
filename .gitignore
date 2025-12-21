@@ -99,5 +99,8 @@ infra/backups/
 # Generated test stack previews
 infra/test_stack/out/
 
+# notebooks
+experiments/
+
 # Agents
 AGENTS.md
