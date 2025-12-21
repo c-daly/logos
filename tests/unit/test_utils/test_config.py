@@ -19,11 +19,19 @@ def test_get_env_value_prefers_os_env(monkeypatch) -> None:
 def test_get_env_value_uses_mapping_then_default(monkeypatch) -> None:
     monkeypatch.delenv("TEST_KEY", raising=False)
     assert (
-        get_env_value("TEST_KEY", {"TEST_KEY": "from_mapping"}, "default")
+        get_env_value(
+            "TEST_KEY",
+            {"TEST_KEY": "from_mapping"},
+            "default",
+        )
         == "from_mapping"
     )
     assert (
-        get_env_value("MISSING_KEY", {"TEST_KEY": "from_mapping"}, "default")
+        get_env_value(
+            "MISSING_KEY",
+            {"TEST_KEY": "from_mapping"},
+            "default",
+        )
         == "default"
     )
 
@@ -34,7 +42,11 @@ def test_normalize_host() -> None:
 
 
 def test_resolve_service_config_env_priority(monkeypatch) -> None:
-    defaults = ServiceConfig(host="localhost", port=8080, url="http://localhost:8080")
+    defaults = ServiceConfig(
+        host="localhost",
+        port=8080,
+        url="http://localhost:8080",
+    )
     monkeypatch.setenv("SERVICE_HOST", "env-host")
     monkeypatch.setenv("SERVICE_PORT", "9090")
     resolved = resolve_service_config(
@@ -49,7 +61,11 @@ def test_resolve_service_config_env_priority(monkeypatch) -> None:
 
 
 def test_resolve_service_config_normalizes_host(monkeypatch) -> None:
-    defaults = ServiceConfig(host="localhost", port=8080, url="http://localhost:8080")
+    defaults = ServiceConfig(
+        host="localhost",
+        port=8080,
+        url="http://localhost:8080",
+    )
     monkeypatch.delenv("SERVICE_HOST", raising=False)
     monkeypatch.delenv("SERVICE_PORT", raising=False)
     resolved = resolve_service_config(
