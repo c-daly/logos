@@ -33,6 +33,8 @@ defaults:
     MILVUS_HOST: milvus
     MILVUS_PORT: "{milvus_grpc_port}"
     MILVUS_HEALTHCHECK: "http://milvus:{milvus_metrics_port}/healthz"
+    SOPHIA_IMAGE_TAG: ml-latest
+    HERMES_IMAGE_TAG: ml-latest
 
 repos:
   # hermes: +10000 offset
