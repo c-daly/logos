@@ -8,7 +8,11 @@ from dataclasses import dataclass
 from logos_config import get_repo_ports
 
 from .config import ServiceConfig, get_env_value, resolve_service_config
-from .docker import is_container_running, resolve_container_name, wait_for_container_health
+from .docker import (
+    is_container_running,
+    resolve_container_name,
+    wait_for_container_health,
+)
 
 
 @dataclass(frozen=True)
@@ -36,11 +40,14 @@ def get_milvus_config(
         get_env_value("MILVUS_METRICS_PORT", values, str(ports.milvus_metrics))
         or ports.milvus_metrics
     )
-    healthcheck = get_env_value(
-        "MILVUS_HEALTHCHECK",
-        values,
-        f"http://{service.host}:{metrics_port}/healthz",
-    ) or f"http://{service.host}:{metrics_port}/healthz"
+    healthcheck = (
+        get_env_value(
+            "MILVUS_HEALTHCHECK",
+            values,
+            f"http://{service.host}:{metrics_port}/healthz",
+        )
+        or f"http://{service.host}:{metrics_port}/healthz"
+    )
     container = resolve_container_name(
         "MILVUS_CONTAINER",
         "logos-phase2-test-milvus",
