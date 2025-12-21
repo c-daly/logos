@@ -57,10 +57,10 @@ Services don't import each other's code—they communicate via HTTP/REST at runt
 ```yaml
 services:
   sophia:
-    image: ghcr.io/c-daly/sophia:latest
+    image: ghcr.io/c-daly/sophia:${SOPHIA_IMAGE_TAG:-latest}
     
   hermes:
-    image: ghcr.io/c-daly/hermes:latest
+    image: ghcr.io/c-daly/hermes:${HERMES_IMAGE_TAG:-latest}
     environment:
       - SOPHIA_URL=http://sophia:8000
     depends_on:
