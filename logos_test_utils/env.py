@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import os
 from collections.abc import Mapping
-from functools import cache
 from pathlib import Path
+
+from logos_config.env import get_repo_root as resolve_repo_root
+from logos_config.env import load_env_file
 
 
 def _default_env_path() -> Path:
@@ -17,7 +19,6 @@ def _default_env_path() -> Path:
     return candidate
 
 
-@cache
 def load_stack_env(env_path: str | Path | None = None) -> dict[str, str]:
     """Load the canonical stack environment (key/value pairs).
 
@@ -28,31 +29,7 @@ def load_stack_env(env_path: str | Path | None = None) -> dict[str, str]:
     """
 
     path = Path(env_path) if env_path else _default_env_path()
-    env: dict[str, str] = {}
-    if not path.exists():
-        return env
-
-    for raw_line in path.read_text().splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#"):
-            continue
-        key, _, value = line.partition("=")
-        env[key.strip()] = value.strip()
-    return env
-
-
-def get_env_value(
-    key: str,
-    env: Mapping[str, str] | None = None,
-    default: str | None = None,
-) -> str | None:
-    """Resolve an env var by checking OS env, stack env, then default."""
-
-    if key in os.environ:
-        return os.environ[key]
-    if env and key in env:
-        return env[key]
-    return default
+    return load_env_file(path)
 
 
 def get_repo_root(env: Mapping[str, str] | None = None) -> Path:
@@ -63,17 +40,4 @@ def get_repo_root(env: Mapping[str, str] | None = None) -> Path:
     2. GITHUB_WORKSPACE (set by GitHub Actions in CI).
     3. Fallback to parent of this package (works when running from source).
     """
-    env_value = get_env_value("LOGOS_REPO_ROOT", env)
-    if env_value:
-        candidate = Path(env_value).expanduser().resolve()
-        if candidate.exists():
-            return candidate
-
-    # GitHub Actions sets GITHUB_WORKSPACE to the repo checkout
-    github_workspace = os.getenv("GITHUB_WORKSPACE")
-    if github_workspace:
-        candidate = Path(github_workspace).resolve()
-        if candidate.exists():
-            return candidate
-
-    return Path(__file__).resolve().parents[1]
+    return resolve_repo_root("logos", env)
