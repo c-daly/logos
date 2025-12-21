@@ -47,6 +47,10 @@ on:
         description: 'Override tag (empty = auto from version/ref)'
         type: string
         default: ''
+      build_args:
+        description: 'Optional Docker build arguments (newline-delimited KEY=VALUE)'
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -132,6 +136,7 @@ jobs:
           platforms: ${{ inputs.platforms }}
           push: ${{ inputs.push }}
           tags: ${{ steps.tags.outputs.tags }}
+          build-args: ${{ inputs.build_args }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           labels: |
