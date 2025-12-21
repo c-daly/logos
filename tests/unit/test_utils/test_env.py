@@ -10,7 +10,7 @@ def test_load_stack_env_strips_quotes(tmp_path) -> None:
     env_file.write_text(
         "\n".join(
             [
-                "FOO=\"bar\"",
+                'FOO="bar"',
                 "BAZ='qux'",
                 "RAW=value",
                 "# comment",
