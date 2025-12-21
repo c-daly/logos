@@ -5,12 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import os
-from datetime import datetime, timezone
-
-try:
-    UTC = datetime.UTC
-except AttributeError:  # pragma: no cover - fallback for older runtimes
-    UTC = timezone.utc
+from datetime import UTC, datetime
 
 
 class StructuredFormatter(logging.Formatter):
