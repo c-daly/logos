@@ -5,7 +5,12 @@ from __future__ import annotations
 import json
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timezone
+
+try:
+    UTC = datetime.UTC
+except AttributeError:  # pragma: no cover - fallback for older runtimes
+    UTC = timezone.utc
 
 
 class StructuredFormatter(logging.Formatter):
@@ -13,7 +18,7 @@ class StructuredFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         payload = {
-            "timestamp": datetime.fromtimestamp(record.created, tz=datetime.UTC).isoformat(),
+            "timestamp": datetime.fromtimestamp(record.created, tz=UTC).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),
@@ -37,7 +42,7 @@ def setup_logging(
 ) -> logging.Logger:
     """Configure logging for a LOGOS service."""
 
-    log_level = level or os.getenv("LOG_LEVEL", "INFO")
+    log_level = level if level is not None else os.getenv("LOG_LEVEL", "INFO")
     if structured is None:
         structured = os.getenv("LOG_FORMAT", "json").lower() == "json"
 
