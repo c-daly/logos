@@ -18,8 +18,14 @@ def test_get_env_value_prefers_os_env(monkeypatch) -> None:
 
 def test_get_env_value_uses_mapping_then_default(monkeypatch) -> None:
     monkeypatch.delenv("TEST_KEY", raising=False)
-    assert get_env_value("TEST_KEY", {"TEST_KEY": "from_mapping"}, "default") == "from_mapping"
-    assert get_env_value("MISSING_KEY", {"TEST_KEY": "from_mapping"}, "default") == "default"
+    assert (
+        get_env_value("TEST_KEY", {"TEST_KEY": "from_mapping"}, "default")
+        == "from_mapping"
+    )
+    assert (
+        get_env_value("MISSING_KEY", {"TEST_KEY": "from_mapping"}, "default")
+        == "default"
+    )
 
 
 def test_normalize_host() -> None:
@@ -31,7 +37,12 @@ def test_resolve_service_config_env_priority(monkeypatch) -> None:
     defaults = ServiceConfig(host="localhost", port=8080, url="http://localhost:8080")
     monkeypatch.setenv("SERVICE_HOST", "env-host")
     monkeypatch.setenv("SERVICE_PORT", "9090")
-    resolved = resolve_service_config("SERVICE_HOST", "SERVICE_PORT", defaults, {"SERVICE_PORT": "7070"})
+    resolved = resolve_service_config(
+        "SERVICE_HOST",
+        "SERVICE_PORT",
+        defaults,
+        {"SERVICE_PORT": "7070"},
+    )
     assert resolved.host == "env-host"
     assert resolved.port == 9090
     assert resolved.url == "http://env-host:9090"
