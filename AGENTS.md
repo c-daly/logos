@@ -37,6 +37,41 @@ Key directories:
 - `README.md` – Project overview and getting started
 - `docs/TESTING_STANDARDS.md` – Ecosystem testing conventions
 - `docs/GIT_PROJECT_STANDARDS.md` – Git workflow and cross-repo patterns
+- `docs/standards/INTENT_FRAMEWORK.md` – Intent Framework for agent direction
+
+---
+
+## Intent Framework
+
+This repository uses the **Intent Framework** for providing consistent direction to AI agents across sessions and models. The framework is based on cascading direction artifacts (`INTENT.md` files).
+
+### Quick summary
+
+- **Direction artifacts** (`INTENT.md`) define what must not change
+- Files cascade from repo root → subsystem → feature (hard inheritance)
+- Local files may override parent invariants with explicit justification
+- Agents operate in **modes**: Explore, Propose, Execute, Critique, Reevaluate
+- **Reevaluation** is mandatory and confidence-driven
+
+### Key files
+
+| File | Purpose |
+|------|---------|
+| `/INTENT.md` | Root direction artifact (global invariants) |
+| `docs/standards/INTENT_FRAMEWORK.md` | Full framework specification |
+| `docs/templates/INTENT_FEATURE_TEMPLATE.md` | Template for feature-level intents |
+| `docs/templates/AGENT_MODE_GUARDS.md` | Mode guard prompt templates |
+| `docs/templates/CRITIC_OUTPUT_SCHEMA.md` | Critic output format |
+
+### Using the framework
+
+1. **Check for `INTENT.md`** files from your working directory up to repo root
+2. **All parent intents apply** — constraints accumulate
+3. **Create feature-level intents** for non-trivial tasks
+4. **Use mode guards** to bound agent behavior
+5. **Reevaluate** when triggers are met (step budget, assumption drift, etc.)
+
+See `docs/standards/INTENT_FRAMEWORK.md` for the complete specification.
 
 ---
 
