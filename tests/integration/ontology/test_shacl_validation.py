@@ -230,7 +230,7 @@ def test_valid_type_definition(shacl_shapes):
         data="""
         @prefix logos: <http://logos.ai/ontology#> .
         logos:type-robot a logos:Node ;
-            logos:uuid "type-robot" ;
+            logos:uuid "5e6f7a8b-9c0d-5e1f-2a3b-4c5d6e7f8a9b" ;
             logos:name "robot" ;
             logos:is_type_definition true ;
             logos:type "robot" ;
@@ -254,7 +254,7 @@ def test_valid_bootstrap_type(shacl_shapes):
         data="""
         @prefix logos: <http://logos.ai/ontology#> .
         logos:type-concept a logos:Node ;
-            logos:uuid "type-concept" ;
+            logos:uuid "f8b89a6c-9c3e-5e4d-b2f1-83a4d7e4c5f2" ;
             logos:name "concept" ;
             logos:is_type_definition true ;
             logos:type "concept" ;
@@ -279,7 +279,7 @@ def test_is_a_relationship_to_node(shacl_shapes):
         @prefix logos: <http://logos.ai/ontology#> .
 
         logos:type-entity a logos:Node ;
-            logos:uuid "type-entity" ;
+            logos:uuid "e003e45c-50bd-5e4b-85db-883756ecfcf7" ;
             logos:name "entity" ;
             logos:is_type_definition true ;
             logos:type "entity" ;

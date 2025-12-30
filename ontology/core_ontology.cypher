@@ -15,7 +15,7 @@ CREATE INDEX logos_node_type_name IF NOT EXISTS FOR (n:Node) ON (n.type, n.name)
 
 // === Bootstrap: type_definition (self-referential) ===
 // The meta-type that all type definitions inherit from
-MERGE (td:Node {uuid: "type-type_definition"})
+MERGE (td:Node {uuid: "c8d4bdc0-a619-5328-a410-a5fce1cec3c5"})
 SET td.name = "type_definition",
     td.is_type_definition = true,
     td.type = "type_definition",
@@ -24,35 +24,35 @@ MERGE (td)-[:IS_A]->(td);
 
 // === Bootstrap: edge_type ===
 // Type definition for relationship/edge types
-MERGE (et:Node {uuid: "type-edge_type"})
+MERGE (et:Node {uuid: "99c56c6a-9666-566f-b12a-5e05c4b00dab"})
 SET et.name = "edge_type",
     et.is_type_definition = true,
     et.type = "edge_type",
     et.ancestors = []
 WITH et
-MATCH (td:Node {uuid: "type-type_definition"})
+MATCH (td:Node {uuid: "c8d4bdc0-a619-5328-a410-a5fce1cec3c5"})
 MERGE (et)-[:IS_A]->(td);
 
 // === Bootstrap: thing ===
 // Root type for concrete/physical entities
-MERGE (th:Node {uuid: "type-thing"})
+MERGE (th:Node {uuid: "a1234567-89ab-5cde-f012-3456789abcde"})
 SET th.name = "thing",
     th.is_type_definition = true,
     th.type = "thing",
     th.ancestors = []
 WITH th
-MATCH (td:Node {uuid: "type-type_definition"})
+MATCH (td:Node {uuid: "c8d4bdc0-a619-5328-a410-a5fce1cec3c5"})
 MERGE (th)-[:IS_A]->(td);
 
 // === Bootstrap: concept ===
 // Root type for abstract/mental entities (facts, rules, abstractions are concepts)
-MERGE (co:Node {uuid: "type-concept"})
+MERGE (co:Node {uuid: "f8b89a6c-9c3e-5e4d-b2f1-83a4d7e4c5f2"})
 SET co.name = "concept",
     co.is_type_definition = true,
     co.type = "concept",
     co.ancestors = []
 WITH co
-MATCH (td:Node {uuid: "type-type_definition"})
+MATCH (td:Node {uuid: "c8d4bdc0-a619-5328-a410-a5fce1cec3c5"})
 MERGE (co)-[:IS_A]->(td);
 
 // === Bootstrap: IS_A edge type ===
@@ -63,7 +63,7 @@ SET isa.name = "IS_A",
     isa.type = "IS_A",
     isa.ancestors = ["edge_type"]
 WITH isa
-MATCH (et:Node {uuid: "type-edge_type"})
+MATCH (et:Node {uuid: "99c56c6a-9666-566f-b12a-5e05c4b00dab"})
 MERGE (isa)-[:IS_A]->(et);
 
 // === Node Structure ===

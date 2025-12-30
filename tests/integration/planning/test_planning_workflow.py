@@ -160,7 +160,10 @@ def test_test_data_has_process_concepts(test_data_cypher):
     They have 'process' in their ancestors list.
     """
     # Verify process type definition exists
-    assert "type-process" in test_data_cypher or "'process'" in test_data_cypher
+    assert (
+        "a62326cc-bd8b-5378-a428-9600eb3bafe8" in test_data_cypher
+        or "'process'" in test_data_cypher
+    )
     # Verify action subtypes exist (these have 'process' in ancestors)
     assert "moveaction" in test_data_cypher.lower() or "process_move" in test_data_cypher.lower()
 

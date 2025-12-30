@@ -8,21 +8,21 @@
 # ========== Bootstrap Types ==========
 
 logos:type-type_definition a logos:Node ;
-    logos:uuid "type-type_definition" ;
+    logos:uuid "c8d4bdc0-a619-5328-a410-a5fce1cec3c5" ;
     logos:name "type_definition" ;
     logos:is_type_definition true ;
     logos:type "type_definition" ;
     logos:ancestors () .
 
 logos:type-thing a logos:Node ;
-    logos:uuid "type-thing" ;
+    logos:uuid "a1234567-89ab-5cde-f012-3456789abcde" ;
     logos:name "thing" ;
     logos:is_type_definition true ;
     logos:type "thing" ;
     logos:ancestors () .
 
 logos:type-concept a logos:Node ;
-    logos:uuid "type-concept" ;
+    logos:uuid "f8b89a6c-9c3e-5e4d-b2f1-83a4d7e4c5f2" ;
     logos:name "concept" ;
     logos:is_type_definition true ;
     logos:type "concept" ;
@@ -32,7 +32,7 @@ logos:type-concept a logos:Node ;
 
 # entity IS_A thing
 logos:type-entity a logos:Node ;
-    logos:uuid "type-entity" ;
+    logos:uuid "e003e45c-50bd-5e4b-85db-883756ecfcf7" ;
     logos:name "entity" ;
     logos:is_type_definition true ;
     logos:type "entity" ;
@@ -40,7 +40,7 @@ logos:type-entity a logos:Node ;
 
 # state IS_A concept
 logos:type-state a logos:Node ;
-    logos:uuid "type-state" ;
+    logos:uuid "2dd3d0d8-569f-5132-b4a1-7ec30dc2d92b" ;
     logos:name "state" ;
     logos:is_type_definition true ;
     logos:type "state" ;
@@ -48,7 +48,7 @@ logos:type-state a logos:Node ;
 
 # process IS_A concept
 logos:type-process a logos:Node ;
-    logos:uuid "type-process" ;
+    logos:uuid "a62326cc-bd8b-5378-a428-9600eb3bafe8" ;
     logos:name "process" ;
     logos:is_type_definition true ;
     logos:type "process" ;
@@ -56,7 +56,7 @@ logos:type-process a logos:Node ;
 
 # robot_state IS_A state
 logos:type-robot_state a logos:Node ;
-    logos:uuid "type-robot_state" ;
+    logos:uuid "6f7a8b9c-0d1e-5f2a-3b4c-5d6e7f8a9b0c" ;
     logos:name "robot_state" ;
     logos:is_type_definition true ;
     logos:type "robot_state" ;

@@ -137,7 +137,7 @@ def test_node_round_trip(shapes_graph: Graph) -> None:
 
         # Type definition: robot (IS_A entity IS_A thing)
         logos:type-robot a logos:Node ;
-            logos:uuid "type-robot" ;
+            logos:uuid "5e6f7a8b-9c0d-5e1f-2a3b-4c5d6e7f8a9b" ;
             logos:name "robot" ;
             logos:is_type_definition true ;
             logos:type "robot" ;
@@ -146,7 +146,7 @@ def test_node_round_trip(shapes_graph: Graph) -> None:
 
         # Type definition: robot_state (IS_A state IS_A concept)
         logos:type-robot_state a logos:Node ;
-            logos:uuid "type-robot_state" ;
+            logos:uuid "6f7a8b9c-0d1e-5f2a-3b4c-5d6e7f8a9b0c" ;
             logos:name "robot_state" ;
             logos:is_type_definition true ;
             logos:type "robot_state" ;
@@ -189,7 +189,7 @@ def test_valid_bootstrap_types(shapes_graph: Graph) -> None:
 
         # Bootstrap type: concept
         logos:type-concept a logos:Node ;
-            logos:uuid "type-concept" ;
+            logos:uuid "f8b89a6c-9c3e-5e4d-b2f1-83a4d7e4c5f2" ;
             logos:name "concept" ;
             logos:is_type_definition true ;
             logos:type "concept" ;
@@ -197,7 +197,7 @@ def test_valid_bootstrap_types(shapes_graph: Graph) -> None:
 
         # Bootstrap type: thing
         logos:type-thing a logos:Node ;
-            logos:uuid "type-thing" ;
+            logos:uuid "a1234567-89ab-5cde-f012-3456789abcde" ;
             logos:name "thing" ;
             logos:is_type_definition true ;
             logos:type "thing" ;

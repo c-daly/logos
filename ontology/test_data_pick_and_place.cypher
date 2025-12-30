@@ -51,7 +51,7 @@
 // These are type definitions that instances will inherit from
 
 // Entity type (subtype of thing)
-MERGE (entity_type:Node {uuid: 'type-entity'})
+MERGE (entity_type:Node {uuid: 'e003e45c-50bd-5e4b-85db-883756ecfcf7'})
 ON CREATE SET
     entity_type.name = 'entity',
     entity_type.is_type_definition = true,
@@ -59,7 +59,7 @@ ON CREATE SET
     entity_type.ancestors = ['thing'];
 
 // Manipulator type (subtype of entity)
-MERGE (manip:Node {uuid: 'type-manipulator'})
+MERGE (manip:Node {uuid: '3bed753e-51ad-5f8f-bb3a-1f7dc39ae01c'})
 ON CREATE SET
     manip.name = 'Manipulator',
     manip.is_type_definition = true,
@@ -67,7 +67,7 @@ ON CREATE SET
     manip.ancestors = ['entity', 'thing'];
 
 // Gripper type (subtype of entity)
-MERGE (grip_type:Node {uuid: 'type-gripper'})
+MERGE (grip_type:Node {uuid: '4f753e84-47ef-5f42-a490-bc4dc4910dfb'})
 ON CREATE SET
     grip_type.name = 'Gripper',
     grip_type.is_type_definition = true,
@@ -75,7 +75,7 @@ ON CREATE SET
     grip_type.ancestors = ['entity', 'thing'];
 
 // Joint type (subtype of entity)
-MERGE (joint_type:Node {uuid: 'type-joint'})
+MERGE (joint_type:Node {uuid: '91f9e1a4-4b26-55f4-a174-a68afef6b1bd'})
 ON CREATE SET
     joint_type.name = 'Joint',
     joint_type.is_type_definition = true,
@@ -83,7 +83,7 @@ ON CREATE SET
     joint_type.ancestors = ['entity', 'thing'];
 
 // GraspableObject type (subtype of entity)
-MERGE (grasp_type:Node {uuid: 'type-graspable-object'})
+MERGE (grasp_type:Node {uuid: 'e970660c-a39d-5934-8e69-82b60b525faf'})
 ON CREATE SET
     grasp_type.name = 'GraspableObject',
     grasp_type.is_type_definition = true,
@@ -91,7 +91,7 @@ ON CREATE SET
     grasp_type.ancestors = ['entity', 'thing'];
 
 // Container type (subtype of entity)
-MERGE (cont_type:Node {uuid: 'type-container'})
+MERGE (cont_type:Node {uuid: '88398524-e7e4-5341-8eac-38234e032f2c'})
 ON CREATE SET
     cont_type.name = 'Container',
     cont_type.is_type_definition = true,
@@ -99,7 +99,7 @@ ON CREATE SET
     cont_type.ancestors = ['entity', 'thing'];
 
 // Surface type (subtype of entity)
-MERGE (surf_type:Node {uuid: 'type-surface'})
+MERGE (surf_type:Node {uuid: 'c6873cd9-2281-57ae-8e42-b352959526dc'})
 ON CREATE SET
     surf_type.name = 'Surface',
     surf_type.is_type_definition = true,
@@ -107,7 +107,7 @@ ON CREATE SET
     surf_type.ancestors = ['entity', 'thing'];
 
 // State type (subtype of concept) - if not already in bootstrap
-MERGE (state_type:Node {uuid: 'type-state'})
+MERGE (state_type:Node {uuid: '2dd3d0d8-569f-5132-b4a1-7ec30dc2d92b'})
 ON CREATE SET
     state_type.name = 'state',
     state_type.is_type_definition = true,
@@ -115,7 +115,7 @@ ON CREATE SET
     state_type.ancestors = ['concept'];
 
 // Process type (subtype of concept) - if not already in bootstrap
-MERGE (process_type:Node {uuid: 'type-process'})
+MERGE (process_type:Node {uuid: 'a62326cc-bd8b-5378-a428-9600eb3bafe8'})
 ON CREATE SET
     process_type.name = 'process',
     process_type.is_type_definition = true,
@@ -123,7 +123,7 @@ ON CREATE SET
     process_type.ancestors = ['concept'];
 
 // Capability type (subtype of concept)
-MERGE (cap_type:Node {uuid: 'type-capability'})
+MERGE (cap_type:Node {uuid: 'cb264b3b-bc01-511f-8326-596f88f20102'})
 ON CREATE SET
     cap_type.name = 'capability',
     cap_type.is_type_definition = true,
@@ -131,21 +131,21 @@ ON CREATE SET
     cap_type.ancestors = ['concept'];
 
 // State subtypes
-MERGE (positioned_type:Node {uuid: 'type-positioned-state'})
+MERGE (positioned_type:Node {uuid: '9fa024a3-2119-5e92-b809-2c175d807d49'})
 ON CREATE SET
     positioned_type.name = 'PositionedState',
     positioned_type.is_type_definition = true,
     positioned_type.type = 'PositionedState',
     positioned_type.ancestors = ['state', 'concept'];
 
-MERGE (free_type:Node {uuid: 'type-free-state'})
+MERGE (free_type:Node {uuid: '49aa09f5-7261-5d32-936e-3a03a1305199'})
 ON CREATE SET
     free_type.name = 'FreeState',
     free_type.is_type_definition = true,
     free_type.type = 'FreeState',
     free_type.ancestors = ['state', 'concept'];
 
-MERGE (grasped_type:Node {uuid: 'type-grasped-state'})
+MERGE (grasped_type:Node {uuid: '21f381d0-efc5-51e1-b2ca-3f66fb184785'})
 ON CREATE SET
     grasped_type.name = 'GraspedState',
     grasped_type.is_type_definition = true,
@@ -153,28 +153,28 @@ ON CREATE SET
     grasped_type.ancestors = ['state', 'concept'];
 
 // Process subtypes (actions)
-MERGE (move_type:Node {uuid: 'type-move-action'})
+MERGE (move_type:Node {uuid: '3cc680d2-4b5f-574f-9e03-4843487d1a7a'})
 ON CREATE SET
     move_type.name = 'MoveAction',
     move_type.is_type_definition = true,
     move_type.type = 'MoveAction',
     move_type.ancestors = ['process', 'concept'];
 
-MERGE (grasp_action_type:Node {uuid: 'type-grasp-action'})
+MERGE (grasp_action_type:Node {uuid: 'b238755d-e2a6-58f6-ae96-8f8dedacc493'})
 ON CREATE SET
     grasp_action_type.name = 'GraspAction',
     grasp_action_type.is_type_definition = true,
     grasp_action_type.type = 'GraspAction',
     grasp_action_type.ancestors = ['process', 'concept'];
 
-MERGE (release_type:Node {uuid: 'type-release-action'})
+MERGE (release_type:Node {uuid: 'efdec656-6ba2-598b-8121-4a6c6462fc2c'})
 ON CREATE SET
     release_type.name = 'ReleaseAction',
     release_type.is_type_definition = true,
     release_type.type = 'ReleaseAction',
     release_type.ancestors = ['process', 'concept'];
 
-MERGE (place_type:Node {uuid: 'type-place-action'})
+MERGE (place_type:Node {uuid: '3b48d857-90a4-5ac8-9f35-3c232b763931'})
 ON CREATE SET
     place_type.name = 'PlaceAction',
     place_type.is_type_definition = true,
@@ -318,35 +318,35 @@ ON CREATE SET
 
 // Robot components to their types
 MATCH (robot_arm:Node {uuid: 'c551e7ad-c12a-40bc-8c29-3a721fa311cb'})
-MATCH (manip:Node {uuid: 'type-manipulator'})
+MATCH (manip:Node {uuid: '3bed753e-51ad-5f8f-bb3a-1f7dc39ae01c'})
 MERGE (robot_arm)-[:IS_A]->(manip);
 
 MATCH (robot_gripper:Node {uuid: '47a157d3-1092-4069-9e39-4e80e6735342'})
-MATCH (grip_concept:Node {uuid: 'type-gripper'})
+MATCH (grip_concept:Node {uuid: '4f753e84-47ef-5f42-a490-bc4dc4910dfb'})
 MERGE (robot_gripper)-[:IS_A]->(grip_concept);
 
 MATCH (joint1:Node {uuid: '43117773-50b8-43fd-9d79-d10017674116'})
 MATCH (joint2:Node {uuid: '6a813f24-eca4-4df3-bc85-228c1d001ee8'})
 MATCH (joint3:Node {uuid: '543ccec9-4e43-4ad6-8b47-a5c1766c274f'})
-MATCH (joint_concept:Node {uuid: 'type-joint'})
+MATCH (joint_concept:Node {uuid: '91f9e1a4-4b26-55f4-a174-a68afef6b1bd'})
 MERGE (joint1)-[:IS_A]->(joint_concept)
 MERGE (joint2)-[:IS_A]->(joint_concept)
 MERGE (joint3)-[:IS_A]->(joint_concept);
 
 // Workspace components
 MATCH (table:Node {uuid: 'f4d97052-466f-4466-bfa7-8df1623969f9'})
-MATCH (surf:Node {uuid: 'type-surface'})
+MATCH (surf:Node {uuid: 'c6873cd9-2281-57ae-8e42-b352959526dc'})
 MERGE (table)-[:IS_A]->(surf);
 
 MATCH (bin:Node {uuid: '563e215e-3192-497c-8997-57fb9bba3922'})
-MATCH (cont:Node {uuid: 'type-container'})
+MATCH (cont:Node {uuid: '88398524-e7e4-5341-8eac-38234e032f2c'})
 MERGE (bin)-[:IS_A]->(cont);
 
 // Graspable objects
 MATCH (block_red:Node {uuid: '4338a6cc-c125-4531-ac3b-69eca0751aa0'})
 MATCH (block_blue:Node {uuid: 'ad892f3e-dd35-48fa-b3c8-4e8316e5fe7a'})
 MATCH (cylinder_green:Node {uuid: '6f69f9f9-50a7-40e3-b915-b95f31d9a00a'})
-MATCH (grasp:Node {uuid: 'type-graspable-object'})
+MATCH (grasp:Node {uuid: 'e970660c-a39d-5934-8e69-82b60b525faf'})
 MERGE (block_red)-[:IS_A]->(grasp)
 MERGE (block_blue)-[:IS_A]->(grasp)
 MERGE (cylinder_green)-[:IS_A]->(grasp);
@@ -411,7 +411,7 @@ MATCH (gripper_state_open:Node {uuid: 'a906bb2e-4609-449d-9c2b-503976ec48c5'})
 MERGE (robot_gripper)-[:HAS_STATE]->(gripper_state_open);
 
 MATCH (gripper_state_open2:Node {uuid: 'a906bb2e-4609-449d-9c2b-503976ec48c5'})
-MATCH (free:Node {uuid: 'type-free-state'})
+MATCH (free:Node {uuid: '49aa09f5-7261-5d32-936e-3a03a1305199'})
 MERGE (gripper_state_open2)-[:IS_A]->(free);
 
 // Red block state - on table (INITIAL/CURRENT state)
@@ -433,7 +433,7 @@ MATCH (block_red_state_01:Node {uuid: '0c6bf539-0214-4b9e-a212-3cc8c03de716'})
 MERGE (block_red)-[:HAS_STATE]->(block_red_state_01);
 
 MATCH (block_red_state_01_2:Node {uuid: '0c6bf539-0214-4b9e-a212-3cc8c03de716'})
-MATCH (positioned:Node {uuid: 'type-positioned-state'})
+MATCH (positioned:Node {uuid: '9fa024a3-2119-5e92-b809-2c175d807d49'})
 MERGE (block_red_state_01_2)-[:IS_A]->(positioned);
 
 // Blue block state - on table
@@ -570,7 +570,7 @@ ON CREATE SET
     process_move_pre.duration_ms = 2000;
 
 MATCH (process_move_pre:Node {uuid: '5bbb0f4b-a869-49dc-b61b-be2a1b6d8ebd'})
-MATCH (move_concept:Node {uuid: 'type-move-action'})
+MATCH (move_concept:Node {uuid: '3cc680d2-4b5f-574f-9e03-4843487d1a7a'})
 MERGE (process_move_pre)-[:IS_A]->(move_concept);
 
 // Requirements for move-to-pregrasp
@@ -601,7 +601,7 @@ ON CREATE SET
     process_grasp.duration_ms = 1500;
 
 MATCH (process_grasp:Node {uuid: '350e8968-647d-47b3-b2a5-54a6c828256c'})
-MATCH (grasp_concept:Node {uuid: 'type-grasp-action'})
+MATCH (grasp_concept:Node {uuid: 'b238755d-e2a6-58f6-ae96-8f8dedacc493'})
 MERGE (process_grasp)-[:IS_A]->(grasp_concept);
 
 // Requirements for grasp
@@ -636,7 +636,7 @@ ON CREATE SET
     process_move_place.duration_ms = 2500;
 
 MATCH (process_move_place:Node {uuid: '492d0005-972b-4b3c-9db4-a6e4cdd4b824'})
-MATCH (move_concept:Node {uuid: 'type-move-action'})
+MATCH (move_concept:Node {uuid: '3cc680d2-4b5f-574f-9e03-4843487d1a7a'})
 MERGE (process_move_place)-[:IS_A]->(move_concept);
 
 // Requirements for move-to-place
@@ -663,7 +663,7 @@ ON CREATE SET
     process_release.duration_ms = 1000;
 
 MATCH (process_release:Node {uuid: 'a843ccc0-c597-424a-a8e9-c5227f1af717'})
-MATCH (release_concept:Node {uuid: 'type-release-action'})
+MATCH (release_concept:Node {uuid: 'efdec656-6ba2-598b-8121-4a6c6462fc2c'})
 MERGE (process_release)-[:IS_A]->(release_concept);
 
 // Requirements for release
@@ -782,15 +782,15 @@ MERGE (process_release)-[:USES_CAPABILITY]->(cap_release);
 // These allow capability lookup via process type (Process -[:IS_A]-> Type <-[:IMPLEMENTS]- Capability)
 
 MATCH (cap_move:Node {uuid: '6e618722-6812-4c04-a828-add791c83a9b'})
-MATCH (move_concept:Node {uuid: 'type-move-action'})
+MATCH (move_concept:Node {uuid: '3cc680d2-4b5f-574f-9e03-4843487d1a7a'})
 MERGE (cap_move)-[:IMPLEMENTS]->(move_concept);
 
 MATCH (cap_grasp:Node {uuid: '96d8b91c-6fab-44ac-867f-81e397368b56'})
-MATCH (grasp_concept:Node {uuid: 'type-grasp-action'})
+MATCH (grasp_concept:Node {uuid: 'b238755d-e2a6-58f6-ae96-8f8dedacc493'})
 MERGE (cap_grasp)-[:IMPLEMENTS]->(grasp_concept);
 
 MATCH (cap_release:Node {uuid: 'ebee7aab-9cb8-4fa9-8491-ffb9f8490819'})
-MATCH (release_concept:Node {uuid: 'type-release-action'})
+MATCH (release_concept:Node {uuid: 'efdec656-6ba2-598b-8121-4a6c6462fc2c'})
 MERGE (cap_release)-[:IMPLEMENTS]->(release_concept);
 
 //// Summary: The Causal Chain for Pick-and-Place

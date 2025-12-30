@@ -262,7 +262,7 @@ class HCGLoader:
             # Create manipulator type (subtype of thing)
             """
             MATCH (thing:Node {name: 'thing'})
-            MERGE (m:Node {uuid: 'type-manipulator'})
+            MERGE (m:Node {uuid: '3bed753e-51ad-5f8f-bb3a-1f7dc39ae01c'})
             SET m.name = 'manipulator',
                 m.is_type_definition = true,
                 m.type = 'manipulator',
@@ -284,7 +284,7 @@ class HCGLoader:
             # Create 'state' type under concept
             """
             MATCH (concept:Node {name: 'concept'})
-            MERGE (s:Node {uuid: 'type-state'})
+            MERGE (s:Node {uuid: '2dd3d0d8-569f-5132-b4a1-7ec30dc2d92b'})
             SET s.name = 'state',
                 s.is_type_definition = true,
                 s.type = 'state',

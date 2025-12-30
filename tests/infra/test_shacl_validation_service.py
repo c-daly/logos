@@ -224,7 +224,7 @@ def test_validate_valid_type_definition(client):
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 logos:type-robot a logos:Node ;
-    logos:uuid "type-robot" ;
+    logos:uuid "5e6f7a8b-9c0d-5e1f-2a3b-4c5d6e7f8a9b" ;
     logos:name "robot" ;
     logos:is_type_definition true ;
     logos:type "robot" ;
@@ -246,7 +246,7 @@ def test_validate_bootstrap_type(client):
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
 logos:type-concept a logos:Node ;
-    logos:uuid "type-concept" ;
+    logos:uuid "f8b89a6c-9c3e-5e4d-b2f1-83a4d7e4c5f2" ;
     logos:name "concept" ;
     logos:is_type_definition true ;
     logos:type "concept" ;
