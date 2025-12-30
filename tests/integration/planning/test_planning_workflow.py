@@ -146,10 +146,16 @@ def test_causal_effects(plan_scenarios):
 
 
 def test_test_data_has_process_concepts(test_data_cypher):
-    """Test that pick-and-place test data includes process concepts."""
-    # Verify key process nodes are defined (using actual test data names)
-    assert ":Process" in test_data_cypher
-    assert "process_move" in test_data_cypher.lower() or "moveaction" in test_data_cypher.lower()
+    """Test that pick-and-place test data includes process concepts.
+
+    FLEXIBLE ONTOLOGY:
+    Process nodes use the :Node label with type='process' or subtypes like 'MoveAction'.
+    They have 'process' in their ancestors list.
+    """
+    # Verify process type definition exists
+    assert "type-process" in test_data_cypher or "'process'" in test_data_cypher
+    # Verify action subtypes exist (these have 'process' in ancestors)
+    assert "moveaction" in test_data_cypher.lower() or "process_move" in test_data_cypher.lower()
 
     print("✓ Process concepts found in test data")
 
