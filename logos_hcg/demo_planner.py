@@ -42,16 +42,20 @@ def seed_pick_and_place_data(client: HCGClient) -> dict:
 
     # Generate UUIDs
     uuids = {
+        # Type definitions
+        "entity_type": str(uuid4()),
+        "state_type": str(uuid4()),
+        "process_type": str(uuid4()),
+        # Category concepts
+        "graspable": str(uuid4()),
+        "container": str(uuid4()),
+        "surface": str(uuid4()),
         # Entities
         "robot_arm": str(uuid4()),
         "gripper": str(uuid4()),
         "red_block": str(uuid4()),
         "table": str(uuid4()),
         "bin": str(uuid4()),
-        # Concepts
-        "graspable": str(uuid4()),
-        "container": str(uuid4()),
-        "surface": str(uuid4()),
         # States
         "block_on_table": str(uuid4()),
         "gripper_at_block": str(uuid4()),
@@ -65,7 +69,71 @@ def seed_pick_and_place_data(client: HCGClient) -> dict:
         "release_block": str(uuid4()),
     }
 
-    # Create entities
+    # First, create the type definitions we need
+    # Entity type (under thing)
+    client._execute_query(
+        """
+        CREATE (t:Node {
+            uuid: $uuid,
+            name: 'entity',
+            is_type_definition: true,
+            type: 'entity',
+            ancestors: ['thing']
+        })
+        """,
+        {"uuid": uuids["entity_type"]},
+    )
+
+    # State type (under concept)
+    client._execute_query(
+        """
+        CREATE (t:Node {
+            uuid: $uuid,
+            name: 'state',
+            is_type_definition: true,
+            type: 'state',
+            ancestors: ['concept']
+        })
+        """,
+        {"uuid": uuids["state_type"]},
+    )
+
+    # Process type (under concept)
+    client._execute_query(
+        """
+        CREATE (t:Node {
+            uuid: $uuid,
+            name: 'process',
+            is_type_definition: true,
+            type: 'process',
+            ancestors: ['concept']
+        })
+        """,
+        {"uuid": uuids["process_type"]},
+    )
+
+    # Create category concepts (type definitions that classify things)
+    concepts = [
+        ("graspable", "Graspable", "Objects that can be grasped"),
+        ("container", "Container", "Objects that can contain others"),
+        ("surface", "Surface", "Flat surfaces for placing objects"),
+    ]
+    for key, name, desc in concepts:
+        client._execute_query(
+            """
+            CREATE (c:Node {
+                uuid: $uuid,
+                name: $name,
+                is_type_definition: true,
+                type: $name,
+                ancestors: ['concept'],
+                description: $desc
+            })
+            """,
+            {"uuid": uuids[key], "name": name.lower(), "desc": desc},
+        )
+
+    # Create entities (instances of entity type)
     entities = [
         ("robot_arm", "Robot Arm", "Panda robot arm"),
         ("gripper", "Gripper", "Parallel gripper"),
@@ -76,9 +144,12 @@ def seed_pick_and_place_data(client: HCGClient) -> dict:
     for key, name, desc in entities:
         client._execute_query(
             """
-            CREATE (e:Entity {
+            CREATE (e:Node {
                 uuid: $uuid,
                 name: $name,
+                is_type_definition: false,
+                type: 'entity',
+                ancestors: ['entity', 'thing'],
                 description: $desc,
                 created_at: datetime()
             })
@@ -86,39 +157,28 @@ def seed_pick_and_place_data(client: HCGClient) -> dict:
             {"uuid": uuids[key], "name": name, "desc": desc},
         )
 
-    # Create concepts
-    concepts = [
-        ("graspable", "Graspable", "Objects that can be grasped"),
-        ("container", "Container", "Objects that can contain others"),
-        ("surface", "Surface", "Flat surfaces for placing objects"),
-    ]
-    for key, name, desc in concepts:
+    # Link entities to their type
+    for key, _, _ in entities:
         client._execute_query(
-            """
-            CREATE (c:Concept {
-                uuid: $uuid,
-                name: $name,
-                description: $desc
-            })
-            """,
-            {"uuid": uuids[key], "name": name, "desc": desc},
+            "MATCH (e:Node {uuid: $e}), (t:Node {uuid: $t}) CREATE (e)-[:IS_A]->(t)",
+            {"e": uuids[key], "t": uuids["entity_type"]},
         )
 
-    # Link entities to concepts
+    # Link entities to category concepts
     client._execute_query(
-        "MATCH (e:Entity {uuid: $e}), (c:Concept {uuid: $c}) CREATE (e)-[:IS_A]->(c)",
+        "MATCH (e:Node {uuid: $e}), (c:Node {uuid: $c}) CREATE (e)-[:IS_A]->(c)",
         {"e": uuids["red_block"], "c": uuids["graspable"]},
     )
     client._execute_query(
-        "MATCH (e:Entity {uuid: $e}), (c:Concept {uuid: $c}) CREATE (e)-[:IS_A]->(c)",
+        "MATCH (e:Node {uuid: $e}), (c:Node {uuid: $c}) CREATE (e)-[:IS_A]->(c)",
         {"e": uuids["bin"], "c": uuids["container"]},
     )
     client._execute_query(
-        "MATCH (e:Entity {uuid: $e}), (c:Concept {uuid: $c}) CREATE (e)-[:IS_A]->(c)",
+        "MATCH (e:Node {uuid: $e}), (c:Node {uuid: $c}) CREATE (e)-[:IS_A]->(c)",
         {"e": uuids["table"], "c": uuids["surface"]},
     )
 
-    # Create states
+    # Create states (instances of state type)
     states: list[tuple[str, str, dict[str, object]]] = [
         ("block_on_table", "Block on table", {"location": "table", "grasped": False}),
         ("gripper_at_block", "Gripper at block", {"position": "block"}),
@@ -129,9 +189,12 @@ def seed_pick_and_place_data(client: HCGClient) -> dict:
     for key, name, props in states:
         client._execute_query(
             """
-            CREATE (s:State {
+            CREATE (s:Node {
                 uuid: $uuid,
                 name: $name,
+                is_type_definition: false,
+                type: 'state',
+                ancestors: ['state', 'concept'],
                 timestamp: datetime(),
                 location: $location,
                 grasped: $grasped,
@@ -147,13 +210,20 @@ def seed_pick_and_place_data(client: HCGClient) -> dict:
             },
         )
 
+    # Link states to their type
+    for key, _, _ in states:
+        client._execute_query(
+            "MATCH (s:Node {uuid: $s}), (t:Node {uuid: $t}) CREATE (s)-[:IS_A]->(t)",
+            {"s": uuids[key], "t": uuids["state_type"]},
+        )
+
     # Link block to its states
     client._execute_query(
-        "MATCH (e:Entity {uuid: $e}), (s:State {uuid: $s}) CREATE (e)-[:HAS_STATE]->(s)",
+        "MATCH (e:Node {uuid: $e}), (s:Node {uuid: $s}) CREATE (e)-[:HAS_STATE]->(s)",
         {"e": uuids["red_block"], "s": uuids["block_on_table"]},
     )
 
-    # Create processes
+    # Create processes (instances of process type)
     processes = [
         ("move_to_block", "Move to Block", "Move gripper to block position", 2000),
         ("grasp_block", "Grasp Block", "Close gripper on block", 1500),
@@ -163,15 +233,25 @@ def seed_pick_and_place_data(client: HCGClient) -> dict:
     for key, name, desc, duration in processes:
         client._execute_query(
             """
-            CREATE (p:Process {
+            CREATE (p:Node {
                 uuid: $uuid,
                 name: $name,
+                is_type_definition: false,
+                type: 'process',
+                ancestors: ['process', 'concept'],
                 description: $desc,
                 start_time: datetime(),
                 duration_ms: $duration
             })
             """,
             {"uuid": uuids[key], "name": name, "desc": desc, "duration": duration},
+        )
+
+    # Link processes to their type
+    for key, _, _, _ in processes:
+        client._execute_query(
+            "MATCH (p:Node {uuid: $p}), (t:Node {uuid: $t}) CREATE (p)-[:IS_A]->(t)",
+            {"p": uuids[key], "t": uuids["process_type"]},
         )
 
     # Create REQUIRES relationships (preconditions)
@@ -188,7 +268,7 @@ def seed_pick_and_place_data(client: HCGClient) -> dict:
     for proc_key, state_key in requires:
         client._execute_query(
             """
-            MATCH (p:Process {uuid: $p}), (s:State {uuid: $s})
+            MATCH (p:Node {uuid: $p}), (s:Node {uuid: $s})
             CREATE (p)-[:REQUIRES]->(s)
             """,
             {"p": uuids[proc_key], "s": uuids[state_key]},
@@ -208,7 +288,7 @@ def seed_pick_and_place_data(client: HCGClient) -> dict:
     for proc_key, state_key in causes:
         client._execute_query(
             """
-            MATCH (p:Process {uuid: $p}), (s:State {uuid: $s})
+            MATCH (p:Node {uuid: $p}), (s:Node {uuid: $s})
             CREATE (p)-[:CAUSES]->(s)
             """,
             {"p": uuids[proc_key], "s": uuids[state_key]},

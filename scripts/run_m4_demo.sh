@@ -160,17 +160,23 @@ run_e2e_script() {
 # Capture system metrics
 capture_system_metrics() {
     print_section "Capturing System Metrics"
-    
-    # Neo4j node counts
+
+    # Neo4j node counts by type property (flexible ontology)
     print_info "Counting Neo4j nodes..."
     docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
-        "MATCH (n) RETURN labels(n)[0] AS type, count(n) AS count ORDER BY type;" \
+        "MATCH (n:Node) RETURN n.type AS type, count(n) AS count ORDER BY type;" \
         > "${DEMO_RUN_DIR}/metrics/node_counts.txt" 2>&1
-    
-    local entity_count=$(grep "Entity" "${DEMO_RUN_DIR}/metrics/node_counts.txt" | awk '{print $3}' || echo "0")
-    local state_count=$(grep "State" "${DEMO_RUN_DIR}/metrics/node_counts.txt" | awk '{print $3}' || echo "0")
-    local process_count=$(grep "Process" "${DEMO_RUN_DIR}/metrics/node_counts.txt" | awk '{print $3}' || echo "0")
-    
+
+    # Count entities (things with 'thing' in ancestors)
+    local entity_count=$(docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
+        "MATCH (n:Node) WHERE 'thing' IN n.ancestors RETURN count(n) AS count;" 2>/dev/null | grep -oE '[0-9]+' | head -1 || echo "0")
+    # Count states
+    local state_count=$(docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
+        "MATCH (n:Node) WHERE n.type = 'state' OR 'state' IN n.ancestors RETURN count(n) AS count;" 2>/dev/null | grep -oE '[0-9]+' | head -1 || echo "0")
+    # Count processes
+    local process_count=$(docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
+        "MATCH (n:Node) WHERE n.type = 'process' OR 'process' IN n.ancestors RETURN count(n) AS count;" 2>/dev/null | grep -oE '[0-9]+' | head -1 || echo "0")
+
     print_success "Entities: ${entity_count}"
     print_success "States: ${state_count}"
     print_success "Processes: ${process_count}"
@@ -195,14 +201,14 @@ run_verification_queries() {
     
     local queries_dir="${DEMO_RUN_DIR}/queries"
     
-    # Query 1: Final block location
+    # Query 1: Final block location (flexible ontology)
     print_info "Query 1: Verify red block final location..."
     docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
-        "MATCH (block:Entity)-[:LOCATED_AT]->(bin:Entity)
-         WHERE block.name CONTAINS 'RedBlock'
+        "MATCH (block:Node)-[:LOCATED_AT]->(bin:Node)
+         WHERE 'thing' IN block.ancestors AND block.name CONTAINS 'RedBlock'
          RETURN block.name AS Object, bin.name AS Location;" \
         > "${queries_dir}/q1_final_location.txt" 2>&1
-    
+
     if grep -q "TargetBin\|Bin01" "${queries_dir}/q1_final_location.txt"; then
         print_success "✓ Block is in target bin"
         echo "PASS" > "${queries_dir}/q1_status.txt"
@@ -210,15 +216,16 @@ run_verification_queries() {
         print_error "✗ Block location verification failed"
         echo "FAIL" > "${queries_dir}/q1_status.txt"
     fi
-    
-    # Query 2: Plan execution order
+
+    # Query 2: Plan execution order (flexible ontology)
     print_info "Query 2: Verify plan execution order..."
     docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
-        "MATCH path = (start:Process)-[:PRECEDES*]->(end:Process)
-         WHERE NOT EXISTS((start)<-[:PRECEDES]-())
+        "MATCH path = (start:Node)-[:PRECEDES*]->(end:Node)
+         WHERE (start.type = 'process' OR 'process' IN start.ancestors)
+           AND NOT EXISTS((start)<-[:PRECEDES]-())
          RETURN [n in nodes(path) | n.name] AS sequence, length(path) AS steps;" \
         > "${queries_dir}/q2_plan_order.txt" 2>&1
-    
+
     if grep -q "3" "${queries_dir}/q2_plan_order.txt"; then
         print_success "✓ Plan has 4 steps with 3 PRECEDES links"
         echo "PASS" > "${queries_dir}/q2_status.txt"
@@ -226,17 +233,18 @@ run_verification_queries() {
         print_warn "⚠ Plan structure may be incomplete"
         echo "WARN" > "${queries_dir}/q2_status.txt"
     fi
-    
-    # Query 3: State history
+
+    # Query 3: State history (flexible ontology)
     print_info "Query 3: Check block state history..."
     docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
-        "MATCH (e:Entity)-[:HAS_STATE]->(s:State)
-         WHERE e.name CONTAINS 'RedBlock'
+        "MATCH (e:Node)-[:HAS_STATE]->(s:Node)
+         WHERE 'thing' IN e.ancestors AND e.name CONTAINS 'RedBlock'
+           AND (s.type = 'state' OR 'state' IN s.ancestors)
          RETURN s.name, s.description, s.timestamp
          ORDER BY s.timestamp DESC
          LIMIT 5;" \
         > "${queries_dir}/q3_state_history.txt" 2>&1
-    
+
     local state_count=$(grep -c "RedBlock" "${queries_dir}/q3_state_history.txt" || echo "0")
     if [ "$state_count" -ge 2 ]; then
         print_success "✓ Multiple states recorded (${state_count})"
@@ -245,15 +253,17 @@ run_verification_queries() {
         print_warn "⚠ Fewer states than expected"
         echo "WARN" > "${queries_dir}/q3_status.txt"
     fi
-    
-    # Query 4: Causal relationships
+
+    # Query 4: Causal relationships (flexible ontology)
     print_info "Query 4: Verify causal relationships..."
     docker exec logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest \
-        "MATCH (p:Process)-[:CAUSES]->(s:State)
+        "MATCH (p:Node)-[:CAUSES]->(s:Node)
+         WHERE (p.type = 'process' OR 'process' IN p.ancestors)
+           AND (s.type = 'state' OR 'state' IN s.ancestors)
          RETURN p.name AS Action, s.name AS ResultingState;" \
         > "${queries_dir}/q4_causal_links.txt" 2>&1
-    
-    local causal_count=$(grep -c "Process" "${queries_dir}/q4_causal_links.txt" || echo "0")
+
+    local causal_count=$(grep -c "." "${queries_dir}/q4_causal_links.txt" || echo "0")
     print_info "Found ${causal_count} causal relationships"
     echo "PASS" > "${queries_dir}/q4_status.txt"
     

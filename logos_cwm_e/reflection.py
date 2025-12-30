@@ -4,6 +4,12 @@ CWM-E reflection job for generating emotional/affective state tags.
 Analyzes persona entries, process outcomes, and HCG context to infer
 emotional states like "confident", "cautious", "curious" and tag them
 onto processes and entities.
+
+FLEXIBLE ONTOLOGY:
+EmotionState nodes use the :Node label with:
+- type: "emotion_state"
+- ancestors: ["concept"]
+- is_type_definition: false
 """
 
 import uuid
@@ -86,9 +92,14 @@ class CWMEReflector:
         timestamp = datetime.utcnow().isoformat()
 
         with self.driver.session() as session:
+            # Create emotion state using flexible ontology
             query = """
-            CREATE (es:EmotionState {
+            CREATE (es:Node {
                 uuid: $uuid,
+                name: $name,
+                is_type_definition: false,
+                type: 'emotion_state',
+                ancestors: ['concept'],
                 timestamp: $timestamp,
                 emotion_type: $emotion_type,
                 intensity: $intensity,
@@ -101,6 +112,7 @@ class CWMEReflector:
             result = session.run(
                 query,
                 uuid=emotion_uuid,
+                name=f"emotion-{emotion_type}-{emotion_uuid[:8]}",
                 timestamp=timestamp,
                 emotion_type=emotion_type,
                 intensity=intensity,
@@ -126,9 +138,12 @@ class CWMEReflector:
             process_uuid: UUID of the Process node
         """
         with self.driver.session() as session:
+            # Match using flexible ontology - emotion_state and process types
             query = """
-            MATCH (es:EmotionState {uuid: $emotion_uuid})
-            MATCH (p:Process {uuid: $process_uuid})
+            MATCH (es:Node {uuid: $emotion_uuid})
+            WHERE es.type = 'emotion_state'
+            MATCH (p:Node {uuid: $process_uuid})
+            WHERE p.type = 'process' OR 'process' IN p.ancestors
             MERGE (es)-[:TAGGED_ON]->(p)
             """
             session.run(query, emotion_uuid=emotion_uuid, process_uuid=process_uuid)
@@ -142,9 +157,12 @@ class CWMEReflector:
             entity_uuid: UUID of the Entity node
         """
         with self.driver.session() as session:
+            # Match using flexible ontology - entities have 'thing' in ancestors
             query = """
-            MATCH (es:EmotionState {uuid: $emotion_uuid})
-            MATCH (e:Entity {uuid: $entity_uuid})
+            MATCH (es:Node {uuid: $emotion_uuid})
+            WHERE es.type = 'emotion_state'
+            MATCH (e:Node {uuid: $entity_uuid})
+            WHERE 'thing' IN e.ancestors
             MERGE (es)-[:TAGGED_ON]->(e)
             """
             session.run(query, emotion_uuid=emotion_uuid, entity_uuid=entity_uuid)
@@ -164,9 +182,10 @@ class CWMEReflector:
             List of generated EmotionState objects
         """
         with self.driver.session() as session:
-            # Get recent persona entries
+            # Get recent persona entries using flexible ontology
             query = """
-            MATCH (pe:PersonaEntry)
+            MATCH (pe:Node)
+            WHERE pe.type = 'persona_entry'
             RETURN pe
             ORDER BY pe.timestamp DESC
             LIMIT $limit
@@ -236,9 +255,12 @@ class CWMEReflector:
     def _link_to_persona_entry(self, emotion_uuid: str, entry_uuid: str):
         """Create relationship between EmotionState and PersonaEntry."""
         with self.driver.session() as session:
+            # Match using flexible ontology types
             query = """
-            MATCH (es:EmotionState {uuid: $emotion_uuid})
-            MATCH (pe:PersonaEntry {uuid: $entry_uuid})
+            MATCH (es:Node {uuid: $emotion_uuid})
+            WHERE es.type = 'emotion_state'
+            MATCH (pe:Node {uuid: $entry_uuid})
+            WHERE pe.type = 'persona_entry'
             MERGE (es)-[:GENERATED_BY]->(pe)
             """
             session.run(query, emotion_uuid=emotion_uuid, entry_uuid=entry_uuid)
@@ -254,8 +276,11 @@ class CWMEReflector:
             List of EmotionState objects
         """
         with self.driver.session() as session:
+            # Match using flexible ontology types
             query = """
-            MATCH (es:EmotionState)-[:TAGGED_ON]->(p:Process {uuid: $process_uuid})
+            MATCH (es:Node)-[:TAGGED_ON]->(p:Node {uuid: $process_uuid})
+            WHERE es.type = 'emotion_state'
+              AND (p.type = 'process' OR 'process' IN p.ancestors)
             RETURN es
             ORDER BY es.timestamp DESC
             """
@@ -288,8 +313,11 @@ class CWMEReflector:
             List of EmotionState objects
         """
         with self.driver.session() as session:
+            # Match using flexible ontology - entities have 'thing' in ancestors
             query = """
-            MATCH (es:EmotionState)-[:TAGGED_ON]->(e:Entity {uuid: $entity_uuid})
+            MATCH (es:Node)-[:TAGGED_ON]->(e:Node {uuid: $entity_uuid})
+            WHERE es.type = 'emotion_state'
+              AND 'thing' IN e.ancestors
             RETURN es
             ORDER BY es.timestamp DESC
             """
