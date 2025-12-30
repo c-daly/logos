@@ -96,11 +96,10 @@ jobs:
       
       - name: Validate ontology syntax
         run: |
-          # Check that the Cypher file is valid syntax
-          grep -q "CREATE CONSTRAINT logos_perception_frame_uuid" ontology/core_ontology.cypher
-          grep -q "CREATE CONSTRAINT logos_imagined_process_uuid" ontology/core_ontology.cypher
-          grep -q "CREATE CONSTRAINT logos_imagined_state_uuid" ontology/core_ontology.cypher
-          echo "✅ Perception node constraints found in ontology"
+          # Check that the Cypher file has the flexible ontology constraint
+          # All nodes (including perception nodes) use the unified Node label
+          grep -q "CREATE CONSTRAINT logos_node_uuid" ontology/core_ontology.cypher
+          echo "✅ Node constraint found in ontology (flexible ontology)"
       
       - name: Validate SHACL shapes
         run: |
