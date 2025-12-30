@@ -866,15 +866,37 @@ class HCGClient:
         query = HCGQueries.count_nodes_by_type()
         records = self._execute_read(query)
 
-        if not records:
-            return {
-                "entity_count": 0,
-                "concept_count": 0,
-                "state_count": 0,
-                "process_count": 0,
-            }
+        # Initialize counts
+        counts = {
+            "entity_count": 0,
+            "concept_count": 0,
+            "state_count": 0,
+            "process_count": 0,
+        }
 
-        return dict(records[0])
+        if not records:
+            return counts
+
+        # Aggregate counts from all records
+        for record in records:
+            type_name = record.get("type", "")
+            count = record.get("count", 0)
+            # Map type names to expected keys (checking type or ancestors)
+            if type_name == "entity" or type_name in ("thing",):
+                counts["entity_count"] += count
+            elif type_name == "concept":
+                counts["concept_count"] += count
+            elif type_name == "state" or type_name == "robot_state":
+                counts["state_count"] += count
+            elif type_name == "process":
+                counts["process_count"] += count
+            else:
+                # Check if it's a subtype by looking at common patterns
+                # Types that extend entity/thing go to entity_count
+                # Types that extend concept go to concept_count
+                pass  # Unknown types are not counted in the standard buckets
+
+        return counts
 
     def verify_connection(self) -> bool:
         """
