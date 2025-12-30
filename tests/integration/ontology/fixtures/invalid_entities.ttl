@@ -1,137 +1,60 @@
-@prefix logos: <http://logos.ontology/> .
+@prefix logos: <http://logos.ai/ontology#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-# ========== Invalid Basic Nodes ==========
+# ========== Invalid Flexible Ontology Test Data ==========
+# Nodes that violate SHACL NodeShape constraints
+# See docs/plans/2025-12-30-flexible-ontology-design.md
 
-# Invalid entity - missing UUID
-logos:entity-missing-uuid a logos:Entity ;
-    logos:name "MissingUUID" .
+# ========== Missing Required Properties ==========
 
-# Invalid entity - wrong UUID format (should start with "entity-")
-logos:entity-wrong-prefix a logos:Entity ;
-    logos:uuid "wrong-prefix-001" ;
-    logos:name "WrongPrefix" .
+# Invalid - missing uuid
+logos:node-missing-uuid a logos:Node ;
+    logos:name "MissingUUID" ;
+    logos:is_type_definition false ;
+    logos:type "entity" ;
+    logos:ancestors ("entity" "thing") .
 
-# Invalid concept - missing required name field
-logos:concept-missing-name a logos:Concept ;
-    logos:uuid "concept-no-name" .
+# Invalid - missing name
+logos:node-missing-name a logos:Node ;
+    logos:uuid "node-missing-name" ;
+    logos:is_type_definition false ;
+    logos:type "entity" ;
+    logos:ancestors ("entity" "thing") .
 
-# Invalid state - missing required timestamp
-logos:state-missing-timestamp a logos:State ;
-    logos:uuid "state-no-timestamp" ;
-    logos:name "MissingTimestamp" .
+# Invalid - missing is_type_definition
+logos:node-missing-is-type-def a logos:Node ;
+    logos:uuid "node-missing-is-type-def" ;
+    logos:name "MissingIsTypeDef" ;
+    logos:type "entity" ;
+    logos:ancestors ("entity" "thing") .
 
-# Invalid process - wrong UUID format
-logos:process-wrong-uuid a logos:Process ;
-    logos:uuid "invalid-uuid-format" ;
-    logos:name "WrongUUID" ;
-    logos:start_time "2025-11-17T00:00:00Z"^^xsd:dateTime .
+# Invalid - missing type
+logos:node-missing-type a logos:Node ;
+    logos:uuid "node-missing-type" ;
+    logos:name "MissingType" ;
+    logos:is_type_definition false ;
+    logos:ancestors ("entity" "thing") .
 
-# ========== Invalid Spatial Properties ==========
+# Invalid - missing ancestors
+logos:node-missing-ancestors a logos:Node ;
+    logos:uuid "node-missing-ancestors" ;
+    logos:name "MissingAncestors" ;
+    logos:is_type_definition false ;
+    logos:type "entity" .
 
-# Invalid entity - negative width
-logos:entity-negative-width a logos:Entity ;
-    logos:uuid "entity-negative-width" ;
-    logos:name "NegativeWidth" ;
-    logos:width -0.5 .
+# ========== Multiple Missing Properties ==========
 
-# Invalid entity - negative mass
-logos:entity-negative-mass a logos:Entity ;
-    logos:uuid "entity-negative-mass" ;
-    logos:name "NegativeMass" ;
-    logos:mass -1.0 .
+# Invalid - missing multiple required properties
+logos:node-multiple-missing a logos:Node ;
+    logos:name "MultipleMissing" .
 
-# Invalid entity - negative radius
-logos:entity-negative-radius a logos:Entity ;
-    logos:uuid "entity-negative-radius" ;
-    logos:name "NegativeRadius" ;
-    logos:radius -0.1 .
+# ========== Invalid IS_A Relationship ==========
 
-# ========== Invalid Joint Properties ==========
-
-# Invalid joint - wrong joint type
-logos:entity-invalid-joint a logos:Entity ;
-    logos:uuid "entity-invalid-joint" ;
-    logos:name "InvalidJoint" ;
-    logos:joint_type "invalid_type" .
-
-# ========== Invalid Gripper Properties ==========
-
-# Invalid gripper - negative max_grasp_width
-logos:entity-invalid-gripper a logos:Entity ;
-    logos:uuid "entity-invalid-gripper" ;
-    logos:name "InvalidGripper" ;
-    logos:max_grasp_width -0.05 .
-
-# Invalid gripper - negative max_force
-logos:entity-invalid-gripper2 a logos:Entity ;
-    logos:uuid "entity-invalid-gripper2" ;
-    logos:name "InvalidGripper2" ;
-    logos:max_force -10.0 .
-
-# ========== Invalid Relationships ==========
-
-# Invalid IS_A - pointing to non-Concept
-logos:entity-invalid-isa a logos:Entity ;
-    logos:uuid "entity-invalid-isa" ;
+# IS_A target should be a Node (this tests relationship constraint)
+logos:node-invalid-isa a logos:Node ;
+    logos:uuid "node-invalid-isa" ;
     logos:name "InvalidIsA" ;
-    logos:IS_A logos:entity-valid-target .
-
-logos:entity-valid-target a logos:Entity ;
-    logos:uuid "entity-valid-target" ;
-    logos:name "ValidTarget" .
-
-# Invalid HAS_STATE - pointing to non-State
-logos:entity-invalid-hasstate a logos:Entity ;
-    logos:uuid "entity-invalid-hasstate" ;
-    logos:name "InvalidHasState" ;
-    logos:HAS_STATE logos:entity-valid-target .
-
-# Invalid CAUSES - pointing to non-State
-logos:process-invalid-causes a logos:Process ;
-    logos:uuid "process-invalid-causes" ;
-    logos:name "InvalidCauses" ;
-    logos:start_time "2025-11-17T00:00:00Z"^^xsd:dateTime ;
-    logos:CAUSES logos:entity-valid-target .
-
-# Invalid PART_OF - pointing to non-Entity (using a Concept)
-logos:concept-for-invalid a logos:Concept ;
-    logos:uuid "concept-for-invalid" ;
-    logos:name "ConceptForInvalid" .
-
-logos:entity-invalid-partof a logos:Entity ;
-    logos:uuid "entity-invalid-partof" ;
-    logos:name "InvalidPartOf" ;
-    logos:PART_OF logos:concept-for-invalid .
-
-# Invalid LOCATED_AT - pointing to non-Entity
-logos:entity-invalid-locatedat a logos:Entity ;
-    logos:uuid "entity-invalid-locatedat" ;
-    logos:name "InvalidLocatedAt" ;
-    logos:LOCATED_AT logos:concept-for-invalid .
-
-# Invalid ATTACHED_TO - pointing to non-Entity
-logos:entity-invalid-attachedto a logos:Entity ;
-    logos:uuid "entity-invalid-attachedto" ;
-    logos:name "InvalidAttachedTo" ;
-    logos:ATTACHED_TO logos:concept-for-invalid .
-
-# Invalid PRECEDES - State pointing to non-State
-logos:state-invalid-precedes a logos:State ;
-    logos:uuid "state-invalid-precedes" ;
-    logos:name "InvalidPrecedes" ;
-    logos:timestamp "2025-11-17T00:00:00Z"^^xsd:dateTime ;
-    logos:PRECEDES logos:entity-valid-target .
-
-# Invalid REQUIRES - Process pointing to non-State
-logos:process-invalid-requires a logos:Process ;
-    logos:uuid "process-invalid-requires" ;
-    logos:name "InvalidRequires" ;
-    logos:start_time "2025-11-17T00:00:00Z"^^xsd:dateTime ;
-    logos:REQUIRES logos:entity-valid-target .
-
-# Invalid CAN_PERFORM - Entity pointing to non-Concept
-logos:entity-invalid-canperform a logos:Entity ;
-    logos:uuid "entity-invalid-canperform" ;
-    logos:name "InvalidCanPerform" ;
-    logos:CAN_PERFORM logos:entity-valid-target .
+    logos:is_type_definition false ;
+    logos:type "entity" ;
+    logos:ancestors ("entity" "thing") ;
+    logos:IS_A "not-a-node" .

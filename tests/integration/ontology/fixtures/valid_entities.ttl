@@ -1,143 +1,164 @@
-@prefix logos: <http://logos.ontology/> .
+@prefix logos: <http://logos.ai/ontology#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-# ========== Basic Node Types ==========
+# ========== Flexible Ontology Test Data ==========
+# All nodes use logos:Node with type/ancestors properties
+# See docs/plans/2025-12-30-flexible-ontology-design.md
 
-# Valid entity with all required fields
-logos:entity-valid-001 a logos:Entity ;
-    logos:uuid "entity-valid-001" ;
+# ========== Bootstrap Types ==========
+
+logos:type-type_definition a logos:Node ;
+    logos:uuid "type-type_definition" ;
+    logos:name "type_definition" ;
+    logos:is_type_definition true ;
+    logos:type "type_definition" ;
+    logos:ancestors () .
+
+logos:type-thing a logos:Node ;
+    logos:uuid "type-thing" ;
+    logos:name "thing" ;
+    logos:is_type_definition true ;
+    logos:type "thing" ;
+    logos:ancestors () .
+
+logos:type-concept a logos:Node ;
+    logos:uuid "type-concept" ;
+    logos:name "concept" ;
+    logos:is_type_definition true ;
+    logos:type "concept" ;
+    logos:ancestors () .
+
+# ========== Custom Type Definitions ==========
+
+# entity IS_A thing
+logos:type-entity a logos:Node ;
+    logos:uuid "type-entity" ;
+    logos:name "entity" ;
+    logos:is_type_definition true ;
+    logos:type "entity" ;
+    logos:ancestors ("thing") .
+
+# state IS_A concept
+logos:type-state a logos:Node ;
+    logos:uuid "type-state" ;
+    logos:name "state" ;
+    logos:is_type_definition true ;
+    logos:type "state" ;
+    logos:ancestors ("concept") .
+
+# process IS_A concept
+logos:type-process a logos:Node ;
+    logos:uuid "type-process" ;
+    logos:name "process" ;
+    logos:is_type_definition true ;
+    logos:type "process" ;
+    logos:ancestors ("concept") .
+
+# robot_state IS_A state
+logos:type-robot_state a logos:Node ;
+    logos:uuid "type-robot_state" ;
+    logos:name "robot_state" ;
+    logos:is_type_definition true ;
+    logos:type "robot_state" ;
+    logos:ancestors ("state" "concept") .
+
+# ========== Instances ==========
+
+# Valid entity instance
+logos:instance-entity-001 a logos:Node ;
+    logos:uuid "instance-entity-001" ;
     logos:name "ValidTestEntity" ;
-    logos:description "A valid test entity" ;
-    logos:created_at "2025-11-17T00:00:00Z"^^xsd:dateTime .
+    logos:is_type_definition false ;
+    logos:type "entity" ;
+    logos:ancestors ("entity" "thing") ;
+    logos:description "A valid test entity" .
 
-# Valid concept
-logos:concept-valid-001 a logos:Concept ;
-    logos:uuid "concept-valid-001" ;
+# Valid concept instance
+logos:instance-concept-001 a logos:Node ;
+    logos:uuid "instance-concept-001" ;
     logos:name "ValidConcept" ;
+    logos:is_type_definition false ;
+    logos:type "concept" ;
+    logos:ancestors ("concept") ;
     logos:description "A valid test concept" .
 
-# Valid state with timestamp
-logos:state-valid-001 a logos:State ;
-    logos:uuid "state-valid-001" ;
+# Valid state instance
+logos:instance-state-001 a logos:Node ;
+    logos:uuid "instance-state-001" ;
     logos:name "ValidState" ;
+    logos:is_type_definition false ;
+    logos:type "state" ;
+    logos:ancestors ("state" "concept") ;
     logos:timestamp "2025-11-17T00:00:00Z"^^xsd:dateTime .
 
-# Valid process
-logos:process-valid-001 a logos:Process ;
-    logos:uuid "process-valid-001" ;
+# Valid process instance
+logos:instance-process-001 a logos:Node ;
+    logos:uuid "instance-process-001" ;
     logos:name "ValidProcess" ;
+    logos:is_type_definition false ;
+    logos:type "process" ;
+    logos:ancestors ("process" "concept") ;
     logos:start_time "2025-11-17T00:00:00Z"^^xsd:dateTime ;
     logos:duration_ms 1000 .
 
-# ========== Entities with Spatial Properties ==========
+# ========== Instances with Domain Properties ==========
 
-logos:entity-spatial-001 a logos:Entity ;
-    logos:uuid "entity-spatial-001" ;
+# Entity with spatial properties
+logos:instance-spatial-001 a logos:Node ;
+    logos:uuid "instance-spatial-001" ;
     logos:name "SpatialEntity" ;
+    logos:is_type_definition false ;
+    logos:type "entity" ;
+    logos:ancestors ("entity" "thing") ;
     logos:width 0.5 ;
     logos:height 0.3 ;
     logos:depth 0.2 ;
     logos:mass 1.5 .
 
-logos:entity-cylindrical-001 a logos:Entity ;
-    logos:uuid "entity-cylindrical-001" ;
-    logos:name "CylindricalEntity" ;
-    logos:radius 0.05 ;
-    logos:height 0.1 ;
-    logos:mass 0.2 .
-
-# ========== State with Spatial Properties ==========
-
-logos:state-spatial-001 a logos:State ;
-    logos:uuid "state-spatial-001" ;
+# State with position properties
+logos:instance-state-spatial a logos:Node ;
+    logos:uuid "instance-state-spatial" ;
     logos:name "SpatialState" ;
+    logos:is_type_definition false ;
+    logos:type "robot_state" ;
+    logos:ancestors ("robot_state" "state" "concept") ;
     logos:timestamp "2025-11-17T01:00:00Z"^^xsd:dateTime ;
     logos:position_x 1.5 ;
     logos:position_y 0.0 ;
-    logos:position_z 0.5 ;
-    logos:orientation_roll 0.0 ;
-    logos:orientation_pitch 0.0 ;
-    logos:orientation_yaw 1.57 .
+    logos:position_z 0.5 .
 
-# ========== Entities with Gripper Properties ==========
-
-logos:entity-gripper-001 a logos:Entity ;
-    logos:uuid "entity-gripper-001" ;
-    logos:name "TestGripper" ;
-    logos:max_grasp_width 0.08 ;
-    logos:max_force 50.0 .
-
-# ========== Entities with Joint Properties ==========
-
-logos:entity-joint-001 a logos:Entity ;
-    logos:uuid "entity-joint-001" ;
+# Entity with joint properties
+logos:instance-joint-001 a logos:Node ;
+    logos:uuid "instance-joint-001" ;
     logos:name "RevoluteJoint" ;
+    logos:is_type_definition false ;
+    logos:type "entity" ;
+    logos:ancestors ("entity" "thing") ;
     logos:joint_type "revolute" ;
     logos:min_angle -3.14 ;
     logos:max_angle 3.14 .
 
-logos:entity-joint-002 a logos:Entity ;
-    logos:uuid "entity-joint-002" ;
-    logos:name "PrismaticJoint" ;
-    logos:joint_type "prismatic" .
+# ========== Relationships ==========
 
-# ========== Valid Relationships ==========
+logos:instance-parent a logos:Node ;
+    logos:uuid "instance-parent" ;
+    logos:name "ParentEntity" ;
+    logos:is_type_definition false ;
+    logos:type "entity" ;
+    logos:ancestors ("entity" "thing") .
 
-# Additional entities for relationship tests
-logos:entity-parent a logos:Entity ;
-    logos:uuid "entity-parent" ;
-    logos:name "ParentEntity" .
-
-logos:entity-child a logos:Entity ;
-    logos:uuid "entity-child" ;
+logos:instance-child a logos:Node ;
+    logos:uuid "instance-child" ;
     logos:name "ChildEntity" ;
-    logos:PART_OF logos:entity-parent .
+    logos:is_type_definition false ;
+    logos:type "entity" ;
+    logos:ancestors ("entity" "thing") ;
+    logos:PART_OF logos:instance-parent .
 
-logos:entity-location a logos:Entity ;
-    logos:uuid "entity-location" ;
-    logos:name "LocationEntity" .
-
-logos:entity-object a logos:Entity ;
-    logos:uuid "entity-object" ;
-    logos:name "ObjectEntity" ;
-    logos:LOCATED_AT logos:entity-location .
-
-logos:entity-base a logos:Entity ;
-    logos:uuid "entity-base" ;
-    logos:name "BaseEntity" .
-
-logos:entity-attached a logos:Entity ;
-    logos:uuid "entity-attached" ;
-    logos:name "AttachedEntity" ;
-    logos:ATTACHED_TO logos:entity-base .
-
-logos:entity-capable a logos:Entity ;
-    logos:uuid "entity-capable" ;
-    logos:name "CapableEntity" ;
-    logos:IS_A logos:concept-valid-001 ;
-    logos:CAN_PERFORM logos:concept-valid-001 .
-
-logos:entity-with-state a logos:Entity ;
-    logos:uuid "entity-with-state" ;
+logos:instance-with-state a logos:Node ;
+    logos:uuid "instance-with-state" ;
     logos:name "EntityWithState" ;
-    logos:HAS_STATE logos:state-valid-001 .
-
-# States with temporal ordering
-logos:state-first a logos:State ;
-    logos:uuid "state-first" ;
-    logos:name "FirstState" ;
-    logos:timestamp "2025-11-17T02:00:00Z"^^xsd:dateTime .
-
-logos:state-second a logos:State ;
-    logos:uuid "state-second" ;
-    logos:name "SecondState" ;
-    logos:timestamp "2025-11-17T02:01:00Z"^^xsd:dateTime ;
-    logos:PRECEDES logos:state-first .
-
-# Process with relationships
-logos:process-with-relations a logos:Process ;
-    logos:uuid "process-with-relations" ;
-    logos:name "ProcessWithRelations" ;
-    logos:start_time "2025-11-17T03:00:00Z"^^xsd:dateTime ;
-    logos:REQUIRES logos:state-first ;
-    logos:CAUSES logos:state-second .
+    logos:is_type_definition false ;
+    logos:type "entity" ;
+    logos:ancestors ("entity" "thing") ;
+    logos:HAS_STATE logos:instance-state-001 .
