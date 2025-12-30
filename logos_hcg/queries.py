@@ -383,6 +383,51 @@ class HCGQueries:
         """
 
     @staticmethod
+    def get_entity_type() -> str:
+        """
+        Get the concept type of an entity via IS_A relationship.
+
+        Parameters:
+        - entity_uuid: Entity UUID (string format)
+
+        Returns: Concept node (as 'c')
+        """
+        return """
+        MATCH (e:Node {uuid: $entity_uuid})-[:IS_A]->(c:Node)
+        RETURN c
+        """
+
+    @staticmethod
+    def get_entity_parts() -> str:
+        """
+        Get all parts of an entity via PART_OF relationship.
+
+        Parameters:
+        - entity_uuid: Entity UUID (string format)
+
+        Returns: List of part Entity nodes
+        """
+        return """
+        MATCH (part:Node)-[:PART_OF]->(e:Node {uuid: $entity_uuid})
+        RETURN part
+        """
+
+    @staticmethod
+    def get_entity_parent() -> str:
+        """
+        Get the parent entity via PART_OF relationship.
+
+        Parameters:
+        - entity_uuid: Entity UUID (string format)
+
+        Returns: Parent Entity node (as 'whole')
+        """
+        return """
+        MATCH (e:Node {uuid: $entity_uuid})-[:PART_OF]->(whole:Node)
+        RETURN whole
+        """
+
+    @staticmethod
     def get_entity_states() -> str:
         """
         Get all states of an entity via HAS_STATE relationship.
@@ -443,6 +488,178 @@ class HCGQueries:
         return """
         MATCH (p:Node {uuid: $process_uuid})-[:CAUSES]->(s:Node)
         RETURN s
+        """
+
+    # Aliases for backward compatibility with client.py
+    @staticmethod
+    def get_process_causes() -> str:
+        """Alias for get_process_effects()."""
+        return """
+        MATCH (p:Node {uuid: $process_uuid})-[:CAUSES]->(s:Node)
+        RETURN s
+        """
+
+    @staticmethod
+    def get_process_requirements() -> str:
+        """Alias for get_process_preconditions()."""
+        return """
+        MATCH (p:Node {uuid: $process_uuid})-[:REQUIRES]->(s:Node)
+        RETURN s
+        """
+
+    @staticmethod
+    def find_current_state_for_entity() -> str:
+        """Alias for get_entity_current_state()."""
+        return """
+        MATCH (e:Node {uuid: $entity_uuid})-[:HAS_STATE]->(s:Node)
+        RETURN s
+        ORDER BY s.timestamp DESC
+        LIMIT 1
+        """
+
+    # ========== Causality Traversal Queries ==========
+
+    @staticmethod
+    def traverse_causality_forward(max_depth: int = 10) -> str:
+        """
+        Traverse causality chain forward from a state.
+
+        Parameters:
+        - state_uuid: Starting State UUID
+        - max_depth: Maximum traversal depth (passed as function arg)
+
+        Returns: Processes and resulting states with depth
+        """
+        return f"""
+        MATCH (start:Node {{uuid: $state_uuid}})
+        MATCH path = (start)<-[:REQUIRES]-(p:Node)-[:CAUSES]->(result:Node)
+        WHERE length(path) <= {max_depth * 2}
+        RETURN p, result, length(path)/2 as depth
+        ORDER BY depth
+        """
+
+    @staticmethod
+    def traverse_causality_backward(max_depth: int = 10) -> str:
+        """
+        Traverse causality chain backward from a state.
+
+        Parameters:
+        - state_uuid: Target State UUID
+        - max_depth: Maximum traversal depth (passed as function arg)
+
+        Returns: Causing states and processes with depth
+        """
+        return f"""
+        MATCH (target:Node {{uuid: $state_uuid}})
+        MATCH path = (cause:Node)<-[:REQUIRES]-(p:Node)-[:CAUSES]->(target)
+        WHERE length(path) <= {max_depth * 2}
+        RETURN cause, p, length(path)/2 as depth
+        ORDER BY depth
+        """
+
+    # ========== Planning Queries ==========
+
+    @staticmethod
+    def find_processes_causing_state() -> str:
+        """
+        Find all processes that CAUSE a specific state.
+
+        Parameters:
+        - state_uuid: Target State UUID
+
+        Returns: List of Process nodes that cause this state
+        """
+        return """
+        MATCH (p:Node)-[:CAUSES]->(s:Node {uuid: $state_uuid})
+        WHERE p.type = "process" OR "process" IN p.ancestors
+        RETURN p
+        """
+
+    @staticmethod
+    def find_processes_by_effect_properties() -> str:
+        """
+        Find processes that cause states matching property criteria.
+
+        Parameters:
+        - property_key: Name of the state property to match
+        - property_value: Value to match
+
+        Returns: Process and State nodes
+        """
+        return """
+        MATCH (p:Node)-[:CAUSES]->(s:Node)
+        WHERE (p.type = "process" OR "process" IN p.ancestors)
+          AND s[$property_key] = $property_value
+        RETURN p, s
+        """
+
+    @staticmethod
+    def find_processes_for_entity_state() -> str:
+        """
+        Find processes that cause states for a specific entity.
+
+        Parameters:
+        - entity_uuid: Entity UUID
+
+        Returns: Process and State nodes
+        """
+        return """
+        MATCH (e:Node {uuid: $entity_uuid})-[:HAS_STATE]->(s:Node)
+        MATCH (p:Node)-[:CAUSES]->(s)
+        WHERE p.type = "process" OR "process" IN p.ancestors
+        RETURN p, s
+        """
+
+    # ========== Capability Queries ==========
+
+    @staticmethod
+    def find_capability_by_uuid() -> str:
+        """
+        Find a capability by its UUID.
+
+        Parameters:
+        - uuid: Capability UUID
+
+        Returns: Capability node (as 'c')
+        """
+        return """
+        MATCH (c:Node {uuid: $uuid})
+        WHERE c.type = "capability" OR "capability" IN c.ancestors
+        RETURN c
+        """
+
+    @staticmethod
+    def find_capability_for_process() -> str:
+        """
+        Find the capability that can execute a process.
+
+        Parameters:
+        - process_uuid: Process UUID
+
+        Returns: Capability node
+        """
+        return """
+        MATCH (p:Node {uuid: $process_uuid})
+        OPTIONAL MATCH (p)-[:USES_CAPABILITY]->(capability:Node)
+        RETURN capability
+        """
+
+    @staticmethod
+    def check_state_satisfied() -> str:
+        """
+        Check if a state with given properties exists for an entity.
+
+        Parameters:
+        - entity_uuid: Entity UUID
+        - property_key: State property to check
+        - property_value: Expected value
+
+        Returns: Boolean 'satisfied' indicating if matching state exists
+        """
+        return """
+        MATCH (e:Node {uuid: $entity_uuid})-[:HAS_STATE]->(s:Node)
+        WHERE s[$property_key] = $property_value
+        RETURN count(s) > 0 as satisfied
         """
 
     # ========== Create Queries ==========
