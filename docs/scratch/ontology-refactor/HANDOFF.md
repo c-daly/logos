@@ -1,67 +1,92 @@
-# Session Handoff - 2025-12-30 (Updated)
+# Session Handoff - 2025-12-31
 
 ## Current Task
-Fixing CI failures for flexible ontology migration on branch `feature/logos458-flexible-ontology`.
+CWM (Causal World Model) persistence implementation complete. Ready for SDK regeneration when needed.
 
 ## Status
-- Phase: Implementation complete, CI should be passing
-- Progress: All identified issues fixed and pushed
-- Blockers: None known
-
-## Branch
-`feature/logos458-flexible-ontology` @ `896ba49`
+- Phase: CWM persistence implemented
+- Progress: GET /cwm endpoint added to Sophia, persistence layer complete
+- Blockers: None
 
 ## What Was Done This Session
 
-### 1. Neo4j/n10s Compatibility Fix
-- Changed Neo4j from 5.14.0 to 5.11.0
-- n10s 5.14.1 called Enterprise-only procedure `dbms.licenseAgreementDetails`
-- Neo4j 5.11.0 auto-downloads compatible n10s 5.11.0.0
+### CWM Persistence Implementation
 
-### 2. Turtle Syntax Fixes
-- RDF lists use whitespace, not commas: `("a", "b")` → `("a" "b")`
-- Fixed in: `valid_entities.ttl`, `invalid_entities.ttl`, and inline TTL in test files
+1. **`sophia/src/sophia/cwm/persistence.py`** - Refactored to:
+   - Reuse existing `CWMState` model from `cwm_a.state_service` (no duplication)
+   - `persist()` - Writes CWMState envelope to Neo4j using flexible ontology
+   - `find_states()` - Queries Neo4j with type/timestamp/limit filters
+   - Added proper type annotations
 
-### 3. CI Workflow Updates
-- `phase2-perception.yml`: Check for `logos_node_uuid` constraint (not old type-specific ones)
-- `phase2-perception.yml`: Check for `NodeShape`/`IsARelationshipShape` (not `PerceptionFrameShape` etc.)
+2. **`sophia/src/sophia/cwm/__init__.py`** - Simplified exports to `CWMPersistence` only
 
-### 4. Skipped M3 Planning Tests
-- Added `pytestmark = pytest.mark.skip()` to `test_planning_workflow.py`
-- Reason: Tests reference old type-label ontology structure
+3. **`logos/logos_hcg/queries.py`** - Updated `create_cwm_state()`:
+   - Added `links` field for CWMStateLinks serialization
+   - Added `tags` field for state tagging
 
-### 5. Added Missing HCGQueries Methods
-Added 14 methods to `logos_hcg/queries.py`:
-- `get_entity_type`, `get_entity_parts`, `get_entity_parent`
-- `traverse_causality_forward`, `traverse_causality_backward`
-- `get_process_causes`, `get_process_requirements`
-- `find_processes_causing_state`, `find_processes_by_effect_properties`
-- `find_processes_for_entity_state`
-- `find_capability_by_uuid`, `find_capability_for_process`
-- `find_current_state_for_entity`, `check_state_satisfied`
+4. **`sophia/src/sophia/api/app.py`** - Added:
+   - Import and initialization of `CWMPersistence` in lifespan
+   - **New endpoint `GET /cwm`** for querying persisted states
 
-## Key Files Modified This Session
-- `infra/test_stack/repos.yaml` - neo4j_version: 5.11.0
-- `tests/e2e/stack/logos/docker-compose.test.yml` - neo4j image
-- `tests/integration/ontology/fixtures/*.ttl` - Turtle syntax
-- `tests/integration/planning/test_planning_workflow.py` - skipped
-- `.github/workflows/phase2-perception.yml` - updated validations
-- `logos_hcg/queries.py` - added missing methods
+### New Endpoint: GET /cwm
 
-## Commits This Session
-1. `3caa96e` - Fix Neo4j/n10s compatibility and Turtle syntax in tests
-2. `7792d6c` - Update CI workflow for flexible ontology constraint
-3. `d204908` - Update CI workflow and tests for flexible ontology
-4. `816ef7e` - Skip M3 planning tests pending flexible ontology update
-5. `213f952` - Update CI SHACL validation for flexible ontology
-6. `896ba49` - Add missing HCGQueries methods for flexible ontology
+Query parameters:
+- `types` - Comma-separated CWM types (cwm_a, cwm_g, cwm_e)
+- `after_timestamp` - ISO timestamp filter
+- `limit` - Max results (1-100, default 20)
+
+Purpose: Hermes can query historical cognitive states for LLM context.
+
+### Architecture
+
+```
+Sophia API
+├── /state/cwm - In-memory CWM-A history (ephemeral)
+└── /cwm - Neo4j persisted states (long-term) ← NEW
+         ↓
+    CWMPersistence
+         ↓
+    Neo4j (via HCGQueries.create_cwm_state / find_cwm_states)
+```
+
+## Branch
+`feature/logos458-flexible-ontology`
+
+## Key Files Modified
+- `sophia/src/sophia/cwm/persistence.py`
+- `sophia/src/sophia/cwm/__init__.py`
+- `sophia/src/sophia/api/app.py`
+- `logos/logos_hcg/queries.py`
+
+## Previous Session Work (2025-12-30)
+
+### Ticket Consolidation
+- Closed #408, #393 (superseded/merged)
+- Created sub-issues #460-#465 under #458
+
+### Neo4j/n10s Compatibility
+- Changed Neo4j 5.14.0 → 5.11.0 for n10s compatibility
+
+### HCGQueries Methods
+Added 14 methods for flexible ontology support.
 
 ## Next Steps
-1. Monitor CI to confirm all checks pass
-2. If CI passes, PR is ready for review
-3. Future: Update M3 planning tests for flexible ontology (currently skipped)
+1. SDK regeneration when API changes finalized
+2. **#462** - Update pick-and-place test data
+3. **#460** - Update sophia planner queries
+4. **#463** - Validate M4 demo end-to-end
+5. **#464** - Un-skip and fix M3 planning tests
+
+## Open Design Questions
+
+### Ephemeral nodes and session boundaries
+- Ephemeral CWM nodes need real graph relationships to persisted nodes
+- Current in-memory model breaks when edges to Neo4j nodes are needed
+- Proposed: Write ephemeral to Neo4j with `status: ephemeral`, cleanup on "session end"
+- **Undefined**: What constitutes a "session"? (process lifetime, conversation boundary, time-based, explicit ID?)
+- Consider: Unified `/cwm` endpoint that shows both ephemeral and persisted states
 
 ## Notes
-- No Claude attribution in commit messages
-- Capability catalog tests (24 failures) not a concern - no capabilities yet
-- Linting: always run `ruff check --fix`, `ruff format`, `black` before commits
+- CWM = Causal World Model (not Continuous Working Memory)
+- Status values: `observed`, `imagined`, `reflected`, `ephemeral` (provenance)
+- CWM-A is the only subsystem with real implementation; CWM-G is stub, CWM-E doesn't exist yet
