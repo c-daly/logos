@@ -1,92 +1,58 @@
 # Session Handoff - 2025-12-31
 
-## Current Task
-CWM (Causal World Model) persistence implementation complete. Ready for SDK regeneration when needed.
+## Current State
 
-## Status
-- Phase: CWM persistence implemented
-- Progress: GET /cwm endpoint added to Sophia, persistence layer complete
-- Blockers: None
+### Open PRs
+| Repo | PR | Branch | Status |
+|------|-----|--------|--------|
+| sophia | #100 | `docs/logos456-claude-md` | Waiting on CI (CLAUDE.md only) |
+| sophia | #102 | `feature/sophia14-cwm-persistence` | Review comment fixed, ready |
+| logos | #466 | `feature/cwm-persistence-queries` | Open, needs review |
 
-## What Was Done This Session
+### Merge Order
+1. logos #466 (CWM queries) - sophia depends on this
+2. sophia #102 (CWM persistence)
+3. sophia #100 (CLAUDE.md) - independent
+
+## Work Completed This Session
 
 ### CWM Persistence Implementation
+- **sophia**: `CWMPersistence` class, `GET /cwm` endpoint
+- **logos**: `create_cwm_state()`, `find_cwm_states()` in HCGQueries
+- Fixed timestamp validation (RFC3339 "Z" suffix, 422 on errors)
 
-1. **`sophia/src/sophia/cwm/persistence.py`** - Refactored to:
-   - Reuse existing `CWMState` model from `cwm_a.state_service` (no duplication)
-   - `persist()` - Writes CWMState envelope to Neo4j using flexible ontology
-   - `find_states()` - Queries Neo4j with type/timestamp/limit filters
-   - Added proper type annotations
+### Branch Cleanup
+- Separated CWM work from CLAUDE.md branch (was incorrectly combined)
+- Reset `docs/logos456-claude-md` to only have CLAUDE.md commit
+- Created `feature/sophia14-cwm-persistence` for CWM work
 
-2. **`sophia/src/sophia/cwm/__init__.py`** - Simplified exports to `CWMPersistence` only
+## Pending Work
 
-3. **`logos/logos_hcg/queries.py`** - Updated `create_cwm_state()`:
-   - Added `links` field for CWMStateLinks serialization
-   - Added `tags` field for state tagging
+### Ticket #74 - Sophia Standardization
+**Status**: Not started (previous attempt was messy, abandoned)
 
-4. **`sophia/src/sophia/api/app.py`** - Added:
-   - Import and initialization of `CWMPersistence` in lifespan
-   - **New endpoint `GET /cwm`** for querying persisted states
+Needs fresh implementation on new branch from main:
+1. Add `setup_logging("sophia")` from logos_test_utils
+2. Add RequestIDMiddleware
+3. Add `/api/v1/` route aliases
 
-### New Endpoint: GET /cwm
+### Open Design Questions
+See sophia #101: Ephemeral nodes need real graph relationships. "Session" concept undefined.
 
-Query parameters:
-- `types` - Comma-separated CWM types (cwm_a, cwm_g, cwm_e)
-- `after_timestamp` - ISO timestamp filter
-- `limit` - Max results (1-100, default 20)
+## Lessons Learned
+- Always create feature branches for new work
+- Never push unrelated commits to existing PRs
+- Check branch state before starting new work
 
-Purpose: Hermes can query historical cognitive states for LLM context.
+## Key Files
+- `sophia/src/sophia/cwm/persistence.py` - CWMPersistence class
+- `sophia/src/sophia/api/app.py` - GET /cwm endpoint
+- `logos/logos_hcg/queries.py` - CWM state queries
 
-### Architecture
-
+## Commands to Resume #74
+```bash
+cd /home/fearsidhe/projects/LOGOS/sophia
+git checkout main && git pull
+git checkout -b feature/sophia74-standardization
+# Then implement: setup_logging, RequestIDMiddleware, /api/v1/ routes
 ```
-Sophia API
-├── /state/cwm - In-memory CWM-A history (ephemeral)
-└── /cwm - Neo4j persisted states (long-term) ← NEW
-         ↓
-    CWMPersistence
-         ↓
-    Neo4j (via HCGQueries.create_cwm_state / find_cwm_states)
-```
-
-## Branch
-`feature/logos458-flexible-ontology`
-
-## Key Files Modified
-- `sophia/src/sophia/cwm/persistence.py`
-- `sophia/src/sophia/cwm/__init__.py`
-- `sophia/src/sophia/api/app.py`
-- `logos/logos_hcg/queries.py`
-
-## Previous Session Work (2025-12-30)
-
-### Ticket Consolidation
-- Closed #408, #393 (superseded/merged)
-- Created sub-issues #460-#465 under #458
-
-### Neo4j/n10s Compatibility
-- Changed Neo4j 5.14.0 → 5.11.0 for n10s compatibility
-
-### HCGQueries Methods
-Added 14 methods for flexible ontology support.
-
-## Next Steps
-1. SDK regeneration when API changes finalized
-2. **#462** - Update pick-and-place test data
-3. **#460** - Update sophia planner queries
-4. **#463** - Validate M4 demo end-to-end
-5. **#464** - Un-skip and fix M3 planning tests
-
-## Open Design Questions
-
-### Ephemeral nodes and session boundaries
-- Ephemeral CWM nodes need real graph relationships to persisted nodes
-- Current in-memory model breaks when edges to Neo4j nodes are needed
-- Proposed: Write ephemeral to Neo4j with `status: ephemeral`, cleanup on "session end"
-- **Undefined**: What constitutes a "session"? (process lifetime, conversation boundary, time-based, explicit ID?)
-- Consider: Unified `/cwm` endpoint that shows both ephemeral and persisted states
-
-## Notes
-- CWM = Causal World Model (not Continuous Working Memory)
-- Status values: `observed`, `imagined`, `reflected`, `ephemeral` (provenance)
-- CWM-A is the only subsystem with real implementation; CWM-G is stub, CWM-E doesn't exist yet
