@@ -1,67 +1,58 @@
-# Session Handoff - 2025-12-30 (Updated)
+# Session Handoff - 2025-12-31
 
-## Current Task
-Fixing CI failures for flexible ontology migration on branch `feature/logos458-flexible-ontology`.
+## Current State
 
-## Status
-- Phase: Implementation complete, CI should be passing
-- Progress: All identified issues fixed and pushed
-- Blockers: None known
+### Open PRs
+| Repo | PR | Branch | Status |
+|------|-----|--------|--------|
+| sophia | #100 | `docs/logos456-claude-md` | Waiting on CI (CLAUDE.md only) |
+| sophia | #102 | `feature/sophia14-cwm-persistence` | Review comment fixed, ready |
+| logos | #466 | `feature/cwm-persistence-queries` | Open, needs review |
 
-## Branch
-`feature/logos458-flexible-ontology` @ `896ba49`
+### Merge Order
+1. logos #466 (CWM queries) - sophia depends on this
+2. sophia #102 (CWM persistence)
+3. sophia #100 (CLAUDE.md) - independent
 
-## What Was Done This Session
+## Work Completed This Session
 
-### 1. Neo4j/n10s Compatibility Fix
-- Changed Neo4j from 5.14.0 to 5.11.0
-- n10s 5.14.1 called Enterprise-only procedure `dbms.licenseAgreementDetails`
-- Neo4j 5.11.0 auto-downloads compatible n10s 5.11.0.0
+### CWM Persistence Implementation
+- **sophia**: `CWMPersistence` class, `GET /cwm` endpoint
+- **logos**: `create_cwm_state()`, `find_cwm_states()` in HCGQueries
+- Fixed timestamp validation (RFC3339 "Z" suffix, 422 on errors)
 
-### 2. Turtle Syntax Fixes
-- RDF lists use whitespace, not commas: `("a", "b")` → `("a" "b")`
-- Fixed in: `valid_entities.ttl`, `invalid_entities.ttl`, and inline TTL in test files
+### Branch Cleanup
+- Separated CWM work from CLAUDE.md branch (was incorrectly combined)
+- Reset `docs/logos456-claude-md` to only have CLAUDE.md commit
+- Created `feature/sophia14-cwm-persistence` for CWM work
 
-### 3. CI Workflow Updates
-- `phase2-perception.yml`: Check for `logos_node_uuid` constraint (not old type-specific ones)
-- `phase2-perception.yml`: Check for `NodeShape`/`IsARelationshipShape` (not `PerceptionFrameShape` etc.)
+## Pending Work
 
-### 4. Skipped M3 Planning Tests
-- Added `pytestmark = pytest.mark.skip()` to `test_planning_workflow.py`
-- Reason: Tests reference old type-label ontology structure
+### Ticket #74 - Sophia Standardization
+**Status**: Not started (previous attempt was messy, abandoned)
 
-### 5. Added Missing HCGQueries Methods
-Added 14 methods to `logos_hcg/queries.py`:
-- `get_entity_type`, `get_entity_parts`, `get_entity_parent`
-- `traverse_causality_forward`, `traverse_causality_backward`
-- `get_process_causes`, `get_process_requirements`
-- `find_processes_causing_state`, `find_processes_by_effect_properties`
-- `find_processes_for_entity_state`
-- `find_capability_by_uuid`, `find_capability_for_process`
-- `find_current_state_for_entity`, `check_state_satisfied`
+Needs fresh implementation on new branch from main:
+1. Add `setup_logging("sophia")` from logos_test_utils
+2. Add RequestIDMiddleware
+3. Add `/api/v1/` route aliases
 
-## Key Files Modified This Session
-- `infra/test_stack/repos.yaml` - neo4j_version: 5.11.0
-- `tests/e2e/stack/logos/docker-compose.test.yml` - neo4j image
-- `tests/integration/ontology/fixtures/*.ttl` - Turtle syntax
-- `tests/integration/planning/test_planning_workflow.py` - skipped
-- `.github/workflows/phase2-perception.yml` - updated validations
-- `logos_hcg/queries.py` - added missing methods
+### Open Design Questions
+See sophia #101: Ephemeral nodes need real graph relationships. "Session" concept undefined.
 
-## Commits This Session
-1. `3caa96e` - Fix Neo4j/n10s compatibility and Turtle syntax in tests
-2. `7792d6c` - Update CI workflow for flexible ontology constraint
-3. `d204908` - Update CI workflow and tests for flexible ontology
-4. `816ef7e` - Skip M3 planning tests pending flexible ontology update
-5. `213f952` - Update CI SHACL validation for flexible ontology
-6. `896ba49` - Add missing HCGQueries methods for flexible ontology
+## Lessons Learned
+- Always create feature branches for new work
+- Never push unrelated commits to existing PRs
+- Check branch state before starting new work
 
-## Next Steps
-1. Monitor CI to confirm all checks pass
-2. If CI passes, PR is ready for review
-3. Future: Update M3 planning tests for flexible ontology (currently skipped)
+## Key Files
+- `sophia/src/sophia/cwm/persistence.py` - CWMPersistence class
+- `sophia/src/sophia/api/app.py` - GET /cwm endpoint
+- `logos/logos_hcg/queries.py` - CWM state queries
 
-## Notes
-- No Claude attribution in commit messages
-- Capability catalog tests (24 failures) not a concern - no capabilities yet
-- Linting: always run `ruff check --fix`, `ruff format`, `black` before commits
+## Commands to Resume #74
+```bash
+cd /home/fearsidhe/projects/LOGOS/sophia
+git checkout main && git pull
+git checkout -b feature/sophia74-standardization
+# Then implement: setup_logging, RequestIDMiddleware, /api/v1/ routes
+```

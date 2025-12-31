@@ -797,6 +797,71 @@ class HCGQueries:
         RETURN p
         """
 
+    @staticmethod
+    def create_cwm_state() -> str:
+        """
+        Create a new CWM state entry.
+
+        Parameters:
+        - uuid: State UUID (state_id format: cwm_<type>_<uuid>)
+        - name: State name (typically auto-generated)
+        - type: CWM type ("cwm_a", "cwm_g", or "cwm_e")
+        - ancestors: List of ancestor types (e.g., ["cwm", "cognition"])
+        - timestamp: ISO timestamp
+        - source: Origin subsystem (e.g., "planner", "jepa", "reflection")
+        - confidence: Confidence score 0.0-1.0
+        - status: Provenance status ("observed", "imagined", "reflected", "ephemeral")
+        - payload: JSON string with type-specific data
+        - links: JSON string with related entity references
+        - tags: List of free-form labels for filtering
+        - embedding_id: Optional reference to Milvus embedding
+        - embedding_type: Optional embedding model type
+
+        Returns: Created CWM state node
+        """
+        return """
+        CREATE (s:Node {
+            uuid: $uuid,
+            name: $name,
+            is_type_definition: false,
+            type: $type,
+            ancestors: $ancestors,
+            timestamp: datetime($timestamp),
+            source: $source,
+            confidence: $confidence,
+            status: $status,
+            payload: $payload,
+            links: $links,
+            tags: $tags,
+            embedding_id: $embedding_id,
+            embedding_type: $embedding_type
+        })
+        RETURN s
+        """
+
+    @staticmethod
+    def find_cwm_states() -> str:
+        """
+        Find CWM states with optional filters.
+
+        Parameters:
+        - types: List of CWM types to include (["cwm_a", "cwm_g", "cwm_e"])
+        - after_timestamp: Optional ISO timestamp to filter after
+        - limit: Max results to return
+
+        Returns: List of CWM state nodes ordered by timestamp desc
+        """
+        return """
+        MATCH (s:Node)
+        WHERE s.type IN $types
+          AND (s.type = "cwm_a" OR s.type = "cwm_g" OR s.type = "cwm_e"
+               OR "cwm" IN s.ancestors)
+          AND ($after_timestamp IS NULL OR s.timestamp > datetime($after_timestamp))
+        RETURN s
+        ORDER BY s.timestamp DESC
+        LIMIT $limit
+        """
+
     # ========== Link Queries ==========
 
     @staticmethod
