@@ -1,8 +1,14 @@
 """
 Persona diary writer and query functionality.
 
-Stores persona entries as HCG nodes (:PersonaEntry) that capture
-summaries, sentiments, and related process information.
+Stores persona entries as HCG nodes that capture summaries, sentiments,
+and related process information.
+
+FLEXIBLE ONTOLOGY:
+PersonaEntry nodes use the :Node label with:
+- type: "persona_entry"
+- ancestors: ["concept"]
+- is_type_definition: false
 """
 
 import uuid
@@ -47,7 +53,7 @@ class PersonaDiary:
     """
     Manages persona diary entries in the HCG.
 
-    Writes entries to Neo4j as (:PersonaEntry) nodes and provides
+    Writes entries to Neo4j as (:Node {type: "persona_entry"}) nodes and provides
     query methods for client surfaces (Apollo or others) to retrieve relevant context.
     """
 
@@ -81,9 +87,14 @@ class PersonaDiary:
         timestamp = datetime.utcnow().isoformat()
 
         with self.driver.session() as session:
+            # Create persona entry using flexible ontology
             query = """
-            CREATE (pe:PersonaEntry {
+            CREATE (pe:Node {
                 uuid: $uuid,
+                name: $name,
+                is_type_definition: false,
+                type: 'persona_entry',
+                ancestors: ['concept'],
                 timestamp: $timestamp,
                 summary: $summary,
                 sentiment: $sentiment,
@@ -95,6 +106,7 @@ class PersonaDiary:
             result = session.run(
                 query,
                 uuid=entry_uuid,
+                name=f"diary-{entry_uuid[:8]}",
                 timestamp=timestamp,
                 summary=summary,
                 sentiment=sentiment,
@@ -117,9 +129,12 @@ class PersonaDiary:
     def _link_to_process(self, entry_uuid: str, process_uuid: str):
         """Create relationship between PersonaEntry and Process."""
         with self.driver.session() as session:
+            # Match using flexible ontology types
             query = """
-            MATCH (pe:PersonaEntry {uuid: $entry_uuid})
-            MATCH (p:Process {uuid: $process_uuid})
+            MATCH (pe:Node {uuid: $entry_uuid})
+            WHERE pe.type = 'persona_entry'
+            MATCH (p:Node {uuid: $process_uuid})
+            WHERE p.type = 'process' OR 'process' IN p.ancestors
             MERGE (pe)-[:RELATES_TO]->(p)
             """
             session.run(query, entry_uuid=entry_uuid, process_uuid=process_uuid)
@@ -141,17 +156,21 @@ class PersonaDiary:
         """
         with self.driver.session() as session:
             if sentiment:
+                # Filter by sentiment using flexible ontology
                 query = """
-                MATCH (pe:PersonaEntry)
-                WHERE pe.sentiment = $sentiment
+                MATCH (pe:Node)
+                WHERE pe.type = 'persona_entry'
+                  AND pe.sentiment = $sentiment
                 RETURN pe
                 ORDER BY pe.timestamp DESC
                 LIMIT $limit
                 """
                 result = session.run(query, sentiment=sentiment, limit=limit)
             else:
+                # Get all persona entries using flexible ontology
                 query = """
-                MATCH (pe:PersonaEntry)
+                MATCH (pe:Node)
+                WHERE pe.type = 'persona_entry'
                 RETURN pe
                 ORDER BY pe.timestamp DESC
                 LIMIT $limit
@@ -184,8 +203,11 @@ class PersonaDiary:
             List of PersonaEntry objects
         """
         with self.driver.session() as session:
+            # Match using flexible ontology types
             query = """
-            MATCH (pe:PersonaEntry)-[:RELATES_TO]->(p:Process {uuid: $process_uuid})
+            MATCH (pe:Node)-[:RELATES_TO]->(p:Node {uuid: $process_uuid})
+            WHERE pe.type = 'persona_entry'
+              AND (p.type = 'process' OR 'process' IN p.ancestors)
             RETURN pe
             ORDER BY pe.timestamp DESC
             """
@@ -214,9 +236,11 @@ class PersonaDiary:
             Dictionary mapping sentiment types to counts
         """
         with self.driver.session() as session:
+            # Aggregate sentiment using flexible ontology
             query = """
-            MATCH (pe:PersonaEntry)
-            WHERE pe.sentiment IS NOT NULL
+            MATCH (pe:Node)
+            WHERE pe.type = 'persona_entry'
+              AND pe.sentiment IS NOT NULL
             RETURN pe.sentiment AS sentiment, count(*) AS count
             """
             result = session.run(query)

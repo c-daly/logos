@@ -62,7 +62,7 @@ def _clear_instance_data(session):
     session.run(
         """
         MATCH (n)
-        WHERE n:Entity OR n:Concept OR n:State OR n:Process OR n.uuid IS NOT NULL
+        WHERE n:Node OR n.uuid IS NOT NULL
         DETACH DELETE n
         """
     )
@@ -278,54 +278,51 @@ def test_validate_invalid_entities(setup_neo4j):
 
 def test_reject_bad_write_wrong_uuid_prefix(setup_neo4j):
     """Test that Neo4j rejects write with wrong UUID prefix through validation."""
-    # Create an entity with wrong UUID prefix (keep original namespace)
-    bad_entity_ttl = """
-        @prefix logos: <http://logos.ontology/> .
+    # Create a node with wrong UUID format - missing required properties
+    # (flexible ontology uses logos:Node with required uuid, name, is_type_definition, type, ancestors)
+    bad_node_ttl = """
+        @prefix logos: <http://logos.ai/ontology#> .
         @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-        logos:entity-bad-prefix a logos:Entity ;
+        logos:node-bad-prefix a logos:Node ;
             logos:uuid "wrong-prefix-123" ;
-            logos:name "BadEntity" .
+            logos:name "BadNode" ;
+            logos:is_type_definition false ;
+            logos:type "entity" .
     """
+    # Note: This is missing required 'ancestors' property
 
     # Import the bad data
-    setup_neo4j.run("CALL n10s.rdf.import.inline($rdf, 'Turtle')", rdf=bad_entity_ttl)
+    setup_neo4j.run("CALL n10s.rdf.import.inline($rdf, 'Turtle')", rdf=bad_node_ttl)
 
-    # Validate - should fail
+    # Validate - should fail due to missing ancestors
     validation_result = setup_neo4j.run("CALL n10s.validation.shacl.validate()")
 
-    # Should have violations for wrong UUID pattern
+    # Should have violations for missing required property
     violations = []
     for record in validation_result:
         violations.append(record)
 
-    assert len(violations) > 0, "Wrong UUID prefix should produce validation violations"
+    assert len(violations) > 0, "Missing required property should produce validation violations"
 
-    # Check that the violation is about the UUID pattern
-    violation_found = False
-    for violation in violations:
-        violation_str = str(violation)
-        if "uuid" in violation_str.lower() or "pattern" in violation_str.lower():
-            violation_found = True
-            break
-
-    assert violation_found, "Violation should be related to UUID pattern"
-
-    print("✓ Wrong UUID prefix correctly rejected by SHACL validation")
+    print("✓ Missing required property correctly rejected by SHACL validation")
 
 
 def test_reject_bad_write_missing_required_property(setup_neo4j):
     """Test that Neo4j rejects write with missing required property through validation."""
-    # Create a Concept without required 'name' field (keep original namespace)
-    bad_concept_ttl = """
-        @prefix logos: <http://logos.ontology/> .
+    # Create a Node without required 'name' field (flexible ontology)
+    bad_node_ttl = """
+        @prefix logos: <http://logos.ai/ontology#> .
 
-        logos:concept-no-name a logos:Concept ;
-            logos:uuid "concept-missing-name" .
+        logos:node-no-name a logos:Node ;
+            logos:uuid "node-missing-name" ;
+            logos:is_type_definition false ;
+            logos:type "entity" ;
+            logos:ancestors ("entity" "thing") .
     """
 
     # Import the bad data
-    setup_neo4j.run("CALL n10s.rdf.import.inline($rdf, 'Turtle')", rdf=bad_concept_ttl)
+    setup_neo4j.run("CALL n10s.rdf.import.inline($rdf, 'Turtle')", rdf=bad_node_ttl)
 
     # Validate - should fail
     validation_result = setup_neo4j.run("CALL n10s.validation.shacl.validate()")
@@ -342,17 +339,20 @@ def test_reject_bad_write_missing_required_property(setup_neo4j):
 
 
 def test_reject_bad_write_entity_missing_uuid(setup_neo4j):
-    """Test that Neo4j rejects entity write with missing UUID."""
-    # Create an entity without UUID (keep original namespace)
-    bad_entity_ttl = """
-        @prefix logos: <http://logos.ontology/> .
+    """Test that Neo4j rejects node write with missing UUID."""
+    # Create a Node without UUID (flexible ontology)
+    bad_node_ttl = """
+        @prefix logos: <http://logos.ai/ontology#> .
 
-        logos:entity-no-uuid a logos:Entity ;
-            logos:name "EntityWithoutUUID" .
+        logos:node-no-uuid a logos:Node ;
+            logos:name "NodeWithoutUUID" ;
+            logos:is_type_definition false ;
+            logos:type "entity" ;
+            logos:ancestors ("entity" "thing") .
     """
 
     # Import the bad data
-    setup_neo4j.run("CALL n10s.rdf.import.inline($rdf, 'Turtle')", rdf=bad_entity_ttl)
+    setup_neo4j.run("CALL n10s.rdf.import.inline($rdf, 'Turtle')", rdf=bad_node_ttl)
 
     # Validate - should fail
     validation_result = setup_neo4j.run("CALL n10s.validation.shacl.validate()")

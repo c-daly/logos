@@ -12,7 +12,7 @@ volumes:
 services:
   neo4j:
     container_name: logos-phase2-test-neo4j
-    image: neo4j:5.14.0
+    image: neo4j:5.11.0
     ports:
     - 37474:7474
     - 37687:7687

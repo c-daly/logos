@@ -3,9 +3,18 @@
 M2 Verification: SHACL Validation Catches Errors
 
 Tests that SHACL validation rules successfully catch malformed graph updates
-and enforce data quality.
+and enforce data quality for the flexible ontology.
+
+FLEXIBLE ONTOLOGY:
+All nodes use the :Node label with these required properties:
+- uuid: unique identifier
+- name: human-readable name
+- is_type_definition: boolean (true for types, false for instances)
+- type: immediate type name
+- ancestors: list of ancestor types
 
 Reference: docs/PHASE1_VERIFY.md, M2 section
+Reference: docs/plans/2025-12-30-flexible-ontology-design.md
 """
 
 from pathlib import Path
@@ -77,9 +86,12 @@ def test_missing_uuid_detected(shacl_shapes):
     data_graph = Graph()
     data_graph.parse(
         data="""
-        @prefix logos: <http://logos.ontology/> .
-        logos:entity-no-uuid a logos:Entity ;
-            logos:name "MissingUUID" .
+        @prefix logos: <http://logos.ai/ontology#> .
+        logos:node-no-uuid a logos:Node ;
+            logos:name "MissingUUID" ;
+            logos:is_type_definition false ;
+            logos:type "entity" ;
+            logos:ancestors ("entity" "thing") .
     """,
         format="turtle",
     )
@@ -88,22 +100,24 @@ def test_missing_uuid_detected(shacl_shapes):
         data_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
     )
 
-    assert not conforms, "Entity without UUID should fail validation"
+    assert not conforms, "Node without UUID should fail validation"
     assert (
         "uuid" in results_text.lower() or "minCount" in results_text
     ), "Validation error should mention missing UUID"
     print("✓ Missing UUID correctly detected")
 
 
-def test_wrong_uuid_format_detected(shacl_shapes):
-    """Test that wrong UUID format is detected by SHACL validation."""
+def test_missing_name_detected(shacl_shapes):
+    """Test that missing name is detected by SHACL validation."""
     data_graph = Graph()
     data_graph.parse(
         data="""
-        @prefix logos: <http://logos.ontology/> .
-        logos:entity-wrong a logos:Entity ;
-            logos:uuid "wrong-format-123" ;
-            logos:name "WrongFormat" .
+        @prefix logos: <http://logos.ai/ontology#> .
+        logos:node-no-name a logos:Node ;
+            logos:uuid "node-no-name" ;
+            logos:is_type_definition false ;
+            logos:type "entity" ;
+            logos:ancestors ("entity" "thing") .
     """,
         format="turtle",
     )
@@ -112,21 +126,21 @@ def test_wrong_uuid_format_detected(shacl_shapes):
         data_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
     )
 
-    assert not conforms, "Entity with wrong UUID format should fail validation"
-    assert (
-        "pattern" in results_text.lower() or "entity-" in results_text.lower()
-    ), "Validation error should mention pattern violation"
-    print("✓ Wrong UUID format correctly detected")
+    assert not conforms, "Node without name should fail validation"
+    print("✓ Missing name correctly detected")
 
 
-def test_concept_name_required(shacl_shapes):
-    """Test that Concept requires name field."""
+def test_missing_type_detected(shacl_shapes):
+    """Test that missing type is detected by SHACL validation."""
     data_graph = Graph()
     data_graph.parse(
         data="""
-        @prefix logos: <http://logos.ontology/> .
-        logos:concept-no-name a logos:Concept ;
-            logos:uuid "concept-missing-name" .
+        @prefix logos: <http://logos.ai/ontology#> .
+        logos:node-no-type a logos:Node ;
+            logos:uuid "node-no-type" ;
+            logos:name "MissingType" ;
+            logos:is_type_definition false ;
+            logos:ancestors ("entity" "thing") .
     """,
         format="turtle",
     )
@@ -135,19 +149,21 @@ def test_concept_name_required(shacl_shapes):
         data_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
     )
 
-    assert not conforms, "Concept without name should fail validation"
-    print("✓ Missing concept name correctly detected")
+    assert not conforms, "Node without type should fail validation"
+    print("✓ Missing type correctly detected")
 
 
-def test_state_timestamp_required(shacl_shapes):
-    """Test that State requires timestamp field."""
+def test_missing_is_type_definition_detected(shacl_shapes):
+    """Test that missing is_type_definition is detected by SHACL validation."""
     data_graph = Graph()
     data_graph.parse(
         data="""
-        @prefix logos: <http://logos.ontology/> .
-        logos:state-no-timestamp a logos:State ;
-            logos:uuid "state-missing-timestamp" ;
-            logos:name "NoTimestamp" .
+        @prefix logos: <http://logos.ai/ontology#> .
+        logos:node-no-is-type-def a logos:Node ;
+            logos:uuid "node-no-is-type-def" ;
+            logos:name "MissingIsTypeDef" ;
+            logos:type "entity" ;
+            logos:ancestors ("entity" "thing") .
     """,
         format="turtle",
     )
@@ -156,19 +172,21 @@ def test_state_timestamp_required(shacl_shapes):
         data_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
     )
 
-    assert not conforms, "State without timestamp should fail validation"
-    print("✓ Missing state timestamp correctly detected")
+    assert not conforms, "Node without is_type_definition should fail validation"
+    print("✓ Missing is_type_definition correctly detected")
 
 
-def test_process_start_time_required(shacl_shapes):
-    """Test that Process requires start_time field."""
+def test_missing_ancestors_detected(shacl_shapes):
+    """Test that missing ancestors is detected by SHACL validation."""
     data_graph = Graph()
     data_graph.parse(
         data="""
-        @prefix logos: <http://logos.ontology/> .
-        logos:process-no-time a logos:Process ;
-            logos:uuid "process-missing-time" ;
-            logos:name "NoTime" .
+        @prefix logos: <http://logos.ai/ontology#> .
+        logos:node-no-ancestors a logos:Node ;
+            logos:uuid "node-no-ancestors" ;
+            logos:name "MissingAncestors" ;
+            logos:is_type_definition false ;
+            logos:type "entity" .
     """,
         format="turtle",
     )
@@ -177,22 +195,22 @@ def test_process_start_time_required(shacl_shapes):
         data_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
     )
 
-    assert not conforms, "Process without start_time should fail validation"
-    print("✓ Missing process start_time correctly detected")
+    assert not conforms, "Node without ancestors should fail validation"
+    print("✓ Missing ancestors correctly detected")
 
 
-def test_spatial_properties_validation(shacl_shapes):
-    """Test that spatial properties validate correctly with positive values."""
+def test_valid_complete_node(shacl_shapes):
+    """Test that a complete valid node passes validation."""
     data_graph = Graph()
     data_graph.parse(
         data="""
-        @prefix logos: <http://logos.ontology/> .
-        logos:entity-spatial a logos:Entity ;
-            logos:uuid "entity-spatial-test" ;
-            logos:name "SpatialTest" ;
-            logos:width "0.5"^^<http://www.w3.org/2001/XMLSchema#decimal> ;
-            logos:height "0.3"^^<http://www.w3.org/2001/XMLSchema#decimal> ;
-            logos:mass "1.5"^^<http://www.w3.org/2001/XMLSchema#decimal> .
+        @prefix logos: <http://logos.ai/ontology#> .
+        logos:valid-node a logos:Node ;
+            logos:uuid "valid-node-001" ;
+            logos:name "ValidNode" ;
+            logos:is_type_definition false ;
+            logos:type "entity" ;
+            logos:ancestors ("entity" "thing") .
     """,
         format="turtle",
     )
@@ -201,20 +219,22 @@ def test_spatial_properties_validation(shacl_shapes):
         data_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
     )
 
-    assert conforms, f"Valid spatial properties should pass. Results:\n{results_text}"
-    print("✓ Valid spatial properties passed validation")
+    assert conforms, f"Complete valid node should pass. Results:\n{results_text}"
+    print("✓ Valid complete node passed validation")
 
 
-def test_negative_spatial_properties_rejected(shacl_shapes):
-    """Test that negative spatial values are rejected."""
+def test_valid_type_definition(shacl_shapes):
+    """Test that a valid type definition passes validation."""
     data_graph = Graph()
     data_graph.parse(
         data="""
-        @prefix logos: <http://logos.ontology/> .
-        logos:entity-negative a logos:Entity ;
-            logos:uuid "entity-negative-test" ;
-            logos:name "NegativeTest" ;
-            logos:width "-0.5"^^<http://www.w3.org/2001/XMLSchema#decimal> .
+        @prefix logos: <http://logos.ai/ontology#> .
+        logos:type-robot a logos:Node ;
+            logos:uuid "5e6f7a8b-9c0d-5e1f-2a3b-4c5d6e7f8a9b" ;
+            logos:name "robot" ;
+            logos:is_type_definition true ;
+            logos:type "robot" ;
+            logos:ancestors ("entity" "thing") .
     """,
         format="turtle",
     )
@@ -223,280 +243,65 @@ def test_negative_spatial_properties_rejected(shacl_shapes):
         data_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
     )
 
-    assert not conforms, "Negative spatial values should fail validation"
-    print("✓ Negative spatial values correctly rejected")
+    assert conforms, f"Valid type definition should pass. Results:\n{results_text}"
+    print("✓ Valid type definition passed validation")
 
 
-def test_joint_type_enumeration(shacl_shapes):
-    """Test that joint_type accepts only valid enumerated values."""
-    # Test valid joint type
-    valid_graph = Graph()
-    valid_graph.parse(
+def test_valid_bootstrap_type(shacl_shapes):
+    """Test that bootstrap types with empty ancestors pass validation."""
+    data_graph = Graph()
+    data_graph.parse(
         data="""
-        @prefix logos: <http://logos.ontology/> .
-        logos:joint-valid a logos:Entity ;
-            logos:uuid "entity-joint-valid" ;
-            logos:name "ValidJoint" ;
-            logos:joint_type "revolute" .
+        @prefix logos: <http://logos.ai/ontology#> .
+        logos:type-concept a logos:Node ;
+            logos:uuid "f8b89a6c-9c3e-5e4d-b2f1-83a4d7e4c5f2" ;
+            logos:name "concept" ;
+            logos:is_type_definition true ;
+            logos:type "concept" ;
+            logos:ancestors () .
     """,
         format="turtle",
     )
 
-    conforms, _, results_text = validate(
-        valid_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
+    conforms, results_graph, results_text = validate(
+        data_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
     )
 
-    assert conforms, f"Valid joint type should pass. Results:\n{results_text}"
+    assert conforms, f"Bootstrap type should pass. Results:\n{results_text}"
+    print("✓ Valid bootstrap type passed validation")
 
-    # Test invalid joint type
-    invalid_graph = Graph()
-    invalid_graph.parse(
+
+def test_is_a_relationship_to_node(shacl_shapes):
+    """Test that IS_A relationship to a valid Node passes validation."""
+    data_graph = Graph()
+    data_graph.parse(
         data="""
-        @prefix logos: <http://logos.ontology/> .
-        logos:joint-invalid a logos:Entity ;
-            logos:uuid "entity-joint-invalid" ;
-            logos:name "InvalidJoint" ;
-            logos:joint_type "invalid_type" .
+        @prefix logos: <http://logos.ai/ontology#> .
+
+        logos:type-entity a logos:Node ;
+            logos:uuid "e003e45c-50bd-5e4b-85db-883756ecfcf7" ;
+            logos:name "entity" ;
+            logos:is_type_definition true ;
+            logos:type "entity" ;
+            logos:ancestors ("thing") .
+
+        logos:instance-robot a logos:Node ;
+            logos:uuid "instance-robot" ;
+            logos:name "robot1" ;
+            logos:is_type_definition false ;
+            logos:type "entity" ;
+            logos:ancestors ("entity" "thing") ;
+            logos:IS_A logos:type-entity .
     """,
         format="turtle",
     )
 
-    conforms, _, results_text = validate(
-        invalid_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
-    )
-
-    assert not conforms, "Invalid joint type should fail validation"
-    print("✓ Joint type enumeration correctly enforced")
-
-
-def test_is_a_relationship_type(shacl_shapes):
-    """Test that IS_A relationship validates target is a Concept."""
-    # Valid IS_A relationship
-    valid_graph = Graph()
-    valid_graph.parse(
-        data="""
-        @prefix logos: <http://logos.ontology/> .
-        logos:concept-test a logos:Concept ;
-            logos:uuid "concept-test" ;
-            logos:name "TestConcept" .
-        logos:entity-test a logos:Entity ;
-            logos:uuid "entity-test" ;
-            logos:name "TestEntity" ;
-            logos:IS_A logos:concept-test .
-    """,
-        format="turtle",
-    )
-
-    conforms, _, results_text = validate(
-        valid_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
+    conforms, results_graph, results_text = validate(
+        data_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
     )
 
     assert conforms, f"Valid IS_A relationship should pass. Results:\n{results_text}"
     print("✓ Valid IS_A relationship passed validation")
-
-
-def test_has_state_relationship_type(shacl_shapes):
-    """Test that HAS_STATE relationship validates target is a State."""
-    valid_graph = Graph()
-    valid_graph.parse(
-        data="""
-        @prefix logos: <http://logos.ontology/> .
-        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-        logos:state-test a logos:State ;
-            logos:uuid "state-test" ;
-            logos:timestamp "2025-11-17T00:00:00Z"^^xsd:dateTime .
-        logos:entity-test a logos:Entity ;
-            logos:uuid "entity-test" ;
-            logos:name "TestEntity" ;
-            logos:HAS_STATE logos:state-test .
-    """,
-        format="turtle",
-    )
-
-    conforms, _, results_text = validate(
-        valid_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
-    )
-
-    assert conforms, f"Valid HAS_STATE relationship should pass. Results:\n{results_text}"
-    print("✓ Valid HAS_STATE relationship passed validation")
-
-
-def test_causes_relationship_type(shacl_shapes):
-    """Test that CAUSES relationship validates target is a State."""
-    valid_graph = Graph()
-    valid_graph.parse(
-        data="""
-        @prefix logos: <http://logos.ontology/> .
-        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-        logos:state-result a logos:State ;
-            logos:uuid "state-result" ;
-            logos:timestamp "2025-11-17T00:00:00Z"^^xsd:dateTime .
-        logos:process-test a logos:Process ;
-            logos:uuid "process-test" ;
-            logos:start_time "2025-11-17T00:00:00Z"^^xsd:dateTime ;
-            logos:CAUSES logos:state-result .
-    """,
-        format="turtle",
-    )
-
-    conforms, _, results_text = validate(
-        valid_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
-    )
-
-    assert conforms, f"Valid CAUSES relationship should pass. Results:\n{results_text}"
-    print("✓ Valid CAUSES relationship passed validation")
-
-
-def test_part_of_relationship_type(shacl_shapes):
-    """Test that PART_OF relationship validates target is an Entity."""
-    valid_graph = Graph()
-    valid_graph.parse(
-        data="""
-        @prefix logos: <http://logos.ontology/> .
-        logos:parent-entity a logos:Entity ;
-            logos:uuid "entity-parent" ;
-            logos:name "ParentEntity" .
-        logos:child-entity a logos:Entity ;
-            logos:uuid "entity-child" ;
-            logos:name "ChildEntity" ;
-            logos:PART_OF logos:parent-entity .
-    """,
-        format="turtle",
-    )
-
-    conforms, _, results_text = validate(
-        valid_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
-    )
-
-    assert conforms, f"Valid PART_OF relationship should pass. Results:\n{results_text}"
-    print("✓ Valid PART_OF relationship passed validation")
-
-
-def test_located_at_relationship_type(shacl_shapes):
-    """Test that LOCATED_AT relationship validates target is an Entity."""
-    valid_graph = Graph()
-    valid_graph.parse(
-        data="""
-        @prefix logos: <http://logos.ontology/> .
-        logos:location-entity a logos:Entity ;
-            logos:uuid "entity-location" ;
-            logos:name "Location" .
-        logos:object-entity a logos:Entity ;
-            logos:uuid "entity-object" ;
-            logos:name "Object" ;
-            logos:LOCATED_AT logos:location-entity .
-    """,
-        format="turtle",
-    )
-
-    conforms, _, results_text = validate(
-        valid_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
-    )
-
-    assert conforms, f"Valid LOCATED_AT relationship should pass. Results:\n{results_text}"
-    print("✓ Valid LOCATED_AT relationship passed validation")
-
-
-def test_attached_to_relationship_type(shacl_shapes):
-    """Test that ATTACHED_TO relationship validates target is an Entity."""
-    valid_graph = Graph()
-    valid_graph.parse(
-        data="""
-        @prefix logos: <http://logos.ontology/> .
-        logos:base-entity a logos:Entity ;
-            logos:uuid "entity-base" ;
-            logos:name "Base" .
-        logos:attached-entity a logos:Entity ;
-            logos:uuid "entity-attached" ;
-            logos:name "Attached" ;
-            logos:ATTACHED_TO logos:base-entity .
-    """,
-        format="turtle",
-    )
-
-    conforms, _, results_text = validate(
-        valid_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
-    )
-
-    assert conforms, f"Valid ATTACHED_TO relationship should pass. Results:\n{results_text}"
-    print("✓ Valid ATTACHED_TO relationship passed validation")
-
-
-def test_precedes_relationship_type(shacl_shapes):
-    """Test that PRECEDES relationship validates both nodes are States."""
-    valid_graph = Graph()
-    valid_graph.parse(
-        data="""
-        @prefix logos: <http://logos.ontology/> .
-        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-        logos:state-first a logos:State ;
-            logos:uuid "state-first" ;
-            logos:timestamp "2025-11-17T00:00:00Z"^^xsd:dateTime .
-        logos:state-second a logos:State ;
-            logos:uuid "state-second" ;
-            logos:timestamp "2025-11-17T00:01:00Z"^^xsd:dateTime ;
-            logos:PRECEDES logos:state-first .
-    """,
-        format="turtle",
-    )
-
-    conforms, _, results_text = validate(
-        valid_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
-    )
-
-    assert conforms, f"Valid PRECEDES relationship should pass. Results:\n{results_text}"
-    print("✓ Valid PRECEDES relationship passed validation")
-
-
-def test_requires_relationship_type(shacl_shapes):
-    """Test that REQUIRES relationship validates target is a State."""
-    valid_graph = Graph()
-    valid_graph.parse(
-        data="""
-        @prefix logos: <http://logos.ontology/> .
-        @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-        logos:state-precondition a logos:State ;
-            logos:uuid "state-precondition" ;
-            logos:timestamp "2025-11-17T00:00:00Z"^^xsd:dateTime .
-        logos:process-requires a logos:Process ;
-            logos:uuid "process-requires" ;
-            logos:start_time "2025-11-17T00:00:00Z"^^xsd:dateTime ;
-            logos:REQUIRES logos:state-precondition .
-    """,
-        format="turtle",
-    )
-
-    conforms, _, results_text = validate(
-        valid_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
-    )
-
-    assert conforms, f"Valid REQUIRES relationship should pass. Results:\n{results_text}"
-    print("✓ Valid REQUIRES relationship passed validation")
-
-
-def test_can_perform_relationship_type(shacl_shapes):
-    """Test that CAN_PERFORM relationship validates target is a Concept."""
-    valid_graph = Graph()
-    valid_graph.parse(
-        data="""
-        @prefix logos: <http://logos.ontology/> .
-        logos:concept-capability a logos:Concept ;
-            logos:uuid "concept-capability" ;
-            logos:name "Capability" .
-        logos:entity-capable a logos:Entity ;
-            logos:uuid "entity-capable" ;
-            logos:name "CapableEntity" ;
-            logos:CAN_PERFORM logos:concept-capability .
-    """,
-        format="turtle",
-    )
-
-    conforms, _, results_text = validate(
-        valid_graph, shacl_graph=shacl_shapes, inference="rdfs", abort_on_first=False
-    )
-
-    assert conforms, f"Valid CAN_PERFORM relationship should pass. Results:\n{results_text}"
-    print("✓ Valid CAN_PERFORM relationship passed validation")
 
 
 if __name__ == "__main__":

@@ -164,7 +164,7 @@ load_test_data() {
     # Verify test data
     print_info "Verifying test entities..."
     docker exec "${NEO4J_CONTAINER}" cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" \
-        "MATCH (e:Entity) WHERE e.name CONTAINS 'RedBlock' OR e.name CONTAINS 'Manipulator' RETURN e.name, e.uuid LIMIT 5;" \
+        "MATCH (e:Node) WHERE 'thing' IN e.ancestors AND (e.name CONTAINS 'RedBlock' OR e.name CONTAINS 'Manipulator') RETURN e.name, e.uuid LIMIT 5;" \
         2>&1 | tee -a "${LOG_DIR}/test_data_verify.log"
     
     log_output "Test data loaded and verified"
@@ -180,9 +180,12 @@ simulate_apollo_command() {
     # Create a goal state in the HCG
     print_info "Creating goal state in HCG..."
     docker exec "${NEO4J_CONTAINER}" cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" \
-        "CREATE (g:State {
+        "CREATE (g:Node {
             uuid: 'state-goal-' + randomUUID(),
             name: 'GoalState_RedBlockInBin',
+            is_type_definition: false,
+            type: 'state',
+            ancestors: ['state', 'concept'],
             timestamp: datetime(),
             description: 'Red block should be in the target bin',
             is_goal: true
@@ -202,28 +205,40 @@ simulate_sophia_plan() {
     # Create a simple plan with process nodes
     print_info "Creating plan processes..."
     docker exec "${NEO4J_CONTAINER}" cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" \
-        "// Create plan with multiple processes
-        CREATE (p1:Process {
+        "// Create plan with multiple processes using flexible ontology
+        CREATE (p1:Node {
             uuid: 'process-plan-' + randomUUID(),
             name: 'MoveToPreGrasp',
+            is_type_definition: false,
+            type: 'process',
+            ancestors: ['process', 'concept'],
             start_time: datetime(),
             description: 'Move manipulator to pre-grasp position'
         })
-        CREATE (p2:Process {
+        CREATE (p2:Node {
             uuid: 'process-plan-' + randomUUID(),
             name: 'GraspRedBlock',
+            is_type_definition: false,
+            type: 'process',
+            ancestors: ['process', 'concept'],
             start_time: datetime(),
             description: 'Grasp the red block'
         })
-        CREATE (p3:Process {
+        CREATE (p3:Node {
             uuid: 'process-plan-' + randomUUID(),
             name: 'MoveToPlace',
+            is_type_definition: false,
+            type: 'process',
+            ancestors: ['process', 'concept'],
             start_time: datetime(),
             description: 'Move to place position above bin'
         })
-        CREATE (p4:Process {
+        CREATE (p4:Node {
             uuid: 'process-plan-' + randomUUID(),
             name: 'ReleaseBlock',
+            is_type_definition: false,
+            type: 'process',
+            ancestors: ['process', 'concept'],
             start_time: datetime(),
             description: 'Release block into bin'
         })
@@ -258,12 +273,15 @@ simulate_talos_execution() {
     
     print_info "Executing step 2: GraspRedBlock..."
     docker exec "${NEO4J_CONTAINER}" cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" \
-        "// Update state: red block is grasped
-        MATCH (e:Entity)
-        WHERE e.name CONTAINS 'RedBlock'
-        CREATE (s:State {
+        "// Update state: red block is grasped using flexible ontology
+        MATCH (e:Node)
+        WHERE 'thing' IN e.ancestors AND e.name CONTAINS 'RedBlock'
+        CREATE (s:Node {
             uuid: 'state-exec-' + randomUUID(),
             name: 'RedBlockGrasped',
+            is_type_definition: false,
+            type: 'state',
+            ancestors: ['state', 'concept'],
             timestamp: datetime(),
             description: 'Red block is now grasped by manipulator',
             is_grasped: true
@@ -277,14 +295,17 @@ simulate_talos_execution() {
     
     print_info "Executing step 4: ReleaseBlock..."
     docker exec "${NEO4J_CONTAINER}" cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" \
-        "// Update state: red block is in bin
-        MATCH (e:Entity)
-        WHERE e.name CONTAINS 'RedBlock'
-        MATCH (bin:Entity)
-        WHERE bin.name CONTAINS 'Bin' OR bin.name CONTAINS 'Target'
-        CREATE (s:State {
+        "// Update state: red block is in bin using flexible ontology
+        MATCH (e:Node)
+        WHERE 'thing' IN e.ancestors AND e.name CONTAINS 'RedBlock'
+        MATCH (bin:Node)
+        WHERE 'thing' IN bin.ancestors AND (bin.name CONTAINS 'Bin' OR bin.name CONTAINS 'Target')
+        CREATE (s:Node {
             uuid: 'state-exec-' + randomUUID(),
             name: 'RedBlockInBin',
+            is_type_definition: false,
+            type: 'state',
+            ancestors: ['state', 'concept'],
             timestamp: datetime(),
             description: 'Red block is now in the target bin',
             is_grasped: false,
@@ -308,24 +329,26 @@ verify_state_changes() {
     # Query final state
     print_info "Final state of red block:"
     docker exec "${NEO4J_CONTAINER}" cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" \
-        "MATCH (e:Entity)-[:HAS_STATE]->(s:State)
-        WHERE e.name CONTAINS 'RedBlock'
+        "MATCH (e:Node)-[:HAS_STATE]->(s:Node)
+        WHERE 'thing' IN e.ancestors AND e.name CONTAINS 'RedBlock'
+          AND (s.type = 'state' OR 'state' IN s.ancestors)
         RETURN e.name, s.name, s.description, s.timestamp
         ORDER BY s.timestamp DESC
         LIMIT 3;" 2>&1 | tee -a "${LOG_DIR}/state_verification.log"
-    
+
     # Verify location relationship
     print_info "Location of red block:"
     docker exec "${NEO4J_CONTAINER}" cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" \
-        "MATCH (e:Entity)-[:LOCATED_AT]->(target:Entity)
-        WHERE e.name CONTAINS 'RedBlock'
+        "MATCH (e:Node)-[:LOCATED_AT]->(target:Node)
+        WHERE 'thing' IN e.ancestors AND e.name CONTAINS 'RedBlock'
         RETURN e.name, target.name;" 2>&1 | tee -a "${LOG_DIR}/state_verification.log"
-    
+
     # Verify plan execution trace
     print_info "Plan execution trace:"
     docker exec "${NEO4J_CONTAINER}" cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" \
-        "MATCH (p:Process)-[:PRECEDES*0..]->(next:Process)
-        WHERE p.name CONTAINS 'Move' OR p.name CONTAINS 'Grasp' OR p.name CONTAINS 'Release'
+        "MATCH (p:Node)-[:PRECEDES*0..]->(next:Node)
+        WHERE (p.type = 'process' OR 'process' IN p.ancestors)
+          AND (p.name CONTAINS 'Move' OR p.name CONTAINS 'Grasp' OR p.name CONTAINS 'Release')
         RETURN p.name, p.description
         LIMIT 10;" 2>&1 | tee -a "${LOG_DIR}/state_verification.log"
     

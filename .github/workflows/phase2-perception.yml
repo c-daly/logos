@@ -96,11 +96,10 @@ jobs:
       
       - name: Validate ontology syntax
         run: |
-          # Check that the Cypher file is valid syntax
-          grep -q "CREATE CONSTRAINT logos_perception_frame_uuid" ontology/core_ontology.cypher
-          grep -q "CREATE CONSTRAINT logos_imagined_process_uuid" ontology/core_ontology.cypher
-          grep -q "CREATE CONSTRAINT logos_imagined_state_uuid" ontology/core_ontology.cypher
-          echo "✅ Perception node constraints found in ontology"
+          # Check that the Cypher file has the flexible ontology constraint
+          # All nodes (including perception nodes) use the unified Node label
+          grep -q "CREATE CONSTRAINT logos_node_uuid" ontology/core_ontology.cypher
+          echo "✅ Node constraint found in ontology (flexible ontology)"
       
       - name: Validate SHACL shapes
         run: |
@@ -109,19 +108,18 @@ jobs:
           from rdflib import Graph
           g = Graph()
           g.parse('ontology/shacl_shapes.ttl', format='turtle')
-          
-          # Check for perception shapes
+
+          # Check for flexible ontology shapes
+          # All nodes (including perception) use NodeShape
           shapes = str(g.serialize(format='turtle'))
-          assert 'PerceptionFrameShape' in shapes, 'PerceptionFrameShape not found'
-          assert 'ImaginedProcessShape' in shapes, 'ImaginedProcessShape not found'
-          assert 'ImaginedStateShape' in shapes, 'ImaginedStateShape not found'
-          print('✅ Perception SHACL shapes validated')
+          assert 'NodeShape' in shapes, 'NodeShape not found'
+          assert 'IsARelationshipShape' in shapes, 'IsARelationshipShape not found'
+          print('✅ Flexible ontology SHACL shapes validated')
           "
-      
+
       - name: Validation summary
         if: always()
         run: |
           echo "## Ontology Validation Results" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Perception node constraints validated" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Imagination node constraints validated" >> $GITHUB_STEP_SUMMARY
-          echo "✅ SHACL shapes for perception validated" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Node constraint validated (flexible ontology)" >> $GITHUB_STEP_SUMMARY
+          echo "✅ SHACL shapes validated (NodeShape, IsARelationshipShape)" >> $GITHUB_STEP_SUMMARY

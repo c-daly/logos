@@ -3,6 +3,12 @@
 Tests for SHACL Validation Service API
 
 Tests the HTTP endpoints of the SHACL validation service.
+
+FLEXIBLE ONTOLOGY:
+All nodes use logos:Node with required properties:
+- uuid, name, is_type_definition, type, ancestors
+
+Reference: docs/plans/2025-12-30-flexible-ontology-design.md
 """
 
 # Import the app
@@ -61,15 +67,18 @@ def test_shapes_info_endpoint(client):
     assert data["shapes_file"] == "shacl_shapes.ttl"
 
 
-def test_validate_valid_entity(client):
-    """Test validation of valid entity data."""
+def test_validate_valid_node(client):
+    """Test validation of valid Node data (flexible ontology)."""
     valid_data = """
-@prefix logos: <http://logos.ontology/> .
+@prefix logos: <http://logos.ai/ontology#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-logos:entity-test-001 a logos:Entity ;
-    logos:uuid "entity-test-001" ;
+logos:instance-test-001 a logos:Node ;
+    logos:uuid "instance-test-001" ;
     logos:name "Test Entity" ;
+    logos:is_type_definition false ;
+    logos:type "entity" ;
+    logos:ancestors ("entity" "thing") ;
     logos:description "A valid test entity" .
 """
 
@@ -83,37 +92,17 @@ logos:entity-test-001 a logos:Entity ;
     assert data["violations_count"] == 0
 
 
-def test_validate_invalid_entity_wrong_uuid_pattern(client):
-    """Test validation of entity with wrong UUID pattern."""
+def test_validate_node_missing_uuid(client):
+    """Test validation of Node missing required UUID."""
     invalid_data = """
-@prefix logos: <http://logos.ontology/> .
+@prefix logos: <http://logos.ai/ontology#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-logos:entity-test-001 a logos:Entity ;
-    logos:uuid "wrong-prefix-001" ;
-    logos:name "Test Entity" .
-"""
-
-    response = client.post(
-        "/validate",
-        json={"data": invalid_data, "format": "turtle", "inference": "none"},
-    )
-
-    assert response.status_code == 200
-    data = response.json()
-    assert data["conforms"] is False
-    assert data["violations_count"] > 0
-    assert "entity-" in data["report_text"]
-
-
-def test_validate_invalid_entity_missing_uuid(client):
-    """Test validation of entity missing required UUID."""
-    invalid_data = """
-@prefix logos: <http://logos.ontology/> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-
-logos:entity-test-001 a logos:Entity ;
-    logos:name "Test Entity" .
+logos:node-test-001 a logos:Node ;
+    logos:name "Test Node" ;
+    logos:is_type_definition false ;
+    logos:type "entity" ;
+    logos:ancestors ("entity" "thing") .
 """
 
     response = client.post(
@@ -127,34 +116,38 @@ logos:entity-test-001 a logos:Entity ;
     assert data["violations_count"] > 0
 
 
-def test_validate_valid_concept(client):
-    """Test validation of valid concept data."""
-    valid_data = """
-@prefix logos: <http://logos.ontology/> .
+def test_validate_node_missing_name(client):
+    """Test validation of Node missing required name."""
+    invalid_data = """
+@prefix logos: <http://logos.ai/ontology#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-logos:concept-test-001 a logos:Concept ;
-    logos:uuid "concept-test-001" ;
-    logos:name "TestConcept" ;
-    logos:description "A valid test concept" .
+logos:node-test-001 a logos:Node ;
+    logos:uuid "node-test-001" ;
+    logos:is_type_definition false ;
+    logos:type "entity" ;
+    logos:ancestors ("entity" "thing") .
 """
 
-    response = client.post("/validate", json={"data": valid_data, "format": "turtle"})
+    response = client.post("/validate", json={"data": invalid_data, "format": "turtle"})
 
     assert response.status_code == 200
     data = response.json()
-    assert data["conforms"] is True
-    assert data["violations_count"] == 0
+    assert data["conforms"] is False
+    assert data["violations_count"] > 0
 
 
-def test_validate_invalid_concept_missing_name(client):
-    """Test validation of concept missing required name."""
+def test_validate_node_missing_type(client):
+    """Test validation of Node missing required type."""
     invalid_data = """
-@prefix logos: <http://logos.ontology/> .
+@prefix logos: <http://logos.ai/ontology#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-logos:concept-test-001 a logos:Concept ;
-    logos:uuid "concept-test-001" .
+logos:node-test-001 a logos:Node ;
+    logos:uuid "node-test-001" ;
+    logos:name "Test Node" ;
+    logos:is_type_definition false ;
+    logos:ancestors ("entity" "thing") .
 """
 
     response = client.post("/validate", json={"data": invalid_data, "format": "turtle"})
@@ -180,12 +173,15 @@ This is not valid RDF data at all!
 def test_validate_with_rdfs_inference(client):
     """Test validation with RDFS inference enabled."""
     valid_data = """
-@prefix logos: <http://logos.ontology/> .
+@prefix logos: <http://logos.ai/ontology#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-logos:entity-test-001 a logos:Entity ;
-    logos:uuid "entity-test-001" ;
-    logos:name "Test Entity" .
+logos:instance-test-001 a logos:Node ;
+    logos:uuid "instance-test-001" ;
+    logos:name "Test Entity" ;
+    logos:is_type_definition false ;
+    logos:type "entity" ;
+    logos:ancestors ("entity" "thing") .
 """
 
     response = client.post(
@@ -200,13 +196,15 @@ logos:entity-test-001 a logos:Entity ;
 def test_validate_abort_on_first(client):
     """Test validation with abort_on_first option."""
     invalid_data = """
-@prefix logos: <http://logos.ontology/> .
+@prefix logos: <http://logos.ai/ontology#> .
 
-logos:entity-1 a logos:Entity ;
-    logos:uuid "wrong-001" .
+logos:node-1 a logos:Node ;
+    logos:uuid "node-1" ;
+    logos:name "Node1" .
 
-logos:entity-2 a logos:Entity ;
-    logos:uuid "wrong-002" .
+logos:node-2 a logos:Node ;
+    logos:uuid "node-2" ;
+    logos:name "Node2" .
 """
 
     response = client.post(
@@ -219,15 +217,62 @@ logos:entity-2 a logos:Entity ;
     assert data["conforms"] is False
 
 
-def test_validate_spatial_properties(client):
-    """Test validation of entity with spatial properties."""
+def test_validate_valid_type_definition(client):
+    """Test validation of valid type definition node."""
     valid_data = """
-@prefix logos: <http://logos.ontology/> .
+@prefix logos: <http://logos.ai/ontology#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
-logos:entity-cube-001 a logos:Entity ;
-    logos:uuid "entity-cube-001" ;
+logos:type-robot a logos:Node ;
+    logos:uuid "5e6f7a8b-9c0d-5e1f-2a3b-4c5d6e7f8a9b" ;
+    logos:name "robot" ;
+    logos:is_type_definition true ;
+    logos:type "robot" ;
+    logos:ancestors ("entity" "thing") .
+"""
+
+    response = client.post("/validate", json={"data": valid_data, "format": "turtle"})
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["conforms"] is True
+    assert data["violations_count"] == 0
+
+
+def test_validate_bootstrap_type(client):
+    """Test validation of bootstrap type with empty ancestors."""
+    valid_data = """
+@prefix logos: <http://logos.ai/ontology#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+logos:type-concept a logos:Node ;
+    logos:uuid "f8b89a6c-9c3e-5e4d-b2f1-83a4d7e4c5f2" ;
+    logos:name "concept" ;
+    logos:is_type_definition true ;
+    logos:type "concept" ;
+    logos:ancestors () .
+"""
+
+    response = client.post("/validate", json={"data": valid_data, "format": "turtle"})
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["conforms"] is True
+    assert data["violations_count"] == 0
+
+
+def test_validate_node_with_domain_properties(client):
+    """Test validation of Node with optional domain properties."""
+    valid_data = """
+@prefix logos: <http://logos.ai/ontology#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+logos:instance-cube-001 a logos:Node ;
+    logos:uuid "instance-cube-001" ;
     logos:name "Test Cube" ;
+    logos:is_type_definition false ;
+    logos:type "entity" ;
+    logos:ancestors ("entity" "thing") ;
     logos:width "0.1"^^xsd:decimal ;
     logos:height "0.1"^^xsd:decimal ;
     logos:depth "0.1"^^xsd:decimal ;
@@ -240,24 +285,3 @@ logos:entity-cube-001 a logos:Entity ;
     data = response.json()
     assert data["conforms"] is True
     assert data["violations_count"] == 0
-
-
-def test_validate_negative_spatial_property(client):
-    """Test validation rejects negative spatial property values."""
-    invalid_data = """
-@prefix logos: <http://logos.ontology/> .
-@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
-
-logos:entity-cube-001 a logos:Entity ;
-    logos:uuid "entity-cube-001" ;
-    logos:name "Invalid Cube" ;
-    logos:width "-0.1"^^xsd:decimal ;
-    logos:height "0.1"^^xsd:decimal .
-"""
-
-    response = client.post("/validate", json={"data": invalid_data, "format": "turtle"})
-
-    assert response.status_code == 200
-    data = response.json()
-    assert data["conforms"] is False
-    assert data["violations_count"] > 0

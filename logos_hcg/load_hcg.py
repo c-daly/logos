@@ -2,8 +2,8 @@
 HCG Data Loader - Loads ontology and seed entities into Neo4j.
 
 This script provides a deterministic way to bootstrap the HCG with:
-1. Core ontology (constraints, indexes, concepts)
-2. Seed entities (RobotArm, Manipulator, etc.)
+1. Core ontology (constraints, indexes, bootstrap types)
+2. Optional seed data
 
 Usage:
     python -m logos_hcg.load_hcg --uri bolt://localhost:7687 --user neo4j --password neo4jtest
@@ -12,7 +12,7 @@ Usage:
     NEO4J_URI=bolt://localhost:7687 python -m logos_hcg.load_hcg
 
 See Project LOGOS spec: Section 4.1 (Core Ontology and Data Model)
-Reference: docs/PHASE1_VERIFY.md - M1 checklist
+Reference: docs/plans/2025-12-30-flexible-ontology-design.md
 """
 
 import argparse
@@ -47,16 +47,16 @@ class HCGLoader:
         try:
             self.driver = GraphDatabase.driver(uri, auth=(user, password))
             self.driver.verify_connectivity()
-            logger.info(f"✓ Connected to Neo4j at {uri}")
+            logger.info(f"Connected to Neo4j at {uri}")
         except ServiceUnavailable as e:
-            logger.error(f"✗ Failed to connect to Neo4j at {uri}: {e}")
+            logger.error(f"Failed to connect to Neo4j at {uri}: {e}")
             raise
 
     def close(self):
         """Close the driver connection."""
         if self.driver:
             self.driver.close()
-            logger.info("✓ Closed Neo4j connection")
+            logger.info("Closed Neo4j connection")
 
     def __enter__(self):
         """Context manager entry."""
@@ -78,7 +78,7 @@ class HCGLoader:
             True if successful, False otherwise
         """
         if not file_path.exists():
-            logger.error(f"✗ File not found: {file_path}")
+            logger.error(f"File not found: {file_path}")
             return False
 
         logger.info(f"Loading {description} from {file_path.name}...")
@@ -116,14 +116,14 @@ class HCGLoader:
                         # Log meaningful operations
                         counters = summary.counters
                         if counters.constraints_added > 0:
-                            logger.info(f"  ✓ Added {counters.constraints_added} constraint(s)")
+                            logger.info(f"  Added {counters.constraints_added} constraint(s)")
                         if counters.indexes_added > 0:
-                            logger.info(f"  ✓ Added {counters.indexes_added} index(es)")
+                            logger.info(f"  Added {counters.indexes_added} index(es)")
                         if counters.nodes_created > 0:
-                            logger.info(f"  ✓ Created {counters.nodes_created} node(s)")
+                            logger.info(f"  Created {counters.nodes_created} node(s)")
                         if counters.relationships_created > 0:
                             logger.info(
-                                f"  ✓ Created {counters.relationships_created} relationship(s)"
+                                f"  Created {counters.relationships_created} relationship(s)"
                             )
 
                     except Neo4jError as e:
@@ -134,11 +134,11 @@ class HCGLoader:
                             logger.warning(f"  Warning on statement {i+1}: {e}")
                             # Continue with other statements
 
-            logger.info(f"✓ Loaded {description}")
+            logger.info(f"Loaded {description}")
             return True
 
         except Exception as e:
-            logger.error(f"✗ Failed to load {description}: {e}")
+            logger.error(f"Failed to load {description}: {e}")
             return False
 
     def verify_constraints(self) -> dict:
@@ -154,20 +154,17 @@ class HCGLoader:
             result = session.run("SHOW CONSTRAINTS")
             constraints = [record["name"] for record in result]
 
+        # Flexible ontology has one constraint
         required_constraints = [
-            "logos_entity_uuid",
-            "logos_concept_uuid",
-            "logos_state_uuid",
-            "logos_process_uuid",
-            "logos_concept_name",
+            "logos_node_uuid",
         ]
 
         found = {}
         for constraint in required_constraints:
             exists = any(constraint in c for c in constraints)
             found[constraint] = exists
-            status = "✓" if exists else "✗"
-            logger.info(f"  {status} {constraint}: {'found' if exists else 'MISSING'}")
+            status = "found" if exists else "MISSING"
+            logger.info(f"  {constraint}: {status}")
 
         return found
 
@@ -185,100 +182,132 @@ class HCGLoader:
             indexes = [record["name"] for record in result]
 
         required_indexes = [
-            "logos_entity_name",
-            "logos_state_timestamp",
-            "logos_process_timestamp",
+            "logos_node_type",
+            "logos_node_name",
+            "logos_node_is_type_def",
         ]
 
         found = {}
         for index in required_indexes:
             exists = any(index in i for i in indexes)
             found[index] = exists
-            status = "✓" if exists else "✗"
-            logger.info(f"  {status} {index}: {'found' if exists else 'MISSING'}")
+            status = "found" if exists else "MISSING"
+            logger.info(f"  {index}: {status}")
 
         return found
 
-    def verify_concepts(self) -> int:
+    def verify_bootstrap_types(self) -> int:
         """
-        Verify that concepts are loaded.
+        Verify that bootstrap type definitions are loaded.
 
         Returns:
-            Number of concepts found
+            Number of type definitions found
         """
-        logger.info("Verifying concepts...")
+        logger.info("Verifying bootstrap types...")
 
         with self.driver.session() as session:
-            result = session.run("MATCH (c:Concept) RETURN count(c) AS count")
-            record = result.single()
-            count = record["count"] if record else 0
+            result = session.run("MATCH (t:Node {is_type_definition: true}) RETURN t.name as name")
+            types = [record["name"] for record in result]
 
-        logger.info(f"  ✓ Found {count} concept(s)")
-        return int(count)
+        expected = ["type_definition", "edge_type", "thing", "concept"]
+        for t in expected:
+            status = "found" if t in types else "MISSING"
+            logger.info(f"  {t}: {status}")
 
-    def verify_entities(self) -> int:
+        return len(types)
+
+    def verify_nodes(self) -> dict:
         """
-        Verify that seed entities are loaded.
+        Verify node counts by type.
 
         Returns:
-            Number of entities found
+            Dictionary with counts by type
         """
-        logger.info("Verifying seed entities...")
+        logger.info("Verifying nodes...")
 
         with self.driver.session() as session:
-            result = session.run("MATCH (e:Entity) RETURN count(e) AS count")
-            record = result.single()
-            count = record["count"] if record else 0
+            result = session.run(
+                """
+                MATCH (n:Node)
+                RETURN n.type as type, n.is_type_definition as is_type_def, count(n) as count
+                ORDER BY type
+            """
+            )
+            counts = {}
+            for record in result:
+                type_name = record["type"]
+                is_type_def = record["is_type_def"]
+                count = record["count"]
+                label = f"{type_name} ({'type' if is_type_def else 'instance'})"
+                counts[label] = count
 
-        logger.info(f"  ✓ Found {count} entity(ies)")
-        return int(count)
+        for type_label, count in counts.items():
+            logger.info(f"  {type_label}: {count}")
+
+        return counts
 
     def create_seed_entities(self) -> bool:
         """
-        Create canonical seed entities (RobotArm, Manipulator, etc.).
+        Create canonical seed entities using the flexible ontology.
 
-        These are the minimal entities required for M1 verification.
+        These are minimal entities for verification purposes.
 
         Returns:
             True if successful, False otherwise
         """
         logger.info("Creating seed entities...")
 
+        # Create type definitions and instances using the new schema
         seed_queries = [
-            # Create Manipulator concept
+            # Create manipulator type (subtype of thing)
             """
-            MERGE (c:Concept {uuid: '19544c1b-c1dd-5432-b109-9f9133e3c680'})
-            ON CREATE SET
-                c.name = 'Manipulator',
-                c.description = 'A robotic manipulator or arm capable of movement and grasping',
-                c.created_at = datetime()
+            MATCH (thing:Node {name: 'thing'})
+            MERGE (m:Node {uuid: '3bed753e-51ad-5f8f-bb3a-1f7dc39ae01c'})
+            SET m.name = 'manipulator',
+                m.is_type_definition = true,
+                m.type = 'manipulator',
+                m.ancestors = ['thing'],
+                m.description = 'A robotic manipulator or arm capable of movement and grasping'
+            MERGE (m)-[:IS_A]->(thing)
             """,
-            # Create RobotArm entity
+            # Create RobotArm entity (instance of manipulator)
             """
-            MERGE (e:Entity {uuid: '70beb78e-366a-5d71-a26c-c4abe7d24cf7'})
-            ON CREATE SET
-                e.name = 'RobotArm01',
-                e.description = 'Canonical six-axis robotic manipulator for M1 verification',
-                e.created_at = datetime()
+            MATCH (m:Node {name: 'manipulator'})
+            MERGE (e:Node {uuid: 'entity-robot-arm-01'})
+            SET e.name = 'RobotArm01',
+                e.is_type_definition = false,
+                e.type = 'manipulator',
+                e.ancestors = ['manipulator', 'thing'],
+                e.description = 'Canonical six-axis robotic manipulator'
+            MERGE (e)-[:IS_A]->(m)
             """,
-            # Create IS_A relationship
+            # Create 'state' type under concept
             """
-            MATCH (e:Entity {uuid: '70beb78e-366a-5d71-a26c-c4abe7d24cf7'})
-            MATCH (c:Concept {uuid: '19544c1b-c1dd-5432-b109-9f9133e3c680'})
-            MERGE (e)-[:IS_A]->(c)
+            MATCH (concept:Node {name: 'concept'})
+            MERGE (s:Node {uuid: '2dd3d0d8-569f-5132-b4a1-7ec30dc2d92b'})
+            SET s.name = 'state',
+                s.is_type_definition = true,
+                s.type = 'state',
+                s.ancestors = ['concept'],
+                s.description = 'A temporal snapshot of entity properties'
+            MERGE (s)-[:IS_A]->(concept)
             """,
             # Create initial state for RobotArm
             """
-            MERGE (s:State {uuid: '1cbef772-0189-5f34-80d6-1a1f35a85bda'})
-            ON CREATE SET
-                s.name = 'RobotArm01-Idle',
+            MATCH (state_type:Node {name: 'state'})
+            MERGE (s:Node {uuid: 'state-robot-arm-01-idle'})
+            SET s.name = 'RobotArm01-Idle',
+                s.is_type_definition = false,
+                s.type = 'state',
+                s.ancestors = ['state', 'concept'],
                 s.description = 'Robot arm in idle state',
                 s.timestamp = datetime()
+            MERGE (s)-[:IS_A]->(state_type)
             """,
             # Link state to entity
             """
-            MATCH (e:Entity {uuid: '70beb78e-366a-5d71-a26c-c4abe7d24cf7'})
-            MATCH (s:State {uuid: '1cbef772-0189-5f34-80d6-1a1f35a85bda'})
+            MATCH (e:Node {uuid: 'entity-robot-arm-01'})
+            MATCH (s:Node {uuid: 'state-robot-arm-01-idle'})
             MERGE (e)-[:HAS_STATE]->(s)
             """,
         ]
@@ -289,11 +318,11 @@ class HCGLoader:
                     result = session.run(query)
                     result.consume()
 
-            logger.info("✓ Seed entities created")
+            logger.info("Seed entities created")
             return True
 
         except Neo4jError as e:
-            logger.error(f"✗ Failed to create seed entities: {e}")
+            logger.error(f"Failed to create seed entities: {e}")
             return False
 
     def load_all(self, repo_root: Path) -> bool:
@@ -319,43 +348,37 @@ class HCGLoader:
         logger.info("")
         constraints = self.verify_constraints()
         self.verify_indexes()
-        concepts = self.verify_concepts()
+        bootstrap_count = self.verify_bootstrap_types()
 
         # Check if basic requirements are met
         if not all(constraints.values()):
-            logger.warning("⚠ Some constraints are missing - they may have been created previously")
+            logger.warning("Some constraints are missing - they may have been created previously")
+
+        if bootstrap_count < 4:
+            logger.warning("Some bootstrap types are missing")
 
         # Step 3: Create seed entities
         logger.info("")
         if not self.create_seed_entities():
             return False
 
-        # Step 4: Load test data (optional - for full M1 demo)
+        # Step 4: Final verification
         logger.info("")
-        test_data_path = repo_root / "ontology" / "test_data_pick_and_place.cypher"
-        if test_data_path.exists():
-            self.load_cypher_file(test_data_path, "pick-and-place test data")
-        else:
-            logger.info("ℹ Pick-and-place test data not found (optional)")
-
-        # Step 5: Final verification
-        logger.info("")
-        entities = self.verify_entities()
+        counts = self.verify_nodes()
 
         logger.info("")
         logger.info("=" * 60)
-        logger.info("✓ HCG Loading Complete")
+        logger.info("HCG Loading Complete")
         logger.info("=" * 60)
-        logger.info(f"  Concepts: {concepts}")
-        logger.info(f"  Entities: {entities}")
+        logger.info(f"  Total nodes: {sum(counts.values())}")
         logger.info("")
         logger.info("Access Neo4j Browser at: http://localhost:7474")
         logger.info(f"  Username: {self.user}")
-        logger.info(f"  Password: {'*' * len(self.user)}")
         logger.info("")
         logger.info("Try running queries like:")
-        logger.info("  MATCH (e:Entity)-[:IS_A]->(c:Concept) RETURN e.name, c.name;")
-        logger.info("  MATCH (e:Entity)-[:HAS_STATE]->(s:State) RETURN e.name, s.name;")
+        logger.info("  MATCH (n:Node) RETURN n.type, n.name, n.is_type_definition LIMIT 20;")
+        logger.info("  MATCH (n:Node {is_type_definition: true}) RETURN n.name, n.ancestors;")
+        logger.info("  MATCH (n:Node)-[:IS_A]->(t:Node) RETURN n.name, t.name;")
         logger.info("")
 
         return True

@@ -109,9 +109,11 @@ class TestConceptQueries:
         concepts = hcg_client.find_all_concepts()
         assert len(concepts) > 0
 
-        # Verify we have expected concept types
+        # Verify we have expected concept types (concepts are nodes where
+        # type="concept" or "concept" is in ancestors)
         concept_names = [c.name for c in concepts]
-        assert "Manipulator" in concept_names or "GraspableObject" in concept_names
+        # Check for types that inherit from concept (state, process, capability)
+        assert any(name in concept_names for name in ("state", "process", "capability", "concept"))
 
     def test_find_concept_by_name(self, hcg_client):
         """Test finding concept by exact name."""
