@@ -26,19 +26,27 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 cd "$REPO_ROOT"
 
-# Source test environment
-STACK_DIR="$REPO_ROOT/tests/e2e/stack/logos"
-if [ -f "$STACK_DIR/.env.test" ]; then
-    set -a
-    source "$STACK_DIR/.env.test"
-    set +a
-fi
+# Get port configuration from logos_config (single source of truth)
+# This avoids hardcoding ports that may differ from the actual test stack
+PORTS_JSON=$(poetry run python -c "
+from logos_config import LOGOS_PORTS
+import json
+print(json.dumps({
+    'neo4j_http': LOGOS_PORTS.neo4j_http,
+    'neo4j_bolt': LOGOS_PORTS.neo4j_bolt,
+    'milvus_grpc': LOGOS_PORTS.milvus_grpc,
+}))
+")
 
-# Export standard test ports
-export NEO4J_HTTP_PORT="${NEO4J_HTTP_PORT:-7474}"
-export NEO4J_BOLT_PORT="${NEO4J_BOLT_PORT:-7687}"
-export MILVUS_PORT="${MILVUS_PORT:-19530}"
-export NEO4J_URI="${NEO4J_URI:-bolt://localhost:${NEO4J_BOLT_PORT}}"
+NEO4J_HTTP_PORT=$(echo "$PORTS_JSON" | python3 -c "import sys, json; print(json.load(sys.stdin)['neo4j_http'])")
+NEO4J_BOLT_PORT=$(echo "$PORTS_JSON" | python3 -c "import sys, json; print(json.load(sys.stdin)['neo4j_bolt'])")
+MILVUS_PORT=$(echo "$PORTS_JSON" | python3 -c "import sys, json; print(json.load(sys.stdin)['milvus_grpc'])")
+
+# Export test configuration
+export NEO4J_HTTP_PORT
+export NEO4J_BOLT_PORT
+export MILVUS_PORT
+export NEO4J_URI="bolt://localhost:${NEO4J_BOLT_PORT}"
 export NEO4J_USER="${NEO4J_USER:-neo4j}"
 export NEO4J_PASSWORD="${NEO4J_PASSWORD:-neo4jtest}"
 export NEO4J_CONTAINER="${NEO4J_CONTAINER:-logos-phase2-test-neo4j}"
