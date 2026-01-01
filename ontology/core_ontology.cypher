@@ -66,6 +66,85 @@ WITH isa
 MATCH (et:Node {uuid: "99c56c6a-9666-566f-b12a-5e05c4b00dab"})
 MERGE (isa)-[:IS_A]->(et);
 
+// === Bootstrap: COMPONENT_OF edge type ===
+// Structural composition relationship
+MERGE (cof:Node {uuid: "b3e7f2a1-8c4d-5e6f-9a0b-1c2d3e4f5a6b"})
+SET cof.name = "COMPONENT_OF",
+    cof.is_type_definition = true,
+    cof.type = "COMPONENT_OF",
+    cof.ancestors = ["edge_type"]
+WITH cof
+MATCH (et:Node {uuid: "99c56c6a-9666-566f-b12a-5e05c4b00dab"})
+MERGE (cof)-[:IS_A]->(et);
+
+// === Bootstrap: cognition ===
+// Root type for internal cognitive structures (CWM, persona, etc.)
+MERGE (cog:Node {uuid: "d4a5b6c7-8e9f-5a0b-1c2d-3e4f5a6b7c8d"})
+SET cog.name = "cognition",
+    cog.is_type_definition = true,
+    cog.type = "cognition",
+    cog.ancestors = []
+WITH cog
+MATCH (td:Node {uuid: "c8d4bdc0-a619-5328-a410-a5fce1cec3c5"})
+MERGE (cog)-[:IS_A]->(td);
+
+// === Bootstrap: cwm ===
+// Causal World Model - grouping type for CWM-A/G/E
+MERGE (cwm:Node {uuid: "e5b6c7d8-9f0a-5b1c-2d3e-4f5a6b7c8d9e"})
+SET cwm.name = "cwm",
+    cwm.is_type_definition = true,
+    cwm.type = "cwm",
+    cwm.ancestors = ["cognition"]
+WITH cwm
+MATCH (cog:Node {uuid: "d4a5b6c7-8e9f-5a0b-1c2d-3e4f5a6b7c8d"})
+MERGE (cwm)-[:IS_A]->(cog)
+MERGE (cwm)-[:COMPONENT_OF]->(cog);
+
+// === Bootstrap: cwm_a ===
+// CWM-A: Abstract reasoning - entities, relations, causal rules
+MERGE (cwma:Node {uuid: "f6c7d8e9-0a1b-5c2d-3e4f-5a6b7c8d9e0f"})
+SET cwma.name = "cwm_a",
+    cwma.is_type_definition = true,
+    cwma.type = "cwm_a",
+    cwma.ancestors = ["cwm", "cognition"]
+WITH cwma
+MATCH (cwm:Node {uuid: "e5b6c7d8-9f0a-5b1c-2d3e-4f5a6b7c8d9e"})
+MERGE (cwma)-[:IS_A]->(cwm);
+
+// === Bootstrap: cwm_g ===
+// CWM-G: Grounded - JEPA outputs, sensor predictions, physics
+MERGE (cwmg:Node {uuid: "07d8e9f0-1a2b-5c3d-4e5f-6a7b8c9d0e1f"})
+SET cwmg.name = "cwm_g",
+    cwmg.is_type_definition = true,
+    cwmg.type = "cwm_g",
+    cwmg.ancestors = ["cwm", "cognition"]
+WITH cwmg
+MATCH (cwm:Node {uuid: "e5b6c7d8-9f0a-5b1c-2d3e-4f5a6b7c8d9e"})
+MERGE (cwmg)-[:IS_A]->(cwm);
+
+// === Bootstrap: cwm_e ===
+// CWM-E: Emotional - persona state, sentiment, reflections
+MERGE (cwme:Node {uuid: "18e9f0a1-2b3c-5d4e-5f6a-7b8c9d0e1f2a"})
+SET cwme.name = "cwm_e",
+    cwme.is_type_definition = true,
+    cwme.type = "cwm_e",
+    cwme.ancestors = ["cwm", "cognition"]
+WITH cwme
+MATCH (cwm:Node {uuid: "e5b6c7d8-9f0a-5b1c-2d3e-4f5a6b7c8d9e"})
+MERGE (cwme)-[:IS_A]->(cwm);
+
+// === Bootstrap: persona ===
+// Persona type - identity/character configurations
+MERGE (per:Node {uuid: "29f0a1b2-3c4d-5e5f-6a7b-8c9d0e1f2a3b"})
+SET per.name = "persona",
+    per.is_type_definition = true,
+    per.type = "persona",
+    per.ancestors = ["cognition"]
+WITH per
+MATCH (cog:Node {uuid: "d4a5b6c7-8e9f-5a0b-1c2d-3e4f5a6b7c8d"})
+MERGE (per)-[:IS_A]->(cog)
+MERGE (per)-[:COMPONENT_OF]->(cog);
+
 // === Node Structure ===
 // All nodes have:
 //   uuid: str                - Required, unique identifier
