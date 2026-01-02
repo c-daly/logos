@@ -64,10 +64,10 @@ No `source`, `tags`, `links`, or `confidence` on the envelope - those live on th
 ```python
 def add_node(
     self,
-    uuid: str,
     name: str,
     node_type: str,
-    ancestors: List[str],
+    uuid: Optional[str] = None,
+    ancestors: Optional[List[str]] = None,
     is_type_definition: bool = False,
     properties: Optional[Dict[str, Any]] = None,
 ) -> str:
@@ -77,10 +77,10 @@ def add_node(
 ```python
 def add_node(
     self,
-    uuid: str,
     name: str,
     node_type: str,
-    ancestors: List[str],
+    uuid: Optional[str] = None,
+    ancestors: Optional[List[str]] = None,
     is_type_definition: bool = False,
     properties: Optional[Dict[str, Any]] = None,
     *,
@@ -91,6 +91,8 @@ def add_node(
     links: Optional[Dict[str, Any]] = None,
 ) -> str:
 ```
+
+Note: `uuid` is optional (auto-generated if None), `ancestors` auto-computed from type definition.
 
 **Behavior:**
 1. Generate `created` = current UTC ISO8601 timestamp
@@ -132,14 +134,34 @@ client.add_node(
 def update_node(
     self,
     uuid: str,
-    properties: Dict[str, Any],
+    properties: Optional[Dict[str, Any]] = None,
 ) -> str:
 ```
 
 **Behavior:**
-1. Set `updated` = current UTC ISO8601 timestamp
-2. Merge with provided properties
-3. Execute SET query on existing node
+1. Verify node exists (raise `ValueError` if not found)
+2. Set `updated` = current UTC ISO8601 timestamp
+3. Merge with provided properties (if any)
+4. Execute SET query on existing node
+5. Return uuid of updated node
+
+**Example:**
+```python
+client.update_node(
+    uuid="state-123",
+    properties={"confidence": 0.95}
+)
+# Updates node, sets updated timestamp, returns "state-123"
+# Raises ValueError if node doesn't exist
+```
+
+**Query:**
+```cypher
+MATCH (n:Node {uuid: $uuid})
+SET n.updated = $updated
+SET n += $properties
+RETURN n.uuid as uuid
+```
 
 ### 3. sophia API endpoints
 
@@ -149,7 +171,9 @@ def update_node(
 - Pass `source="planner"`, `derivation="imagined"` when creating plan nodes
 
 **/state endpoint:**
-- Include provenance fields in response when returning nodes
+- Returns CWMState envelope with `data` containing verbatim node properties
+- Provenance fields (`source`, `derivation`, `confidence`, `created`, `updated`, `tags`, `links`) are in `data`
+- No extra work needed - envelope wraps node verbatim
 
 **/simulate endpoint:**
 - Pass `source="jepa_runner"`, `derivation="imagined"` when creating imagined states
@@ -196,7 +220,8 @@ RETURN count(n) as migrated
 | Case | Behavior |
 |------|----------|
 | `add_node()` called without provenance args | Uses defaults: `source="unknown"`, `derivation="observed"`, timestamps=now |
-| Node already has `created` | Preserve existing, only update `updated` |
+| `add_node()` called for existing uuid | MERGE overwrites all properties including timestamps (use `update_node()` for updates) |
+| `update_node()` on non-existent node | Raises `ValueError` |
 | Migration on empty DB | No-op, returns 0 migrated |
 | Invalid `source` value | Accept any string (no enum validation in storage) |
 | `confidence` not provided | Stored as `null`, not 0 |
@@ -248,25 +273,46 @@ RETURN count(n) as migrated
 
 ## CWMState Envelope Simplification
 
-The current CWMState envelope has redundant fields. Since provenance now lives on nodes, the envelope can be simplified:
+The current CWMState envelope has redundant fields. Since provenance now lives on nodes, the envelope can be simplified.
 
-**Current fields (some redundant):**
-- `state_id`, `model_type`, `source`, `timestamp`, `confidence`, `status`, `links`, `tags`, `data`
+**Current CWMState model** (`src/sophia/cwm_a/state_service.py`):
+```python
+class CWMState(BaseModel):
+    state_id: str           # Keep
+    model_type: str         # Keep
+    source: str             # Remove - now on node
+    timestamp: datetime     # Keep
+    confidence: float       # Remove - now on node
+    status: str             # Remove - now node.derivation
+    links: CWMStateLinks    # Remove - now on node
+    tags: List[str]         # Remove - now on node
+    data: CWMAGraphPayload  # Keep (becomes Dict[str, Any])
+```
 
-**Simplified envelope:**
-- `state_id` - identifies the record
-- `model_type` - CWM_A, CWM_G, CWM_E
-- `timestamp` - when response was generated
-- `data` - verbatim node properties (contains source, derivation, confidence, tags, links, etc.)
+**Simplified CWMState:**
+```python
+class CWMState(BaseModel):
+    state_id: str                      # Globally unique identifier
+    model_type: str                    # CWM_A, CWM_G, CWM_E
+    timestamp: datetime                # When response was generated
+    data: Dict[str, Any]               # Verbatim node properties
+```
 
-**Removed from envelope** (now on node):
-- `source` → `data.source`
-- `confidence` → `data.confidence`
-- `status` → `data.derivation`
-- `links` → `data.links`
-- `tags` → `data.tags`
+**Field migration:**
+| Removed Field | Now Located At |
+|---------------|----------------|
+| `source` | `data["source"]` |
+| `confidence` | `data["confidence"]` |
+| `status` | `data["derivation"]` |
+| `links` | `data["links"]` |
+| `tags` | `data["tags"]` |
 
-This is a contract change - requires updating `sophia.openapi.yaml` and regenerating SDKs.
+This is a **breaking contract change** - requires:
+1. Update `sophia.openapi.yaml`
+2. Update `state_service.py` CWMState model
+3. Update all code that creates CWMState objects
+4. Regenerate SDKs
+5. Update consumers (Apollo, Hermes if any)
 
 ## Out of Scope
 
