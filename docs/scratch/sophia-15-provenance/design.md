@@ -314,6 +314,23 @@ This is a **breaking contract change** - requires:
 4. Regenerate SDKs
 5. Update consumers (Apollo, Hermes if any)
 
+## Process Container Pattern
+
+Processes (both imagined and observed) are grouped under container nodes:
+
+| | Imagined | Observed |
+|---|---|---|
+| **Container type** | `simulation` | `execution` (future) |
+| **Container ID field** | `simulation_id` | `execution_id` (future) |
+| **Derivation** | `imagined` | `observed` |
+| **Child node types** | `imagined_process`, `imagined_state` | `process`, `state` |
+| **Child ID field** | `process_id` | `process_id` |
+| **Links array** | `process_ids` | `process_ids` |
+
+Both containers are implemented:
+- `simulation` container: Created by `/simulate` endpoint
+- `execution` container: Created by `/execute` endpoint
+
 ## Out of Scope
 
 - SHACL validation of provenance fields

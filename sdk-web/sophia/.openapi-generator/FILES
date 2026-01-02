@@ -7,8 +7,6 @@ docs/CWMAGraphDataValidation.md
 docs/CWMESentimentData.md
 docs/CWMGImaginedData.md
 docs/CWMState.md
-docs/CWMStateData.md
-docs/CWMStateLinks.md
 docs/HealthResponse.md
 docs/PlanRequest.md
 docs/PlanRequestGoal.md
@@ -30,8 +28,6 @@ src/models/CWMAGraphDataValidation.ts
 src/models/CWMESentimentData.ts
 src/models/CWMGImaginedData.ts
 src/models/CWMState.ts
-src/models/CWMStateData.ts
-src/models/CWMStateLinks.ts
 src/models/HealthResponse.ts
 src/models/PlanRequest.ts
 src/models/PlanRequestGoal.ts

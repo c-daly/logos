@@ -112,8 +112,6 @@ Class | Method | HTTP request | Description
  - [CWMESentimentData](docs/CWMESentimentData.md)
  - [CWMGImaginedData](docs/CWMGImaginedData.md)
  - [CWMState](docs/CWMState.md)
- - [CWMStateData](docs/CWMStateData.md)
- - [CWMStateLinks](docs/CWMStateLinks.md)
  - [HealthResponse](docs/HealthResponse.md)
  - [PlanRequest](docs/PlanRequest.md)
  - [PlanRequestGoal](docs/PlanRequestGoal.md)

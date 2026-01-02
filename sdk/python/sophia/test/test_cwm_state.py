@@ -37,46 +37,15 @@ class TestCWMState(unittest.TestCase):
             return CWMState(
                 state_id = '',
                 model_type = 'CWM_A',
-                source = '',
                 timestamp = datetime.datetime.strptime('2013-10-20 19:20:30.00', '%Y-%m-%d %H:%M:%S.%f'),
-                confidence = 0,
-                status = 'observed',
-                links = logos_sophia_sdk.models.cwm_state_links.CWMStateLinks(
-                    process_ids = [
-                        ''
-                        ], 
-                    plan_id = '', 
-                    entity_ids = [
-                        ''
-                        ], 
-                    media_sample_id = '', 
-                    persona_entry_id = '', 
-                    talos_run_id = '', ),
-                tags = [
-                    ''
-                    ],
-                data = None
+                data = { }
             )
         else:
             return CWMState(
                 state_id = '',
                 model_type = 'CWM_A',
-                source = '',
                 timestamp = datetime.datetime.strptime('2013-10-20 19:20:30.00', '%Y-%m-%d %H:%M:%S.%f'),
-                confidence = 0,
-                status = 'observed',
-                links = logos_sophia_sdk.models.cwm_state_links.CWMStateLinks(
-                    process_ids = [
-                        ''
-                        ], 
-                    plan_id = '', 
-                    entity_ids = [
-                        ''
-                        ], 
-                    media_sample_id = '', 
-                    persona_entry_id = '', 
-                    talos_run_id = '', ),
-                data = None,
+                data = { },
         )
         """
 

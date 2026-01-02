@@ -18,8 +18,6 @@ from logos_sophia_sdk.models.cwma_graph_data_validation import CWMAGraphDataVali
 from logos_sophia_sdk.models.cwme_sentiment_data import CWMESentimentData
 from logos_sophia_sdk.models.cwmg_imagined_data import CWMGImaginedData
 from logos_sophia_sdk.models.cwm_state import CWMState
-from logos_sophia_sdk.models.cwm_state_data import CWMStateData
-from logos_sophia_sdk.models.cwm_state_links import CWMStateLinks
 from logos_sophia_sdk.models.health_response import HealthResponse
 from logos_sophia_sdk.models.plan_request import PlanRequest
 from logos_sophia_sdk.models.plan_request_goal import PlanRequestGoal
