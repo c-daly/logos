@@ -1,7 +1,7 @@
 
 # CWMState
 
-Unified causal world model state envelope.
+Unified causal world model state envelope (thin transport wrapper). All meaningful metadata (provenance) lives in `data`, not on the envelope. This is a breaking change from the previous schema which had provenance on the envelope. 
 
 ## Properties
 
@@ -9,13 +9,8 @@ Name | Type
 ------------ | -------------
 `stateId` | string
 `modelType` | string
-`source` | string
 `timestamp` | Date
-`confidence` | number
-`status` | string
-`links` | [CWMStateLinks](CWMStateLinks.md)
-`tags` | Array&lt;string&gt;
-`data` | [CWMStateData](CWMStateData.md)
+`data` | { [key: string]: any; }
 
 ## Example
 
@@ -26,12 +21,7 @@ import type { CWMState } from '@logos/sophia-sdk'
 const example = {
   "stateId": null,
   "modelType": null,
-  "source": null,
   "timestamp": null,
-  "confidence": null,
-  "status": null,
-  "links": null,
-  "tags": null,
   "data": null,
 } satisfies CWMState
 

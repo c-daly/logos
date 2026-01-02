@@ -13,23 +13,11 @@
  */
 
 import { mapValues } from '../runtime';
-import type { CWMStateLinks } from './CWMStateLinks';
-import {
-    CWMStateLinksFromJSON,
-    CWMStateLinksFromJSONTyped,
-    CWMStateLinksToJSON,
-    CWMStateLinksToJSONTyped,
-} from './CWMStateLinks';
-import type { CWMStateData } from './CWMStateData';
-import {
-    CWMStateDataFromJSON,
-    CWMStateDataFromJSONTyped,
-    CWMStateDataToJSON,
-    CWMStateDataToJSONTyped,
-} from './CWMStateData';
-
 /**
- * Unified causal world model state envelope.
+ * Unified causal world model state envelope (thin transport wrapper).
+ * All meaningful metadata (provenance) lives in `data`, not on the envelope.
+ * This is a breaking change from the previous schema which had provenance on the envelope.
+ * 
  * @export
  * @interface CWMState
  */
@@ -47,47 +35,26 @@ export interface CWMState {
      */
     modelType: CWMStateModelTypeEnum;
     /**
-     * Subsystem that emitted the record (e.g., orchestrator, jepa_runner)
-     * @type {string}
-     * @memberof CWMState
-     */
-    source: string;
-    /**
-     * 
+     * When the response was generated
      * @type {Date}
      * @memberof CWMState
      */
     timestamp: Date;
     /**
+     * Verbatim node properties including provenance. Contains:
+     * - source: Module/job that created it (e.g., jepa_runner, planner)
+     * - derivation: How derived (observed, imagined, reflected)
+     * - confidence: 0.0-1.0 certainty score (optional)
+     * - created: ISO8601 timestamp when node was created
+     * - updated: ISO8601 timestamp when node was last modified
+     * - tags: Free-form labels (array of strings)
+     * - links: Related entity IDs (object with process_ids, plan_id, entity_ids, etc.)
+     * - Plus model-specific content (entities, relations for CWM-A; etc.)
      * 
-     * @type {number}
+     * @type {{ [key: string]: any; }}
      * @memberof CWMState
      */
-    confidence: number;
-    /**
-     * 
-     * @type {string}
-     * @memberof CWMState
-     */
-    status: CWMStateStatusEnum;
-    /**
-     * 
-     * @type {CWMStateLinks}
-     * @memberof CWMState
-     */
-    links: CWMStateLinks;
-    /**
-     * Free-form labels for diagnostics filtering
-     * @type {Array<string>}
-     * @memberof CWMState
-     */
-    tags?: Array<string>;
-    /**
-     * 
-     * @type {CWMStateData}
-     * @memberof CWMState
-     */
-    data: CWMStateData;
+    data: { [key: string]: any; };
 }
 
 
@@ -101,17 +68,6 @@ export const CWMStateModelTypeEnum = {
 } as const;
 export type CWMStateModelTypeEnum = typeof CWMStateModelTypeEnum[keyof typeof CWMStateModelTypeEnum];
 
-/**
- * @export
- */
-export const CWMStateStatusEnum = {
-    Observed: 'observed',
-    Imagined: 'imagined',
-    Reflected: 'reflected',
-    Ephemeral: 'ephemeral'
-} as const;
-export type CWMStateStatusEnum = typeof CWMStateStatusEnum[keyof typeof CWMStateStatusEnum];
-
 
 /**
  * Check if a given object implements the CWMState interface.
@@ -119,11 +75,7 @@ export type CWMStateStatusEnum = typeof CWMStateStatusEnum[keyof typeof CWMState
 export function instanceOfCWMState(value: object): value is CWMState {
     if (!('stateId' in value) || value['stateId'] === undefined) return false;
     if (!('modelType' in value) || value['modelType'] === undefined) return false;
-    if (!('source' in value) || value['source'] === undefined) return false;
     if (!('timestamp' in value) || value['timestamp'] === undefined) return false;
-    if (!('confidence' in value) || value['confidence'] === undefined) return false;
-    if (!('status' in value) || value['status'] === undefined) return false;
-    if (!('links' in value) || value['links'] === undefined) return false;
     if (!('data' in value) || value['data'] === undefined) return false;
     return true;
 }
@@ -140,13 +92,8 @@ export function CWMStateFromJSONTyped(json: any, ignoreDiscriminator: boolean): 
         
         'stateId': json['state_id'],
         'modelType': json['model_type'],
-        'source': json['source'],
         'timestamp': (new Date(json['timestamp'])),
-        'confidence': json['confidence'],
-        'status': json['status'],
-        'links': CWMStateLinksFromJSON(json['links']),
-        'tags': json['tags'] == null ? undefined : json['tags'],
-        'data': CWMStateDataFromJSON(json['data']),
+        'data': json['data'],
     };
 }
 
@@ -163,13 +110,8 @@ export function CWMStateToJSONTyped(value?: CWMState | null, ignoreDiscriminator
         
         'state_id': value['stateId'],
         'model_type': value['modelType'],
-        'source': value['source'],
         'timestamp': value['timestamp'].toISOString(),
-        'confidence': value['confidence'],
-        'status': value['status'],
-        'links': CWMStateLinksToJSON(value['links']),
-        'tags': value['tags'],
-        'data': CWMStateDataToJSON(value['data']),
+        'data': value['data'],
     };
 }
 

@@ -19,40 +19,25 @@ import json
 
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
-from typing import Any, ClassVar, Dict, List, Optional, Union
-from typing_extensions import Annotated
-from logos_sophia_sdk.models.cwm_state_data import CWMStateData
-from logos_sophia_sdk.models.cwm_state_links import CWMStateLinks
+from typing import Any, ClassVar, Dict, List
 from typing import Optional, Set
 from typing_extensions import Self
 
 class CWMState(BaseModel):
     """
-    Unified causal world model state envelope.
+    Unified causal world model state envelope (thin transport wrapper). All meaningful metadata (provenance) lives in `data`, not on the envelope. This is a breaking change from the previous schema which had provenance on the envelope. 
     """ # noqa: E501
     state_id: StrictStr = Field(description="Globally unique identifier (`cwm_<model>_<uuid>`)")
     model_type: StrictStr
-    source: StrictStr = Field(description="Subsystem that emitted the record (e.g., orchestrator, jepa_runner)")
-    timestamp: datetime
-    confidence: Union[Annotated[float, Field(le=1, strict=True, ge=0)], Annotated[int, Field(le=1, strict=True, ge=0)]]
-    status: StrictStr
-    links: CWMStateLinks
-    tags: Optional[List[StrictStr]] = Field(default=None, description="Free-form labels for diagnostics filtering")
-    data: CWMStateData
-    __properties: ClassVar[List[str]] = ["state_id", "model_type", "source", "timestamp", "confidence", "status", "links", "tags", "data"]
+    timestamp: datetime = Field(description="When the response was generated")
+    data: Dict[str, Any] = Field(description="Verbatim node properties including provenance. Contains: - source: Module/job that created it (e.g., jepa_runner, planner) - derivation: How derived (observed, imagined, reflected) - confidence: 0.0-1.0 certainty score (optional) - created: ISO8601 timestamp when node was created - updated: ISO8601 timestamp when node was last modified - tags: Free-form labels (array of strings) - links: Related entity IDs (object with process_ids, plan_id, entity_ids, etc.) - Plus model-specific content (entities, relations for CWM-A; etc.) ")
+    __properties: ClassVar[List[str]] = ["state_id", "model_type", "timestamp", "data"]
 
     @field_validator('model_type')
     def model_type_validate_enum(cls, value):
         """Validates the enum"""
         if value not in set(['CWM_A', 'CWM_G', 'CWM_E']):
             raise ValueError("must be one of enum values ('CWM_A', 'CWM_G', 'CWM_E')")
-        return value
-
-    @field_validator('status')
-    def status_validate_enum(cls, value):
-        """Validates the enum"""
-        if value not in set(['observed', 'imagined', 'reflected', 'ephemeral']):
-            raise ValueError("must be one of enum values ('observed', 'imagined', 'reflected', 'ephemeral')")
         return value
 
     model_config = ConfigDict(
@@ -94,12 +79,6 @@ class CWMState(BaseModel):
             exclude=excluded_fields,
             exclude_none=True,
         )
-        # override the default output from pydantic by calling `to_dict()` of links
-        if self.links:
-            _dict['links'] = self.links.to_dict()
-        # override the default output from pydantic by calling `to_dict()` of data
-        if self.data:
-            _dict['data'] = self.data.to_dict()
         return _dict
 
     @classmethod
@@ -114,13 +93,8 @@ class CWMState(BaseModel):
         _obj = cls.model_validate({
             "state_id": obj.get("state_id"),
             "model_type": obj.get("model_type"),
-            "source": obj.get("source"),
             "timestamp": obj.get("timestamp"),
-            "confidence": obj.get("confidence"),
-            "status": obj.get("status"),
-            "links": CWMStateLinks.from_dict(obj["links"]) if obj.get("links") is not None else None,
-            "tags": obj.get("tags"),
-            "data": CWMStateData.from_dict(obj["data"]) if obj.get("data") is not None else None
+            "data": obj.get("data")
         })
         return _obj
 
