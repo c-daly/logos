@@ -7,22 +7,37 @@
 
 LOGOS is a cognitive architecture that reasons in graph structures, not natural language. Language is just an interface—the system's internal processing uses causal graphs for planning, execution, and world modeling.
 
+## Documentation
+
+**[Wiki](https://github.com/c-daly/logos/wiki)** - Full documentation
+
+| Page | Description |
+|------|-------------|
+| [Getting Started](https://github.com/c-daly/logos/wiki/Getting-Started) | Setup, installation, first run |
+| [Architecture](https://github.com/c-daly/logos/wiki/Architecture) | System overview, data flow |
+| [Specification](https://github.com/c-daly/logos/wiki/Specification) | Unified spec with status markers |
+| [HCG & Ontology](https://github.com/c-daly/logos/wiki/HCG-Ontology) | Graph model, Neo4j, Milvus |
+| [CWM Layers](https://github.com/c-daly/logos/wiki/CWM-Layers) | Abstract, Grounded, Emotional |
+| [Testing Standards](https://github.com/c-daly/logos/wiki/Testing-Standards) | Test conventions |
+| [Git Workflow](https://github.com/c-daly/logos/wiki/Git-Workflow) | Branching, commits, PRs |
+| [Templates](https://github.com/c-daly/logos/wiki/Templates) | Issue and PR templates |
+
 ## Repositories
 
-| Repo | Purpose | Status |
-|------|---------|--------|
-| **[logos](https://github.com/c-daly/logos)** (this) | Ontology, contracts, infrastructure, SDKs | Required |
-| **[sophia](https://github.com/c-daly/sophia)** | Cognitive core - planning, execution, world models | Required |
-| **[hermes](https://github.com/c-daly/hermes)** | Language processing, embeddings, LLM gateway | Optional |
-| **[apollo](https://github.com/c-daly/apollo)** | CLI and web UI | Optional |
-| **[talos](https://github.com/c-daly/talos)** | Hardware abstraction, simulators | Optional |
+| Repo | Purpose | Port |
+|------|---------|------|
+| **[logos](https://github.com/c-daly/logos)** (this) | Foundry - ontology, contracts, SDKs, shared tooling | 38000 |
+| **[sophia](https://github.com/c-daly/sophia)** | Cognitive core - planning, execution, world models | 48000 |
+| **[hermes](https://github.com/c-daly/hermes)** | Language processing - embeddings, NLP, STT/TTS | 18000 |
+| **[talos](https://github.com/c-daly/talos)** | Hardware abstraction - simulators, capabilities | 58000 |
+| **[apollo](https://github.com/c-daly/apollo)** | User interface - CLI, web dashboard | 28000 |
 
 ## Quick Start
 
 ```bash
 # Clone all repos
 mkdir -p ~/projects/LOGOS && cd ~/projects/LOGOS
-for repo in logos hermes apollo sophia talos; do
+for repo in logos sophia hermes talos apollo; do
   git clone https://github.com/c-daly/$repo.git
 done
 
@@ -35,24 +50,6 @@ poetry install
 poetry run pytest tests/unit/ -v
 ```
 
-📖 **[Full Getting Started Guide](docs/guides/GETTING_STARTED.md)**
-
-## Documentation
-
-| Guide | Description |
-|-------|-------------|
-| [Getting Started](docs/guides/GETTING_STARTED.md) | Clone repos, run everything, first test |
-| [Architecture](docs/architecture/ARCHITECTURE.md) | How repos connect, data flow, APIs |
-| [SDK Guide](docs/sdk/SDK_GUIDE.md) | Using and regenerating client SDKs |
-| [Testing](docs/guides/TESTING.md) | Test categories, ports, running integration tests |
-| [Infrastructure](docs/guides/INFRASTRUCTURE.md) | Neo4j, Milvus, observability setup |
-
-### Reference
-
-- [Phase Specifications](docs/architecture/) - Detailed architecture specs
-- [API Contracts](contracts/) - OpenAPI specs for Sophia and Hermes
-- [Ontology](ontology/) - Core HCG ontology and SHACL shapes
-
 ## What's in This Repo
 
 ```
@@ -64,7 +61,8 @@ logos/
 ├── sdk-web/             # Generated TypeScript SDKs
 ├── logos_config/        # Shared config utilities (ports, env)
 ├── logos_hcg/           # HCG client library
-└── docs/                # Documentation
+├── docs/architecture/   # ADRs and historical specs
+└── .github/             # Issue templates, labels, CI workflows
 ```
 
 ## Infrastructure
@@ -72,9 +70,6 @@ logos/
 ```bash
 # Start Neo4j + Milvus
 docker compose -f infra/docker-compose.hcg.dev.yml up -d
-
-# Verify
-docker compose -f infra/docker-compose.hcg.dev.yml ps
 
 # Neo4j Browser: http://localhost:7474 (neo4j/neo4jtest)
 # Milvus: localhost:19530
@@ -87,54 +82,6 @@ When API contracts change:
 ```bash
 ./scripts/generate-sdks.sh
 ```
-
-## Port Allocation
-
-Each repo uses unique ports for test isolation:
-
-| Repo | Prefix | Neo4j | Milvus |
-|------|--------|-------|--------|
-| hermes | 17xxx | 17474/17687 | 17530 |
-| apollo | 27xxx | 27474/27687 | 27530 |
-| logos | 37xxx | 37474/37687 | 37530 |
-| sophia | 47xxx | 47474/47687 | 47530 |
-| talos | 57xxx | 57474/57687 | 57530 |
-
-## What's Built
-
-**Stable**
-- Graph & Storage: Neo4j, Milvus, SHACL validation
-- Hermes: Embeddings, LLM gateway
-- Infrastructure: Docker stacks, CI/CD, test isolation
-
-**Working (needs refinement)**
-- Sophia: Planning, execution, simulation APIs
-- Apollo: CLI, web dashboard
-- SDKs: Python & TypeScript (generated)
-- Perception: JEPA encoder, image/video ingestion
-- Persona: CWM-E schema, diary store
-- Ontology: Core HCG schema, domain concepts
-
-## Roadmap
-
-**Persona**
-- 3-tier memory (ephemeral → short-term → long-term)
-- Reflection job and promotion
-- Identity modeling, voice/style
-- Emotional reasoning, motivation
-
-**Intelligence**
-- Ontology evolution and concept extraction
-- Temporal reasoning, uncertainty handling
-- Grounded language, dialogue management
-- STT/TTS
-
-**Autonomy**
-- Learning from experience
-- Physical robot integration (Talos → real hardware)
-- Multi-agent coordination
-
-Phase 1-2 architecture specs are preserved in [docs/architecture/](docs/architecture/) as historical reference.
 
 ## License
 

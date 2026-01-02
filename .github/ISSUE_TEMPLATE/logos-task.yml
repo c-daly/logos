@@ -1,12 +1,12 @@
-name: Infrastructure Task
-description: Task related to infrastructure, HCG, ontology, or CI/CD
-title: "[Infra] "
-labels: ["component:infrastructure"]
+name: LOGOS Task
+description: Task for the meta-repo - contracts, ontology, SDKs, shared tooling
+title: "[LOGOS] "
+labels: ["component:logos"]
 body:
   - type: markdown
     attributes:
       value: |
-        Task for infrastructure, HCG setup, ontology development, or CI/CD
+        Task for the LOGOS foundry - contracts, ontology, SDKs, shared tooling, HCG setup, or CI/CD
   - type: dropdown
     id: priority
     attributes:
