@@ -1,0 +1,70 @@
+{
+  "date": "2025-12-02",
+  "phase": "2.5-baseline",
+  "collector": "automated",
+  "repos": {
+    "sophia": {
+      "passed": 240,
+      "failed": 13,
+      "skipped": 1,
+      "total": 254,
+      "skip_pct": 0.4,
+      "coverage": 74,
+      "mock_lines": 273,
+      "integration_flags": ["RUN_SOPHIA_INTEGRATION=1", "RUN_NEO4J_SHACL=1", "RUN_MEDIA_INTEGRATION=1"],
+      "notes": "13 integration tests fail against real Neo4j"
+    },
+    "hermes": {
+      "passed": 84,
+      "failed": 0,
+      "skipped": 106,
+      "total": 190,
+      "skip_pct": 55.8,
+      "coverage": 68,
+      "mock_lines": 95,
+      "integration_flags": [],
+      "notes": "56% tests skipped due to ML_AVAILABLE/NLP_AVAILABLE markers"
+    },
+    "apollo": {
+      "passed": 133,
+      "failed": 1,
+      "skipped": 37,
+      "total": 171,
+      "skip_pct": 21.6,
+      "coverage": 62,
+      "mock_lines": 612,
+      "integration_flags": ["RUN_INTEGRATION_TESTS=1"],
+      "notes": "Mock explosion - 612 lines of mocking code"
+    },
+    "talos": {
+      "passed": 253,
+      "failed": 0,
+      "skipped": 13,
+      "total": 266,
+      "skip_pct": 4.9,
+      "coverage": 99,
+      "mock_lines": 252,
+      "integration_flags": [],
+      "notes": "Mostly healthy, good coverage"
+    },
+    "logos": {
+      "passed": 183,
+      "failed": 1,
+      "skipped": 110,
+      "total": 294,
+      "skip_pct": 37.4,
+      "coverage": 34,
+      "mock_lines": 194,
+      "integration_flags": ["RUN_NEO4J_SHACL=1"],
+      "notes": "37% skipped, low overall coverage"
+    }
+  },
+  "totals": {
+    "passed": 893,
+    "failed": 15,
+    "skipped": 267,
+    "total": 1175,
+    "skip_pct": 22.7,
+    "effective_coverage": "unknown - mocks distort real numbers"
+  }
+}
