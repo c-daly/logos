@@ -35,8 +35,6 @@ __all__ = [
     "CWMESentimentData",
     "CWMGImaginedData",
     "CWMState",
-    "CWMStateData",
-    "CWMStateLinks",
     "HealthResponse",
     "PlanRequest",
     "PlanRequestGoal",
@@ -68,8 +66,6 @@ from logos_sophia_sdk.models.cwma_graph_data_validation import CWMAGraphDataVali
 from logos_sophia_sdk.models.cwme_sentiment_data import CWMESentimentData as CWMESentimentData
 from logos_sophia_sdk.models.cwmg_imagined_data import CWMGImaginedData as CWMGImaginedData
 from logos_sophia_sdk.models.cwm_state import CWMState as CWMState
-from logos_sophia_sdk.models.cwm_state_data import CWMStateData as CWMStateData
-from logos_sophia_sdk.models.cwm_state_links import CWMStateLinks as CWMStateLinks
 from logos_sophia_sdk.models.health_response import HealthResponse as HealthResponse
 from logos_sophia_sdk.models.plan_request import PlanRequest as PlanRequest
 from logos_sophia_sdk.models.plan_request_goal import PlanRequestGoal as PlanRequestGoal

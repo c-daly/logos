@@ -1,6 +1,6 @@
 # CWMState
 
-Unified causal world model state envelope.
+Unified causal world model state envelope (thin transport wrapper). All meaningful metadata (provenance) lives in `data`, not on the envelope. This is a breaking change from the previous schema which had provenance on the envelope. 
 
 ## Properties
 
@@ -8,13 +8,8 @@ Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **state_id** | **str** | Globally unique identifier (&#x60;cwm_&lt;model&gt;_&lt;uuid&gt;&#x60;) | 
 **model_type** | **str** |  | 
-**source** | **str** | Subsystem that emitted the record (e.g., orchestrator, jepa_runner) | 
-**timestamp** | **datetime** |  | 
-**confidence** | **float** |  | 
-**status** | **str** |  | 
-**links** | [**CWMStateLinks**](CWMStateLinks.md) |  | 
-**tags** | **List[str]** | Free-form labels for diagnostics filtering | [optional] 
-**data** | [**CWMStateData**](CWMStateData.md) |  | 
+**timestamp** | **datetime** | When the response was generated | 
+**data** | **Dict[str, object]** | Verbatim node properties including provenance. Contains: - source: Module/job that created it (e.g., jepa_runner, planner) - derivation: How derived (observed, imagined, reflected) - confidence: 0.0-1.0 certainty score (optional) - created: ISO8601 timestamp when node was created - updated: ISO8601 timestamp when node was last modified - tags: Free-form labels (array of strings) - links: Related entity IDs (object with process_ids, plan_id, entity_ids, etc.) - Plus model-specific content (entities, relations for CWM-A; etc.)  | 
 
 ## Example
 

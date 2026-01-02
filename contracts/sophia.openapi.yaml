@@ -283,7 +283,10 @@ components:
 
     CWMState:
       type: object
-      description: Unified causal world model state envelope.
+      description: |
+        Unified causal world model state envelope (thin transport wrapper).
+        All meaningful metadata (provenance) lives in `data`, not on the envelope.
+        This is a breaking change from the previous schema which had provenance on the envelope.
       properties:
         state_id:
           type: string
@@ -291,66 +294,28 @@ components:
         model_type:
           type: string
           enum: [CWM_A, CWM_G, CWM_E]
-        source:
-          type: string
-          description: Subsystem that emitted the record (e.g., orchestrator, jepa_runner)
         timestamp:
           type: string
           format: date-time
-        confidence:
-          type: number
-          format: float
-          minimum: 0
-          maximum: 1
-        status:
-          type: string
-          enum: [observed, imagined, reflected, ephemeral]
-        links:
-          $ref: '#/components/schemas/CWMStateLinks'
-        tags:
-          type: array
-          items:
-            type: string
-          description: Free-form labels for diagnostics filtering
+          description: When the response was generated
         data:
-          oneOf:
-            - $ref: '#/components/schemas/CWMAGraphData'
-            - $ref: '#/components/schemas/CWMGImaginedData'
-            - $ref: '#/components/schemas/CWMESentimentData'
-          description: Model-specific payload
+          type: object
+          additionalProperties: true
+          description: |
+            Verbatim node properties including provenance. Contains:
+            - source: Module/job that created it (e.g., jepa_runner, planner)
+            - derivation: How derived (observed, imagined, reflected)
+            - confidence: 0.0-1.0 certainty score (optional)
+            - created: ISO8601 timestamp when node was created
+            - updated: ISO8601 timestamp when node was last modified
+            - tags: Free-form labels (array of strings)
+            - links: Related entity IDs (object with process_ids, plan_id, entity_ids, etc.)
+            - Plus model-specific content (entities, relations for CWM-A; etc.)
       required:
         - state_id
         - model_type
-        - source
         - timestamp
-        - confidence
-        - status
-        - links
         - data
-
-    CWMStateLinks:
-      type: object
-      properties:
-        process_ids:
-          type: array
-          items:
-            type: string
-        plan_id:
-          type: string
-          nullable: true
-        entity_ids:
-          type: array
-          items:
-            type: string
-        media_sample_id:
-          type: string
-          nullable: true
-        persona_entry_id:
-          type: string
-          nullable: true
-        talos_run_id:
-          type: string
-          nullable: true
 
     CWMAGraphData:
       type: object

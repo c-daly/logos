@@ -9,8 +9,6 @@ docs/CWMAGraphDataValidation.md
 docs/CWMESentimentData.md
 docs/CWMGImaginedData.md
 docs/CWMState.md
-docs/CWMStateData.md
-docs/CWMStateLinks.md
 docs/HealthResponse.md
 docs/PlanRequest.md
 docs/PlanRequestGoal.md
@@ -33,8 +31,6 @@ logos_sophia_sdk/configuration.py
 logos_sophia_sdk/exceptions.py
 logos_sophia_sdk/models/__init__.py
 logos_sophia_sdk/models/cwm_state.py
-logos_sophia_sdk/models/cwm_state_data.py
-logos_sophia_sdk/models/cwm_state_links.py
 logos_sophia_sdk/models/cwma_graph_data.py
 logos_sophia_sdk/models/cwma_graph_data_validation.py
 logos_sophia_sdk/models/cwme_sentiment_data.py
@@ -55,8 +51,6 @@ setup.py
 test-requirements.txt
 test/__init__.py
 test/test_cwm_state.py
-test/test_cwm_state_data.py
-test/test_cwm_state_links.py
 test/test_cwma_graph_data.py
 test/test_cwma_graph_data_validation.py
 test/test_cwme_sentiment_data.py
