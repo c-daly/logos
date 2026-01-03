@@ -51,7 +51,7 @@ Fully functioning Apollo webapp that speaks to Hermes, with Hermes speaking to S
 - [x] Add `/api/v1/` route aliases for all endpoints
 - [x] Verify ruff/mypy configs match logos standards
 
-### 1B: CWM Persistence & APIs (sophia #14) - PARTIAL
+### 1B: CWM Persistence & APIs (sophia #14) - COMPLETE
 **The critical integration enabler**
 
 **Completed via sophia PR #102 + logos PR #466 (2025-12-31)**:
@@ -101,6 +101,15 @@ Fully functioning Apollo webapp that speaks to Hermes, with Hermes speaking to S
 - [x] FeedbackDispatcher and FeedbackWorker components
 - [x] Graceful degradation when Redis unavailable
 
+### 1E: Persona APIs (logos #246, #264)
+**Sophia exposes CWM-E persona diary endpoints for Apollo to consume**
+
+**Tasks**:
+- [ ] logos #246: CWM-E persona diary storage & API exposure
+- [ ] logos #264: Wire persona diary into Sophia
+- [ ] Expose persona CRUD endpoints (GET/POST/PUT/DELETE)
+- [ ] Integrate with existing CWM persistence layer
+
 ---
 
 ## Phase 2: Hermes Integration - COMPLETE
@@ -145,6 +154,14 @@ Fully functioning Apollo webapp that speaks to Hermes, with Hermes speaking to S
 - [ ] Implement real-time feedback display (WebSocket)
 - [ ] Test full flow: user input → LLM response with context
 
+**Remove direct Neo4j access (logos #461)**:
+- [ ] Remove `hcg_client.py` direct Neo4j queries
+- [ ] Route GraphViewer, DiagnosticsPanel through Sophia APIs
+
+**Persona infrastructure (logos #266, #267)** - depends on 1E:
+- [ ] logos #266: Apollo persona data layer (consuming Sophia)
+- [ ] logos #267: Update PersonaDiary.tsx, ChatPanel.tsx to use Sophia endpoints
+
 ---
 
 ## Phase 4: Flexible Ontology - COMPLETE FOR SOPHIA
@@ -179,16 +196,31 @@ Fully functioning Apollo webapp that speaks to Hermes, with Hermes speaking to S
 
 ---
 
-## Cross-Cutting: SDK Distribution (#423)
+## Cross-Cutting: Shared Package Distribution (#423)
 
-**Current state**: Apollo vendors SDKs locally
-**Target**: Publish SDKs from logos, consume as npm packages
+**Architecture**: Container-based distribution via `logos-foundry`
+- logos publishes `ghcr.io/c-daly/logos-foundry` with shared packages
+- Downstream repos inherit via `FROM ghcr.io/c-daly/logos-foundry`
+- Git dependencies in pyproject.toml for local development fallback
+- SDKs pulled via git subdirectory deps (not vendored)
 
-**Tasks**:
-- [ ] Set up SDK publishing in logos CI
-- [ ] Update apollo to use published `@logos/hermes-sdk`, `@logos/sophia-sdk`
-- [ ] Remove vendored copies
-- [ ] Document SDK update process
+**Per-repo cleanup**:
+- [x] Apollo: No vendored packages, git deps correct
+- [ ] Sophia: Has unused `src/logos_sophia_sdk/` - remove
+- [ ] Hermes: Check for vendored copies
+- [ ] Talos: Check for vendored copies
+
+---
+
+## Cross-Cutting: Config Standardization (#433)
+
+**Pattern**: Each repo wraps `logos_config` in its own `env.py` module
+
+**Per-repo status**:
+- [x] Apollo: `apollo.env` wraps logos_config (PR #142, 2026-01-03)
+- [x] Talos: `talos.env` wraps logos_config
+- [ ] Sophia: Standalone env.py, needs refactor to wrap logos_config
+- [ ] Hermes: Standalone env.py, needs refactor to wrap logos_config
 
 ---
 
@@ -199,13 +231,14 @@ Phase 1A: COMPLETE (sophia standardization - PR #103)
 Phase 1B: COMPLETE (CWM persistence + flexible ontology - PRs #102, #104)
 Phase 1C: COMPLETE (execute endpoint - simulation mode, 10 tests pass)
 Phase 1D: COMPLETE (feedback emission - sophia #16, 2026-01-02)
+Phase 1E: PENDING (persona APIs - logos #246, #264)
 Phase 2:  COMPLETE (hermes integration - #50, #55, #56, #60, #66, #17)
 Phase 3A: COMPLETE (apollo standardization - #131, PR #141)
-Phase 3B: IN PROGRESS (connect to new APIs)
+Phase 3B: IN PROGRESS (connect to new APIs, remove direct Neo4j, persona)
 Phase 4:  COMPLETE for sophia (PR #104), other repos TBD
 ```
 
-**Last Updated**: 2026-01-03 (Phase 1-2 complete, 3A complete, 3B in progress)
+**Last Updated**: 2026-01-03 (Phase 1-2 complete, 3A complete, 3B in progress, #433 Apollo complete)
 
 ---
 
@@ -220,7 +253,11 @@ Phase 4:  COMPLETE for sophia (PR #104), other repos TBD
 
 1. **Feedback transport**: WebSocket vs SSE vs polling?
 2. **LLM context strategy**: Full CWM dump vs. semantic retrieval?
-3. **SDK publishing**: npm registry vs GitHub packages?
+
+## Key Decisions Made (continued)
+
+5. **Package distribution**: Container-based via logos-foundry, git deps for local dev
+6. **Config standardization**: Each repo wraps logos_config in its own env.py
 
 ---
 
@@ -231,5 +268,6 @@ Phase 4:  COMPLETE for sophia (PR #104), other repos TBD
 - [x] Sophia /execute works end-to-end (10 integration tests pass, simulation mode)
 - [x] Feedback flows Sophia → Hermes (Redis queue, sophia #16 + hermes #17)
 - [x] All repos pass CI with standardized test infrastructure (logos, sophia, hermes, apollo done)
-- [ ] SDKs published and consumed (not vendored)
+- [x] Package distribution via containers established (#423)
+- [ ] Config standardization complete across all repos (#433)
 - [ ] Apollo webapp connected to new APIs (3B)
