@@ -14,7 +14,9 @@ Full Apollo → Hermes → Sophia → HCG integration with standardization per-r
 
 ## Key Issues
 - sophia: #14 ✅, #15 ✅, #16 ✅, #65 ✅, #74 ✅ — **Phase 1 COMPLETE**
-- hermes: #17, #50
+- hermes: #50+#26, #66, #17 — **Phase 2 IN PROGRESS**
+  - Order: standardization → provenance → feedback
+  - Deferred: #38, #42 (test infra, post-stack)
 - logos: #279, #423, #433
 - apollo: (no active tickets)
 

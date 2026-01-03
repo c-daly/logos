@@ -93,6 +93,11 @@ logs/
 .milvus/
 volumes/
 
+# agent scratch and memory
+.serena/
+docs/plans/
+docs/scratch/
+
 # Development backups
 infra/backups/
 
