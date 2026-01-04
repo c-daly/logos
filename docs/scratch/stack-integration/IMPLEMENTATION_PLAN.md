@@ -166,11 +166,11 @@ Fully functioning Apollo webapp that speaks to Hermes, with Hermes speaking to S
 - [ ] Implement real-time feedback display (WebSocket)
 - [ ] Test full flow: user input → LLM response with CWM context
 
-**Remove direct Neo4j access (logos #461)** - IN PROGRESS:
+**Remove direct Neo4j access (logos #461)** - NEARLY COMPLETE:
 - [x] Sophia HCG endpoints available (sophia PR #108): /hcg/snapshot, /hcg/entities, /hcg/edges
 - [x] Apollo sophia-client.ts with getCWMStates() merged (PRs #142, #143)
-- [ ] Migrate GraphViewer, DiagnosticsPanel to use sophia-client instead of hcg-client
-- [ ] Remove hcg-client.ts once migration complete
+- [x] GraphViewer, DiagnosticsPanel use sophia-client
+- [ ] Delete hcg-client.ts (no longer used)
 
 **Persona infrastructure (logos #266, #267)** - depends on 1E:
 - [ ] logos #266: Apollo persona data layer (consuming Sophia)
@@ -248,7 +248,7 @@ Phase 1D: COMPLETE (feedback emission - sophia #16/PR #105, hermes #17/PR #70)
 Phase 1E: IN PROGRESS (HCG endpoints merged PR #108, CWM-E module pending)
 Phase 2:  COMPLETE (hermes integration - PRs #67, #68, #69, #70)
 Phase 3A: COMPLETE (apollo standardization - PRs #140, #141, #142)
-Phase 3B: IN PROGRESS (sophia-client updated PR #143, Apollo Neo4j removal pending)
+Phase 3B: NEARLY COMPLETE (sophia-client in use, just need to delete hcg-client.ts)
 Phase 4:  COMPLETE for sophia (PR #104), other repos TBD
 ```
 
