@@ -101,13 +101,25 @@ Fully functioning Apollo webapp that speaks to Hermes, with Hermes speaking to S
 - [x] FeedbackDispatcher and FeedbackWorker components
 - [x] Graceful degradation when Redis unavailable
 
-### 1E: Persona APIs (logos #246, #264)
+### 1E: Persona APIs (logos #246, #264) - IN PROGRESS
 **Sophia exposes CWM-E persona diary endpoints for Apollo to consume**
 
-**Tasks**:
-- [ ] logos #246: CWM-E persona diary storage & API exposure
-- [ ] logos #264: Wire persona diary into Sophia
-- [ ] Expose persona CRUD endpoints (GET/POST/PUT/DELETE)
+**Completed via sophia PR #108 (merged 2026-01-03)**:
+- [x] Design document: `sophia/docs/scratch/persona-apis/design.md`
+- [x] HCG read-only endpoints for Apollo (removes direct Neo4j access):
+  - GET /hcg/snapshot - full graph (entities + edges)
+  - GET /hcg/entities, /hcg/entities/{id} - entity listing/lookup
+  - GET /hcg/edges - edge listing with filters
+  - GET /hcg/states, /hcg/processes, /hcg/plans, /hcg/history
+  - GET /hcg/health - connection health check
+- [x] Unit and integration tests for all HCG endpoints
+- [x] New models: HCGEntityResponse, HCGEdgeResponse, HCGGraphSnapshotResponse
+- [x] HCGClient methods: list_all_nodes(), list_all_edges()
+
+**Remaining**:
+- [ ] Create `sophia/src/sophia/cwm_e/` module (models + state service)
+- [ ] Implement persona CRUD endpoints (POST/PATCH/DELETE /persona/entries)
+- [ ] Implement sentiment endpoints (GET /persona/sentiment)
 - [ ] Integrate with existing CWM persistence layer
 
 ---
@@ -147,16 +159,18 @@ Fully functioning Apollo webapp that speaks to Hermes, with Hermes speaking to S
 - [x] CI uses reusable workflows
 - [ ] Update vendored SDKs → use published from logos (still pending)
 
-### 3B: Connect to New APIs
+### 3B: Connect to New APIs - IN PROGRESS
 **Tasks**:
-- [ ] Update hermes-client.ts to use /llm with context
-- [ ] Update sophia-client.ts to use new CWM endpoints
+- [x] hermes-client.ts llmGenerate() method uses /llm with messages context
+- [x] sophia-client.ts getCWMStates() method merged (PRs #142, #143)
 - [ ] Implement real-time feedback display (WebSocket)
-- [ ] Test full flow: user input → LLM response with context
+- [ ] Test full flow: user input → LLM response with CWM context
 
-**Remove direct Neo4j access (logos #461)**:
-- [ ] Remove `hcg_client.py` direct Neo4j queries
-- [ ] Route GraphViewer, DiagnosticsPanel through Sophia APIs
+**Remove direct Neo4j access (logos #461)** - IN PROGRESS:
+- [x] Sophia HCG endpoints available (sophia PR #108): /hcg/snapshot, /hcg/entities, /hcg/edges
+- [x] Apollo sophia-client.ts with getCWMStates() merged (PRs #142, #143)
+- [ ] Migrate GraphViewer, DiagnosticsPanel to use sophia-client instead of hcg-client
+- [ ] Remove hcg-client.ts once migration complete
 
 **Persona infrastructure (logos #266, #267)** - depends on 1E:
 - [ ] logos #266: Apollo persona data layer (consuming Sophia)
@@ -230,15 +244,33 @@ Fully functioning Apollo webapp that speaks to Hermes, with Hermes speaking to S
 Phase 1A: COMPLETE (sophia standardization - PR #103)
 Phase 1B: COMPLETE (CWM persistence + flexible ontology - PRs #102, #104)
 Phase 1C: COMPLETE (execute endpoint - simulation mode, 10 tests pass)
-Phase 1D: COMPLETE (feedback emission - sophia #16, 2026-01-02)
-Phase 1E: PENDING (persona APIs - logos #246, #264)
-Phase 2:  COMPLETE (hermes integration - #50, #55, #56, #60, #66, #17)
-Phase 3A: COMPLETE (apollo standardization - #131, PR #141)
-Phase 3B: IN PROGRESS (connect to new APIs, remove direct Neo4j, persona)
+Phase 1D: COMPLETE (feedback emission - sophia #16/PR #105, hermes #17/PR #70)
+Phase 1E: IN PROGRESS (HCG endpoints merged PR #108, CWM-E module pending)
+Phase 2:  COMPLETE (hermes integration - PRs #67, #68, #69, #70)
+Phase 3A: COMPLETE (apollo standardization - PRs #140, #141, #142)
+Phase 3B: IN PROGRESS (sophia-client updated PR #143, Apollo Neo4j removal pending)
 Phase 4:  COMPLETE for sophia (PR #104), other repos TBD
 ```
 
-**Last Updated**: 2026-01-03 (Phase 1-2 complete, 3A complete, 3B in progress, #433 Apollo complete)
+**Last Updated**: 2026-01-04
+
+### Recent PRs Summary
+
+**Sophia**:
+- PR #108 (2026-01-04): HCG read-only endpoints for Apollo
+- PR #106 (2026-01-02): Provenance metadata
+- PR #105 (2026-01-02): Feedback emission system
+
+**Hermes**:
+- PR #70 (2026-01-03): POST /feedback endpoint
+- PR #69 (2026-01-02): Provenance test coverage
+- PR #68 (2026-01-02): Provenance to Sophia calls
+- PR #67 (2026-01-02): Standardization
+
+**Apollo**:
+- PR #143 (2026-01-03): getCWMStates() method in sophia-client
+- PR #142 (2026-01-03): logos_config wrapper
+- PR #141 (2026-01-03): E2E config standardization
 
 ---
 
