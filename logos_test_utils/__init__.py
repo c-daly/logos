@@ -35,11 +35,14 @@ def __getattr__(name: str):
     """Lazy import neo4j/milvus modules only when accessed."""
     if name in _neo4j_names:
         from . import neo4j as _neo4j
+
         return getattr(_neo4j, name)
     if name in _milvus_names:
         from . import milvus as _milvus
+
         return getattr(_milvus, name)
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 __all__ = [
     "DependencyHealth",
