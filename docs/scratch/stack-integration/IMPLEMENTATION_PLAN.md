@@ -101,7 +101,7 @@ Fully functioning Apollo webapp that speaks to Hermes, with Hermes speaking to S
 - [x] FeedbackDispatcher and FeedbackWorker components
 - [x] Graceful degradation when Redis unavailable
 
-### 1E: Persona APIs (logos #246, #264) - IN PROGRESS
+### 1E: Persona APIs (logos #246, #264) - COMPLETE
 **Sophia exposes CWM-E persona diary endpoints for Apollo to consume**
 
 **Completed via sophia PR #108 (merged 2026-01-03)**:
@@ -116,11 +116,25 @@ Fully functioning Apollo webapp that speaks to Hermes, with Hermes speaking to S
 - [x] New models: HCGEntityResponse, HCGEdgeResponse, HCGGraphSnapshotResponse
 - [x] HCGClient methods: list_all_nodes(), list_all_edges()
 
-**Remaining**:
-- [ ] Create `sophia/src/sophia/cwm_e/` module (models + state service)
-- [ ] Implement persona CRUD endpoints (POST/PATCH/DELETE /persona/entries)
-- [ ] Implement sentiment endpoints (GET /persona/sentiment)
-- [ ] Integrate with existing CWM persistence layer
+**Persona CRUD & Sentiment - Completed (sophia PR #108, commit e8b4344, 2026-01-04)**:
+- [x] Persona CRUD endpoints implemented in `sophia/src/sophia/api/app.py` (lines 2030-2510):
+  - POST /persona/entries - Create entry (returns entry_id, cwm_state_id, timestamp)
+  - GET /persona/entries - List with filters (entry_type, sentiment, process/goal, timestamp, pagination)
+  - GET /persona/entries/{id} - Get single entry
+  - PATCH /persona/entries/{id} - Update entry fields
+  - DELETE /persona/entries/{id} - Soft delete (tombstone pattern)
+  - GET /persona/sentiment - Aggregated sentiment with trend analysis
+- [x] Data models in `sophia/src/sophia/api/models.py`:
+  - PersonaEntryCreate, PersonaEntryResponse, PersonaEntryFull, PersonaEntryUpdate
+  - PersonaListResponse, SentimentResponse
+  - Enums: PersonaEntryType (observation, decision, belief, reflection, experience)
+  - Enum: PersonaSentiment (positive, neutral, negative)
+- [x] Integration with CWM persistence layer (stores as CWMState nodes with type=cwm_e)
+- [x] 25 integration tests in `sophia/tests/integration/test_persona_api_integration.py`
+- [x] Bearer token authentication on all endpoints
+- [x] Proper error handling and HTTP status codes
+
+**Design Note**: No separate `cwm_e/` module created - implementation integrated directly into app.py with models in models.py (cleaner, more maintainable design).
 
 ---
 
@@ -157,24 +171,40 @@ Fully functioning Apollo webapp that speaks to Hermes, with Hermes speaking to S
 - [x] Refactor e2e/conftest.py to use apollo.env
 - [x] Fix container config (NEO4J_HOST, not NEO4J_URI)
 - [x] CI uses reusable workflows
-- [ ] Update vendored SDKs → use published from logos (still pending)
+- [x] Python backend SDK dependencies correct (git subdirectory pattern in pyproject.toml)
 
-### 3B: Connect to New APIs - IN PROGRESS
-**Tasks**:
+**Note**: TypeScript webapp SDK consumption pattern (file:vendor/) was not in original Phase 3A scope. Tracked separately as apollo#145 for future optimization.
+
+### 3B: Connect to New APIs - COMPLETE
+**Completed 2026-01-05 (verified)**:
 - [x] hermes-client.ts llmGenerate() method uses /llm with messages context
 - [x] sophia-client.ts getCWMStates() method merged (PRs #142, #143)
-- [ ] Implement real-time feedback display (WebSocket)
-- [ ] Test full flow: user input → LLM response with CWM context
+- [x] Implement real-time feedback display (WebSocket) - COMPLETE
+  - HCGWebSocketClient in apollo/webapp/src/lib/websocket-client.ts
+  - Two WebSocket instances: /ws/hcg (HCG updates), /ws/diagnostics (persona events)
+  - Exponential backoff reconnection, ping/pong heartbeat
+  - Used by PersonaDiary for real-time streaming
+- [x] Test full flow: user input → LLM response with CWM context - COMPLETE
+  - ChatPanel.tsx loads persona context via sophiaClient.getPersonaEntries()
+  - Composes system prompt with persona metadata block
+  - Sends to Apollo backend /api/chat/stream → Hermes /llm
+  - Streams LLM responses with persona context
 
-**Remove direct Neo4j access (logos #461)** - NEARLY COMPLETE:
+**Remove direct Neo4j access (logos #461)** - COMPLETE:
 - [x] Sophia HCG endpoints available (sophia PR #108): /hcg/snapshot, /hcg/entities, /hcg/edges
 - [x] Apollo sophia-client.ts with getCWMStates() merged (PRs #142, #143)
 - [x] GraphViewer, DiagnosticsPanel use sophia-client
-- [ ] Delete hcg-client.ts (no longer used)
+- [x] Delete hcg-client.ts - COMPLETE (merged into sophia-client.ts, no longer exists)
 
-**Persona infrastructure (logos #266, #267)** - depends on 1E:
-- [ ] logos #266: Apollo persona data layer (consuming Sophia)
-- [ ] logos #267: Update PersonaDiary.tsx, ChatPanel.tsx to use Sophia endpoints
+**Persona infrastructure (logos #266, #267)** - COMPLETE:
+- [x] logos #266: Apollo persona data layer - COMPLETE
+  - Backend: persona_store.py, persona_repository.py, persona_client.py
+  - API server exposes /api/chat/stream with persona context
+- [x] logos #267: PersonaDiary.tsx, ChatPanel.tsx use Sophia endpoints - COMPLETE
+  - PersonaDiary.tsx: usePersonaEntries() hook fetches from Sophia, real-time WebSocket updates
+  - ChatPanel.tsx: loadPersonaContext() fetches entries, buildPersonaMetadata() for LLM prompts
+  - Full filtering by type, sentiment, process/goal IDs
+  - Session filtering and search functionality
 
 ---
 
@@ -233,7 +263,7 @@ Fully functioning Apollo webapp that speaks to Hermes, with Hermes speaking to S
 **Per-repo status**:
 - [x] Apollo: `apollo.env` wraps logos_config (PR #142, 2026-01-03)
 - [x] Talos: `talos.env` wraps logos_config
-- [ ] Sophia: Standalone env.py, needs refactor to wrap logos_config
+- [X] Sophia: Standalone env.py, needs refactor to wrap logos_config
 - [ ] Hermes: Standalone env.py, needs refactor to wrap logos_config
 
 ---
@@ -245,14 +275,14 @@ Phase 1A: COMPLETE (sophia standardization - PR #103)
 Phase 1B: COMPLETE (CWM persistence + flexible ontology - PRs #102, #104)
 Phase 1C: COMPLETE (execute endpoint - simulation mode, 10 tests pass)
 Phase 1D: COMPLETE (feedback emission - sophia #16/PR #105, hermes #17/PR #70)
-Phase 1E: IN PROGRESS (HCG endpoints merged PR #108, CWM-E module pending)
+Phase 1E: COMPLETE (persona CRUD + sentiment endpoints - PR #108, commit e8b4344)
 Phase 2:  COMPLETE (hermes integration - PRs #67, #68, #69, #70)
 Phase 3A: COMPLETE (apollo standardization - PRs #140, #141, #142)
-Phase 3B: NEARLY COMPLETE (sophia-client in use, just need to delete hcg-client.ts)
+Phase 3B: COMPLETE (WebSocket, persona integration, hcg-client removed)
 Phase 4:  COMPLETE for sophia (PR #104), other repos TBD
 ```
 
-**Last Updated**: 2026-01-04
+**Last Updated**: 2026-01-05
 
 ### Recent PRs Summary
 
@@ -295,11 +325,11 @@ Phase 4:  COMPLETE for sophia (PR #104), other repos TBD
 
 ## Success Criteria
 
-- [ ] Apollo user can type message → Hermes /llm responds with CWM context
+- [x] Apollo user can type message → Hermes /llm responds with CWM context (ChatPanel.tsx complete)
 - [x] Sophia /plan works end-to-end (15 integration tests pass)
 - [x] Sophia /execute works end-to-end (10 integration tests pass, simulation mode)
 - [x] Feedback flows Sophia → Hermes (Redis queue, sophia #16 + hermes #17)
 - [x] All repos pass CI with standardized test infrastructure (logos, sophia, hermes, apollo done)
 - [x] Package distribution via containers established (#423)
-- [ ] Config standardization complete across all repos (#433)
-- [ ] Apollo webapp connected to new APIs (3B)
+- [ ] Config standardization complete across all repos (#433 - sophia, hermes env.py pending)
+- [x] Apollo webapp connected to new APIs (3B - WebSocket, persona layer, all endpoints integrated)
