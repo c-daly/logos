@@ -23,6 +23,12 @@ services:
     networks:
       - logos-hcg-dev-net
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "neo4jtest", "RETURN 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   milvus-standalone:
     image: milvusdb/milvus:v2.3.3
