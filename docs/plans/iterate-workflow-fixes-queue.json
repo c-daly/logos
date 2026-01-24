@@ -1,0 +1,142 @@
+{
+  "metadata": {
+    "name": "Iterate Workflow Fixes",
+    "description": "Fixes identified from multi-repo test run to make iterate workflow enforce correct behavior",
+    "created": "2026-01-24",
+    "pr_id": "iterate-fixes",
+    "total_tasks": 8
+  },
+  "tasks": [
+    {
+      "id": "fix-001",
+      "description": "Add queue validation at workflow start - error if no --queue or --spec provided and task is vague",
+      "priority": 1,
+      "phase": "pending",
+      "status": "pending",
+      "files": [
+        "~/.claude/plugins/agent-swarm/lib/iterate_workflow.py"
+      ],
+      "acceptance_criteria": [
+        "start() validates queue is loaded or task is specific",
+        "Clear error message if orchestrator has no work to spawn",
+        "Test: start with vague task and no queue should error"
+      ]
+    },
+    {
+      "id": "fix-002",
+      "description": "Rename queue task 'phase' field to 'status' to avoid spawn-phase confusion",
+      "priority": 1,
+      "phase": "pending",
+      "status": "pending",
+      "files": [
+        "~/.claude/plugins/agent-swarm/lib/iterate_workflow.py",
+        "~/.claude/plugins/agent-swarm/lib/workflow_queue.py",
+        "~/.claude/plugins/agent-swarm/skills/iterate/SKILL.md"
+      ],
+      "acceptance_criteria": [
+        "Queue tasks use 'status' field (pending/in_progress/committed/done)",
+        "Documentation updated to clarify: all agents start in test_writing",
+        "Existing queue files migrated or documented"
+      ]
+    },
+    {
+      "id": "fix-003",
+      "description": "Add SubagentStop hook to verify TDD cycle completion before allowing return",
+      "priority": 1,
+      "phase": "pending",
+      "status": "pending",
+      "depends_on": [],
+      "files": [
+        "~/.claude/plugins/agent-swarm/hooks/subagent-stop-enforcement.py",
+        "~/.claude/plugins/agent-swarm/hooks/hooks.json"
+      ],
+      "acceptance_criteria": [
+        "Hook checks agent state for: tests_written, implemented, tests_passed, pushed",
+        "Block return if any TDD step missing",
+        "Error message tells agent what step is missing"
+      ]
+    },
+    {
+      "id": "fix-004",
+      "description": "Create implementer prompt template with mandatory TDD instructions",
+      "priority": 2,
+      "phase": "pending",
+      "status": "pending",
+      "files": [
+        "~/.claude/plugins/agent-swarm/lib/prompt_templates.py"
+      ],
+      "acceptance_criteria": [
+        "IMPLEMENTER_PROMPT template includes full TDD cycle instructions",
+        "Template has placeholders for: task_description, context, constraints, verification",
+        "Template explicitly lists phase progression: test_writing -> implement -> test -> review -> push"
+      ]
+    },
+    {
+      "id": "fix-005",
+      "description": "Gate review phase completion on push - cannot mark done without pushing",
+      "priority": 1,
+      "phase": "pending",
+      "status": "pending",
+      "depends_on": ["fix-003"],
+      "files": [
+        "~/.claude/plugins/agent-swarm/hooks/iterate-enforcement.py",
+        "~/.claude/plugins/agent-swarm/lib/iterate_workflow.py"
+      ],
+      "acceptance_criteria": [
+        "Track 'pushed' state per agent/task",
+        "advance_phase() from review checks pushed state",
+        "Error: 'Cannot complete review without pushing changes'"
+      ]
+    },
+    {
+      "id": "fix-006",
+      "description": "Add orchestrator example showing proper queue tracking with workflow_queue API",
+      "priority": 2,
+      "phase": "pending",
+      "status": "pending",
+      "files": [
+        "~/.claude/plugins/agent-swarm/skills/iterate/SKILL.md",
+        "~/.claude/plugins/agent-swarm/docs/examples/orchestrator-loop.md"
+      ],
+      "acceptance_criteria": [
+        "Example shows: load queue -> spawn agents -> mark_done() -> check all_complete()",
+        "Example shows review comment monitoring loop",
+        "Example shows exit condition check"
+      ]
+    },
+    {
+      "id": "fix-007",
+      "description": "Strengthen is_orchestration_complete() to check all exit conditions",
+      "priority": 2,
+      "phase": "pending",
+      "status": "pending",
+      "depends_on": ["fix-005"],
+      "files": [
+        "~/.claude/plugins/agent-swarm/lib/iterate_workflow.py"
+      ],
+      "acceptance_criteria": [
+        "Returns False if: queue has pending tasks",
+        "Returns False if: any active workers",
+        "Returns False if: PR has unresolved review comments",
+        "Only returns True when ALL conditions met"
+      ]
+    },
+    {
+      "id": "fix-008",
+      "description": "Add workflow state persistence for agent TDD progress tracking",
+      "priority": 2,
+      "phase": "pending",
+      "status": "pending",
+      "depends_on": ["fix-003"],
+      "files": [
+        "~/.claude/plugins/agent-swarm/lib/workflow_client.py",
+        "~/.claude/plugins/agent-swarm/lib/iterate_workflow.py"
+      ],
+      "acceptance_criteria": [
+        "agent_set_state() tracks: current_phase, tests_written, implemented, tests_passed, pushed",
+        "State survives agent context and is readable by hooks",
+        "Orchestrator can query agent progress"
+      ]
+    }
+  ]
+}
