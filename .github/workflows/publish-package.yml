@@ -1,3 +1,6 @@
+# Publish Logos Foundry Container
+# Uses the standardized reusable workflow
+
 name: Publish Package Container
 
 on:
@@ -11,18 +14,9 @@ on:
       - 'Dockerfile.foundry'
       - 'pyproject.toml'
       - 'poetry.lock'
-  pull_request:
-    paths:
-      - 'logos_*/**'
-      - 'sdk/**'
-      - 'planner_stub/**'
-      - 'utils/**'
-      - 'Dockerfile.foundry'
-      - 'pyproject.toml'
-      - 'poetry.lock'
   release:
     types: [published]
-  workflow_dispatch:  # Allow manual trigger
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -30,51 +24,8 @@ permissions:
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      
-      - name: Log in to GitHub Container Registry
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      
-      - name: Extract version from pyproject.toml
-        id: version
-        run: |
-          VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Building version: $VERSION"
-      
-      - name: Build and push container
-        id: build
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile.foundry
-          platforms: linux/amd64
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/logos-foundry:${{ steps.version.outputs.version }}
-            ghcr.io/${{ github.repository_owner }}/logos-foundry:latest
-          labels: |
-            org.opencontainers.image.title=logos-foundry
-            org.opencontainers.image.description=LOGOS foundry package with all dependencies
-            org.opencontainers.image.version=${{ steps.version.outputs.version }}
-            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      
-      - name: Output package info
-        run: |
-          echo "Published logos-foundry version ${{ steps.version.outputs.version }}"
-          echo "Digest: ${{ steps.build.outputs.digest }}"
-          echo "Available at: https://github.com/c-daly/logos/packages"
+    uses: c-daly/logos/.github/workflows/reusable-publish.yml@main
+    with:
+      image_name: logos-foundry
+      dockerfile: Dockerfile.foundry
+    secrets: inherit

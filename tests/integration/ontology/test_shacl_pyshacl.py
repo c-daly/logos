@@ -34,7 +34,9 @@ def shapes_graph() -> Graph:
     return _load_graph(shapes_path)
 
 
-def _assert_validation(data_graph: Graph, shapes_graph: Graph, expect_conforms: bool) -> None:
+def _assert_validation(
+    data_graph: Graph, shapes_graph: Graph, expect_conforms: bool
+) -> None:
     conforms, report, _ = validate(
         data_graph=data_graph,
         shacl_graph=shapes_graph,

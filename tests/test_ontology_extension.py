@@ -24,12 +24,16 @@ def test_core_ontology_structure():
     content = ontology_file.read_text()
 
     # Check for required constraints (flexible ontology uses single :Node label)
-    assert "CREATE CONSTRAINT logos_node_uuid" in content, "Missing Node UUID constraint"
+    assert "CREATE CONSTRAINT logos_node_uuid" in content, (
+        "Missing Node UUID constraint"
+    )
 
     # Check for indexes (flexible ontology indexes)
     assert "CREATE INDEX logos_node_type" in content, "Missing Node type index"
     assert "CREATE INDEX logos_node_name" in content, "Missing Node name index"
-    assert "CREATE INDEX logos_node_is_type_def" in content, "Missing Node is_type_definition index"
+    assert "CREATE INDEX logos_node_is_type_def" in content, (
+        "Missing Node is_type_definition index"
+    )
 
     # Check for bootstrap types
     bootstrap_types = [
@@ -53,7 +57,9 @@ def test_core_ontology_structure():
 
 def test_test_data_structure():
     """Test that test_data_pick_and_place.cypher has expected entities."""
-    test_data_file = Path(__file__).parent.parent / "ontology" / "test_data_pick_and_place.cypher"
+    test_data_file = (
+        Path(__file__).parent.parent / "ontology" / "test_data_pick_and_place.cypher"
+    )
     content = test_data_file.read_text()
 
     # Check for robot entities
@@ -132,7 +138,9 @@ def test_uuid_consistency():
     """Test that UUIDs in test data are valid (RFC 4122 or type-prefixed format)."""
     import uuid as uuid_module
 
-    test_data_file = Path(__file__).parent.parent / "ontology" / "test_data_pick_and_place.cypher"
+    test_data_file = (
+        Path(__file__).parent.parent / "ontology" / "test_data_pick_and_place.cypher"
+    )
     content = test_data_file.read_text()
 
     # Extract all UUIDs
@@ -173,7 +181,9 @@ def test_property_definitions():
     JointPropertiesShape) need to be added back to shacl_shapes.ttl.
     """
     # shacl_file = Path(__file__).parent.parent / "ontology" / "shacl_shapes.ttl"
-    test_data_file = Path(__file__).parent.parent / "ontology" / "test_data_pick_and_place.cypher"
+    test_data_file = (
+        Path(__file__).parent.parent / "ontology" / "test_data_pick_and_place.cypher"
+    )
 
     # shacl_content = shacl_file.read_text()
     test_content = test_data_file.read_text()
@@ -210,7 +220,9 @@ def test_property_definitions():
 
 def test_flexible_ontology_type_hierarchy():
     """Test that test data has proper type definitions and instances."""
-    test_data_file = Path(__file__).parent.parent / "ontology" / "test_data_pick_and_place.cypher"
+    test_data_file = (
+        Path(__file__).parent.parent / "ontology" / "test_data_pick_and_place.cypher"
+    )
     content = test_data_file.read_text()
 
     # Check for type definitions (using Cypher SET syntax)

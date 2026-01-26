@@ -164,7 +164,9 @@ def test_validate_malformed_rdf(client):
 This is not valid RDF data at all!
 """
 
-    response = client.post("/validate", json={"data": malformed_data, "format": "turtle"})
+    response = client.post(
+        "/validate", json={"data": malformed_data, "format": "turtle"}
+    )
 
     assert response.status_code == 400
     assert "Validation failed" in response.json()["detail"]

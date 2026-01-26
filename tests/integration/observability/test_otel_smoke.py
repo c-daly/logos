@@ -79,7 +79,9 @@ def test_structured_logger_with_otel():
     logger = get_logger("test-logger")
 
     # These should not raise exceptions
-    logger.log_plan_update(plan_uuid="test-plan-456", action="created", details={"test": "data"})
+    logger.log_plan_update(
+        plan_uuid="test-plan-456", action="created", details={"test": "data"}
+    )
 
     logger.log_state_change(
         entity_uuid="test-entity-789",

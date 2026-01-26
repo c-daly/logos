@@ -334,7 +334,9 @@ class Capability(BaseModel):
     def validate_executor_type(cls, v: str) -> str:
         """Validate executor_type is one of the allowed values."""
         if v not in ExecutorType.ALL:
-            raise ValueError(f"executor_type must be one of {ExecutorType.ALL}, got '{v}'")
+            raise ValueError(
+                f"executor_type must be one of {ExecutorType.ALL}, got '{v}'"
+            )
         return v
 
     @field_validator("created_at", "updated_at", mode="before")
@@ -474,7 +476,9 @@ class Fact(BaseModel):
             raise ValueError(f"source_type must be one of {SourceType.ALL}, got '{v}'")
         return v
 
-    @field_validator("created_at", "updated_at", "valid_from", "valid_until", mode="before")
+    @field_validator(
+        "created_at", "updated_at", "valid_from", "valid_until", mode="before"
+    )
     @classmethod
     def parse_neo4j_datetime(cls, v):
         """Convert Neo4j DateTime to Python datetime."""
@@ -769,7 +773,9 @@ class Provenance(BaseModel):
     def validate_source_service(cls, v: str) -> str:
         """Validate source_service is one of the allowed values."""
         if v not in SourceService.ALL:
-            raise ValueError(f"source_service must be one of {SourceService.ALL}, got '{v}'")
+            raise ValueError(
+                f"source_service must be one of {SourceService.ALL}, got '{v}'"
+            )
         return v
 
 

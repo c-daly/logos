@@ -130,7 +130,9 @@ class PlannerClient:
                 return fallback
             raise
 
-        plan_steps = self._convert_plan_steps(data.get("plan", []), request.scenario_name)
+        plan_steps = self._convert_plan_steps(
+            data.get("plan", []), request.scenario_name
+        )
         goal_info = data.get("goal", {})
         if not plan_steps and request.scenario_name in self._scenarios:
             # Fallback to stub for scenarios not yet supported by Sophia
@@ -143,7 +145,9 @@ class PlannerClient:
             scenario_name=request.scenario_name or goal_info.get("target_state"),
         )
 
-    def generate_plan_for_scenario(self, scenario_name: str, timeout: float = 10.0) -> PlanResponse:
+    def generate_plan_for_scenario(
+        self, scenario_name: str, timeout: float = 10.0
+    ) -> PlanResponse:
         """
         Generate a plan for a named scenario.
 
@@ -220,7 +224,9 @@ class PlannerClient:
 
         for idx, step in enumerate(sophia_plan):
             action_type = (step.get("action_type") or "").upper()
-            default_process = ACTION_TYPE_PROCESS_MAP.get(action_type, step.get("name", "Action"))
+            default_process = ACTION_TYPE_PROCESS_MAP.get(
+                action_type, step.get("name", "Action")
+            )
             fixture = expected_steps[idx] if idx < len(expected_steps) else None
             process = fixture["process"] if fixture else default_process
             preconditions = fixture["preconditions"] if fixture else []

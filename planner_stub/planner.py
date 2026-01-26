@@ -37,7 +37,9 @@ class SimplePlanner:
     def __init__(self):
         """Initialize the planner with scenario fixtures."""
         self.scenarios_data = load_scenarios()
-        self.scenarios = {s["name"]: s for s in self.scenarios_data.get("scenarios", [])}
+        self.scenarios = {
+            s["name"]: s for s in self.scenarios_data.get("scenarios", [])
+        }
 
     def generate_plan(self, request: PlanRequest) -> PlanResponse:
         """
@@ -58,7 +60,9 @@ class SimplePlanner:
             return self._build_response_from_scenario(scenario)
 
         # Try to match based on goal state
-        matched_scenario = self._match_scenario(request.initial_state, request.goal_state)
+        matched_scenario = self._match_scenario(
+            request.initial_state, request.goal_state
+        )
         if matched_scenario:
             return self._build_response_from_scenario(matched_scenario)
 

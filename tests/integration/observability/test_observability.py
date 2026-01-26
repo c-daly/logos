@@ -16,7 +16,9 @@ def test_structured_logger():
     logger = get_logger("test-logger")
 
     # Test logging methods don't raise exceptions
-    logger.log_plan_update(plan_uuid="test-plan-123", action="created", details={"test": "data"})
+    logger.log_plan_update(
+        plan_uuid="test-plan-123", action="created", details={"test": "data"}
+    )
 
     logger.log_state_change(
         entity_uuid="test-entity-123",
@@ -29,7 +31,9 @@ def test_structured_logger():
         process_uuid="test-process-789", status="completed", duration_ms=100.5
     )
 
-    logger.log_persona_entry(entry_uuid="test-entry-111", summary="Test entry", sentiment="neutral")
+    logger.log_persona_entry(
+        entry_uuid="test-entry-111", summary="Test entry", sentiment="neutral"
+    )
 
     logger.log_emotion_state(
         emotion_uuid="test-emotion-222", emotion_type="confident", intensity=0.8

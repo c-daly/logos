@@ -91,7 +91,9 @@ def deep_format(value: Any, context: Mapping[str, Any]) -> Any:
             return value.format(**context)
         except KeyError as exc:  # pragma: no cover - configuration error path
             missing = exc.args[0]
-            raise RenderError(f"Missing template variable '{missing}' in context") from exc
+            raise RenderError(
+                f"Missing template variable '{missing}' in context"
+            ) from exc
     if isinstance(value, list):
         return [deep_format(item, context) for item in value]
     if isinstance(value, dict):
@@ -102,7 +104,9 @@ def deep_format(value: Any, context: Mapping[str, Any]) -> Any:
                     formatted_key = key.format(**context)
                 except KeyError as exc:  # pragma: no cover - configuration error path
                     missing = exc.args[0]
-                    raise RenderError(f"Missing template variable '{missing}' in context") from exc
+                    raise RenderError(
+                        f"Missing template variable '{missing}' in context"
+                    ) from exc
             else:
                 formatted_key = key
             formatted[formatted_key] = deep_format(item, context)
@@ -134,7 +138,9 @@ def get_port_context(repo_name: str) -> dict[str, str]:
     This is the single source of truth for port allocation.
     """
     if repo_name not in REPO_PORTS:
-        raise RenderError(f"No port configuration for repo '{repo_name}' in logos_config")
+        raise RenderError(
+            f"No port configuration for repo '{repo_name}' in logos_config"
+        )
 
     ports = REPO_PORTS[repo_name]
     # All ports share the same prefix (e.g., 17xxx for hermes)
@@ -220,7 +226,9 @@ def resolve_repo_configs(
             },
         }
         if not resolved[name]["services"]:
-            raise RenderError(f"Repo '{name}' must declare at least one service in repos.yaml")
+            raise RenderError(
+                f"Repo '{name}' must declare at least one service in repos.yaml"
+            )
     return resolved
 
 
@@ -246,7 +254,9 @@ def build_compose_doc(
         raise RenderError(f"Template missing services: {', '.join(missing)}")
 
     compose_doc: dict[str, Any] = {
-        key: value for key, value in formatted.items() if key in {"version", "networks", "volumes"}
+        key: value
+        for key, value in formatted.items()
+        if key in {"version", "networks", "volumes"}
     }
     compose_doc["services"] = {svc: template_services[svc] for svc in services}
 
@@ -262,13 +272,17 @@ def build_compose_doc(
 
 def render_env(env_map: Mapping[str, Any], context: Mapping[str, Any]) -> str:
     rendered = {
-        key: str(value).format(**context) for key, value in env_map.items() if value is not None
+        key: str(value).format(**context)
+        for key, value in env_map.items()
+        if value is not None
     }
     lines = [f"{key}={value}" for key, value in sorted(rendered.items()) if value]
     return "\n".join(lines) + ("\n" if lines else "")
 
 
-def compute_stack_version(repo_name: str, compose_doc: dict[str, Any], env_content: str) -> str:
+def compute_stack_version(
+    repo_name: str, compose_doc: dict[str, Any], env_content: str
+) -> str:
     payload = {
         "repo": repo_name,
         "compose": compose_doc,

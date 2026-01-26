@@ -120,7 +120,9 @@ class HCGPlanner:
         target_processes = self._find_achieving_processes(goal.target)
 
         if not target_processes:
-            raise GoalUnachievableError(f"No processes found that achieve goal: {goal.description}")
+            raise GoalUnachievableError(
+                f"No processes found that achieve goal: {goal.description}"
+            )
 
         # Backward chain to build plan
         visited: set[UUID] = set()
@@ -143,7 +145,9 @@ class HCGPlanner:
                 # Try next achieving process
                 continue
         else:
-            raise GoalUnachievableError(f"Could not build plan for goal: {goal.description}")
+            raise GoalUnachievableError(
+                f"Could not build plan for goal: {goal.description}"
+            )
 
         # Number steps in order
         for i, step in enumerate(steps):
@@ -175,7 +179,9 @@ class HCGPlanner:
             provenance=provenance,
         )
 
-    def _find_achieving_processes(self, target: GoalTarget) -> list[tuple[Process, State]]:
+    def _find_achieving_processes(
+        self, target: GoalTarget
+    ) -> list[tuple[Process, State]]:
         """
         Find processes that achieve the goal target.
 
@@ -223,10 +229,14 @@ class HCGPlanner:
             provenance: Provenance for created steps
         """
         if depth > self._max_depth:
-            raise GoalUnachievableError(f"Max planning depth ({self._max_depth}) exceeded")
+            raise GoalUnachievableError(
+                f"Max planning depth ({self._max_depth}) exceeded"
+            )
 
         # Parse process UUID
-        process_uuid = UUID(process.uuid) if isinstance(process.uuid, str) else process.uuid
+        process_uuid = (
+            UUID(process.uuid) if isinstance(process.uuid, str) else process.uuid
+        )
 
         if process_uuid in visited:
             # Already planned for this process
@@ -239,7 +249,9 @@ class HCGPlanner:
 
         # For each unsatisfied precondition, find a process that achieves it
         for precond in preconditions:
-            precond_uuid = UUID(precond.uuid) if isinstance(precond.uuid, str) else precond.uuid
+            precond_uuid = (
+                UUID(precond.uuid) if isinstance(precond.uuid, str) else precond.uuid
+            )
 
             # Check if precondition is already satisfied
             if precond_uuid in satisfied_states:
@@ -268,18 +280,24 @@ class HCGPlanner:
 
         # Get effects of this process
         effects = self._hcg.get_process_causes(process.uuid)
-        effect_uuids = [UUID(e.uuid) if isinstance(e.uuid, str) else e.uuid for e in effects]
+        effect_uuids = [
+            UUID(e.uuid) if isinstance(e.uuid, str) else e.uuid for e in effects
+        ]
 
         # Get capability for execution
         capability = self._hcg.find_capability_for_process(process.uuid)
         capability_uuid = None
         if capability:
             capability_uuid = (
-                UUID(capability.uuid) if isinstance(capability.uuid, str) else capability.uuid
+                UUID(capability.uuid)
+                if isinstance(capability.uuid, str)
+                else capability.uuid
             )
 
         # Create plan step
-        precond_uuids = [UUID(p.uuid) if isinstance(p.uuid, str) else p.uuid for p in preconditions]
+        precond_uuids = [
+            UUID(p.uuid) if isinstance(p.uuid, str) else p.uuid for p in preconditions
+        ]
 
         step = PlanStep(
             uuid=uuid4(),

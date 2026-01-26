@@ -128,4 +128,6 @@ def wait_for_neo4j(config: Neo4jConfig | None = None, timeout: int = 90) -> None
     cfg = config or get_neo4j_config()
     wait_for_container_health(cfg.container, timeout=timeout)
     if not is_neo4j_available(cfg):
-        raise RuntimeError("Neo4j container reported healthy but Bolt endpoint is unreachable")
+        raise RuntimeError(
+            "Neo4j container reported healthy but Bolt endpoint is unreachable"
+        )

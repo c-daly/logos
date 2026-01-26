@@ -102,7 +102,9 @@ class HCGClient:
         except ServiceUnavailable as e:
             raise HCGConnectionError(f"Failed to connect to Neo4j at {uri}: {e}") from e
         except Exception as e:
-            raise HCGConnectionError(f"Unexpected error connecting to Neo4j: {e}") from e
+            raise HCGConnectionError(
+                f"Unexpected error connecting to Neo4j: {e}"
+            ) from e
 
     def close(self):
         """Close the driver and release all connections."""
@@ -405,11 +407,15 @@ class HCGClient:
             List of State objects
         """
         # Convert datetime to ISO string if needed
-        start_str = start_time.isoformat() if isinstance(start_time, datetime) else start_time
+        start_str = (
+            start_time.isoformat() if isinstance(start_time, datetime) else start_time
+        )
         end_str = end_time.isoformat() if isinstance(end_time, datetime) else end_time
 
         query = HCGQueries.find_states_by_timestamp_range()
-        records = self._execute_read(query, {"start_time": start_str, "end_time": end_str})
+        records = self._execute_read(
+            query, {"start_time": start_str, "end_time": end_str}
+        )
 
         states = []
         for record in records:
@@ -456,11 +462,15 @@ class HCGClient:
             List of Process objects
         """
         # Convert datetime to ISO string if needed
-        start_str = start_time.isoformat() if isinstance(start_time, datetime) else start_time
+        start_str = (
+            start_time.isoformat() if isinstance(start_time, datetime) else start_time
+        )
         end_str = end_time.isoformat() if isinstance(end_time, datetime) else end_time
 
         query = HCGQueries.find_processes_by_time_range()
-        records = self._execute_read(query, {"start_time": start_str, "end_time": end_str})
+        records = self._execute_read(
+            query, {"start_time": start_str, "end_time": end_str}
+        )
 
         processes = []
         for record in records:
@@ -781,7 +791,9 @@ class HCGClient:
         node_props = self._parse_node_to_dict(records[0]["c"])
         return Capability(**node_props)
 
-    def find_capability_for_process(self, process_uuid: str | UUID) -> "Capability | None":
+    def find_capability_for_process(
+        self, process_uuid: str | UUID
+    ) -> "Capability | None":
         """
         Find the capability that can execute a process.
 

@@ -33,7 +33,8 @@ def ensure_neo4j_ready():
     """Fail tests if Neo4j is not available - CI should set up infrastructure."""
     if not is_container_running(NEO4J_CONFIG.container):
         pytest.fail(
-            "Neo4j not available. Start with: " "docker compose -f docker-compose.test.yml up -d"
+            "Neo4j not available. Start with: "
+            "docker compose -f docker-compose.test.yml up -d"
         )
 
     try:
@@ -125,7 +126,9 @@ class TestSimulateAPIIntegration:
             assert process["capability_id"] == "test-integration-capability"
             assert process["imagined"] is True
 
-    def test_simulate_creates_states_in_neo4j(self, test_client, neo4j_driver, cleanup_simulations):
+    def test_simulate_creates_states_in_neo4j(
+        self, test_client, neo4j_driver, cleanup_simulations
+    ):
         """Test that simulation creates ImaginedState nodes in Neo4j."""
         payload = {
             "capability_id": "test-states-capability",
@@ -221,4 +224,6 @@ class TestSimulateAPIIntegration:
             assert record is not None
 
             # Clean up test frame
-            session.run("MATCH (f:PerceptionFrame {uuid: $uuid}) DELETE f", uuid=frame_uuid)
+            session.run(
+                "MATCH (f:PerceptionFrame {uuid: $uuid}) DELETE f", uuid=frame_uuid
+            )

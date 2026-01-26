@@ -8,7 +8,11 @@ for repos that only need logging/config utilities.
 """
 
 from .config import ServiceConfig, get_env_value, normalize_host, resolve_service_config
-from .docker import is_container_running, resolve_container_name, wait_for_container_health
+from .docker import (
+    is_container_running,
+    resolve_container_name,
+    wait_for_container_health,
+)
 from .env import load_stack_env
 from .health import DependencyHealth, ServiceHealth
 from .logging import HumanFormatter, StructuredFormatter, setup_logging

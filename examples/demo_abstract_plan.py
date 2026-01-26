@@ -75,7 +75,11 @@ def main():
         for step in plan.steps:
             duration_ms = step.estimated_duration_ms or 0
             total_ms += duration_ms
-            cap_name = cap_names.get(step.capability_uuid, "?") if step.capability_uuid else "?"
+            cap_name = (
+                cap_names.get(step.capability_uuid, "?")
+                if step.capability_uuid
+                else "?"
+            )
 
             # Format duration nicely
             if duration_ms >= 3600000:

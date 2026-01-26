@@ -51,7 +51,9 @@ def resolve_service_config(
     """Build a service config from env with standard normalization."""
 
     raw_host = get_env_value(host_key, extra_env, defaults.host) or defaults.host
-    raw_port = get_env_value(port_key, extra_env, str(defaults.port)) or str(defaults.port)
+    raw_port = get_env_value(port_key, extra_env, str(defaults.port)) or str(
+        defaults.port
+    )
     host = normalize_host(raw_host)
     port = _coerce_port(raw_port, defaults.port)
     url = f"http://{host}:{port}"

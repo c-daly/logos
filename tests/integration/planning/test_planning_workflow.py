@@ -66,12 +66,16 @@ def test_causal_relationships_defined(plan_scenarios):
         assert "causes" in rel
         assert "requires" in rel
 
-    print(f"✓ Defined {len(plan_scenarios['causal_relationships'])} causal relationships")
+    print(
+        f"✓ Defined {len(plan_scenarios['causal_relationships'])} causal relationships"
+    )
 
 
 def test_simple_grasp_scenario(plan_scenarios):
     """Test simple single-step grasp planning scenario."""
-    scenario = next(s for s in plan_scenarios["scenarios"] if s["name"] == "simple_grasp")
+    scenario = next(
+        s for s in plan_scenarios["scenarios"] if s["name"] == "simple_grasp"
+    )
 
     assert scenario is not None
     assert "initial_state" in scenario
@@ -93,7 +97,9 @@ def test_simple_grasp_scenario(plan_scenarios):
 
 def test_pick_and_place_scenario(plan_scenarios):
     """Test multi-step pick-and-place planning scenario."""
-    scenario = next(s for s in plan_scenarios["scenarios"] if s["name"] == "pick_and_place")
+    scenario = next(
+        s for s in plan_scenarios["scenarios"] if s["name"] == "pick_and_place"
+    )
 
     assert scenario is not None
     plan = scenario["expected_plan"]
@@ -165,7 +171,10 @@ def test_test_data_has_process_concepts(test_data_cypher):
         or "'process'" in test_data_cypher
     )
     # Verify action subtypes exist (these have 'process' in ancestors)
-    assert "moveaction" in test_data_cypher.lower() or "process_move" in test_data_cypher.lower()
+    assert (
+        "moveaction" in test_data_cypher.lower()
+        or "process_move" in test_data_cypher.lower()
+    )
 
     print("✓ Process concepts found in test data")
 
@@ -303,7 +312,9 @@ class TestPlannerAPIIntegration:
             next_step = response.plan[i + 1]
 
             assert len(current_step.effects) > 0, f"Step {i} should have effects"
-            assert len(next_step.preconditions) > 0, f"Step {i+1} should have preconditions"
+            assert len(next_step.preconditions) > 0, (
+                f"Step {i + 1} should have preconditions"
+            )
 
         print(f"✓ Generated plan with explicit states ({len(response.plan)} steps)")
 
@@ -324,7 +335,7 @@ class TestPlannerAPIIntegration:
             assert isinstance(step.preconditions, list)
             assert isinstance(step.effects, list)
 
-            print(f"  Step {i+1}: {step.process} (uuid: {step.uuid})")
+            print(f"  Step {i + 1}: {step.process} (uuid: {step.uuid})")
 
         print("✓ API-generated plan has proper structure for HCG storage")
 

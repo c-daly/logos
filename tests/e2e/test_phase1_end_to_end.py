@@ -189,9 +189,9 @@ class TestM4TestDataLoading:
         assert returncode == 0, f"Failed to query manipulator: {stderr}"
         # Check that at least one entity exists
         count_match = [line for line in stdout.strip().split("\n") if line.isdigit()]
-        assert (
-            len(count_match) > 0 and int(count_match[0]) >= 0
-        ), "Expected manipulator entity query to succeed"
+        assert len(count_match) > 0 and int(count_match[0]) >= 0, (
+            "Expected manipulator entity query to succeed"
+        )
 
 
 class TestM4SimulatedWorkflow:
@@ -214,10 +214,12 @@ class TestM4SimulatedWorkflow:
         returncode, stdout, stderr = run_cypher_query(create_query)
         assert returncode == 0, f"Failed to create goal state: {stderr}"
 
-        assert "TestGoalState_RedBlockInBin" in stdout, "Expected goal state name not found"
-        assert (
-            "964305c9-008f-5e7c-9fa6-08a4db697c1a" in stdout
-        ), "Expected goal state UUID not found"
+        assert "TestGoalState_RedBlockInBin" in stdout, (
+            "Expected goal state name not found"
+        )
+        assert "964305c9-008f-5e7c-9fa6-08a4db697c1a" in stdout, (
+            "Expected goal state UUID not found"
+        )
 
     def test_create_plan_processes(self, loaded_test_data):
         """Simulate Sophia generating a plan (flexible ontology)."""
@@ -267,12 +269,16 @@ class TestM4SimulatedWorkflow:
         returncode, stdout, stderr = run_cypher_query(create_plan_query)
         assert returncode == 0, f"Failed to create plan processes: {stderr}"
 
-        assert "TestMoveToPreGrasp" in stdout, "Expected MoveToPreGrasp process not found"
+        assert "TestMoveToPreGrasp" in stdout, (
+            "Expected MoveToPreGrasp process not found"
+        )
         assert "TestGraspRedBlock" in stdout, "Expected GraspRedBlock process not found"
         assert "TestMoveToPlace" in stdout, "Expected MoveToPlace process not found"
         assert "TestReleaseBlock" in stdout, "Expected ReleaseBlock process not found"
 
-    @pytest.mark.skipif(not PLANNER_CLIENT_AVAILABLE, reason="Planner client not available")
+    @pytest.mark.skipif(
+        not PLANNER_CLIENT_AVAILABLE, reason="Planner client not available"
+    )
     def test_create_plan_via_planner_api(self, loaded_test_data):
         """Simulate Sophia generating a plan via planner API."""
         client = PlannerClient()
@@ -301,7 +307,9 @@ class TestM4SimulatedWorkflow:
                 RETURN p.uuid, p.name;
                 """
                 returncode, stdout, stderr = run_cypher_query(query)
-                assert returncode == 0, f"Failed to create process {step.process}: {stderr}"
+                assert returncode == 0, (
+                    f"Failed to create process {step.process}: {stderr}"
+                )
 
             # Create PRECEDES relationships
             for i in range(len(response.plan) - 1):
@@ -315,7 +323,9 @@ class TestM4SimulatedWorkflow:
                 RETURN p1.name, p2.name;
                 """
                 returncode, stdout, stderr = run_cypher_query(query)
-                assert returncode == 0, f"Failed to create PRECEDES relationship: {stderr}"
+                assert returncode == 0, (
+                    f"Failed to create PRECEDES relationship: {stderr}"
+                )
 
             print(f"✓ Created plan via planner API with {len(response.plan)} steps")
 
