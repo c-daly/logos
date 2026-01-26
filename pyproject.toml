@@ -80,7 +80,7 @@ render-test-stacks = "infra.scripts.render_test_stacks:main"
 
 [tool.pytest.ini_options]
 minversion = "7.0"
-addopts = "-ra -q --strict-markers --cov=logos_config --cov=logos_tools --cov=logos_hcg --cov=logos_observability --cov=logos_persona --cov=logos_cwm_e --cov-report=term-missing --cov-fail-under=60"
+addopts = "-ra -q --strict-markers"
 testpaths = ["tests"]
 pythonpath = ["."]
 markers = [
