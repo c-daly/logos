@@ -1,0 +1,1252 @@
+{
+  "queue_meta": {
+    "created": "2026-01-24",
+    "description": "Combined LOGOS ecosystem task queue - merges all 5 repos for orchestrator iteration",
+    "version": 1,
+    "source_queues": [
+      "logos/docs/plans/logos-task-queue.json",
+      "sophia/docs/plans/sophia-task-queue.json",
+      "hermes/docs/plans/hermes-task-queue.json",
+      "talos/docs/plans/talos-task-queue.json",
+      "apollo/docs/plans/apollo-task-queue.json"
+    ],
+    "stats": {
+      "total_tasks": 76,
+      "by_repo": {
+        "logos": 31,
+        "sophia": 17,
+        "hermes": 6,
+        "talos": 3,
+        "apollo": 19
+      },
+      "by_priority": {
+        "critical": 4,
+        "high": 8,
+        "medium": 63,
+        "low": 1
+      }
+    }
+  },
+  "parallel_tracks": {
+    "description": "Independent task groups that can run in parallel (no cross-dependencies)",
+    "tracks": [
+      {
+        "id": "track-testing-sanity",
+        "description": "Testing infrastructure prerequisite",
+        "groups": ["logos:testing"],
+        "tasks": ["logos-416"],
+        "blocks_tracks": ["track-phase3"]
+      },
+      {
+        "id": "track-phase3",
+        "description": "Phase 3 Learning & Memory",
+        "groups": ["logos:phase3", "sophia:phase3-memory"],
+        "tasks": ["logos-415", "logos-411", "logos-412", "logos-413", "logos-414"],
+        "blocked_by_tracks": ["track-testing-sanity"]
+      },
+      {
+        "id": "track-flexible-ontology",
+        "description": "Flexible ontology across logos/sophia",
+        "groups": ["logos:flexible-ontology", "sophia:flexible-ontology"],
+        "tasks": ["logos-458", "logos-460", "logos-461", "logos-462", "logos-463", "logos-464", "logos-465"],
+        "blocks_tracks": []
+      },
+      {
+        "id": "track-otel-sophia",
+        "description": "OpenTelemetry instrumentation - Sophia",
+        "groups": ["sophia:observability"],
+        "tasks": ["logos-334", "logos-335", "logos-336", "logos-321"],
+        "blocks_tracks": []
+      },
+      {
+        "id": "track-otel-hermes",
+        "description": "OpenTelemetry instrumentation - Hermes",
+        "groups": ["hermes:observability"],
+        "tasks": ["logos-337", "logos-338", "logos-339"],
+        "blocks_tracks": []
+      },
+      {
+        "id": "track-otel-apollo",
+        "description": "OpenTelemetry instrumentation - Apollo",
+        "groups": ["apollo:observability"],
+        "tasks": ["logos-340", "logos-341", "logos-342", "logos-312", "logos-244", "logos-321"],
+        "blocks_tracks": []
+      },
+      {
+        "id": "track-hermes-testing",
+        "description": "Hermes test improvements",
+        "groups": ["hermes:testing"],
+        "tasks": ["logos-91", "hermes-38", "hermes-42"],
+        "blocks_tracks": []
+      },
+      {
+        "id": "track-talos-infra",
+        "description": "Talos infrastructure and testing",
+        "groups": ["talos:infrastructure", "talos:testing"],
+        "tasks": ["talos-35", "talos-31", "talos-28"],
+        "blocks_tracks": []
+      },
+      {
+        "id": "track-apollo-ui",
+        "description": "Apollo UI features",
+        "groups": ["apollo:ui-features", "apollo:persona"],
+        "tasks": ["apollo-62", "apollo-63", "logos-266", "logos-267", "logos-310", "logos-316", "logos-317"],
+        "blocks_tracks": []
+      },
+      {
+        "id": "track-apollo-auth",
+        "description": "Apollo authentication",
+        "groups": ["apollo:auth"],
+        "tasks": ["logos-311"],
+        "blocks_tracks": []
+      },
+      {
+        "id": "track-logos-observability",
+        "description": "Logos observability dashboards",
+        "groups": ["logos:observability"],
+        "tasks": ["logos-344", "logos-346"],
+        "blocks_tracks": []
+      },
+      {
+        "id": "track-logos-persona",
+        "description": "Persona diary storage",
+        "groups": ["logos:persona"],
+        "tasks": ["logos-246", "logos-265"],
+        "blocks_tracks": []
+      },
+      {
+        "id": "track-standardization",
+        "description": "Cross-repo standardization",
+        "groups": ["logos:standardization"],
+        "tasks": ["logos-420", "logos-436", "logos-433", "logos-409", "logos-381"],
+        "blocks_tracks": []
+      },
+      {
+        "id": "track-infrastructure",
+        "description": "Infrastructure improvements",
+        "groups": ["logos:infrastructure", "logos:packaging"],
+        "tasks": ["logos-423", "logos-425", "logos-467", "logos-469", "logos-473"],
+        "blocks_tracks": []
+      },
+      {
+        "id": "track-documentation",
+        "description": "Documentation tasks",
+        "groups": ["logos:documentation", "apollo:demo-docs"],
+        "tasks": ["logos-280", "logos-447", "logos-135", "logos-273", "logos-274", "logos-245"],
+        "blocks_tracks": []
+      },
+      {
+        "id": "track-tooling",
+        "description": "Automation and tooling",
+        "groups": ["logos:tooling"],
+        "tasks": ["logos-275", "logos-276", "logos-278", "logos-263"],
+        "blocks_tracks": []
+      },
+      {
+        "id": "track-hcg-refactor",
+        "description": "HCG refactoring",
+        "groups": ["logos:hcg"],
+        "tasks": ["logos-404", "logos-403"],
+        "blocks_tracks": []
+      },
+      {
+        "id": "track-sophia-misc",
+        "description": "Sophia miscellaneous",
+        "groups": ["sophia:infrastructure", "sophia:architecture", "sophia:jepa", "sophia:tech-debt", "sophia:hcg", "sophia:persona"],
+        "tasks": ["sophia-111", "sophia-101", "sophia-76", "sophia-36", "sophia-20", "logos-264", "logos-306"],
+        "blocks_tracks": []
+      },
+      {
+        "id": "track-apollo-misc",
+        "description": "Apollo infrastructure",
+        "groups": ["apollo:infrastructure"],
+        "tasks": ["apollo-145", "apollo-111"],
+        "blocks_tracks": []
+      }
+    ]
+  },
+  "pr_groups": {
+    "description": "Tasks grouped by target PR (one PR per repo per logical feature)",
+    "groups": {
+      "logos-testing-sanity": {
+        "repo": "logos",
+        "branch": "feature/testing-sanity",
+        "tasks": ["logos-416"]
+      },
+      "logos-phase3": {
+        "repo": "logos",
+        "branch": "feature/phase3-memory",
+        "tasks": ["logos-415"]
+      },
+      "logos-flexible-ontology": {
+        "repo": "logos",
+        "branch": "feature/flexible-ontology",
+        "tasks": ["logos-458", "logos-461", "logos-462", "logos-463", "logos-465"]
+      },
+      "logos-observability": {
+        "repo": "logos",
+        "branch": "feature/observability",
+        "tasks": ["logos-344", "logos-346"]
+      },
+      "logos-persona": {
+        "repo": "logos",
+        "branch": "feature/persona-diary",
+        "tasks": ["logos-246", "logos-265"]
+      },
+      "logos-standardization": {
+        "repo": "logos",
+        "branch": "feature/standardization",
+        "tasks": ["logos-420", "logos-436", "logos-433", "logos-409", "logos-381"]
+      },
+      "logos-infrastructure": {
+        "repo": "logos",
+        "branch": "feature/infrastructure",
+        "tasks": ["logos-423", "logos-425", "logos-467", "logos-469", "logos-473"]
+      },
+      "logos-documentation": {
+        "repo": "logos",
+        "branch": "feature/documentation",
+        "tasks": ["logos-280", "logos-447", "logos-135"]
+      },
+      "logos-tooling": {
+        "repo": "logos",
+        "branch": "feature/tooling",
+        "tasks": ["logos-275", "logos-276", "logos-278", "logos-263"]
+      },
+      "logos-hcg": {
+        "repo": "logos",
+        "branch": "feature/hcg-refactor",
+        "tasks": ["logos-404", "logos-403"]
+      },
+      "sophia-otel": {
+        "repo": "sophia",
+        "branch": "feature/opentelemetry",
+        "tasks": ["logos-334", "logos-335", "logos-336", "logos-321"]
+      },
+      "sophia-phase3": {
+        "repo": "sophia",
+        "branch": "feature/phase3-memory",
+        "tasks": ["logos-411", "logos-412", "logos-413", "logos-414"]
+      },
+      "sophia-flexible-ontology": {
+        "repo": "sophia",
+        "branch": "feature/flexible-ontology",
+        "tasks": ["logos-460", "logos-464"]
+      },
+      "sophia-misc": {
+        "repo": "sophia",
+        "branch": "feature/misc-improvements",
+        "tasks": ["sophia-111", "sophia-101", "sophia-76", "sophia-36", "sophia-20", "logos-264", "logos-306"]
+      },
+      "hermes-otel": {
+        "repo": "hermes",
+        "branch": "feature/opentelemetry",
+        "tasks": ["logos-337", "logos-338", "logos-339"]
+      },
+      "hermes-testing": {
+        "repo": "hermes",
+        "branch": "feature/testing",
+        "tasks": ["logos-91", "hermes-38", "hermes-42"]
+      },
+      "talos-infra": {
+        "repo": "talos",
+        "branch": "feature/infrastructure",
+        "tasks": ["talos-35", "talos-31", "talos-28"]
+      },
+      "apollo-otel": {
+        "repo": "apollo",
+        "branch": "feature/opentelemetry",
+        "tasks": ["logos-340", "logos-341", "logos-342", "logos-312", "logos-244", "logos-321"]
+      },
+      "apollo-auth": {
+        "repo": "apollo",
+        "branch": "feature/authentication",
+        "tasks": ["logos-311"]
+      },
+      "apollo-persona": {
+        "repo": "apollo",
+        "branch": "feature/persona",
+        "tasks": ["logos-266", "logos-267", "logos-310"]
+      },
+      "apollo-ui": {
+        "repo": "apollo",
+        "branch": "feature/ui-features",
+        "tasks": ["apollo-62", "apollo-63", "logos-316", "logos-317"]
+      },
+      "apollo-docs": {
+        "repo": "apollo",
+        "branch": "feature/demo-docs",
+        "tasks": ["logos-273", "logos-274", "logos-245"]
+      },
+      "apollo-infra": {
+        "repo": "apollo",
+        "branch": "feature/infrastructure",
+        "tasks": ["apollo-145", "apollo-111"]
+      }
+    }
+  },
+  "tasks": [
+    {
+      "id": "logos-416",
+      "repo": "logos",
+      "issue_number": 416,
+      "title": "Phase 2.5: Testing Sanity - Prerequisite to Phase 3",
+      "priority": "critical",
+      "type": "tracking",
+      "group": "logos-testing-sanity",
+      "blockedBy": [],
+      "blocks": ["logos-415"],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-415",
+      "repo": "logos",
+      "issue_number": 415,
+      "title": "Phase 3: Learning & Memory Systems - Master Tracking",
+      "priority": "high",
+      "type": "tracking",
+      "group": "logos-phase3",
+      "blockedBy": ["logos-416"],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-458",
+      "repo": "logos",
+      "issue_number": 458,
+      "title": "Update ontology with lessons learned from TinyMind",
+      "priority": "medium",
+      "type": "feature",
+      "group": "logos-flexible-ontology",
+      "blockedBy": [],
+      "blocks": ["logos-460", "logos-461", "logos-462"],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-460",
+      "repo": "sophia",
+      "issue_number": 460,
+      "title": "Update sophia planner for flexible ontology",
+      "priority": "medium",
+      "type": "feature",
+      "group": "sophia-flexible-ontology",
+      "blockedBy": ["logos-458"],
+      "blocks": ["logos-464"],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-461",
+      "repo": "logos",
+      "issue_number": 461,
+      "title": "Update downstream repos for flexible ontology",
+      "priority": "medium",
+      "type": "infrastructure",
+      "group": "logos-flexible-ontology",
+      "blockedBy": ["logos-458"],
+      "blocks": ["logos-463"],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-462",
+      "repo": "logos",
+      "issue_number": 462,
+      "title": "Update pick-and-place test data for flexible ontology",
+      "priority": "medium",
+      "type": "testing",
+      "group": "logos-flexible-ontology",
+      "blockedBy": ["logos-458"],
+      "blocks": ["logos-463"],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-463",
+      "repo": "logos",
+      "issue_number": 463,
+      "title": "Validate M4 demo end-to-end with flexible ontology",
+      "priority": "medium",
+      "type": "testing",
+      "group": "logos-flexible-ontology",
+      "blockedBy": ["logos-461", "logos-462"],
+      "blocks": ["logos-465"],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-464",
+      "repo": "sophia",
+      "issue_number": 464,
+      "title": "Update M3 planning tests for flexible ontology",
+      "priority": "medium",
+      "type": "testing",
+      "group": "sophia-flexible-ontology",
+      "blockedBy": ["logos-460"],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-465",
+      "repo": "logos",
+      "issue_number": 465,
+      "title": "Implement capability catalog in flexible ontology",
+      "priority": "medium",
+      "type": "feature",
+      "group": "logos-flexible-ontology",
+      "blockedBy": ["logos-463"],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-334",
+      "repo": "sophia",
+      "issue_number": 334,
+      "title": "Add OpenTelemetry SDK Integration",
+      "priority": "critical",
+      "type": "feature",
+      "group": "sophia-otel",
+      "blockedBy": [],
+      "blocks": ["logos-335"],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-335",
+      "repo": "sophia",
+      "issue_number": 335,
+      "title": "Instrument API Endpoints with OTel Spans",
+      "priority": "high",
+      "type": "feature",
+      "group": "sophia-otel",
+      "blockedBy": ["logos-334"],
+      "blocks": ["logos-336"],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-336",
+      "repo": "sophia",
+      "issue_number": 336,
+      "title": "Add OTel Testing & Documentation",
+      "priority": "medium",
+      "type": "testing",
+      "group": "sophia-otel",
+      "blockedBy": ["logos-335"],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-321",
+      "repo": "sophia",
+      "issue_number": 321,
+      "title": "P2-M4: OpenTelemetry instrumentation and observability pipeline",
+      "priority": "medium",
+      "type": "feature",
+      "group": "sophia-otel",
+      "blockedBy": ["logos-334"],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-411",
+      "repo": "sophia",
+      "issue_number": 411,
+      "title": "P3-M1: Hierarchical Memory Infrastructure",
+      "priority": "high",
+      "type": "feature",
+      "group": "sophia-phase3",
+      "blockedBy": [],
+      "blocks": ["logos-412"],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-412",
+      "repo": "sophia",
+      "issue_number": 412,
+      "title": "P3-M2: Event-driven Reflection System",
+      "priority": "high",
+      "type": "feature",
+      "group": "sophia-phase3",
+      "blockedBy": ["logos-411"],
+      "blocks": ["logos-413"],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-413",
+      "repo": "sophia",
+      "issue_number": 413,
+      "title": "P3-M3: Selective Diary Entry Creation",
+      "priority": "medium",
+      "type": "feature",
+      "group": "sophia-phase3",
+      "blockedBy": ["logos-412"],
+      "blocks": ["logos-414"],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-414",
+      "repo": "sophia",
+      "issue_number": 414,
+      "title": "P3-M4: Episodic Memory & Learning",
+      "priority": "high",
+      "type": "feature",
+      "group": "sophia-phase3",
+      "blockedBy": ["logos-413"],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-264",
+      "repo": "sophia",
+      "issue_number": 264,
+      "title": "Wire persona diary into Sophia",
+      "priority": "medium",
+      "type": "feature",
+      "group": "sophia-misc",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-306",
+      "repo": "sophia",
+      "issue_number": 306,
+      "title": "Infrastructure Implementation: Replace Stubs with Real Components",
+      "priority": "medium",
+      "type": "feature",
+      "group": "sophia-misc",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "sophia-111",
+      "repo": "sophia",
+      "issue_number": 111,
+      "title": "Investigate running Sophia from source instead of container in CI",
+      "priority": "medium",
+      "type": "investigation",
+      "group": "sophia-misc",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "sophia-101",
+      "repo": "sophia",
+      "issue_number": 101,
+      "title": "Define session boundaries and ephemeral node lifecycle",
+      "priority": "medium",
+      "type": "feature",
+      "group": "sophia-misc",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "sophia-76",
+      "repo": "sophia",
+      "issue_number": 76,
+      "title": "Implement JEPA PoC backend (issue #75)",
+      "priority": "medium",
+      "type": "feature",
+      "group": "sophia-misc",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "sophia-36",
+      "repo": "sophia",
+      "issue_number": 36,
+      "title": "Audit other LOGOS services for Neo4j JSON serialization",
+      "priority": "medium",
+      "type": "refactor",
+      "group": "sophia-misc",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "sophia-20",
+      "repo": "sophia",
+      "issue_number": 20,
+      "title": "Extend HCG + Executor to support general tool actions",
+      "priority": "medium",
+      "type": "feature",
+      "group": "sophia-misc",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-337",
+      "repo": "hermes",
+      "issue_number": 337,
+      "title": "Add OpenTelemetry SDK Integration",
+      "priority": "critical",
+      "type": "feature",
+      "group": "hermes-otel",
+      "blockedBy": [],
+      "blocks": ["logos-338"],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-338",
+      "repo": "hermes",
+      "issue_number": 338,
+      "title": "Instrument API Endpoints with OTel Spans",
+      "priority": "high",
+      "type": "feature",
+      "group": "hermes-otel",
+      "blockedBy": ["logos-337"],
+      "blocks": ["logos-339"],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-339",
+      "repo": "hermes",
+      "issue_number": 339,
+      "title": "Add OTel Testing & Documentation",
+      "priority": "medium",
+      "type": "testing",
+      "group": "hermes-otel",
+      "blockedBy": ["logos-338"],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-91",
+      "repo": "hermes",
+      "issue_number": 91,
+      "title": "Add OpenAPI validation tests",
+      "priority": "high",
+      "type": "testing",
+      "group": "hermes-testing",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "hermes-38",
+      "repo": "hermes",
+      "issue_number": 38,
+      "title": "Fix integration test scripts: service name mismatch and missing utility scripts",
+      "priority": "medium",
+      "type": "bug",
+      "group": "hermes-testing",
+      "blockedBy": [],
+      "blocks": ["hermes-42"],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "hermes-42",
+      "repo": "hermes",
+      "issue_number": 42,
+      "title": "Improve test coverage",
+      "priority": "medium",
+      "type": "testing",
+      "group": "hermes-testing",
+      "blockedBy": ["hermes-38"],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "talos-35",
+      "repo": "talos",
+      "issue_number": 35,
+      "title": "Adopt config helper and logging from logos_test_utils",
+      "priority": "medium",
+      "type": "feature",
+      "group": "talos-infra",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "talos-31",
+      "repo": "talos",
+      "issue_number": 31,
+      "title": "Test Assessment: Add coverage reporting and audit skip conditions",
+      "priority": "medium",
+      "type": "tech-debt",
+      "group": "talos-infra",
+      "blockedBy": [],
+      "blocks": ["talos-28"],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "talos-28",
+      "repo": "talos",
+      "issue_number": 28,
+      "title": "Improve test coverage",
+      "priority": "medium",
+      "type": "testing",
+      "group": "talos-infra",
+      "blockedBy": ["talos-31"],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-340",
+      "repo": "apollo",
+      "issue_number": 340,
+      "title": "Add OpenTelemetry SDK Integration",
+      "priority": "critical",
+      "type": "feature",
+      "group": "apollo-otel",
+      "blockedBy": [],
+      "blocks": ["logos-341", "logos-312", "logos-244"],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-341",
+      "repo": "apollo",
+      "issue_number": 341,
+      "title": "Instrument CLI and API with OTel Spans",
+      "priority": "high",
+      "type": "feature",
+      "group": "apollo-otel",
+      "blockedBy": ["logos-340"],
+      "blocks": ["logos-342"],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-342",
+      "repo": "apollo",
+      "issue_number": 342,
+      "title": "Add OTel Testing & Documentation",
+      "priority": "medium",
+      "type": "testing",
+      "group": "apollo-otel",
+      "blockedBy": ["logos-341"],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-312",
+      "repo": "apollo",
+      "issue_number": 312,
+      "title": "Implement Persistent Telemetry Storage",
+      "priority": "medium",
+      "type": "feature",
+      "group": "apollo-otel",
+      "blockedBy": ["logos-340"],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-244",
+      "repo": "apollo",
+      "issue_number": 244,
+      "title": "Structured log stream for Apollo diagnostics",
+      "priority": "medium",
+      "type": "feature",
+      "group": "apollo-otel",
+      "blockedBy": ["logos-340"],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-311",
+      "repo": "apollo",
+      "issue_number": 311,
+      "title": "Implement Authentication and Authorization",
+      "priority": "high",
+      "type": "feature",
+      "group": "apollo-auth",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-266",
+      "repo": "apollo",
+      "issue_number": 266,
+      "title": "Apollo persona data layer",
+      "priority": "medium",
+      "type": "feature",
+      "group": "apollo-persona",
+      "blockedBy": [],
+      "blocks": ["logos-267", "logos-310"],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-267",
+      "repo": "apollo",
+      "issue_number": 267,
+      "title": "Persona diary UI components",
+      "priority": "medium",
+      "type": "ui",
+      "group": "apollo-persona",
+      "blockedBy": ["logos-266"],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-310",
+      "repo": "apollo",
+      "issue_number": 310,
+      "title": "Add trigger field to PersonaEntry with database migration",
+      "priority": "medium",
+      "type": "feature",
+      "group": "apollo-persona",
+      "blockedBy": ["logos-266"],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "apollo-62",
+      "repo": "apollo",
+      "issue_number": 62,
+      "title": "Mission overview panel",
+      "priority": "medium",
+      "type": "feature",
+      "group": "apollo-ui",
+      "blockedBy": [],
+      "blocks": ["apollo-63"],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "apollo-63",
+      "repo": "apollo",
+      "issue_number": 63,
+      "title": "Plan progress animations",
+      "priority": "low",
+      "type": "feature",
+      "group": "apollo-ui",
+      "blockedBy": ["apollo-62"],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-316",
+      "repo": "apollo",
+      "issue_number": 316,
+      "title": "Export Features for Timeline and Graphs",
+      "priority": "low",
+      "type": "feature",
+      "group": "apollo-ui",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-317",
+      "repo": "apollo",
+      "issue_number": 317,
+      "title": "Advanced Graph Layouts and Visualization Options",
+      "priority": "low",
+      "type": "feature",
+      "group": "apollo-ui",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-273",
+      "repo": "apollo",
+      "issue_number": 273,
+      "title": "Apollo LLM-only demo guide",
+      "priority": "medium",
+      "type": "documentation",
+      "group": "apollo-docs",
+      "blockedBy": [],
+      "blocks": ["logos-274"],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-274",
+      "repo": "apollo",
+      "issue_number": 274,
+      "title": "Apollo multimodal demo guide",
+      "priority": "medium",
+      "type": "documentation",
+      "group": "apollo-docs",
+      "blockedBy": ["logos-273"],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-245",
+      "repo": "apollo",
+      "issue_number": 245,
+      "title": "Demo capture script for Apollo browser walkthrough",
+      "priority": "medium",
+      "type": "documentation",
+      "group": "apollo-docs",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "apollo-145",
+      "repo": "apollo",
+      "issue_number": 145,
+      "title": "Investigate TypeScript SDK consumption pattern",
+      "priority": "medium",
+      "type": "investigation",
+      "group": "apollo-infra",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "apollo-111",
+      "repo": "apollo",
+      "issue_number": 111,
+      "title": "Test Assessment: Address mock explosion and add coverage reporting",
+      "priority": "medium",
+      "type": "tech-debt",
+      "group": "apollo-infra",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-344",
+      "repo": "logos",
+      "issue_number": 344,
+      "title": "Grafana Dashboards & End-to-End Verification",
+      "priority": "medium",
+      "type": "feature",
+      "group": "logos-observability",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-346",
+      "repo": "logos",
+      "issue_number": 346,
+      "title": "Phase 3: Evaluate Observability Stack Requirements",
+      "priority": "medium",
+      "type": "investigation",
+      "group": "logos-observability",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-246",
+      "repo": "logos",
+      "issue_number": 246,
+      "title": "CWM-E persona diary storage & API exposure",
+      "priority": "medium",
+      "type": "feature",
+      "group": "logos-persona",
+      "blockedBy": [],
+      "blocks": ["logos-265"],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-265",
+      "repo": "logos",
+      "issue_number": 265,
+      "title": "CWM-E reflection worker",
+      "priority": "medium",
+      "type": "feature",
+      "group": "logos-persona",
+      "blockedBy": ["logos-246"],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-423",
+      "repo": "logos",
+      "issue_number": 423,
+      "title": "Automate shared package distribution and clean up vendored copies across repos",
+      "priority": "medium",
+      "type": "infrastructure",
+      "group": "logos-infrastructure",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-425",
+      "repo": "logos",
+      "issue_number": 425,
+      "title": "Container Digest Verification System",
+      "priority": "medium",
+      "type": "feature",
+      "group": "logos-infrastructure",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-467",
+      "repo": "logos",
+      "issue_number": 467,
+      "title": "Bring CI containers into logos_config template process",
+      "priority": "medium",
+      "type": "infrastructure",
+      "group": "logos-infrastructure",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-469",
+      "repo": "logos",
+      "issue_number": 469,
+      "title": "Centralize Redis infrastructure in logos shared tooling",
+      "priority": "medium",
+      "type": "infrastructure",
+      "group": "logos-infrastructure",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-473",
+      "repo": "logos",
+      "issue_number": 473,
+      "title": "py.typed marker not being included in logos-foundry package",
+      "priority": "medium",
+      "type": "bug",
+      "group": "logos-infrastructure",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-420",
+      "repo": "logos",
+      "issue_number": 420,
+      "title": "Standardize testing infrastructure across LOGOS ecosystem repos",
+      "priority": "medium",
+      "type": "infrastructure",
+      "group": "logos-standardization",
+      "blockedBy": [],
+      "blocks": ["logos-436", "logos-381"],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-436",
+      "repo": "logos",
+      "issue_number": 436,
+      "title": "Standardize pytest configuration across all repos",
+      "priority": "medium",
+      "type": "infrastructure",
+      "group": "logos-standardization",
+      "blockedBy": ["logos-420"],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-433",
+      "repo": "logos",
+      "issue_number": 433,
+      "title": "Standardize LOGOS repos: config/env helpers, health/logging alignment",
+      "priority": "medium",
+      "type": "infrastructure",
+      "group": "logos-standardization",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-409",
+      "repo": "logos",
+      "issue_number": 409,
+      "title": "Standardize developer scripts across LOGOS monorepo",
+      "priority": "medium",
+      "type": "infrastructure",
+      "group": "logos-standardization",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-381",
+      "repo": "logos",
+      "issue_number": 381,
+      "title": "Cross-Repo: Refresh test stack documentation after layout standardization",
+      "priority": "medium",
+      "type": "documentation",
+      "group": "logos-standardization",
+      "blockedBy": ["logos-420"],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-280",
+      "repo": "logos",
+      "issue_number": 280,
+      "title": "Finalize API documentation across repos",
+      "priority": "medium",
+      "type": "documentation",
+      "group": "logos-documentation",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-447",
+      "repo": "logos",
+      "issue_number": 447,
+      "title": "Documentation consolidation: minimal structure for onboarding",
+      "priority": "medium",
+      "type": "documentation",
+      "group": "logos-documentation",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-135",
+      "repo": "logos",
+      "issue_number": 135,
+      "title": "Developer onboarding guide",
+      "priority": "medium",
+      "type": "documentation",
+      "group": "logos-documentation",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-275",
+      "repo": "logos",
+      "issue_number": 275,
+      "title": "Scenario replay scripts",
+      "priority": "medium",
+      "type": "automation",
+      "group": "logos-tooling",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-276",
+      "repo": "logos",
+      "issue_number": 276,
+      "title": "Benchmark artifact export helpers",
+      "priority": "medium",
+      "type": "automation",
+      "group": "logos-tooling",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-278",
+      "repo": "logos",
+      "issue_number": 278,
+      "title": "Scenario utility scripts",
+      "priority": "medium",
+      "type": "automation",
+      "group": "logos-tooling",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-263",
+      "repo": "logos",
+      "issue_number": 263,
+      "title": "Scenario coverage automation",
+      "priority": "medium",
+      "type": "automation",
+      "group": "logos-tooling",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-404",
+      "repo": "logos",
+      "issue_number": 404,
+      "title": "Standardize UUID usage across HCG models and ontology",
+      "priority": "medium",
+      "type": "refactor",
+      "group": "logos-hcg",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "logos-403",
+      "repo": "logos",
+      "issue_number": 403,
+      "title": "Deprecate planner_stub in favor of HCGPlanner",
+      "priority": "medium",
+      "type": "refactor",
+      "group": "logos-hcg",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    }
+  ]
+}
