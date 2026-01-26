@@ -74,5 +74,5 @@ examples/
 # Tests
 tests/
 
-# Poetry lock (we're using pyproject.toml only)
-poetry.lock
+# Poetry lock should be included for reproducible builds
+# poetry.lock
