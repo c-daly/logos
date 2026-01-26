@@ -31,7 +31,9 @@ class ServiceHealth(BaseModel):
         """Derive status from dependency states."""
 
         critical_down = any(d.status != "connected" and d.critical for d in deps)
-        non_critical_down = any(d.status != "connected" and not d.critical for d in deps)
+        non_critical_down = any(
+            d.status != "connected" and not d.critical for d in deps
+        )
         if critical_down:
             return "unhealthy"
         if non_critical_down:

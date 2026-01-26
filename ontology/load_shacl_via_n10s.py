@@ -42,7 +42,8 @@ def configure_n10s(session, vocab_mode: str = "MAP") -> None:
     session.run("CALL n10s.nsprefixes.add('logos', 'http://logos.ontology/')")
 
     cfg = {
-        record["param"]: record["value"] for record in session.run("CALL n10s.graphconfig.show()")
+        record["param"]: record["value"]
+        for record in session.run("CALL n10s.graphconfig.show()")
     }
     print(f"n10s graph config now: {cfg}")
 
@@ -57,8 +58,12 @@ def import_shapes(session, rdf_text: str) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Load SHACL shapes via n10s and report status.")
-    parser.add_argument("--uri", required=True, help="Neo4j Bolt URI, e.g., bolt://localhost:7687")
+    parser = argparse.ArgumentParser(
+        description="Load SHACL shapes via n10s and report status."
+    )
+    parser.add_argument(
+        "--uri", required=True, help="Neo4j Bolt URI, e.g., bolt://localhost:7687"
+    )
     parser.add_argument("--user", required=True, help="Neo4j username")
     parser.add_argument("--password", required=True, help="Neo4j password")
     parser.add_argument(
@@ -99,11 +104,14 @@ def main() -> int:
 
             # Clear existing shapes if possible
             if "n10s.validation.shacl.clear" in procedures:
-                print("Clearing existing SHACL shapes with n10s.validation.shacl.clear()...")
+                print(
+                    "Clearing existing SHACL shapes with n10s.validation.shacl.clear()..."
+                )
                 session.run("CALL n10s.validation.shacl.clear();")
             elif "n10s.validation.shacl.dropShapes" in procedures:
                 print(
-                    "Clearing existing SHACL shapes with " "n10s.validation.shacl.dropShapes()..."
+                    "Clearing existing SHACL shapes with "
+                    "n10s.validation.shacl.dropShapes()..."
                 )
                 session.run("CALL n10s.validation.shacl.dropShapes();")
             else:
@@ -130,7 +138,8 @@ def main() -> int:
                     except Neo4jError as exc2:
                         if "UriNamespaceHasNoAssociatedPrefix" in str(exc2):
                             print(
-                                "Namespace error persists even after " "rewrite/SHORTEN; aborting."
+                                "Namespace error persists even after "
+                                "rewrite/SHORTEN; aborting."
                             )
                             raise
                         else:

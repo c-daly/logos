@@ -116,7 +116,9 @@ class HCGLoader:
                         # Log meaningful operations
                         counters = summary.counters
                         if counters.constraints_added > 0:
-                            logger.info(f"  Added {counters.constraints_added} constraint(s)")
+                            logger.info(
+                                f"  Added {counters.constraints_added} constraint(s)"
+                            )
                         if counters.indexes_added > 0:
                             logger.info(f"  Added {counters.indexes_added} index(es)")
                         if counters.nodes_created > 0:
@@ -128,10 +130,13 @@ class HCGLoader:
 
                     except Neo4jError as e:
                         # Some errors are expected (e.g., constraint already exists)
-                        if "already exists" in str(e).lower() or "equivalent" in str(e).lower():
+                        if (
+                            "already exists" in str(e).lower()
+                            or "equivalent" in str(e).lower()
+                        ):
                             logger.debug("  (skipped - already exists)")
                         else:
-                            logger.warning(f"  Warning on statement {i+1}: {e}")
+                            logger.warning(f"  Warning on statement {i + 1}: {e}")
                             # Continue with other statements
 
             logger.info(f"Loaded {description}")
@@ -206,7 +211,9 @@ class HCGLoader:
         logger.info("Verifying bootstrap types...")
 
         with self.driver.session() as session:
-            result = session.run("MATCH (t:Node {is_type_definition: true}) RETURN t.name as name")
+            result = session.run(
+                "MATCH (t:Node {is_type_definition: true}) RETURN t.name as name"
+            )
             types = [record["name"] for record in result]
 
         expected = ["type_definition", "edge_type", "thing", "concept"]
@@ -352,7 +359,9 @@ class HCGLoader:
 
         # Check if basic requirements are met
         if not all(constraints.values()):
-            logger.warning("Some constraints are missing - they may have been created previously")
+            logger.warning(
+                "Some constraints are missing - they may have been created previously"
+            )
 
         if bootstrap_count < 4:
             logger.warning("Some bootstrap types are missing")
@@ -376,8 +385,12 @@ class HCGLoader:
         logger.info(f"  Username: {self.user}")
         logger.info("")
         logger.info("Try running queries like:")
-        logger.info("  MATCH (n:Node) RETURN n.type, n.name, n.is_type_definition LIMIT 20;")
-        logger.info("  MATCH (n:Node {is_type_definition: true}) RETURN n.name, n.ancestors;")
+        logger.info(
+            "  MATCH (n:Node) RETURN n.type, n.name, n.is_type_definition LIMIT 20;"
+        )
+        logger.info(
+            "  MATCH (n:Node {is_type_definition: true}) RETURN n.name, n.ancestors;"
+        )
         logger.info("  MATCH (n:Node)-[:IS_A]->(t:Node) RETURN n.name, t.name;")
         logger.info("")
 
@@ -386,7 +399,9 @@ class HCGLoader:
 
 def main():
     """Main entry point for the HCG loader."""
-    parser = argparse.ArgumentParser(description="Load LOGOS HCG ontology and seed data into Neo4j")
+    parser = argparse.ArgumentParser(
+        description="Load LOGOS HCG ontology and seed data into Neo4j"
+    )
     parser.add_argument(
         "--uri",
         default=os.getenv("NEO4J_URI", "bolt://localhost:7687"),

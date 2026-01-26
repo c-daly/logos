@@ -80,7 +80,9 @@ class TestConnection:
     def test_connection_invalid_uri(self):
         """Test connection failure with invalid URI."""
         with pytest.raises(HCGConnectionError):
-            HCGClient(uri="bolt://invalid:7687", user=NEO4J_USER, password=NEO4J_PASSWORD)
+            HCGClient(
+                uri="bolt://invalid:7687", user=NEO4J_USER, password=NEO4J_PASSWORD
+            )
 
     def test_context_manager(self, client_with_context):
         """Test client usage as context manager."""
@@ -113,7 +115,10 @@ class TestConceptQueries:
         # type="concept" or "concept" is in ancestors)
         concept_names = [c.name for c in concepts]
         # Check for types that inherit from concept (state, process, capability)
-        assert any(name in concept_names for name in ("state", "process", "capability", "concept"))
+        assert any(
+            name in concept_names
+            for name in ("state", "process", "capability", "concept")
+        )
 
     def test_find_concept_by_name(self, hcg_client):
         """Test finding concept by exact name."""

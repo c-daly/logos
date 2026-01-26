@@ -112,7 +112,9 @@ class SimulationService:
             result.single()
             logger.info(f"Stored ImaginedProcess {process.uuid} in Neo4j")
 
-    def _store_imagined_states(self, process_uuid: str, states: list[ImaginedState]) -> None:
+    def _store_imagined_states(
+        self, process_uuid: str, states: list[ImaginedState]
+    ) -> None:
         """
         Store ImaginedStates in Neo4j and link to process.
 
@@ -146,7 +148,9 @@ class SimulationService:
 
         with self.neo4j_driver.session() as session:
             session.run(query, process_uuid=process_uuid, states=states_data)
-            logger.info(f"Stored {len(states)} ImaginedStates linked to process {process_uuid}")
+            logger.info(
+                f"Stored {len(states)} ImaginedStates linked to process {process_uuid}"
+            )
 
     def _store_embeddings(self, states: list[ImaginedState]) -> None:
         """

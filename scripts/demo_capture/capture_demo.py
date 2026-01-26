@@ -292,7 +292,9 @@ class DemoCapture:
                 try:
                     traces = json.loads(result.stdout)
                     otel_data["recent_traces"] = traces.get("traces", [])[:10]
-                    print(f"  ✓ Retrieved {len(otel_data['recent_traces'])} recent traces")
+                    print(
+                        f"  ✓ Retrieved {len(otel_data['recent_traces'])} recent traces"
+                    )
                 except json.JSONDecodeError:
                     otel_data["recent_traces"] = []
                     print("  ⚠ Could not parse traces response")

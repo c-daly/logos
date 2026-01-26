@@ -33,7 +33,8 @@ def test_py_typed_marker_exists(package: str) -> None:
     """Each package must have a py.typed marker file for PEP 561 compliance."""
     py_typed_path = REPO_ROOT / package / "py.typed"
     assert py_typed_path.exists(), (
-        f"Package '{package}' is missing py.typed marker. " f"Expected at: {py_typed_path}"
+        f"Package '{package}' is missing py.typed marker. "
+        f"Expected at: {py_typed_path}"
     )
 
 

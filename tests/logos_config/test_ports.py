@@ -44,7 +44,9 @@ class TestPortConsistency:
             (TALOS_PORTS, 57),
         ],
     )
-    def test_all_ports_share_prefix(self, ports: RepoPorts, expected_prefix: int) -> None:
+    def test_all_ports_share_prefix(
+        self, ports: RepoPorts, expected_prefix: int
+    ) -> None:
         """All ports for a repo should start with the same two-digit prefix."""
         for port in ports:
             prefix = port // 1000

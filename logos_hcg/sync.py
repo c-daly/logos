@@ -263,7 +263,9 @@ class HCGMilvusSync:
             ]
 
         except Exception as e:
-            raise MilvusSyncError(f"Failed to batch upsert embeddings for {node_type}: {e}") from e
+            raise MilvusSyncError(
+                f"Failed to batch upsert embeddings for {node_type}: {e}"
+            ) from e
 
     def delete_embedding(
         self,
@@ -337,7 +339,9 @@ class HCGMilvusSync:
             return len(uuids)
 
         except Exception as e:
-            raise MilvusSyncError(f"Failed to batch delete embeddings for {node_type}: {e}") from e
+            raise MilvusSyncError(
+                f"Failed to batch delete embeddings for {node_type}: {e}"
+            ) from e
 
     def get_embedding(
         self,
@@ -380,7 +384,9 @@ class HCGMilvusSync:
             return cast(dict[str, Any], results[0])
 
         except Exception as e:
-            raise MilvusSyncError(f"Failed to get embedding for {node_type} {uuid_str}: {e}") from e
+            raise MilvusSyncError(
+                f"Failed to get embedding for {node_type} {uuid_str}: {e}"
+            ) from e
 
     def verify_sync(
         self,

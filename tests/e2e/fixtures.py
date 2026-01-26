@@ -15,6 +15,7 @@ from typing import Any
 import pytest
 import requests
 
+from logos_config.ports import get_repo_ports
 from logos_test_utils.env import load_stack_env
 from logos_test_utils.milvus import get_milvus_config
 from logos_test_utils.neo4j import get_neo4j_config
@@ -35,10 +36,10 @@ STACK_ENV = load_stack_env()
 NEO4J_CONFIG = get_neo4j_config(STACK_ENV)
 MILVUS_CONFIG = get_milvus_config(STACK_ENV)
 
-# Service URLs
-SOPHIA_PORT = os.getenv("SOPHIA_PORT", "8001")
-HERMES_PORT = os.getenv("HERMES_PORT", "8002")
-APOLLO_PORT = os.getenv("APOLLO_PORT", "8003")
+# Service URLs - defaults from logos_config
+SOPHIA_PORT = os.getenv("SOPHIA_PORT", str(get_repo_ports("sophia").api))
+HERMES_PORT = os.getenv("HERMES_PORT", str(get_repo_ports("hermes").api))
+APOLLO_PORT = os.getenv("APOLLO_PORT", str(get_repo_ports("apollo").api))
 
 SOPHIA_URL = os.getenv("SOPHIA_URL", f"http://localhost:{SOPHIA_PORT}")
 HERMES_URL = os.getenv("HERMES_URL", f"http://localhost:{HERMES_PORT}")

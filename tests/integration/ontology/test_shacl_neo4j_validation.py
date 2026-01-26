@@ -71,7 +71,9 @@ def _clear_instance_data(session):
 def _ensure_shapes(session, procedures):
     """Ensure SHACL shapes are loaded; load from disk if missing."""
     try:
-        shapes_count = len(session.run("CALL n10s.validation.shacl.listShapes()").data())
+        shapes_count = len(
+            session.run("CALL n10s.validation.shacl.listShapes()").data()
+        )
         if shapes_count > 0:
             return
     except Exception:
@@ -165,7 +167,9 @@ def setup_neo4j(neo4j_session):
     _ensure_shapes(neo4j_session, procedures)
     _clear_instance_data(neo4j_session)
 
-    shapes_count = len(neo4j_session.run("CALL n10s.validation.shacl.listShapes()").data())
+    shapes_count = len(
+        neo4j_session.run("CALL n10s.validation.shacl.listShapes()").data()
+    )
     assert shapes_count > 0, "SHACL shapes should be loaded"
 
     yield neo4j_session
@@ -253,7 +257,9 @@ def test_validate_invalid_entities(setup_neo4j):
     print(f"\nDEBUG: Import result: {import_result}")
 
     # DEBUG: Check what nodes were created
-    nodes = setup_neo4j.run("MATCH (n) RETURN labels(n) as labels, properties(n) as props").data()
+    nodes = setup_neo4j.run(
+        "MATCH (n) RETURN labels(n) as labels, properties(n) as props"
+    ).data()
     print(f"\nDEBUG: Nodes in graph: {nodes}")
 
     # Validate the data
@@ -270,10 +276,12 @@ def test_validate_invalid_entities(setup_neo4j):
 
     assert len(violations) > 0, "Invalid data should produce validation violations"
 
-    print(f"✓ Invalid entities correctly produced {len(violations)} validation violations")
+    print(
+        f"✓ Invalid entities correctly produced {len(violations)} validation violations"
+    )
     print("  Sample violations:")
     for i, violation in enumerate(violations[:3]):  # Show first 3 violations
-        print(f"    - Violation {i+1}: {violation}")
+        print(f"    - Violation {i + 1}: {violation}")
 
 
 def test_reject_bad_write_wrong_uuid_prefix(setup_neo4j):
@@ -303,7 +311,9 @@ def test_reject_bad_write_wrong_uuid_prefix(setup_neo4j):
     for record in validation_result:
         violations.append(record)
 
-    assert len(violations) > 0, "Missing required property should produce validation violations"
+    assert (
+        len(violations) > 0
+    ), "Missing required property should produce validation violations"
 
     print("✓ Missing required property correctly rejected by SHACL validation")
 
@@ -332,7 +342,9 @@ def test_reject_bad_write_missing_required_property(setup_neo4j):
     for record in validation_result:
         violations.append(record)
 
-    assert len(violations) > 0, "Missing required property should produce validation violations"
+    assert (
+        len(violations) > 0
+    ), "Missing required property should produce validation violations"
 
     print("✓ Missing required property correctly rejected by SHACL validation")
     print(f"  {len(violations)} violations detected")

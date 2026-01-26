@@ -260,3 +260,86 @@ MILVUS_PORT=37530
 - [CI/CD Documentation](ci/README.md)
 - [Phase 2 Verification](PHASE2_VERIFY.md)
 - [Observability Queries](OBSERVABILITY_QUERIES.md)
+- [Local Development](../LOCAL_DEVELOPMENT.md)
+
+---
+
+## Shared Test Utilities (logos_test_utils)
+
+All LOGOS repositories share a common testing library: `logos_test_utils`. This package is the canonical source for test fixtures and helpers.
+
+### Installing in Your Repo
+
+Add to `pyproject.toml`:
+```toml
+[tool.poetry.group.dev.dependencies]
+logos-test-utils = {path = "../logos", develop = true}
+```
+
+### Importing Shared Fixtures
+
+In your `conftest.py`:
+```python
+from logos_test_utils.fixtures import (
+    stack_env,       # Parsed environment from .env.test
+    neo4j_config,    # Neo4j connection configuration
+    neo4j_driver,    # Connected Neo4j driver (session-scoped)
+    load_cypher,     # Helper to load .cypher files
+)
+```
+
+### Available Helpers
+
+Import directly from the package:
+```python
+from logos_test_utils import (
+    load_stack_env,        # Load environment from .env.test
+    get_neo4j_config,      # Build Neo4jConfig from env
+    get_neo4j_driver,      # Create connected driver
+    get_milvus_config,     # Build MilvusConfig from env
+    wait_for_neo4j,        # Block until Neo4j is ready
+    wait_for_milvus,       # Block until Milvus is ready
+    setup_logging,         # Configure structured logging
+)
+```
+
+---
+
+## Port Allocation Scheme
+
+Each repository has a unique port prefix to prevent conflicts when running tests in parallel (local or CI).
+
+### Port Table
+
+| Repo   | Prefix | Neo4j HTTP | Neo4j Bolt | Milvus gRPC | Milvus Metrics | API   |
+|--------|--------|------------|------------|-------------|----------------|-------|
+| hermes | 17     | 17474      | 17687      | 17530       | 17091          | 17000 |
+| apollo | 27     | 27474      | 27687      | 27530       | 27091          | 27000 |
+| logos  | 37     | 37474      | 37687      | 37530       | 37091          | 37000 |
+| sophia | 47     | 47474      | 47687      | 47530       | 47091          | 47000 |
+| talos  | 57     | 57474      | 57687      | 57530       | 57091          | 57000 |
+
+### Container-Internal vs Host-Mapped Ports
+
+Services inside containers listen on standard ports (e.g., Neo4j on 7687, API on 8080). The repo-specific ports are host-mapped:
+
+```
+Container (internal)          Host (mapped)
+-------------------------     -----------------
+neo4j:7687           --->     localhost:47687 (sophia)
+sophia-api:8080      --->     localhost:47000 (sophia)
+```
+
+### Using Port Allocation in Code
+
+```python
+from logos_config.ports import get_repo_ports
+
+# Get ports for your repo
+ports = get_repo_ports("sophia")
+print(ports.neo4j_bolt)   # 47687
+print(ports.api)          # 47000
+
+# Environment variables override defaults
+# NEO4J_BOLT_PORT, MILVUS_PORT, API_PORT, etc.
+```
