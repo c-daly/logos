@@ -50,9 +50,9 @@ class TestPortConsistency:
         """All ports for a repo should start with the same two-digit prefix."""
         for port in ports:
             prefix = port // 1000
-            assert prefix == expected_prefix, (
-                f"Port {port} has prefix {prefix}, expected {expected_prefix}"
-            )
+            assert (
+                prefix == expected_prefix
+            ), f"Port {port} has prefix {prefix}, expected {expected_prefix}"
 
 
 class TestGetRepoPorts:

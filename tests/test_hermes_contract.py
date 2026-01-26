@@ -32,9 +32,9 @@ def test_llm_endpoint_is_documented() -> None:
         .get("application/json", {})
         .get("schema")
     )
-    assert request_schema == {"$ref": "#/components/schemas/LLMRequest"}, (
-        "LLM request must reuse the canonical schema"
-    )
+    assert request_schema == {
+        "$ref": "#/components/schemas/LLMRequest"
+    }, "LLM request must reuse the canonical schema"
 
     success_response = (
         llm_post.get("responses", {})
@@ -43,9 +43,9 @@ def test_llm_endpoint_is_documented() -> None:
         .get("application/json", {})
         .get("schema")
     )
-    assert success_response == {"$ref": "#/components/schemas/LLMResponse"}, (
-        "LLM response must reuse the canonical schema"
-    )
+    assert success_response == {
+        "$ref": "#/components/schemas/LLMResponse"
+    }, "LLM response must reuse the canonical schema"
 
 
 def test_llm_components_exist() -> None:

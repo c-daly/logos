@@ -102,9 +102,9 @@ class TestP2M1ServicesOnline:
         """Verify Sophia /health returns 200 with expected structure."""
         try:
             response = requests.get(f"{SOPHIA_URL}/health", timeout=5)
-            assert response.status_code == 200, (
-                f"Sophia health check failed: {response.status_code}"
-            )
+            assert (
+                response.status_code == 200
+            ), f"Sophia health check failed: {response.status_code}"
 
             # Verify response structure
             data = response.json()
@@ -123,9 +123,9 @@ class TestP2M1ServicesOnline:
         """Verify Hermes /health returns 200 with Milvus status."""
         try:
             response = requests.get(f"{HERMES_URL}/health", timeout=5)
-            assert response.status_code == 200, (
-                f"Hermes health check failed: {response.status_code}"
-            )
+            assert (
+                response.status_code == 200
+            ), f"Hermes health check failed: {response.status_code}"
 
             # Verify response structure
             data = response.json()
@@ -208,9 +208,9 @@ class TestP2M1ServicesOnline:
             # Try Apollo's actual health endpoint
             response = requests.get(f"{APOLLO_URL}/api/hcg/health", timeout=5)
 
-            assert response.status_code == 200, (
-                f"Apollo health check failed: {response.status_code}"
-            )
+            assert (
+                response.status_code == 200
+            ), f"Apollo health check failed: {response.status_code}"
 
             print(f"✓ Apollo backend available at {APOLLO_URL}")
         except requests.exceptions.RequestException as e:
@@ -237,9 +237,11 @@ class TestP2CWMStateEnvelope:
             host=SOPHIA_URL.replace("http://", "")
             .replace("https://", "")
             .split(":")[0],
-            port=int(SOPHIA_URL.split(":")[-1])
-            if ":" in SOPHIA_URL
-            else int(SOPHIA_PORT),
+            port=(
+                int(SOPHIA_URL.split(":")[-1])
+                if ":" in SOPHIA_URL
+                else int(SOPHIA_PORT)
+            ),
             api_key=os.getenv("SOPHIA_API_KEY", "test-token-12345"),
         )
         return SophiaClient(config)
@@ -390,9 +392,9 @@ class TestP2M3PerceptionImagination:
             "confidence": 0.8,
         }
 
-        assert "imagined:true" in imagined_state["tags"], (
-            "Imagined states should have imagined:true tag"
-        )
+        assert (
+            "imagined:true" in imagined_state["tags"]
+        ), "Imagined states should have imagined:true tag"
         print("✓ Imagined state tagging schema validated")
 
     def test_confidence_decay_per_step(self):
@@ -408,9 +410,9 @@ class TestP2M3PerceptionImagination:
 
         # Verify monotonic decrease
         for i in range(len(step_confidences) - 1):
-            assert step_confidences[i] > step_confidences[i + 1], (
-                "Confidence should decrease with each simulation step"
-            )
+            assert (
+                step_confidences[i] > step_confidences[i + 1]
+            ), "Confidence should decrease with each simulation step"
 
         print(f"✓ Confidence decay validated: {[f'{c:.2f}' for c in step_confidences]}")
 
@@ -435,18 +437,22 @@ class TestP2M2ApolloDualSurface:
             host=SOPHIA_URL.replace("http://", "")
             .replace("https://", "")
             .split(":")[0],
-            port=int(SOPHIA_URL.split(":")[-1])
-            if ":" in SOPHIA_URL
-            else int(SOPHIA_PORT),
+            port=(
+                int(SOPHIA_URL.split(":")[-1])
+                if ":" in SOPHIA_URL
+                else int(SOPHIA_PORT)
+            ),
         )
 
         hermes_config = HermesConfig(
             host=HERMES_URL.replace("http://", "")
             .replace("https://", "")
             .split(":")[0],
-            port=int(HERMES_URL.split(":")[-1])
-            if ":" in HERMES_URL
-            else int(HERMES_PORT),
+            port=(
+                int(HERMES_URL.split(":")[-1])
+                if ":" in HERMES_URL
+                else int(HERMES_PORT)
+            ),
         )
 
         return {
@@ -517,9 +523,11 @@ class TestP2M4DiagnosticsPersona:
             host=SOPHIA_URL.replace("http://", "")
             .replace("https://", "")
             .split(":")[0],
-            port=int(SOPHIA_URL.split(":")[-1])
-            if ":" in SOPHIA_URL
-            else int(SOPHIA_PORT),
+            port=(
+                int(SOPHIA_URL.split(":")[-1])
+                if ":" in SOPHIA_URL
+                else int(SOPHIA_PORT)
+            ),
         )
         return PersonaClient(config)
 
@@ -559,12 +567,12 @@ class TestP2M4DiagnosticsPersona:
             },
         }
 
-        assert emotion_state["model_type"] == "emotion", (
-            "Emotion state should have correct model_type"
-        )
-        assert "emotion" in emotion_state["data"], (
-            "Emotion state should include emotion field"
-        )
+        assert (
+            emotion_state["model_type"] == "emotion"
+        ), "Emotion state should have correct model_type"
+        assert (
+            "emotion" in emotion_state["data"]
+        ), "Emotion state should include emotion field"
         print("✓ EmotionState schema validated")
 
     def test_persona_diary_filtering(self, persona_client):
@@ -654,18 +662,22 @@ class TestP2CrossServiceIntegration:
             host=SOPHIA_URL.replace("http://", "")
             .replace("https://", "")
             .split(":")[0],
-            port=int(SOPHIA_URL.split(":")[-1])
-            if ":" in SOPHIA_URL
-            else int(SOPHIA_PORT),
+            port=(
+                int(SOPHIA_URL.split(":")[-1])
+                if ":" in SOPHIA_URL
+                else int(SOPHIA_PORT)
+            ),
         )
 
         hermes_config = HermesConfig(
             host=HERMES_URL.replace("http://", "")
             .replace("https://", "")
             .split(":")[0],
-            port=int(HERMES_URL.split(":")[-1])
-            if ":" in HERMES_URL
-            else int(HERMES_PORT),
+            port=(
+                int(HERMES_URL.split(":")[-1])
+                if ":" in HERMES_URL
+                else int(HERMES_PORT)
+            ),
         )
 
         return {
@@ -778,27 +790,33 @@ class TestP2CompleteWorkflow:
             host=SOPHIA_URL.replace("http://", "")
             .replace("https://", "")
             .split(":")[0],
-            port=int(SOPHIA_URL.split(":")[-1])
-            if ":" in SOPHIA_URL
-            else int(SOPHIA_PORT),
+            port=(
+                int(SOPHIA_URL.split(":")[-1])
+                if ":" in SOPHIA_URL
+                else int(SOPHIA_PORT)
+            ),
         )
 
         hermes_config = HermesConfig(
             host=HERMES_URL.replace("http://", "")
             .replace("https://", "")
             .split(":")[0],
-            port=int(HERMES_URL.split(":")[-1])
-            if ":" in HERMES_URL
-            else int(HERMES_PORT),
+            port=(
+                int(HERMES_URL.split(":")[-1])
+                if ":" in HERMES_URL
+                else int(HERMES_PORT)
+            ),
         )
 
         persona_config = PersonaApiConfig(
             host=SOPHIA_URL.replace("http://", "")
             .replace("https://", "")
             .split(":")[0],
-            port=int(SOPHIA_URL.split(":")[-1])
-            if ":" in SOPHIA_URL
-            else int(SOPHIA_PORT),
+            port=(
+                int(SOPHIA_URL.split(":")[-1])
+                if ":" in SOPHIA_URL
+                else int(SOPHIA_PORT)
+            ),
         )
 
         return {

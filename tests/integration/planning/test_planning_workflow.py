@@ -312,9 +312,9 @@ class TestPlannerAPIIntegration:
             next_step = response.plan[i + 1]
 
             assert len(current_step.effects) > 0, f"Step {i} should have effects"
-            assert len(next_step.preconditions) > 0, (
-                f"Step {i + 1} should have preconditions"
-            )
+            assert (
+                len(next_step.preconditions) > 0
+            ), f"Step {i + 1} should have preconditions"
 
         print(f"✓ Generated plan with explicit states ({len(response.plan)} steps)")
 

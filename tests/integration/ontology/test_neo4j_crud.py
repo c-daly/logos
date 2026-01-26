@@ -96,9 +96,9 @@ class TestOntologyLoading:
             constraints = [record["name"] for record in result]
 
             # Check for flexible ontology constraint (single UUID constraint on :Node)
-            assert any("logos_node_uuid" in c for c in constraints), (
-                "Node UUID constraint missing"
-            )
+            assert any(
+                "logos_node_uuid" in c for c in constraints
+            ), "Node UUID constraint missing"
 
     def test_indexes_exist(self, neo4j_driver, loaded_ontology):
         """Verify indexes for flexible ontology exist."""
@@ -107,15 +107,15 @@ class TestOntologyLoading:
             indexes = [record["name"] for record in result]
 
             # Check for flexible ontology indexes
-            assert any("logos_node_type" in i for i in indexes), (
-                "Node type index missing"
-            )
-            assert any("logos_node_name" in i for i in indexes), (
-                "Node name index missing"
-            )
-            assert any("logos_node_is_type_def" in i for i in indexes), (
-                "Node is_type_definition index missing"
-            )
+            assert any(
+                "logos_node_type" in i for i in indexes
+            ), "Node type index missing"
+            assert any(
+                "logos_node_name" in i for i in indexes
+            ), "Node name index missing"
+            assert any(
+                "logos_node_is_type_def" in i for i in indexes
+            ), "Node is_type_definition index missing"
 
 
 class TestEntityCreation:

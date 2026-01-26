@@ -311,9 +311,9 @@ def test_reject_bad_write_wrong_uuid_prefix(setup_neo4j):
     for record in validation_result:
         violations.append(record)
 
-    assert len(violations) > 0, (
-        "Missing required property should produce validation violations"
-    )
+    assert (
+        len(violations) > 0
+    ), "Missing required property should produce validation violations"
 
     print("✓ Missing required property correctly rejected by SHACL validation")
 
@@ -342,9 +342,9 @@ def test_reject_bad_write_missing_required_property(setup_neo4j):
     for record in validation_result:
         violations.append(record)
 
-    assert len(violations) > 0, (
-        "Missing required property should produce validation violations"
-    )
+    assert (
+        len(violations) > 0
+    ), "Missing required property should produce validation violations"
 
     print("✓ Missing required property correctly rejected by SHACL validation")
     print(f"  {len(violations)} violations detected")

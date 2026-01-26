@@ -101,9 +101,9 @@ def test_missing_uuid_detected(shacl_shapes):
     )
 
     assert not conforms, "Node without UUID should fail validation"
-    assert "uuid" in results_text.lower() or "minCount" in results_text, (
-        "Validation error should mention missing UUID"
-    )
+    assert (
+        "uuid" in results_text.lower() or "minCount" in results_text
+    ), "Validation error should mention missing UUID"
     print("✓ Missing UUID correctly detected")
 
 

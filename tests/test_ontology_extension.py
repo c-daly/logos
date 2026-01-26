@@ -24,16 +24,16 @@ def test_core_ontology_structure():
     content = ontology_file.read_text()
 
     # Check for required constraints (flexible ontology uses single :Node label)
-    assert "CREATE CONSTRAINT logos_node_uuid" in content, (
-        "Missing Node UUID constraint"
-    )
+    assert (
+        "CREATE CONSTRAINT logos_node_uuid" in content
+    ), "Missing Node UUID constraint"
 
     # Check for indexes (flexible ontology indexes)
     assert "CREATE INDEX logos_node_type" in content, "Missing Node type index"
     assert "CREATE INDEX logos_node_name" in content, "Missing Node name index"
-    assert "CREATE INDEX logos_node_is_type_def" in content, (
-        "Missing Node is_type_definition index"
-    )
+    assert (
+        "CREATE INDEX logos_node_is_type_def" in content
+    ), "Missing Node is_type_definition index"
 
     # Check for bootstrap types
     bootstrap_types = [

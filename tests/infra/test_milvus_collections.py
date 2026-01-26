@@ -91,9 +91,9 @@ class TestMilvusCollections:
             field_names = [field.name for field in collection.schema.fields]
 
             for expected_field in EXPECTED_FIELDS:
-                assert expected_field in field_names, (
-                    f"Field {expected_field} missing from {collection_name}"
-                )
+                assert (
+                    expected_field in field_names
+                ), f"Field {expected_field} missing from {collection_name}"
 
     def test_uuid_is_primary_key(self, milvus_connection):
         """Verify that uuid field is configured as primary key."""
@@ -111,9 +111,9 @@ class TestMilvusCollections:
                     break
 
             assert uuid_field is not None, f"uuid field not found in {collection_name}"
-            assert uuid_field.is_primary, (
-                f"uuid is not primary key in {collection_name}"
-            )
+            assert (
+                uuid_field.is_primary
+            ), f"uuid is not primary key in {collection_name}"
 
     def test_embedding_field_dimension(self, milvus_connection):
         """Verify that embedding field has correct dimension."""
@@ -130,13 +130,13 @@ class TestMilvusCollections:
                     embedding_field = field
                     break
 
-            assert embedding_field is not None, (
-                f"embedding field not found in {collection_name}"
-            )
+            assert (
+                embedding_field is not None
+            ), f"embedding field not found in {collection_name}"
             # Default dimension is 384, but allow other values
-            assert embedding_field.params["dim"] > 0, (
-                f"Invalid embedding dimension in {collection_name}"
-            )
+            assert (
+                embedding_field.params["dim"] > 0
+            ), f"Invalid embedding dimension in {collection_name}"
 
     def test_index_exists(self, milvus_connection):
         """Verify that an index exists on the embedding field."""
@@ -159,9 +159,9 @@ class TestMilvusCollections:
                     embedding_indexed = True
                     break
 
-            assert embedding_indexed, (
-                f"No index on 'embedding' field in {collection_name}"
-            )
+            assert (
+                embedding_indexed
+            ), f"No index on 'embedding' field in {collection_name}"
 
     def test_collection_descriptions(self, milvus_connection):
         """Verify that collections have appropriate descriptions."""
@@ -172,15 +172,13 @@ class TestMilvusCollections:
             collection = Collection(name=collection_name)
 
             # Schema should have a description
-            assert collection.schema.description, (
-                f"Collection {collection_name} missing description"
-            )
+            assert (
+                collection.schema.description
+            ), f"Collection {collection_name} missing description"
             assert (
                 "HCG" in collection.schema.description
                 or "Embeddings" in collection.schema.description
-            ), (
-                f"Collection {collection_name} description doesn't mention HCG or Embeddings"
-            )
+            ), f"Collection {collection_name} description doesn't mention HCG or Embeddings"
 
 
 class TestMilvusIntegration:
