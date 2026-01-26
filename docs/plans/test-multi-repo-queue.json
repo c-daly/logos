@@ -1,0 +1,40 @@
+{
+  "metadata": {
+    "name": "Multi-Repo Test Queue",
+    "description": "Minimal queue to verify multi-repo support in iterate workflow",
+    "created": "2026-01-24",
+    "total_tasks": 3
+  },
+  "tasks": [
+    {
+      "id": "test-sophia-001",
+      "description": "Verify sophia repo context injection - check that pytest runs in sophia directory",
+      "priority": 1,
+      "pr_id": "sophia-test",
+      "repo": "sophia",
+      "repo_path": "/home/fearsidhe/projects/LOGOS/sophia",
+      "phase": "test_writing",
+      "status": "pending"
+    },
+    {
+      "id": "test-logos-001",
+      "description": "Verify logos repo context injection - check that ruff runs in logos directory",
+      "priority": 1,
+      "pr_id": "logos-test",
+      "repo": "logos",
+      "repo_path": "/home/fearsidhe/projects/LOGOS/logos",
+      "phase": "implementation",
+      "status": "pending"
+    },
+    {
+      "id": "test-apollo-001",
+      "description": "Verify apollo repo context injection - check that git commands target apollo",
+      "priority": 2,
+      "pr_id": "apollo-test",
+      "repo": "apollo",
+      "repo_path": "/home/fearsidhe/projects/LOGOS/apollo",
+      "phase": "review",
+      "status": "pending"
+    }
+  ]
+}

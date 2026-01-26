@@ -1,0 +1,92 @@
+{
+  "queue_meta": {
+    "created": "2026-01-24",
+    "description": "Real tasks from combined queue to test multi-repo support",
+    "version": 1,
+    "total_tasks": 4
+  },
+  "pr_groups": {
+    "logos-infrastructure": {
+      "repo": "logos",
+      "repo_path": "/home/fearsidhe/projects/LOGOS/logos",
+      "branch": "feature/infrastructure",
+      "tasks": ["logos-473"]
+    },
+    "sophia-misc": {
+      "repo": "sophia",
+      "repo_path": "/home/fearsidhe/projects/LOGOS/sophia",
+      "branch": "feature/misc-improvements",
+      "tasks": ["sophia-36"]
+    },
+    "hermes-testing": {
+      "repo": "hermes",
+      "repo_path": "/home/fearsidhe/projects/LOGOS/hermes",
+      "branch": "feature/testing",
+      "tasks": ["hermes-38"]
+    },
+    "talos-infra": {
+      "repo": "talos",
+      "repo_path": "/home/fearsidhe/projects/LOGOS/talos",
+      "branch": "feature/infrastructure",
+      "tasks": ["talos-35"]
+    }
+  },
+  "tasks": [
+    {
+      "id": "logos-473",
+      "repo": "logos",
+      "repo_path": "/home/fearsidhe/projects/LOGOS/logos",
+      "issue_number": 473,
+      "title": "py.typed marker not being included in logos-foundry package",
+      "priority": "medium",
+      "type": "bug",
+      "group": "logos-infrastructure",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "sophia-36",
+      "repo": "sophia",
+      "repo_path": "/home/fearsidhe/projects/LOGOS/sophia",
+      "issue_number": 36,
+      "title": "Audit other LOGOS services for Neo4j JSON serialization",
+      "priority": "medium",
+      "type": "refactor",
+      "group": "sophia-misc",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "hermes-38",
+      "repo": "hermes",
+      "repo_path": "/home/fearsidhe/projects/LOGOS/hermes",
+      "issue_number": 38,
+      "title": "Fix integration test scripts: service name mismatch and missing utility scripts",
+      "priority": "medium",
+      "type": "bug",
+      "group": "hermes-testing",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    },
+    {
+      "id": "talos-35",
+      "repo": "talos",
+      "repo_path": "/home/fearsidhe/projects/LOGOS/talos",
+      "issue_number": 35,
+      "title": "Adopt config helper and logging from logos_test_utils",
+      "priority": "medium",
+      "type": "feature",
+      "group": "talos-infra",
+      "blockedBy": [],
+      "blocks": [],
+      "status": "pending",
+      "pr": null
+    }
+  ]
+}
