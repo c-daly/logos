@@ -16,7 +16,7 @@ from logos_perception import JEPAConfig, SimulationRequest
 from .simulation import SimulationService
 
 logger = logging.getLogger(__name__)
-tracer = trace.get_tracer(__name__)
+tracer = trace.get_tracer("sophia.simulation")
 
 
 class SimulateResponse(BaseModel):
@@ -76,7 +76,7 @@ def create_sophia_api(
         Returns:
             Simulation results summary
         """
-        with tracer.start_as_current_span("simulate") as span:
+        with tracer.start_as_current_span("sophia.simulate") as span:
             try:
                 logger.info(
                     f"Received simulation request for capability {request.capability_id}"
