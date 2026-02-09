@@ -20,9 +20,10 @@ if [ -f "${COMPOSE_ENV_FILE}" ]; then
     set +a
 fi
 
-SOPHIA_PORT="${SOPHIA_PORT:-$(python3 -c "from logos_config.ports import get_repo_ports; print(get_repo_ports('sophia').api)")}"
-HERMES_PORT="${HERMES_PORT:-$(python3 -c "from logos_config.ports import get_repo_ports; print(get_repo_ports('hermes').api)")}"
-APOLLO_PORT="${APOLLO_PORT:-$(python3 -c "from logos_config.ports import get_repo_ports; print(get_repo_ports('apollo').api)")}"
+# Port defaults from logos_config/ports.py port table
+SOPHIA_PORT="${SOPHIA_PORT:-47000}"
+HERMES_PORT="${HERMES_PORT:-17000}"
+APOLLO_PORT="${APOLLO_PORT:-27000}"
 
 NEO4J_HTTP_PORT="${NEO4J_HTTP_PORT:-7474}"
 NEO4J_BOLT_PORT="${NEO4J_BOLT_PORT:-7687}"
