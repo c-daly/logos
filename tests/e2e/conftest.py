@@ -12,9 +12,11 @@ import os
 
 import pytest
 
-DEFAULT_SOPHIA_PORT = os.getenv("SOPHIA_PORT", "8001")
-DEFAULT_HERMES_PORT = os.getenv("HERMES_PORT", "8002")
-DEFAULT_APOLLO_PORT = os.getenv("APOLLO_PORT", "8003")
+from logos_config.ports import get_repo_ports
+
+DEFAULT_SOPHIA_PORT = os.getenv("SOPHIA_PORT", str(get_repo_ports("sophia").api))
+DEFAULT_HERMES_PORT = os.getenv("HERMES_PORT", str(get_repo_ports("hermes").api))
+DEFAULT_APOLLO_PORT = os.getenv("APOLLO_PORT", str(get_repo_ports("apollo").api))
 
 DEFAULT_SOPHIA_URL = os.getenv("SOPHIA_URL", f"http://localhost:{DEFAULT_SOPHIA_PORT}")
 DEFAULT_HERMES_URL = os.getenv("HERMES_URL", f"http://localhost:{DEFAULT_HERMES_PORT}")
