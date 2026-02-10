@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 echo "=== Logos Dev Services ==="
 
 # Logos is a library — start test infrastructure services

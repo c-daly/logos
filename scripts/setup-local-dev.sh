@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 echo "=== Logos Local Development Setup ==="
 
 # Check for Poetry
