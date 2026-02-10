@@ -70,7 +70,7 @@ MATCH (td:Node {uuid: "type-type_definition"})
 MERGE (co)-[:IS_A]->(td);
 
 // === Bootstrap: IS_A edge type ===
-MERGE (isa:Node {uuid: "edge-is_a"})
+MERGE (isa:Node {uuid: "87e0d3c8-1f86-5f0c-b1b2-5bfe5cef3b73"})
 SET isa.name = "IS_A",
     isa.is_type_definition = true,
     isa.type = "IS_A",
