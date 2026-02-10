@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "logos-foundry"
-version = "0.3.0"
+version = "0.4.0"
 description = "LOGOS Foundry - Canonical source of truth for Project LOGOS specifications, ontology, and infrastructure"
 readme = "README.md"
 authors = ["Project LOGOS Contributors"]
