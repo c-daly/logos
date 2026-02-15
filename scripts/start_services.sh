@@ -114,8 +114,8 @@ start_service() {
     
     # Check if repository exists
     if [ ! -d "$repo_path" ]; then
-        log_error "Repository not found: $repo_path"
-        return 1
+        log_warn "Repository not found: $repo_path (skipping $service)"
+        return 0
     fi
     
     log_info "Starting $service on port $port..."
