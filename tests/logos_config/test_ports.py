@@ -36,7 +36,13 @@ class TestPortConsistency:
 
     def test_all_repos_share_infra_ports(self) -> None:
         """All repos should use the same default infra ports."""
-        for ports in [HERMES_PORTS, APOLLO_PORTS, LOGOS_PORTS, SOPHIA_PORTS, TALOS_PORTS]:
+        for ports in [
+            HERMES_PORTS,
+            APOLLO_PORTS,
+            LOGOS_PORTS,
+            SOPHIA_PORTS,
+            TALOS_PORTS,
+        ]:
             assert ports.neo4j_http == 7474
             assert ports.neo4j_bolt == 7687
             assert ports.milvus_grpc == 19530
@@ -46,7 +52,13 @@ class TestPortConsistency:
         """Each repo should have a unique API port."""
         api_ports = [
             p.api
-            for p in [HERMES_PORTS, APOLLO_PORTS, LOGOS_PORTS, SOPHIA_PORTS, TALOS_PORTS]
+            for p in [
+                HERMES_PORTS,
+                APOLLO_PORTS,
+                LOGOS_PORTS,
+                SOPHIA_PORTS,
+                TALOS_PORTS,
+            ]
         ]
         assert len(set(api_ports)) == len(api_ports)
 
