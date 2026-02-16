@@ -142,7 +142,7 @@ jobs:
           # Install with relaxed constraints since logos already locked versions
           poetry install --no-root
           # Then install hermes package using pip to avoid version conflicts
-          poetry run pip install -e .
+          poetry run pip install --no-deps -e .
       
       - name: Install Apollo dependencies
         run: |
