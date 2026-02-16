@@ -186,7 +186,7 @@ function start_services() {
     
     # Check Neo4j
     echo -n "Neo4j: "
-    if compose exec -T neo4j cypher-shell -u neo4j -p neo4jtest "RETURN 1" > /dev/null 2>&1; then
+    if compose exec -T neo4j cypher-shell -u neo4j -p "${NEO4J_PASSWORD:-neo4jtest}" "RETURN 1" > /dev/null 2>&1; then
         echo -e "${GREEN}✓ Ready${NC}"
     else
         echo -e "${RED}✗ Not ready${NC}"
@@ -218,7 +218,7 @@ function seed_data() {
     echo -e "${YELLOW}Loading ontology...${NC}"
     NEO4J_CONTAINER="${NEO4J_CONTAINER}" \
     NEO4J_USER=neo4j \
-    NEO4J_PASSWORD=neo4jtest \
+    NEO4J_PASSWORD="${NEO4J_PASSWORD:-neo4jtest}" \
     "${REPO_ROOT}/infra/load_ontology.sh"
     
     # Initialize Milvus collections
@@ -238,7 +238,7 @@ function check_status() {
     echo -e "${BLUE}Health Checks:${NC}"
     
     echo -n "Neo4j (bolt://localhost:${NEO4J_BOLT_PORT}): "
-    if compose exec -T neo4j cypher-shell -u neo4j -p neo4jtest "RETURN 1" > /dev/null 2>&1; then
+    if compose exec -T neo4j cypher-shell -u neo4j -p "${NEO4J_PASSWORD:-neo4jtest}" "RETURN 1" > /dev/null 2>&1; then
         echo -e "${GREEN}✓ Healthy${NC}"
     else
         echo -e "${RED}✗ Unhealthy${NC}"

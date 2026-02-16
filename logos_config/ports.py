@@ -1,16 +1,20 @@
 """Centralized port allocation for all LOGOS repos.
 
-Each repo gets a unique prefix for all its ports.
-This allows CI jobs to run in parallel without port conflicts.
+Infrastructure services (Neo4j, Milvus) run on standard ports and are
+shared across repos. Each repo gets a unique API port.
 
 Port Table:
-| Repo   | Prefix | Neo4j HTTP | Neo4j Bolt | Milvus gRPC | Milvus Metrics | API   |
-|--------|--------|------------|------------|-------------|----------------|-------|
-| hermes | 17     | 17474      | 17687      | 17530       | 17091          | 17000 |
-| apollo | 27     | 27474      | 27687      | 27530       | 27091          | 27000 |
-| logos  | 37     | 37474      | 37687      | 37530       | 37091          | 37000 |
-| sophia | 47     | 47474      | 47687      | 47530       | 47091          | 47000 |
-| talos  | 57     | 57474      | 57687      | 57530       | 57091          | 57000 |
+Infrastructure ports (Neo4j, Milvus) use standard defaults — all repos
+share a single set of infrastructure services.  Only API ports are
+repo-specific.
+
+| Repo   | Neo4j HTTP | Neo4j Bolt | Milvus gRPC | Milvus Metrics | API   |
+|--------|------------|------------|-------------|----------------|-------|
+| hermes | 7474       | 7687       | 19530       | 9091           | 17000 |
+| apollo | 7474       | 7687       | 19530       | 9091           | 27000 |
+| logos  | 7474       | 7687       | 19530       | 9091           | 37000 |
+| sophia | 7474       | 7687       | 19530       | 9091           | 47000 |
+| talos  | 7474       | 7687       | 19530       | 9091           | 57000 |
 """
 
 from __future__ import annotations
@@ -30,12 +34,12 @@ class RepoPorts(NamedTuple):
     api: int
 
 
-# All ports for a repo share the same prefix
-HERMES_PORTS = RepoPorts(17474, 17687, 17530, 17091, 17000)
-APOLLO_PORTS = RepoPorts(27474, 27687, 27530, 27091, 27000)
-LOGOS_PORTS = RepoPorts(37474, 37687, 37530, 37091, 37000)
-SOPHIA_PORTS = RepoPorts(47474, 47687, 47530, 47091, 47000)
-TALOS_PORTS = RepoPorts(57474, 57687, 57530, 57091, 57000)
+# Shared infra ports + repo-specific API ports
+HERMES_PORTS = RepoPorts(7474, 7687, 19530, 9091, 17000)
+APOLLO_PORTS = RepoPorts(7474, 7687, 19530, 9091, 27000)
+LOGOS_PORTS = RepoPorts(7474, 7687, 19530, 9091, 37000)
+SOPHIA_PORTS = RepoPorts(7474, 7687, 19530, 9091, 47000)
+TALOS_PORTS = RepoPorts(7474, 7687, 19530, 9091, 57000)
 
 _REPO_PORTS = {
     "hermes": HERMES_PORTS,

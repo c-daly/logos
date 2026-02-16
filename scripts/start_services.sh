@@ -114,8 +114,8 @@ start_service() {
     
     # Check if repository exists
     if [ ! -d "$repo_path" ]; then
-        log_error "Repository not found: $repo_path"
-        return 1
+        log_warn "Repository not found: $repo_path (skipping $service)"
+        return 0
     fi
     
     log_info "Starting $service on port $port..."
@@ -171,6 +171,11 @@ start_service() {
 
     local waited=$((retries * delay))
     log_error "$service failed to start within ${waited}s. Check $PID_DIR/$service.log"
+    if [ -f "$PID_DIR/$service.log" ]; then
+        echo "=== $service startup log ==="
+        cat "$PID_DIR/$service.log"
+        echo "=== end $service log ==="
+    fi
     return 1
 }
 
@@ -250,6 +255,13 @@ status_service() {
 cmd_start() {
     mkdir -p "$PID_DIR"
     
+    # Start OTel observability stack
+    local otel_compose="$LOGOS_ROOT/infra/docker-compose.otel.yml"
+    if [ -f "$otel_compose" ] && [ -z "${CI:-}" ]; then
+        log_info "Starting OTel observability stack..."
+        docker compose -f "$otel_compose" up -d 2>/dev/null &&             log_success "OTel stack started (Collector, Tempo, Grafana)" ||             log_warn "OTel stack failed to start (services will run without tracing)"
+    fi
+    
     log_info "Starting LOGOS services..."
     
     local failed=0
@@ -280,6 +292,13 @@ cmd_stop() {
     for service in "${!SERVICES[@]}"; do
         stop_service "$service"
     done
+    
+    # Stop OTel observability stack
+    local otel_compose="$LOGOS_ROOT/infra/docker-compose.otel.yml"
+    if [ -f "$otel_compose" ] && [ -z "${CI:-}" ]; then
+        log_info "Stopping OTel observability stack..."
+        docker compose -f "$otel_compose" down 2>/dev/null &&             log_success "OTel stack stopped" ||             log_warn "OTel stack stop failed"
+    fi
     
     log_success "All services stopped"
 }
@@ -316,6 +335,7 @@ Prerequisites:
         - Infrastructure must be running (Neo4j, Milvus)
             Run: cd ../infra && docker compose -f docker-compose.hcg.dev.yml up -d
             Or:  ../tests/e2e/run_e2e.sh up
+        - OTel stack (Collector, Tempo, Grafana) is started automatically
 
     - Poetry environments must be set up in each repository
 EOF

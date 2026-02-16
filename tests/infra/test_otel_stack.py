@@ -72,9 +72,9 @@ def test_otlp_grpc_port_open(otel_stack):
     import socket
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    result = sock.connect_ex(("localhost", 4319))
+    result = sock.connect_ex(("localhost", 4317))
     sock.close()
-    assert result == 0, "OTLP gRPC port 4319 should be open"
+    assert result == 0, "OTLP gRPC port 4317 should be open"
 
 
 def test_otlp_http_port_open(otel_stack):
@@ -82,9 +82,9 @@ def test_otlp_http_port_open(otel_stack):
     import socket
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    result = sock.connect_ex(("localhost", 4320))
+    result = sock.connect_ex(("localhost", 4318))
     sock.close()
-    assert result == 0, "OTLP HTTP port 4320 should be open"
+    assert result == 0, "OTLP HTTP port 4318 should be open"
 
 
 def test_prometheus_targets(otel_stack):

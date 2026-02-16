@@ -6,8 +6,8 @@ services:
     volumes:
       - ./config/otel-collector-config.yaml:/etc/otel-collector-config.yaml
     ports:
-      - "4319:4317"   # OTLP gRPC receiver (external 4319 -> internal 4317)
-      - "4320:4318"   # OTLP HTTP receiver (external 4320 -> internal 4318)
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
       - "8889:8889"   # Prometheus metrics exporter
       - "13133:13133" # Health check
     depends_on:
@@ -22,7 +22,6 @@ services:
       - COLLECTOR_OTLP_ENABLED=true
     ports:
       - "16686:16686"  # Jaeger UI
-      - "4317:4317"   # OTLP gRPC receiver
     networks:
       - logos-otel
 

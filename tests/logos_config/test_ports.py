@@ -32,27 +32,35 @@ class TestRepoPorts:
 
 
 class TestPortConsistency:
-    """Tests that all ports for a repo share the same prefix."""
+    """Tests that all repos share infra ports and have unique API ports."""
 
-    @pytest.mark.parametrize(
-        "ports,expected_prefix",
-        [
-            (HERMES_PORTS, 17),
-            (APOLLO_PORTS, 27),
-            (LOGOS_PORTS, 37),
-            (SOPHIA_PORTS, 47),
-            (TALOS_PORTS, 57),
-        ],
-    )
-    def test_all_ports_share_prefix(
-        self, ports: RepoPorts, expected_prefix: int
-    ) -> None:
-        """All ports for a repo should start with the same two-digit prefix."""
-        for port in ports:
-            prefix = port // 1000
-            assert (
-                prefix == expected_prefix
-            ), f"Port {port} has prefix {prefix}, expected {expected_prefix}"
+    def test_all_repos_share_infra_ports(self) -> None:
+        """All repos should use the same default infra ports."""
+        for ports in [
+            HERMES_PORTS,
+            APOLLO_PORTS,
+            LOGOS_PORTS,
+            SOPHIA_PORTS,
+            TALOS_PORTS,
+        ]:
+            assert ports.neo4j_http == 7474
+            assert ports.neo4j_bolt == 7687
+            assert ports.milvus_grpc == 19530
+            assert ports.milvus_metrics == 9091
+
+    def test_all_repos_have_unique_api_ports(self) -> None:
+        """Each repo should have a unique API port."""
+        api_ports = [
+            p.api
+            for p in [
+                HERMES_PORTS,
+                APOLLO_PORTS,
+                LOGOS_PORTS,
+                SOPHIA_PORTS,
+                TALOS_PORTS,
+            ]
+        ]
+        assert len(set(api_ports)) == len(api_ports)
 
 
 class TestGetRepoPorts:
@@ -174,21 +182,21 @@ class TestPrecomputedPorts:
     """Tests for pre-computed port constants."""
 
     def test_hermes_ports(self) -> None:
-        """HERMES_PORTS has consistent 17xxx prefix."""
-        assert HERMES_PORTS == RepoPorts(17474, 17687, 17530, 17091, 17000)
+        """HERMES_PORTS uses shared infra ports with repo-specific API port."""
+        assert HERMES_PORTS == RepoPorts(7474, 7687, 19530, 9091, 17000)
 
     def test_apollo_ports(self) -> None:
-        """APOLLO_PORTS has consistent 27xxx prefix."""
-        assert APOLLO_PORTS == RepoPorts(27474, 27687, 27530, 27091, 27000)
+        """APOLLO_PORTS uses shared infra ports with repo-specific API port."""
+        assert APOLLO_PORTS == RepoPorts(7474, 7687, 19530, 9091, 27000)
 
     def test_logos_ports(self) -> None:
-        """LOGOS_PORTS has consistent 37xxx prefix."""
-        assert LOGOS_PORTS == RepoPorts(37474, 37687, 37530, 37091, 37000)
+        """LOGOS_PORTS uses shared infra ports with repo-specific API port."""
+        assert LOGOS_PORTS == RepoPorts(7474, 7687, 19530, 9091, 37000)
 
     def test_sophia_ports(self) -> None:
-        """SOPHIA_PORTS has consistent 47xxx prefix."""
-        assert SOPHIA_PORTS == RepoPorts(47474, 47687, 47530, 47091, 47000)
+        """SOPHIA_PORTS uses shared infra ports with repo-specific API port."""
+        assert SOPHIA_PORTS == RepoPorts(7474, 7687, 19530, 9091, 47000)
 
     def test_talos_ports(self) -> None:
-        """TALOS_PORTS has consistent 57xxx prefix."""
-        assert TALOS_PORTS == RepoPorts(57474, 57687, 57530, 57091, 57000)
+        """TALOS_PORTS uses shared infra ports with repo-specific API port."""
+        assert TALOS_PORTS == RepoPorts(7474, 7687, 19530, 9091, 57000)
