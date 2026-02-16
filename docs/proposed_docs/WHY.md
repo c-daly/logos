@@ -51,7 +51,9 @@ In CI, each repo spins up its *own* Neo4j and Milvus in Docker containers. If th
 |------|-------------------|----------|
 | hermes | 17687 | 7687 |
 | apollo | 27687 | 7687 |
+| logos | 37687 | 7687 |
 | sophia | 47687 | 7687 |
+| talos | 57687 | 7687 |
 
 Inside the containers, everything still uses 7687. The offset is only on the host side, in `docker-compose` port mappings. Your code should never hardcode offset ports — use `logos_config` or environment variables.
 

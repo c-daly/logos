@@ -17,7 +17,7 @@ User → Apollo → Sophia ↔ HCG (Neo4j + Milvus)
 
 | Repo | Purpose | API Port | Runtime Role |
 |------|---------|----------|-------------|
-| **logos** | Foundry — contracts, ontology, SDKs, `logos_config` | 37000 | Library (no runtime) |
+| **logos** | Foundry — contracts, ontology, SDKs, `logos_config` | 37000 | Library / Validation Service (port 37000 is for the SHACL validation service) |
 | **sophia** | Cognitive core — Orchestrator, CWM, Planner | 47000 | Service |
 | **hermes** | Language & embedding utility — STT, TTS, NLP, LLM | 17000 | Service |
 | **talos** | Hardware abstraction — sensors, actuators, simulation | 57000 | Library / Service |
@@ -74,15 +74,25 @@ All repos share the same infrastructure services:
 
 There are **two port schemes**. This is the single most important thing to understand:
 
-**Shared infrastructure (local dev):**
-All repos connect to the **same** Neo4j and Milvus instances on standard ports.
+#### Local Development (shared infrastructure)
+
+All repos connect to the **same** Neo4j and Milvus instances on standard ports. `logos_config/ports.py` returns these shared ports for infrastructure services — only the API port varies per repo.
+
+| Service | Port | Used By |
+|---------|------|---------|
+| Neo4j HTTP | 7474 | All repos |
+| Neo4j Bolt | 7687 | All repos |
+| Milvus gRPC | 19530 | All repos |
+| Milvus Metrics | 9091 | All repos |
+
 ```
 Neo4j Bolt:    bolt://localhost:7687
 Milvus gRPC:   localhost:19530
 ```
 
-**Test isolation (CI / test stacks):**
-Each repo's test stack maps container ports to **repo-specific host ports** so multiple test stacks can run simultaneously without conflicts.
+#### CI Test Stack (docker-compose host mappings)
+
+Each repo's test stack maps container ports to **repo-specific host ports** so multiple test stacks can run simultaneously without conflicts. These offset ports exist **only** in docker-compose port directives for CI isolation — they are not used in local development.
 
 | Repo | Neo4j HTTP | Neo4j Bolt | Milvus gRPC | Milvus Metrics | MinIO |
 |------|-----------|-----------|-------------|----------------|-------|
@@ -101,6 +111,8 @@ Port allocation lives in `logos_config/ports.py`. Do not duplicate port values i
 ```bash
 poetry run python -c "from logos_config.ports import APOLLO_PORTS; print(APOLLO_PORTS)"
 ```
+
+> **Note:** `logos_config/README.md` currently shows offset ports without clarifying they are CI-only. This is tracked for cleanup in [DOC_MANIFEST.md](DOC_MANIFEST.md).
 
 Environment variables override defaults: `NEO4J_URI`, `NEO4J_BOLT_PORT`, `MILVUS_PORT`, etc.
 
@@ -155,9 +167,13 @@ poetry run pytest tests/unit
 poetry run pytest tests/
 
 # Option B: Use test stack (isolated, CI-style)
-docker compose -f containers/docker-compose.test.yml up -d
+# Test stacks are located at:
+#   infra/test_stack/docker-compose.test.yml  (generated test stack)
+#   tests/e2e/stack/logos/docker-compose.test.yml  (E2E stack)
+#   infra/{repo}/docker-compose.test.yml  (per-repo stacks)
+docker compose -f infra/test_stack/docker-compose.test.yml up -d
 # ... run tests ...
-docker compose -f containers/docker-compose.test.yml down -v
+docker compose -f infra/test_stack/docker-compose.test.yml down -v
 ```
 
 ## Common Issues

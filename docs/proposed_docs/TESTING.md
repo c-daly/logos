@@ -36,18 +36,22 @@ Tests discover these services via `logos_config` defaults (Neo4j on 7687, Milvus
 
 ## Test Stacks (CI-style Isolation)
 
-Each repo has a `containers/docker-compose.test.yml` that spins up isolated infrastructure with repo-specific port offsets (see [ARCHITECTURE.md](ARCHITECTURE.md#port-scheme-shared-vs-test-isolation) for the port table).
+Each repo has test stack compose files that spin up isolated infrastructure with repo-specific port offsets (see [ARCHITECTURE.md](ARCHITECTURE.md#port-scheme-shared-vs-test-isolation) for the port table). The actual paths are:
+
+- `infra/test_stack/docker-compose.test.yml` — generated test stack
+- `tests/e2e/stack/logos/docker-compose.test.yml` — E2E stack
+- `infra/{repo}/docker-compose.test.yml` — per-repo stacks
 
 ```bash
-# Start test stack
-docker compose -f containers/docker-compose.test.yml up -d
+# Start test stack (example using generated test stack)
+docker compose -f infra/test_stack/docker-compose.test.yml up -d
 
 # Run tests against it (set env vars for offset ports)
 export NEO4J_URI=bolt://localhost:27687  # apollo example
 poetry run pytest tests/
 
 # Tear down
-docker compose -f containers/docker-compose.test.yml down -v
+docker compose -f infra/test_stack/docker-compose.test.yml down -v
 ```
 
 Some repos have overlay compose files (e.g., `docker-compose.test.apollo.yml`) that add service containers (sophia, hermes) on top of infrastructure.

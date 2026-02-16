@@ -35,7 +35,7 @@ These are the authoritative references for cross-repo concerns. Every repo links
 
 | Item | Change |
 |------|--------|
-| `logos_config/README.md` | Fix wrong port example (59530), clarify shared infra |
+| `logos_config/README.md` | Fix wrong port example (59530), clarify shared infra. Note: this file also has offset-port confusion — it shows CI test-stack ports without clarifying they differ from local dev shared ports. |
 | `.github/workflows/phase1-gate.yml` | Rename to `gate-check.yml` or remove if unused |
 | `.github/workflows/phase2-e2e.yml` | Rename to `e2e-integration.yml` |
 | `.github/workflows/phase2-perception.yml` | Rename to `perception-tests.yml` |
@@ -75,7 +75,7 @@ Every repo should have exactly these files in its root:
 
 **apollo:**
 - Delete stale `.env.example` (has ports 8080/8082)
-- Fix `.env.test`: `NEO4J_URI=bolt://neo4j:27687` → `bolt://neo4j:7687`
+- Fix `.env.test`: `NEO4J_URI=bolt://neo4j:27687` → `bolt://neo4j:7687` (inside the Docker network, containers use service names and internal ports — not host-mapped offset ports)
 - Slim README.md
 - Remove phase references from `tests/e2e/test_e2e_flow.py` comment
 
@@ -88,12 +88,12 @@ Every repo should have exactly these files in its root:
 **hermes:**
 - Fix Dockerfile: base image `0.4.0` → `0.4.1`
 - Fix `.env.example`: `MILVUS_PORT=17530` → `19530`
-- Fix `.env.test`: `MILVUS_PORT=29530` (verify or fix)
+- Fix `.env.test`: `MILVUS_PORT=29530` → `19530` (shared port) or `17530` (hermes test offset). `29530` is incorrect — hermes prefix is 1xxxx, not 2xxxx.
 - Remove "Phase 2 Testing" from `tests/hermes/__init__.py` and `tests/README.md`
 - Slim README.md
 
 **talos:**
-- Fix README.md: remove `docker run -p 8002:8002` (Talos is a library, not a service)
+- Fix README.md: remove `docker run -p 8002:8002` (Talos is a Library / Service — it has a runtime for hardware abstraction, but the Docker example is stale)
 - Remove "Phase 1 simplification" comments from source code
 - Fix `docs/FIXTURES.md` circular reference
 

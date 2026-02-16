@@ -12,12 +12,12 @@ Every LOGOS repo uses GitHub Actions with two types of workflows:
 Most repos delegate CI to a shared workflow in the logos repo:
 
 ```yaml
-uses: c-daly/logos/.github/workflows/reusable-standard-ci.yml@main
+uses: c-daly/logos/.github/workflows/reusable-standard-ci.yml@v0.4.1
 ```
 
 This provides:
 - Python setup (Poetry install, virtualenv caching)
-- Ruff lint + Black format check
+- Ruff lint + Black format check — CI currently runs both, but Ruff is the intended single tool going forward (see AGENTS.md). Black will be removed once all repos fully migrate to Ruff formatting.
 - mypy type checking
 - pytest execution
 - Optional Docker Compose for test infrastructure
@@ -132,7 +132,7 @@ Common causes:
 ### Container publish fails
 
 - Check that the Dockerfile builds locally: `docker build -t test .`
-- Verify the base image tag matches what's published (e.g., `logos-foundry:0.4.1`)
+- Verify the base image tag matches what's published (e.g., the Docker base image `ghcr.io/c-daly/logos-foundry:0.4.1` — this refers to the Docker image, not the Python package)
 - Check GHCR authentication (repo secrets)
 
 ## Useful Commands

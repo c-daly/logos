@@ -9,7 +9,7 @@ Install these before starting:
 | Tool | Version | Install |
 |------|---------|---------|
 | Python | 3.11+ | `brew install python@3.11` |
-| Poetry | latest | `curl -sSL https://install.python-poetry.org \| python3 -` |
+| Poetry | latest | `brew install poetry` |
 | Node.js | 18+ | `brew install node@18` |
 | Docker | latest | [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/) |
 | Git | latest | `brew install git` |
@@ -87,14 +87,21 @@ cd ~/projects/LOGOS/apollo/webapp && npm ci
 
 ## Configure Environment
 
-Copy example env files:
+Copy example env files for each repo that has them:
 
 ```bash
+# Apollo
 cp ~/projects/LOGOS/apollo/.env.example ~/projects/LOGOS/apollo/.env
 cp ~/projects/LOGOS/apollo/webapp/.env.example ~/projects/LOGOS/apollo/webapp/.env
+
+# Sophia (if .env.example exists)
+cp ~/projects/LOGOS/sophia/.env.example ~/projects/LOGOS/sophia/.env 2>/dev/null || true
+
+# Hermes (if .env.example exists)
+cp ~/projects/LOGOS/hermes/.env.example ~/projects/LOGOS/hermes/.env 2>/dev/null || true
 ```
 
-The defaults connect to shared infrastructure on standard ports (Neo4j 7687, Milvus 19530). You shouldn't need to change anything for local dev.
+The defaults connect to shared infrastructure on standard ports (Neo4j 7687, Milvus 19530). You shouldn't need to change anything for local dev. Check each repo's `.env.example` for repo-specific settings (e.g., model paths for Hermes, cognitive core config for Sophia).
 
 ## Start Services
 
