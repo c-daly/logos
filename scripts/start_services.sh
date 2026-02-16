@@ -252,7 +252,7 @@ cmd_start() {
     
     # Start OTel observability stack
     local otel_compose="$LOGOS_ROOT/infra/docker-compose.otel.yml"
-    if [ -f "$otel_compose" ]; then
+    if [ -f "$otel_compose" ] && [ -z "${CI:-}" ]; then
         log_info "Starting OTel observability stack..."
         docker compose -f "$otel_compose" up -d 2>/dev/null &&             log_success "OTel stack started (Collector, Tempo, Grafana)" ||             log_warn "OTel stack failed to start (services will run without tracing)"
     fi
@@ -290,7 +290,7 @@ cmd_stop() {
     
     # Stop OTel observability stack
     local otel_compose="$LOGOS_ROOT/infra/docker-compose.otel.yml"
-    if [ -f "$otel_compose" ]; then
+    if [ -f "$otel_compose" ] && [ -z "${CI:-}" ]; then
         log_info "Stopping OTel observability stack..."
         docker compose -f "$otel_compose" down 2>/dev/null &&             log_success "OTel stack stopped" ||             log_warn "OTel stack stop failed"
     fi
