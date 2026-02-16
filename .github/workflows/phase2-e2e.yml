@@ -141,6 +141,9 @@ jobs:
           cd hermes
           # Install with relaxed constraints since logos already locked versions
           poetry install --no-root
+          # Fix pandas version conflict: lock has both 1.5.3 and 2.3.3, poetry
+          # can mix files from both versions. Force a clean pandas 2.x install.
+          poetry run pip install 'pandas>=2.0.0,<3.0' --force-reinstall --no-deps
           # Then install hermes package using pip to avoid version conflicts
           poetry run pip install --no-deps -e .
       
