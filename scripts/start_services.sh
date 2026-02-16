@@ -171,6 +171,11 @@ start_service() {
 
     local waited=$((retries * delay))
     log_error "$service failed to start within ${waited}s. Check $PID_DIR/$service.log"
+    if [ -f "$PID_DIR/$service.log" ]; then
+        echo "=== $service startup log ==="
+        cat "$PID_DIR/$service.log"
+        echo "=== end $service log ==="
+    fi
     return 1
 }
 
