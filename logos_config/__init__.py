@@ -20,7 +20,7 @@ from logos_config.ports import (
     RepoPorts,
     get_repo_ports,
 )
-from logos_config.settings import MilvusConfig, Neo4jConfig, ServiceConfig
+from logos_config.settings import MilvusConfig, Neo4jConfig, OtelConfig, ServiceConfig
 
 __all__ = [
     # env
@@ -38,6 +38,7 @@ __all__ = [
     # settings
     "Neo4jConfig",
     "MilvusConfig",
+    "OtelConfig",
     "ServiceConfig",
 ]
 

@@ -91,3 +91,23 @@ class ServiceConfig(BaseSettings):
     host: str = Field(default="localhost")
     port: int = Field(...)  # REQUIRED - varies by service
     api_key: str | None = Field(default=None)
+
+
+class OtelConfig(BaseSettings):
+    """OpenTelemetry configuration.
+
+    Env vars: OTEL_EXPORTER_OTLP_ENDPOINT, OTEL_CONSOLE_EXPORT
+
+    The collector endpoint defaults to localhost:4317 (standard OTLP gRPC port).
+    This is always available when LOGOS infrastructure is running.
+
+    Example:
+        >>> config = OtelConfig()
+        >>> config.endpoint
+        'http://localhost:4317'
+    """
+
+    model_config = SettingsConfigDict(env_prefix="OTEL_")
+
+    exporter_otlp_endpoint: str = Field(default="http://localhost:4317")
+    console_export: bool = Field(default=False)
