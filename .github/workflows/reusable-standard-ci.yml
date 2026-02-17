@@ -125,6 +125,14 @@ on:
         description: 'Root working directory for Python commands'
         type: string
         default: '.'
+      check_foundry_alignment:
+        description: 'Verify Dockerfile FROM tag matches pyproject.toml logos-foundry git tag'
+        type: boolean
+        default: false
+      dockerfile_path:
+        description: 'Path to Dockerfile to check for foundry version alignment'
+        type: string
+        default: 'Dockerfile'
       docker_compose_file:
         description: 'Path to docker-compose file for test services (e.g., tests/e2e/stack/docker-compose.test.yml)'
         type: string
@@ -302,3 +310,47 @@ jobs:
 
       - name: Run integration command
         run: ${{ inputs.integration_command }}
+
+  check-foundry-alignment:
+    if: inputs.check_foundry_alignment
+    name: Foundry version alignment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check Dockerfile and pyproject.toml foundry versions match
+        run: |
+          DOCKERFILE="${{ inputs.dockerfile_path }}"
+          if [ ! -f "$DOCKERFILE" ]; then
+            echo "::warning::$DOCKERFILE not found, skipping alignment check"
+            exit 0
+          fi
+          if [ ! -f "pyproject.toml" ]; then
+            echo "::warning::pyproject.toml not found, skipping alignment check"
+            exit 0
+          fi
+
+          # Extract version from Dockerfile FROM line
+          DOCKER_VERSION=$(grep -oP 'logos-foundry:\K[0-9]+\.[0-9]+\.[0-9]+' "$DOCKERFILE" || echo "")
+          if [ -z "$DOCKER_VERSION" ]; then
+            echo "::warning::No logos-foundry version found in $DOCKERFILE"
+            exit 0
+          fi
+
+          # Extract version from pyproject.toml git tag
+          POETRY_VERSION=$(grep -oP 'c-daly/logos\.git.*?tag\s*=\s*"v\K[0-9]+\.[0-9]+\.[0-9]+' pyproject.toml || echo "")
+          if [ -z "$POETRY_VERSION" ]; then
+            echo "::warning::No logos-foundry git tag found in pyproject.toml"
+            exit 0
+          fi
+
+          echo "Dockerfile FROM tag: $DOCKER_VERSION"
+          echo "pyproject.toml tag:  $POETRY_VERSION"
+
+          if [ "$DOCKER_VERSION" != "$POETRY_VERSION" ]; then
+            echo "::error::Version mismatch! Dockerfile uses logos-foundry:$DOCKER_VERSION but pyproject.toml references v$POETRY_VERSION"
+            exit 1
+          fi
+
+          echo "Versions match."
