@@ -132,13 +132,20 @@ for REPO in "${REPOS[@]}"; do
     git checkout main
     git pull --ff-only
 
-    # Create branch
+    # Create branch (clean up if it already exists from a previous run)
+    if git show-ref --verify --quiet "refs/heads/$BRANCH"; then
+        echo "[$REPO] Removing stale branch $BRANCH"
+        git branch -D "$BRANCH"
+    fi
     git checkout -b "$BRANCH"
 
     # Update pyproject.toml — logos-foundry tag reference
+    # Handles both single-line and multi-line TOML declarations:
+    #   Single: logos-foundry = {git = "...logos.git", tag = "v0.4.2"}
+    #   Multi:  logos-foundry = {git = "...logos.git",\n    tag = "v0.4.2"}
     CHANGED=false
     if grep -q 'c-daly/logos.git' pyproject.toml; then
-        sed -i.bak -E "s|(c-daly/logos\.git.*tag\s*=\s*\")v[0-9]+\.[0-9]+\.[0-9]+\"|\1${VERSION}\"|g" pyproject.toml
+        sed -i.bak -E "s|(tag\s*=\s*\")v[0-9]+\.[0-9]+\.[0-9]+\"|\1${VERSION}\"|g" pyproject.toml
         rm -f pyproject.toml.bak
         CHANGED=true
     fi
@@ -174,7 +181,10 @@ for REPO in "${REPOS[@]}"; do
     poetry lock --no-update 2>/dev/null || poetry lock
 
     # Commit and push
-    git add pyproject.toml poetry.lock Dockerfile
+    git add pyproject.toml poetry.lock
+    if [[ -f Dockerfile ]]; then
+        git add Dockerfile
+    fi
     if [[ -n "$CI_TAG" ]]; then
         git add .github/workflows/*.yml
     fi
