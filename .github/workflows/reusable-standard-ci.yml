@@ -340,12 +340,13 @@ jobs:
           fi
 
           # Extract version from pyproject.toml git tag (handles multi-line TOML)
-          POETRY_VERSION=$(python3 -c "
-import re
-text = open('pyproject.toml').read()
-m = re.search(r'c-daly/logos\.git[^}]*?tag\s*=\s*\"v([0-9]+\.[0-9]+\.[0-9]+)\"', text, re.DOTALL)
-print(m.group(1) if m else '')
-")
+          POETRY_VERSION=$(python3 - <<'PYEOF'
+          import re
+          text = open('pyproject.toml').read()
+          m = re.search(r'c-daly/logos\.git[^}]*?tag\s*=\s*"v([0-9]+\.[0-9]+\.[0-9]+)"', text, re.DOTALL)
+          print(m.group(1) if m else '')
+          PYEOF
+          )
           if [ -z "$POETRY_VERSION" ]; then
             echo "::warning::No logos-foundry git tag found in pyproject.toml"
             exit 0
