@@ -320,8 +320,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Check Dockerfile and pyproject.toml foundry versions match
+        env:
+          DOCKERFILE: ${{ inputs.dockerfile_path }}
         run: |
-          DOCKERFILE="${{ inputs.dockerfile_path }}"
           if [ ! -f "$DOCKERFILE" ]; then
             echo "::warning::$DOCKERFILE not found, skipping alignment check"
             exit 0
@@ -331,15 +332,20 @@ jobs:
             exit 0
           fi
 
-          # Extract version from Dockerfile FROM line
-          DOCKER_VERSION=$(grep -oP 'logos-foundry:\K[0-9]+\.[0-9]+\.[0-9]+' "$DOCKERFILE" || echo "")
+          # Extract version from Dockerfile FROM line (-m 1 for multi-stage builds)
+          DOCKER_VERSION=$(grep -m 1 -oP 'logos-foundry:\K[0-9]+\.[0-9]+\.[0-9]+' "$DOCKERFILE" || echo "")
           if [ -z "$DOCKER_VERSION" ]; then
             echo "::warning::No logos-foundry version found in $DOCKERFILE"
             exit 0
           fi
 
-          # Extract version from pyproject.toml git tag
-          POETRY_VERSION=$(grep -oP 'c-daly/logos\.git.*?tag\s*=\s*"v\K[0-9]+\.[0-9]+\.[0-9]+' pyproject.toml || echo "")
+          # Extract version from pyproject.toml git tag (handles multi-line TOML)
+          POETRY_VERSION=$(python3 -c "
+import re
+text = open('pyproject.toml').read()
+m = re.search(r'c-daly/logos\.git[^}]*?tag\s*=\s*\"v([0-9]+\.[0-9]+\.[0-9]+)\"', text, re.DOTALL)
+print(m.group(1) if m else '')
+")
           if [ -z "$POETRY_VERSION" ]; then
             echo "::warning::No logos-foundry git tag found in pyproject.toml"
             exit 0

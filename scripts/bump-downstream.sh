@@ -132,21 +132,36 @@ for REPO in "${REPOS[@]}"; do
     git checkout main
     git pull --ff-only
 
-    # Create branch (clean up if it already exists from a previous run)
+    # Create branch (clean up local + remote if it exists from a previous run)
     if git show-ref --verify --quiet "refs/heads/$BRANCH"; then
-        echo "[$REPO] Removing stale branch $BRANCH"
+        echo "[$REPO] Removing stale local branch $BRANCH"
         git branch -D "$BRANCH"
+    fi
+    if git ls-remote --exit-code --heads origin "$BRANCH" &>/dev/null; then
+        echo "[$REPO] Removing stale remote branch $BRANCH"
+        git push origin --delete "$BRANCH"
     fi
     git checkout -b "$BRANCH"
 
     # Update pyproject.toml — logos-foundry tag reference
-    # Handles both single-line and multi-line TOML declarations:
-    #   Single: logos-foundry = {git = "...logos.git", tag = "v0.4.2"}
-    #   Multi:  logos-foundry = {git = "...logos.git",\n    tag = "v0.4.2"}
+    # Uses Python to handle both single-line and multi-line TOML declarations,
+    # scoped to the logos-foundry dependency block only
     CHANGED=false
     if grep -q 'c-daly/logos.git' pyproject.toml; then
-        sed -i.bak -E "s|(tag\s*=\s*\")v[0-9]+\.[0-9]+\.[0-9]+\"|\1${VERSION}\"|g" pyproject.toml
-        rm -f pyproject.toml.bak
+        python3 -c "
+import re, sys
+text = open('pyproject.toml').read()
+new_text = re.sub(
+    r'(c-daly/logos\.git[^}]*?tag\s*=\s*\"v)[0-9]+\.[0-9]+\.[0-9]+',
+    r'\g<1>${BARE_VERSION}',
+    text,
+    flags=re.DOTALL
+)
+if new_text == text:
+    print('WARNING: no tag replacement made in pyproject.toml', file=sys.stderr)
+    sys.exit(1)
+open('pyproject.toml', 'w').write(new_text)
+"
         CHANGED=true
     fi
 
@@ -178,7 +193,7 @@ for REPO in "${REPOS[@]}"; do
 
     # Regenerate lockfile
     echo "[$REPO] Running poetry lock..."
-    poetry lock --no-update 2>/dev/null || poetry lock
+    poetry lock --no-update || poetry lock
 
     # Commit and push
     git add pyproject.toml poetry.lock
@@ -186,7 +201,9 @@ for REPO in "${REPOS[@]}"; do
         git add Dockerfile
     fi
     if [[ -n "$CI_TAG" ]]; then
-        git add .github/workflows/*.yml
+        for WF in .github/workflows/*.yml; do
+            [[ -f "$WF" ]] && git add "$WF"
+        done
     fi
     COMMIT_MSG="chore: bump logos-foundry to $VERSION"
     if [[ -n "$CI_TAG" ]]; then
