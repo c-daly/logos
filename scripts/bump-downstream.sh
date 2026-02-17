@@ -63,8 +63,40 @@ if ! command -v gh &>/dev/null; then
 fi
 
 WORKSPACE="$(cd "$(dirname "$0")/../.." && pwd)"
+LOGOS_DIR="$WORKSPACE/logos"
 BRANCH="chore/bump-foundry-${BARE_VERSION}"
 REPOS=(hermes sophia apollo talos)
+
+# Generate changelog from previous tag to this one
+CHANGELOG=""
+if [[ -d "$LOGOS_DIR" ]]; then
+    cd "$LOGOS_DIR"
+    PREV_TAG=$(git tag --sort=-version:refname | grep -E '^v[0-9]' | grep -v "^${VERSION}$" | head -1)
+    if [[ -n "$PREV_TAG" ]]; then
+        echo "=== Changelog: $PREV_TAG → $VERSION ==="
+        # Group commits by type
+        FEATS=$(git log "${PREV_TAG}..${VERSION}" --oneline --format='%s' 2>/dev/null | grep -E '^feat' | sed 's/^/- /' || true)
+        FIXES=$(git log "${PREV_TAG}..${VERSION}" --oneline --format='%s' 2>/dev/null | grep -E '^fix' | sed 's/^/- /' || true)
+        OTHERS=$(git log "${PREV_TAG}..${VERSION}" --oneline --format='%s' 2>/dev/null | grep -vE '^(feat|fix)' | sed 's/^/- /' || true)
+
+        if [[ -n "$FEATS" ]]; then
+            CHANGELOG+=$'\n'"### Features"$'\n'"$FEATS"$'\n'
+            echo "$FEATS"
+        fi
+        if [[ -n "$FIXES" ]]; then
+            CHANGELOG+=$'\n'"### Fixes"$'\n'"$FIXES"$'\n'
+            echo "$FIXES"
+        fi
+        if [[ -n "$OTHERS" ]]; then
+            CHANGELOG+=$'\n'"### Other"$'\n'"$OTHERS"$'\n'
+            echo "$OTHERS"
+        fi
+        if [[ -z "$CHANGELOG" ]]; then
+            CHANGELOG=$'\n'"No commits between $PREV_TAG and $VERSION."$'\n'
+        fi
+        echo ""
+    fi
+fi
 
 echo "=== Pre-bump checklist ==="
 echo "  1. Was $VERSION created via PR (not direct to main)?"
@@ -153,17 +185,28 @@ for REPO in "${REPOS[@]}"; do
     git commit -m "$COMMIT_MSG"
     git push -u origin "$BRANCH"
 
-    # Open PR
-    PR_URL=$(gh pr create \
-        --title "chore: bump logos-foundry to $VERSION" \
-        --body "Automated bump of logos-foundry dependency to $VERSION.
+    # Open PR with changelog
+    PR_BODY="Automated bump of logos-foundry dependency to $VERSION.
 
-Updates:
+## Updates
 - \`pyproject.toml\` git tag reference
 - \`Dockerfile\` FROM tag
-- \`poetry.lock\` regenerated
+- \`poetry.lock\` regenerated"
 
-Created by \`scripts/bump-downstream.sh\`." 2>&1)
+    if [[ -n "$CI_TAG" ]]; then
+        PR_BODY+=$'\n'"- Workflow refs updated to \`$CI_TAG\`"
+    fi
+
+    if [[ -n "$CHANGELOG" ]]; then
+        PR_BODY+=$'\n\n'"## What changed in logos ($PREV_TAG → $VERSION)"
+        PR_BODY+="$CHANGELOG"
+    fi
+
+    PR_BODY+=$'\n\n'"Created by \`scripts/bump-downstream.sh\`."
+
+    PR_URL=$(gh pr create \
+        --title "chore: bump logos-foundry to $VERSION" \
+        --body "$PR_BODY" 2>&1)
 
     echo "[$REPO] PR: $PR_URL"
     git checkout main

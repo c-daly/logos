@@ -116,6 +116,8 @@ The bump script updates **both** references in each downstream repo:
 - `pyproject.toml` git tag (Python dependency)
 - `Dockerfile` FROM tag (Docker base image)
 
+Each downstream PR body includes an auto-generated changelog (grouped by `feat:`, `fix:`, other) showing what changed in logos between the previous and new tag.
+
 These must always match. The `check_foundry_alignment` CI job enforces this — if they drift, CI fails with a clear error message. Enable it per-repo:
 
 ```yaml

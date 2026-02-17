@@ -66,7 +66,7 @@ This triggers the publish workflow, which builds and pushes:
 Use the bump script to update all downstream repos at once:
 
 ```bash
-./scripts/bump-downstream.sh v0.4.3
+./scripts/bump-downstream.sh vX.Y.Z
 ```
 
 This creates a PR in each downstream repo (hermes, sophia, apollo, talos) that updates:
@@ -74,15 +74,17 @@ This creates a PR in each downstream repo (hermes, sophia, apollo, talos) that u
 - `Dockerfile` FROM tag
 - `poetry.lock` (regenerated)
 
+Each PR body includes an auto-generated changelog showing what changed in logos between the previous tag and the new one, grouped by type (features, fixes, other). This gives reviewers context on what they're pulling in without digging through commits.
+
 To also update CI workflow refs:
 
 ```bash
-./scripts/bump-downstream.sh v0.4.3 --ci-tag ci/v2
+./scripts/bump-downstream.sh vX.Y.Z --ci-tag ci/v2
 ```
 
 ### 5. Review and merge downstream PRs
 
-Review each PR. CI must pass before merging. When merged, the downstream repo's publish workflow will automatically build a new container image using the updated foundry base.
+Review each PR. The changelog in the PR body tells you what changed. CI must pass before merging. When merged, the downstream repo's publish workflow will automatically build a new container image using the updated foundry base.
 
 ## CI Workflow Versioning
 
