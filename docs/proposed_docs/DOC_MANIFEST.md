@@ -14,6 +14,7 @@ These are the authoritative references for cross-repo concerns. Every repo links
 | `TESTING.md` | **REWRITE** | Testing strategy: unit/integration/e2e, what needs infra, test stack usage. Replace `operations/TESTING.md` |
 | `CI_CD.md` | **NEW** | Reusable workflow, container publishing, how to debug CI. Currently undocumented |
 | `OBSERVABILITY.md` | **KEEP** | OTel setup, traces, metrics. Existing `observability/` content is decent |
+| `operations/PACKAGE_PUBLISHING.md` | **REWRITTEN** | Release checklist, version alignment, bump script, CI workflow versioning. Replaces stale original |
 
 ### To Delete from `logos/docs/`
 
@@ -86,7 +87,7 @@ Every repo should have exactly these files in its root:
 - Remove phase references from test comments
 
 **hermes:**
-- Fix Dockerfile: base image `0.4.0` → `0.4.1`
+- ~~Fix Dockerfile: base image~~ — done (now on foundry v0.4.2 via PR #80)
 - Fix `.env.example`: `MILVUS_PORT=17530` → `19530`
 - Fix `.env.test`: `MILVUS_PORT=29530` → `19530` (shared port) or `17530` (hermes test offset). `29530` is incorrect — hermes prefix is 1xxxx, not 2xxxx.
 - Remove "Phase 2 Testing" from `tests/hermes/__init__.py` and `tests/README.md`

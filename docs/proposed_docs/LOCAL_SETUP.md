@@ -8,17 +8,20 @@ Install these before starting:
 
 | Tool | Version | Install |
 |------|---------|---------|
-| Python | 3.11+ | `brew install python@3.11` |
+| Python | 3.12 | `brew install python@3.12` |
 | Poetry | latest | `brew install poetry` |
 | Node.js | 18+ | `brew install node@18` |
 | Docker | latest | [Docker Desktop for Mac](https://www.docker.com/products/docker-desktop/) |
 | Git | latest | `brew install git` |
+| gh | latest | `brew install gh` (for PR workflows and bump script) |
+
+> **Python version matters.** The ecosystem requires Python 3.12. System default `python3` may be 3.14, which breaks `protobuf` and `pymilvus` (metaclass errors). Always use 3.12 explicitly.
 
 Verify:
 ```bash
-python3 --version   # 3.11+
+python3.12 --version   # Must be 3.12.x
 poetry --version
-node --version       # 18+
+node --version          # 18+
 docker --version
 ```
 
@@ -66,6 +69,15 @@ curl -s http://localhost:9091/healthz
 ## Install Python Dependencies
 
 Install logos first (it provides `logos_config` used by all other repos), then the rest. Order doesn't matter after logos.
+
+> **Important:** If your system `python3` is not 3.12, you must tell Poetry which Python to use **before** installing. Run this once per repo, sequentially (not in parallel — concurrent `poetry env use` corrupts Poetry's environment cache):
+> ```bash
+> cd ~/projects/LOGOS/logos && poetry env use /usr/local/bin/python3.12
+> cd ~/projects/LOGOS/sophia && poetry env use /usr/local/bin/python3.12
+> cd ~/projects/LOGOS/hermes && poetry env use /usr/local/bin/python3.12
+> cd ~/projects/LOGOS/talos && poetry env use /usr/local/bin/python3.12
+> cd ~/projects/LOGOS/apollo && poetry env use /usr/local/bin/python3.12
+> ```
 
 ```bash
 # Logos (foundry — must be first)

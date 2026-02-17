@@ -76,7 +76,7 @@ Poetry handles:
 - Git-based dependencies (how we install `logos_config` from the logos repo)
 - Extras groups (e.g., `poetry install -E otel` for optional OTel instrumentation)
 
-The git dependency feature is critical — `pyproject.toml` references like `logos-foundry = {git = "...", tag = "v0.4.1"}` are how downstream repos pin to specific logos versions.
+The git dependency feature is critical — `pyproject.toml` references like `logos-foundry = {git = "...", tag = "vX.Y.Z"}` are how downstream repos pin to specific logos versions. Each repo also has a `Dockerfile` with `FROM ghcr.io/c-daly/logos-foundry:X.Y.Z` — both must match. See [CI_CD.md](CI_CD.md) for how this is enforced.
 
 ## Why Neo4j + Milvus?
 
