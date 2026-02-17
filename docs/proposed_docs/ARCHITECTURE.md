@@ -43,7 +43,7 @@ apollo  → depends on: logos (logos_config, logos_test_utils, sophia SDK, herme
 
 **In local development:**
 - Services run from source: `poetry run uvicorn sophia.api.app:app --port 47000`
-- `logos_config` is installed via `pyproject.toml` pointing to a git tag (e.g., `v0.4.1`)
+- `logos_config` is installed via `pyproject.toml` pointing to a git tag (e.g., `vX.Y.Z`)
 - To use local logos changes before tagging, reinstall from source: `poetry run pip install --force-reinstall --no-deps ../logos/`
 - Apollo calls sophia and hermes as HTTP services on localhost
 
@@ -55,11 +55,21 @@ apollo  → depends on: logos (logos_config, logos_test_utils, sophia SDK, herme
 
 **Version flow:**
 ```
-1. Make changes in logos
-2. Tag: git tag v0.X.Y && git push origin v0.X.Y
-3. Bump downstream: update pyproject.toml tag references in sophia, hermes, talos, apollo
-4. Push downstream repos → CI runs → container images rebuild automatically
+1. Make changes in logos on a feature branch → PR → merge
+2. Bump version + tag: poetry version patch && git tag vX.Y.Z && git push --tags
+3. Bump downstream: ./scripts/bump-downstream.sh vX.Y.Z
+   (updates pyproject.toml tag + Dockerfile FROM tag in each repo, opens PRs)
+4. Merge downstream PRs → CI runs → container images rebuild automatically
 ```
+
+Each downstream repo references logos-foundry in **two places** that must stay in sync:
+
+| File | Reference | Example |
+|------|-----------|---------|
+| `pyproject.toml` | Git tag (Python packages) | `logos-foundry = {git = "...", tag = "vX.Y.Z"}` |
+| `Dockerfile` | Image tag (Docker base) | `FROM ghcr.io/c-daly/logos-foundry:X.Y.Z` |
+
+CI validates these match via the `check_foundry_alignment` job. See [CI_CD.md](CI_CD.md) for details.
 
 ## Infrastructure
 

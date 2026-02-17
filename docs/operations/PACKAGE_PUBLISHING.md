@@ -1,306 +1,173 @@
 # Package Publishing Guide
 
-This document describes how to publish and consume the `logos-foundry` package using GitHub Container Registry.
+How to publish `logos-foundry` and propagate changes to downstream repos.
 
 ## Overview
 
-`logos-foundry` is published as a container image to GitHub Container Registry (ghcr.io) to enable other LOGOS repositories to consume shared utilities and dependencies without path dependencies.
+`logos-foundry` is published as a container image to GitHub Container Registry (ghcr.io). Downstream repos (hermes, sophia, apollo, talos) consume it two ways:
 
-**Package Name:** `logos-foundry`  
-**Current Version:** `0.1.0`  
+1. **Python dependency** — Git tag reference in `pyproject.toml` (for `logos_config`, `logos_hcg`, etc.)
+2. **Docker base image** — `FROM ghcr.io/c-daly/logos-foundry:<version>` in `Dockerfile`
+
+Both references must point to the same version. CI enforces this when `check_foundry_alignment: true` is set.
+
 **Registry:** `ghcr.io/c-daly/logos-foundry`
 
 ## What's Included
 
-The container includes:
-- All logos packages: `logos_test_utils`, `logos_hcg`, `logos_observability`, `logos_perception`, `logos_persona`, `logos_sophia`, `logos_cwm_e`, `logos_tools`, `planner_stub`
-- All runtime and test dependencies (pytest, rdflib, pyshacl, neo4j, pymilvus, opentelemetry, etc.)
+The foundry container bundles all logos packages:
+- `logos_config`, `logos_hcg`, `logos_test_utils`, `logos_observability`
+- `logos_perception`, `logos_persona`, `logos_sophia`, `logos_cwm_e`
+- `logos_tools`, `planner_stub`
+- All runtime and test dependencies (pytest, rdflib, neo4j, pymilvus, opentelemetry, etc.)
 - Poetry for package management
-- Python 3.11
+- Python 3.12
 
-## Publishing New Versions
+## Release Checklist
 
-### Automatic Publishing (Recommended)
+### 1. Make changes on a feature branch
 
-1. **Update version in `pyproject.toml`:**
-   ```bash
-   # Bump version following semver: MAJOR.MINOR.PATCH
-   poetry version patch  # 0.1.0 -> 0.1.1
-   poetry version minor  # 0.1.0 -> 0.2.0
-   poetry version major  # 0.1.0 -> 1.0.0
-   ```
-
-2. **Commit the version change:**
-   ```bash
-   git add pyproject.toml
-   git commit -m "Bump version to $(poetry version -s)"
-   git push origin main
-   ```
-
-3. **Create a GitHub release:**
-   - Go to https://github.com/c-daly/logos/releases/new
-   - Create tag: `v0.1.1` (matching version in pyproject.toml)
-   - Set as title: `v0.1.1`
-   - Add release notes describing changes
-   - Click "Publish release"
-
-4. **Verify publication:**
-   - GitHub Actions will automatically trigger the publish workflow
-   - Check workflow at: https://github.com/c-daly/logos/actions
-   - Container appears at: https://github.com/c-daly/logos/pkgs/container/logos-foundry
-
-### Manual Publishing
-
-If you need to publish without creating a release:
-
-1. **Trigger workflow manually:**
-   - Go to https://github.com/c-daly/logos/actions/workflows/publish-package.yml
-   - Click "Run workflow"
-   - Select branch (usually `main`)
-   - Click "Run workflow"
-
-## Consuming the Package in Other Repos
-
-### Using as Base Image in Docker Compose
-
-Most common use case - use the container as a base for running tests:
-
-```yaml
-# docker-compose.test.yml
-services:
-  test-runner:
-    image: ghcr.io/c-daly/logos-foundry:0.1.0
-    volumes:
-      - ./tests:/app/tests
-      - ./src:/app/src  # Mount your repo's code
-    environment:
-      - NEO4J_URI=bolt://neo4j:7687
-      - MILVUS_HOST=milvus
-    command: pytest tests/
-    depends_on:
-      - neo4j
-      - milvus
-```
-
-### Using as Base in Dockerfile
-
-Build your service on top of the foundry image:
-
-```dockerfile
-# Dockerfile
-FROM ghcr.io/c-daly/logos-foundry:0.1.0
-
-# Copy your service code
-COPY . /app/myservice
-WORKDIR /app/myservice
-
-# Install your service's additional dependencies
-RUN poetry install --no-interaction --no-ansi
-
-# Run your service
-CMD ["uvicorn", "myservice.main:app", "--host", "0.0.0.0", "--port", "8000"]
-```
-
-### Using in GitHub Actions
-
-```yaml
-# .github/workflows/test.yml
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/c-daly/logos-foundry:0.1.0
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run tests
-        run: pytest tests/
-```
-
-## Authentication
-
-### For Public Access (Read-Only)
-
-The container is publicly accessible for pulling - no authentication needed:
+Never push directly to main. Infrastructure changes (Python version, base image) and library changes (logos_config fixes) should be separate PRs when possible.
 
 ```bash
-docker pull ghcr.io/c-daly/logos-foundry:0.1.0
+git checkout -b feature/my-change
+# ... make changes ...
+git push -u origin feature/my-change
+gh pr create
 ```
 
-### For CI/CD (GitHub Actions)
-
-GitHub Actions automatically has access via `GITHUB_TOKEN` for private images:
-
-```yaml
-- name: Log in to GitHub Container Registry
-  uses: docker/login-action@v3
-  with:
-    registry: ghcr.io
-    username: ${{ github.actor }}
-    password: ${{ secrets.GITHUB_TOKEN }}
-```
-
-### For Local Development (Private Images)
+### 2. Merge PR and tag the release
 
 ```bash
-# Create a Personal Access Token with read:packages scope
-# Then login:
-echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
+# After PR is merged:
+git checkout main && git pull
+
+# Bump version
+poetry version patch  # or minor/major
+
+# Commit, tag, push
+git add pyproject.toml
+git commit -m "chore: bump version to $(poetry version -s)"
+git tag "v$(poetry version -s)"
+git push origin main --tags
 ```
 
-## Local Development Workflow
+This triggers the publish workflow, which builds and pushes:
+- `ghcr.io/c-daly/logos-foundry:<version>`
+- `ghcr.io/c-daly/logos-foundry:latest`
 
-When working on changes to `logos-foundry` that need testing in dependent repos:
+### 3. Verify the image published
 
-### Option 1: Mount Local logos Directory
+- Check workflow: https://github.com/c-daly/logos/actions
+- Check container: https://github.com/c-daly/logos/pkgs/container/logos-foundry
 
-```yaml
-# docker-compose.test.yml (temporary)
-services:
-  test-runner:
-    image: ghcr.io/c-daly/logos-foundry:0.1.0
-    volumes:
-      - ../logos:/app/logos:ro  # Override with local version
-      - ./tests:/app/tests
-```
+### 4. Bump downstream repos
 
-### Option 2: Build Custom Image
-
-```dockerfile
-# Dockerfile.dev
-FROM ghcr.io/c-daly/logos-foundry:0.1.0
-
-# Override with local logos packages
-COPY ../logos/logos_test_utils /app/logos_test_utils
-COPY ../logos/logos_hcg /app/logos_hcg
-# ... other packages as needed
-```
-
-### Option 3: Publish a Dev Version
+Use the bump script to update all downstream repos at once:
 
 ```bash
-cd logos
-poetry version 0.1.1-dev
-# Build and test locally, then trigger workflow
+./scripts/bump-downstream.sh vX.Y.Z
 ```
 
-## Package Contents
+This creates a PR in each downstream repo (hermes, sophia, apollo, talos) that updates:
+- `pyproject.toml` git tag reference
+- `Dockerfile` FROM tag
+- `poetry.lock` (regenerated)
 
-The container includes the following logos sub-packages:
+Each PR body includes an auto-generated changelog showing what changed in logos between the previous tag and the new one, grouped by type (features, fixes, other). This gives reviewers context on what they're pulling in without digging through commits.
 
-- **`logos_tools`** - CLI tools for issue generation and management
-- **`logos_hcg`** - Hybrid Cognitive Graph data structures and utilities
-- **`logos_observability`** - OpenTelemetry instrumentation and logging
-- **`logos_persona`** - Persona diary and emotional state models
-- **`logos_cwm_e`** - Causal World Model - Emotional layer
-- **`logos_perception`** - Perception and media ingestion utilities
-- **`logos_sophia`** - Sophia-specific utilities
-- **`logos_test_utils`** - Shared test fixtures and utilities
-- **`planner_stub`** - Planning stub implementations
+To also update CI workflow refs:
 
-Plus all test dependencies (pytest, neo4j, pymilvus, rdflib, pyshacl, opentelemetry, etc.)
-
-### Using Test Utilities
-
-```python
-# In your repo's tests - everything is already installed
-from logos_test_utils import (
-    get_neo4j_config,
-    get_milvus_config,
-    cleanup_neo4j,
-    cleanup_milvus,
-)
-
-@pytest.fixture
-def neo4j_driver():
-    config = get_neo4j_config()
-    driver = neo4j.GraphDatabase.driver(
-        config["uri"],
-        auth=(config["username"], config["password"])
-    )
-    yield driver
-    cleanup_neo4j(driver)
-    driver.close()
+```bash
+./scripts/bump-downstream.sh vX.Y.Z --ci-tag ci/v2
 ```
+
+### 5. Review and merge downstream PRs
+
+Review each PR. The changelog in the PR body tells you what changed. CI must pass before merging. When merged, the downstream repo's publish workflow will automatically build a new container image using the updated foundry base.
+
+## CI Workflow Versioning
+
+Downstream repos reference reusable CI workflows from logos:
+
+```yaml
+uses: c-daly/logos/.github/workflows/reusable-standard-ci.yml@ci/v1
+```
+
+These are pinned to a `ci/vN` tag, **not** `@main`. This prevents breaking workflow changes from immediately affecting downstream repos.
+
+### Updating the CI tag
+
+When you make backwards-compatible changes to the reusable workflows:
+
+```bash
+# Move the existing tag forward
+git tag -f ci/v1
+git push origin ci/v1 --force
+```
+
+When you make breaking changes:
+
+```bash
+# Create a new tag
+git tag ci/v2
+git push origin ci/v2
+# Then update downstream repos (via bump script --ci-tag or manually)
+```
+
+## Version Alignment
+
+Each downstream repo has two independent references to logos-foundry that must match:
+
+| File | Reference |
+|------|-----------|
+| `pyproject.toml` | `logos-foundry = {git = "...", tag = "v0.4.2"}` |
+| `Dockerfile` | `FROM ghcr.io/c-daly/logos-foundry:0.4.2` |
+
+The `check_foundry_alignment` job in `reusable-standard-ci.yml` validates these match. Enable it in downstream CI:
+
+```yaml
+uses: c-daly/logos/.github/workflows/reusable-standard-ci.yml@ci/v1
+with:
+  check_foundry_alignment: true
+```
+
+## What NOT to Do
+
+- **Don't push infrastructure changes directly to main.** Python version changes, base image changes, and dependency overhauls affect every downstream container. Always use a feature branch and PR.
+- **Don't merge a downstream PR before all related fixes are ready.** If a foundry bump requires torch/spacy/dependency changes, commit those before merging.
+- **Don't bump foundry version ad-hoc, repo by repo.** Use `scripts/bump-downstream.sh` to coordinate.
+- **Don't mix unrelated changes in a version bump.** A config port fix and a Python version change should be separate releases.
 
 ## Versioning Strategy
 
-We follow [Semantic Versioning](https://semver.org/):
+Follow [Semantic Versioning](https://semver.org/):
 
-- **MAJOR** (1.0.0): Breaking API changes
-- **MINOR** (0.2.0): New features, backward-compatible
-- **PATCH** (0.1.1): Bug fixes, backward-compatible
+- **PATCH** (0.4.x): Bug fixes, config changes, documentation
+- **MINOR** (0.x.0): New packages, new utilities, backward-compatible features
+- **MAJOR** (x.0.0): Breaking API changes, Python version bumps, removed packages
 
-### When to Bump Versions
+## Authentication
 
-- **Patch:** Bug fixes in existing functionality
-- **Minor:** Adding new sub-packages, new functions/classes, new fixtures
-- **Major:** Removing packages, changing function signatures, breaking test fixture changes
-
-### Pre-release Versions
-
-For testing before official release:
+### Public access (read-only)
 
 ```bash
-poetry version prerelease  # 0.1.0 -> 0.1.1-alpha.0
-poetry version prerelease  # 0.1.1-alpha.0 -> 0.1.1-alpha.1
+docker pull ghcr.io/c-daly/logos-foundry:0.4.2
 ```
 
-## Troubleshooting
+### CI/CD (GitHub Actions)
 
-## Troubleshooting
+Handled automatically via `secrets: inherit` in the reusable publish workflow.
 
-### Container not found
-
-**Error:** `Error response from daemon: pull access denied`
-
-**Solutions:**
-1. Verify the image name: `ghcr.io/c-daly/logos-foundry:0.1.0`
-2. Check if you need authentication (for private images)
-3. Ensure the container version exists: https://github.com/c-daly/logos/pkgs/container/logos-foundry
-
-### Authentication failed
-
-**Error:** `401 Unauthorized` or `403 Forbidden` when pulling
-
-**Solutions:**
-1. Login to ghcr.io: `echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin`
-2. Verify your Personal Access Token has `read:packages` scope
-3. For CI, ensure workflow has `packages: read` permission
-
-### Local changes not reflected
-
-If you're mounting local directories and changes aren't reflected:
+### Local development
 
 ```bash
-# Rebuild if using custom Dockerfile
-docker-compose build --no-cache test-runner
-
-# Or restart services
-docker-compose restart test-runner
+echo $GITHUB_TOKEN | docker login ghcr.io -u USERNAME --password-stdin
 ```
 
-### Import errors in tests
+## Related
 
-**Error:** `ModuleNotFoundError: No module named 'logos_test_utils'`
-
-**Solutions:**
-1. Ensure you're using the foundry container: `image: ghcr.io/c-daly/logos-foundry:0.1.0`
-2. Check PYTHONPATH is set correctly (default: `/app`)
-3. Verify your code is mounted in the right location
-
-## Version Strategy
-
-Follow semantic versioning (MAJOR.MINOR.PATCH):
-
-- **PATCH (0.1.x):** Bug fixes, documentation updates, no breaking changes
-- **MINOR (0.x.0):** New features, new utilities, backward compatible
-- **MAJOR (x.0.0):** Breaking changes to APIs or package structure
-
-**Dev versions:** Use `-dev` suffix (e.g., `0.1.1-dev`) for testing unpublished changes
-
-## Related Documentation
-
-- **Issue #373:** Package Distribution Strategy  
-- **Issue #374:** GitHub Packages Setup (this implementation)
-- **Testing Guide:** `docs/operations/TESTING.md`
-- **GitHub Container Registry Docs:** https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry
+- `scripts/bump-downstream.sh` — Cross-repo bump automation
+- `.github/workflows/reusable-standard-ci.yml` — Reusable CI workflow
+- `.github/workflows/reusable-publish.yml` — Reusable publish workflow
+- `AGENTS.md` — Ecosystem standards and port allocation

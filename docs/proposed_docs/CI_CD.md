@@ -7,24 +7,43 @@ Every LOGOS repo uses GitHub Actions with two types of workflows:
 1. **CI** — lint, type check, test (runs on every push/PR to `main`)
 2. **Publish** — build and push Docker image to `ghcr.io` (runs on push to `main`)
 
-## Reusable Workflow
+## Reusable Workflows
 
-Most repos delegate CI to a shared workflow in the logos repo:
+Most repos delegate CI to shared workflows in the logos repo:
 
 ```yaml
-uses: c-daly/logos/.github/workflows/reusable-standard-ci.yml@v0.4.1
+uses: c-daly/logos/.github/workflows/reusable-standard-ci.yml@ci/v1
+uses: c-daly/logos/.github/workflows/reusable-publish.yml@ci/v1
 ```
 
-This provides:
+These are pinned to `ci/vN` tags, **not** `@main`. This prevents breaking workflow changes from immediately affecting all repos.
+
+### `reusable-standard-ci.yml`
+
+Provides:
 - Python setup (Poetry install, virtualenv caching)
-- Ruff lint + Black format check — CI currently runs both, but Ruff is the intended single tool going forward (see AGENTS.md). Black will be removed once all repos fully migrate to Ruff formatting.
+- Ruff lint + Black format check
 - mypy type checking
 - pytest execution
 - Optional Docker Compose for test infrastructure
 - Optional Node.js lint/test/build
 - Coverage upload to Codecov
+- **Foundry version alignment check** (validates Dockerfile FROM tag matches pyproject.toml tag)
 
 Repos customize behavior through `with:` inputs (Python versions, lint paths, compose files, etc.).
+
+### `reusable-publish.yml`
+
+Builds and pushes Docker images to `ghcr.io`. Checks out the **calling repo** (not logos), extracts the version from the calling repo's `pyproject.toml`, builds its `Dockerfile`, and tags the image.
+
+### Workflow Versioning
+
+| Change type | Action |
+|-------------|--------|
+| Backwards-compatible | Move the existing `ci/v1` tag forward: `git tag -f ci/v1 && git push origin ci/v1 --force` |
+| Breaking | Create `ci/v2`, update downstream repos one at a time |
+
+The `scripts/bump-downstream.sh --ci-tag ci/v2` flag automates updating workflow refs across repos.
 
 ## How CI Works for Each Repo
 
@@ -81,20 +100,38 @@ The ML build takes longer due to large model dependencies.
 
 ## Version Propagation
 
-When you change `logos_config`:
+When you change `logos_config` or any foundry package:
 
 ```
-1. Commit to logos, tag (e.g., v0.4.2)
-2. Push tag: git push origin v0.4.2
-3. In each downstream repo:
-   - Update pyproject.toml: tag = "v0.4.2"
-   - poetry update logos-foundry
-   - git push
-4. CI runs → installs new logos_config → tests pass (hopefully)
-5. Publish workflow → new Docker image with updated logos_config
+1. Make changes on a feature branch, open a PR, merge
+2. Bump version: poetry version patch
+3. Tag: git tag vX.Y.Z && git push origin vX.Y.Z --tags
+4. Run bump script: ./scripts/bump-downstream.sh vX.Y.Z
+   (creates PRs in hermes, sophia, apollo, talos)
+5. Review and merge each downstream PR
+6. Each merge triggers: CI → tests pass → publish workflow → new Docker image
 ```
 
-If you skip step 3 for a repo, its CI will keep using the old tag and its Docker image will have stale config.
+The bump script updates **both** references in each downstream repo:
+- `pyproject.toml` git tag (Python dependency)
+- `Dockerfile` FROM tag (Docker base image)
+
+Each downstream PR body includes an auto-generated changelog (grouped by `feat:`, `fix:`, other) showing what changed in logos between the previous and new tag.
+
+These must always match. The `check_foundry_alignment` CI job enforces this — if they drift, CI fails with a clear error message. Enable it per-repo:
+
+```yaml
+check_foundry_alignment: true
+```
+
+### What NOT to do
+
+- Don't push foundry changes directly to main — use a PR
+- Don't bump downstream repos manually — use the script
+- Don't merge a downstream PR before verifying all related fixes are ready (e.g., torch compatibility)
+- Don't mix infrastructure changes (Python version) with library changes in the same release
+
+See `docs/operations/PACKAGE_PUBLISHING.md` for the full release checklist.
 
 ## Debugging CI Failures
 
@@ -132,8 +169,9 @@ Common causes:
 ### Container publish fails
 
 - Check that the Dockerfile builds locally: `docker build -t test .`
-- Verify the base image tag matches what's published (e.g., the Docker base image `ghcr.io/c-daly/logos-foundry:0.4.1` — this refers to the Docker image, not the Python package)
+- Verify the Dockerfile `FROM` tag matches what's published — the tag in `Dockerfile` and the tag in `pyproject.toml` must be the same version
 - Check GHCR authentication (repo secrets)
+- For ML images: verify that ML dependencies (torch, spacy, etc.) have wheels for the Python version in the foundry base image
 
 ## Useful Commands
 
