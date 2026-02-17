@@ -62,6 +62,21 @@ Each repo has a unique prefix to prevent conflicts when running test stacks in p
 | sophia | 47xxx | 47474 | 47687 | 47530 | 47091 | 47000 |
 | talos | 57xxx | 57474 | 57687 | 57530 | 57091 | 57000 |
 
+### Foundry dependency management
+
+Downstream repos reference logos-foundry in **two places** that must stay in sync:
+
+| File | Reference | Example |
+|------|-----------|---------|
+| `pyproject.toml` | Git tag | `logos-foundry = {git = "...", tag = "v0.4.2"}` |
+| `Dockerfile` | Image tag | `FROM ghcr.io/c-daly/logos-foundry:0.4.2` |
+
+**Rules:**
+- These versions **must match**. CI enforces this via `check_foundry_alignment: true`.
+- Reusable CI workflows are pinned to `ci/vN` tags (e.g., `@ci/v1`), **not** `@main`.
+- Use `scripts/bump-downstream.sh` to update all repos at once.
+- See `docs/operations/PACKAGE_PUBLISHING.md` for the full release process.
+
 ### Shared configuration (`logos_config`)
 
 The `logos_config` package is the **source of truth** for configuration across all LOGOS repos. All repos should use it instead of duplicating config helpers.
