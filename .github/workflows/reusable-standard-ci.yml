@@ -172,7 +172,13 @@ jobs:
       - name: Start test services
         if: inputs.docker_compose_file != ''
         run: |
-          docker compose -f ${{ inputs.docker_compose_file }} up -d
+          docker compose -f ${{ inputs.docker_compose_file }} up -d || {
+            echo "=== docker compose up failed. Dumping all container logs: ==="
+            docker compose -f ${{ inputs.docker_compose_file }} logs 2>&1 || true
+            echo "=== Container status: ==="
+            docker ps -a 2>&1 || true
+            exit 1
+          }
 
       - name: Wait for services
         if: inputs.docker_compose_file != '' && inputs.docker_compose_wait_script != ''
