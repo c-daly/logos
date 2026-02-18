@@ -4,11 +4,19 @@ import pytest
 
 from logos_hcg.client import HCGClient
 from logos_hcg.seeder import HCGSeeder
+from logos_test_utils.neo4j import get_neo4j_config, is_neo4j_available
+
+_neo4j_cfg = get_neo4j_config()
+pytestmark = pytest.mark.skipif(
+    not is_neo4j_available(_neo4j_cfg), reason="Neo4j not available"
+)
 
 
 @pytest.fixture
 def client():
-    c = HCGClient(uri="bolt://localhost:7687", user="neo4j", password="logosdev")
+    c = HCGClient(
+        uri=_neo4j_cfg.uri, user=_neo4j_cfg.user, password=_neo4j_cfg.password
+    )
     c.clear_all()
     yield c
     c.clear_all()
