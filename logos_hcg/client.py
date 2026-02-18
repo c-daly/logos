@@ -1068,12 +1068,15 @@ class HCGClient:
         SET r += $props
         RETURN r.id AS id
         """
-        self._execute_query(query, {
-            "source_uuid": source_uuid,
-            "target_uuid": target_uuid,
-            "edge_id": eid,
-            "props": props,
-        })
+        self._execute_query(
+            query,
+            {
+                "source_uuid": source_uuid,
+                "target_uuid": target_uuid,
+                "edge_id": eid,
+                "props": props,
+            },
+        )
         return eid
 
     def clear_all(self) -> None:

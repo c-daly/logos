@@ -203,25 +203,33 @@ class HCGSeeder:
             self.client.add_relation(ids[src], ids[tgt], rel, properties=kw or None)
 
         # --- Workspace & zones ---
-        _n("ws", "Assembly Lab", "workspace",
-           props={"description": "Main assembly workspace"})
-        _n("zone_staging", "Staging Area", "zone",
-           props={"zone_type": "staging"})
-        _n("zone_assembly", "Assembly Station", "zone",
-           props={"zone_type": "assembly"})
-        _n("zone_inspection", "Inspection Bay", "zone",
-           props={"zone_type": "inspection"})
+        _n(
+            "ws",
+            "Assembly Lab",
+            "workspace",
+            props={"description": "Main assembly workspace"},
+        )
+        _n("zone_staging", "Staging Area", "zone", props={"zone_type": "staging"})
+        _n("zone_assembly", "Assembly Station", "zone", props={"zone_type": "assembly"})
+        _n(
+            "zone_inspection",
+            "Inspection Bay",
+            "zone",
+            props={"zone_type": "inspection"},
+        )
         _e("zone_staging", "ws", "PART_OF")
         _e("zone_assembly", "ws", "PART_OF")
         _e("zone_inspection", "ws", "PART_OF")
 
         # --- Agent + components ---
-        _n("agent", "LOGOS-01", "agent",
-           props={"description": "Primary robotic agent"})
-        _n("arm", "Panda Arm", "manipulator",
-           props={"model": "Franka Panda", "dof": 7})
-        _n("cam", "Depth Camera", "sensor",
-           props={"model": "Intel RealSense D435", "sensor_type": "rgbd"})
+        _n("agent", "LOGOS-01", "agent", props={"description": "Primary robotic agent"})
+        _n("arm", "Panda Arm", "manipulator", props={"model": "Franka Panda", "dof": 7})
+        _n(
+            "cam",
+            "Depth Camera",
+            "sensor",
+            props={"model": "Intel RealSense D435", "sensor_type": "rgbd"},
+        )
         _e("arm", "agent", "PART_OF")
         _e("cam", "agent", "PART_OF")
         _e("agent", "zone_assembly", "LOCATED_AT")
@@ -242,12 +250,23 @@ class HCGSeeder:
         # =================================================================
         # Goal 1 — Sort by Color (completed)
         # =================================================================
-        _n("goal_sort", "Sort Objects by Color", "goal",
-           props={"status": "completed", "priority": 1,
-                  "description": "Move all red and green cubes to staging area"})
+        _n(
+            "goal_sort",
+            "Sort Objects by Color",
+            "goal",
+            props={
+                "status": "completed",
+                "priority": 1,
+                "description": "Move all red and green cubes to staging area",
+            },
+        )
 
-        _n("plan_sort", "Color Sort Plan", "plan",
-           props={"status": "completed", "goal_id": ids["goal_sort"]})
+        _n(
+            "plan_sort",
+            "Color Sort Plan",
+            "plan",
+            props={"status": "completed", "goal_id": ids["goal_sort"]},
+        )
         _e("plan_sort", "goal_sort", "ACHIEVES")
 
         sort_steps = [
@@ -259,8 +278,7 @@ class HCGSeeder:
         ]
         prev_step = None
         for key, name, status in sort_steps:
-            _n(key, name, "step",
-               props={"status": status, "order": int(key[-1])})
+            _n(key, name, "step", props={"status": status, "order": int(key[-1])})
             _e("plan_sort", key, "HAS_STEP")
             if prev_step:
                 _e(prev_step, key, "ENABLES")
@@ -269,19 +287,37 @@ class HCGSeeder:
         # =================================================================
         # Goal 2 — Assemble Stack (active, with a prior failed plan)
         # =================================================================
-        _n("goal_stack", "Assemble Cube Stack", "goal",
-           props={"status": "active", "priority": 2,
-                  "description": "Stack white, red, and green cubes at assembly station"})
+        _n(
+            "goal_stack",
+            "Assemble Cube Stack",
+            "goal",
+            props={
+                "status": "active",
+                "priority": 2,
+                "description": "Stack white, red, and green cubes at assembly station",
+            },
+        )
 
         # Failed plan attempt
-        _n("plan_stack_v1", "Stack Plan v1 (failed)", "plan",
-           props={"status": "failed", "goal_id": ids["goal_stack"],
-                  "failure_reason": "Grasp slip on white cube"})
+        _n(
+            "plan_stack_v1",
+            "Stack Plan v1 (failed)",
+            "plan",
+            props={
+                "status": "failed",
+                "goal_id": ids["goal_stack"],
+                "failure_reason": "Grasp slip on white cube",
+            },
+        )
         _e("plan_stack_v1", "goal_stack", "ACHIEVES")
 
         # Active plan
-        _n("plan_stack_v2", "Stack Plan v2", "plan",
-           props={"status": "executing", "goal_id": ids["goal_stack"]})
+        _n(
+            "plan_stack_v2",
+            "Stack Plan v2",
+            "plan",
+            props={"status": "executing", "goal_id": ids["goal_stack"]},
+        )
         _e("plan_stack_v2", "goal_stack", "ACHIEVES")
 
         stack_steps = [
@@ -293,8 +329,7 @@ class HCGSeeder:
         ]
         prev_step = None
         for key, name, status in stack_steps:
-            _n(key, name, "step",
-               props={"status": status, "order": int(key[-1])})
+            _n(key, name, "step", props={"status": status, "order": int(key[-1])})
             _e("plan_stack_v2", key, "HAS_STEP")
             if prev_step:
                 _e(prev_step, key, "ENABLES")
@@ -307,20 +342,38 @@ class HCGSeeder:
         # =================================================================
         # Goal 3 — Clear Workspace (pending, with simulation)
         # =================================================================
-        _n("goal_clear", "Clear Workspace", "goal",
-           props={"status": "pending", "priority": 3,
-                  "description": "Move all objects to inspection bay"})
+        _n(
+            "goal_clear",
+            "Clear Workspace",
+            "goal",
+            props={
+                "status": "pending",
+                "priority": 3,
+                "description": "Move all objects to inspection bay",
+            },
+        )
 
-        _n("sim_clear", "Clearance Simulation", "simulation",
-           props={"description": "Simulated workspace clearance",
-                  "confidence": 0.78})
+        _n(
+            "sim_clear",
+            "Clearance Simulation",
+            "simulation",
+            props={"description": "Simulated workspace clearance", "confidence": 0.78},
+        )
         _e("sim_clear", "goal_clear", "GENERATES")
 
         # Imagined states / processes within the simulation
-        _n("ip_move_all", "Move all to inspection", "imagined_process",
-           props={"description": "Simulated batch move"})
-        _n("is_empty_ws", "Empty workspace state", "imagined_state",
-           props={"description": "All objects in inspection bay"})
+        _n(
+            "ip_move_all",
+            "Move all to inspection",
+            "imagined_process",
+            props={"description": "Simulated batch move"},
+        )
+        _n(
+            "is_empty_ws",
+            "Empty workspace state",
+            "imagined_state",
+            props={"description": "All objects in inspection bay"},
+        )
         _e("sim_clear", "ip_move_all", "HAS_STEP")
         _e("ip_move_all", "is_empty_ws", "CAUSES")
 
@@ -332,9 +385,15 @@ class HCGSeeder:
         _e("cam", "zone_staging", "OBSERVES")
 
         # Capability
-        _n("cap_pick", "Pick-and-Place", "capability",
-           props={"description": "Grasping and placing objects",
-                  "executor_type": "manipulator"})
+        _n(
+            "cap_pick",
+            "Pick-and-Place",
+            "capability",
+            props={
+                "description": "Grasping and placing objects",
+                "executor_type": "manipulator",
+            },
+        )
         _e("arm", "cap_pick", "HAS_STATE")
 
         logger.info(
@@ -365,13 +424,23 @@ class HCGSeeder:
                 "id": f"plan-sort-{uuid4().hex[:8]}",
                 "goal_id": scenario_ids.get("goal_sort", "goal_sort"),
                 "status": "completed",
-                "steps": json.dumps([
-                    {"id": "1", "name": "Scan staging area", "status": "completed"},
-                    {"id": "2", "name": "Pick red cube", "status": "completed"},
-                    {"id": "3", "name": "Place red cube in staging", "status": "completed"},
-                    {"id": "4", "name": "Pick green cube", "status": "completed"},
-                    {"id": "5", "name": "Place green cube in staging", "status": "completed"},
-                ]),
+                "steps": json.dumps(
+                    [
+                        {"id": "1", "name": "Scan staging area", "status": "completed"},
+                        {"id": "2", "name": "Pick red cube", "status": "completed"},
+                        {
+                            "id": "3",
+                            "name": "Place red cube in staging",
+                            "status": "completed",
+                        },
+                        {"id": "4", "name": "Pick green cube", "status": "completed"},
+                        {
+                            "id": "5",
+                            "name": "Place green cube in staging",
+                            "status": "completed",
+                        },
+                    ]
+                ),
                 "created_at": (now - timedelta(hours=2)).isoformat(),
                 "completed_at": (now - timedelta(hours=1, minutes=30)).isoformat(),
             },
@@ -379,10 +448,20 @@ class HCGSeeder:
                 "id": f"plan-stack-v1-{uuid4().hex[:8]}",
                 "goal_id": scenario_ids.get("goal_stack", "goal_stack"),
                 "status": "failed",
-                "steps": json.dumps([
-                    {"id": "1", "name": "Move to white cube", "status": "completed"},
-                    {"id": "2", "name": "Place white cube base", "status": "failed"},
-                ]),
+                "steps": json.dumps(
+                    [
+                        {
+                            "id": "1",
+                            "name": "Move to white cube",
+                            "status": "completed",
+                        },
+                        {
+                            "id": "2",
+                            "name": "Place white cube base",
+                            "status": "failed",
+                        },
+                    ]
+                ),
                 "created_at": (now - timedelta(hours=1)).isoformat(),
                 "completed_at": (now - timedelta(minutes=50)).isoformat(),
                 "result": json.dumps({"error": "Grasp slip on white cube"}),
@@ -391,13 +470,23 @@ class HCGSeeder:
                 "id": f"plan-stack-v2-{uuid4().hex[:8]}",
                 "goal_id": scenario_ids.get("goal_stack", "goal_stack"),
                 "status": "executing",
-                "steps": json.dumps([
-                    {"id": "1", "name": "Move to white cube", "status": "completed"},
-                    {"id": "2", "name": "Place white cube base", "status": "completed"},
-                    {"id": "3", "name": "Pick red cube", "status": "in_progress"},
-                    {"id": "4", "name": "Stack red on white", "status": "pending"},
-                    {"id": "5", "name": "Stack green on red", "status": "pending"},
-                ]),
+                "steps": json.dumps(
+                    [
+                        {
+                            "id": "1",
+                            "name": "Move to white cube",
+                            "status": "completed",
+                        },
+                        {
+                            "id": "2",
+                            "name": "Place white cube base",
+                            "status": "completed",
+                        },
+                        {"id": "3", "name": "Pick red cube", "status": "in_progress"},
+                        {"id": "4", "name": "Stack red on white", "status": "pending"},
+                        {"id": "5", "name": "Stack green on red", "status": "pending"},
+                    ]
+                ),
                 "created_at": (now - timedelta(minutes=30)).isoformat(),
                 "started_at": (now - timedelta(minutes=25)).isoformat(),
             },
@@ -417,16 +506,19 @@ class HCGSeeder:
             })
             RETURN p
             """
-            self.client._execute_query(query, {
-                "id": plan["id"],
-                "goal_id": plan["goal_id"],
-                "status": plan["status"],
-                "steps": plan["steps"],
-                "created_at": plan.get("created_at", now.isoformat()),
-                "started_at": plan.get("started_at"),
-                "completed_at": plan.get("completed_at"),
-                "result": plan.get("result"),
-            })
+            self.client._execute_query(
+                query,
+                {
+                    "id": plan["id"],
+                    "goal_id": plan["goal_id"],
+                    "status": plan["status"],
+                    "steps": plan["steps"],
+                    "created_at": plan.get("created_at", now.isoformat()),
+                    "started_at": plan.get("started_at"),
+                    "completed_at": plan.get("completed_at"),
+                    "result": plan.get("result"),
+                },
+            )
             plan_ids.append(plan["id"])
 
         logger.info("Seeded %d Apollo Plan nodes", len(plan_ids))
@@ -587,19 +679,22 @@ class HCGSeeder:
             })
             RETURN entry
             """
-            self.client._execute_query(query, {
-                "id": entry_id,
-                "timestamp": ts.isoformat(),
-                "entry_type": entry_data["entry_type"],
-                "content": entry_data["content"],
-                "summary": entry_data["summary"],
-                "sentiment": entry_data["sentiment"],
-                "confidence": entry_data["confidence"],
-                "related_process_ids": entry_data["related_process_ids"],
-                "related_goal_ids": entry_data["related_goal_ids"],
-                "emotion_tags": entry_data["emotion_tags"],
-                "metadata": "{}",
-            })
+            self.client._execute_query(
+                query,
+                {
+                    "id": entry_id,
+                    "timestamp": ts.isoformat(),
+                    "entry_type": entry_data["entry_type"],
+                    "content": entry_data["content"],
+                    "summary": entry_data["summary"],
+                    "sentiment": entry_data["sentiment"],
+                    "confidence": entry_data["confidence"],
+                    "related_process_ids": entry_data["related_process_ids"],
+                    "related_goal_ids": entry_data["related_goal_ids"],
+                    "emotion_tags": entry_data["emotion_tags"],
+                    "metadata": "{}",
+                },
+            )
             entry_ids.append(entry_id)
 
         logger.info("Seeded %d persona diary entries", len(entry_ids))
