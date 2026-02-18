@@ -14,8 +14,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from uuid import uuid4
 
@@ -180,7 +179,6 @@ class HCGSeeder:
             Mapping of logical name -> uuid for every created node.
         """
         ids: dict[str, str] = {}
-        now = datetime.now(timezone.utc)
 
         def _n(
             key: str,
@@ -359,7 +357,7 @@ class HCGSeeder:
         Returns:
             List of plan node IDs.
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         plan_ids: list[str] = []
 
         plans = [
@@ -447,7 +445,7 @@ class HCGSeeder:
         Returns:
             List of entry IDs created.
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         entry_ids: list[str] = []
 
         entries: list[dict[str, Any]] = [
