@@ -113,6 +113,9 @@ class HCGMilvusSync:
 
     def ensure_collection(self, node_type: NodeType) -> None:
         """Create collection with correct schema and L2 index if it doesn't exist."""
+        if not self._connected:
+            raise MilvusSyncError("Not connected to Milvus. Call connect() first.")
+
         from pymilvus import CollectionSchema, DataType, FieldSchema
 
         name = COLLECTION_NAMES[node_type]
@@ -123,6 +126,8 @@ class HCGMilvusSync:
             FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
             FieldSchema(name="uuid", dtype=DataType.VARCHAR, max_length=64),
             FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR, dim=384),
+            FieldSchema(name="embedding_model", dtype=DataType.VARCHAR, max_length=128),
+            FieldSchema(name="last_sync", dtype=DataType.INT64),
         ]
         schema = CollectionSchema(fields, description=f"Embeddings for {node_type}")
         collection = Collection(name=name, schema=schema, using=self.alias)

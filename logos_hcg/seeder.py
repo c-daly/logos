@@ -170,16 +170,16 @@ class HCGSeeder:
             )
             count += 1
 
+        # Ensure the edge_type bootstrap node exists (once, before the loop)
+        self.client.add_node(
+            uuid="type_edge_type",
+            name="edge_type",
+            node_type="type_definition",
+        )
+
         for edge_name in EDGE_TYPES:
             if edge_name in BOOTSTRAP_TYPES:
                 continue
-
-            # Ensure the edge_type bootstrap node exists
-            self.client.add_node(
-                uuid="type_edge_type",
-                name="edge_type",
-                node_type="type_definition",
-            )
 
             node_uuid = self.client.add_node(
                 uuid=f"type_edge_{edge_name.lower()}",

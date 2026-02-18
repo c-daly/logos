@@ -1003,7 +1003,8 @@ class HCGClient:
             "updated_at": now,
         }
         if properties:
-            props.update(properties)
+            reserved = {"uuid", "type", "relation", "source", "target", "bidirectional", "created_at", "updated_at"}
+            props.update({k: v for k, v in properties.items() if k not in reserved})
 
         # MERGE on composite key (source + target + relation) for idempotency.
         # If the same structural relationship is proposed twice, update the
@@ -1013,7 +1014,7 @@ class HCGClient:
         query = """
         MATCH (src:Node {uuid: $source_uuid})
         MATCH (tgt:Node {uuid: $target_uuid})
-        MERGE (edge:Node {source: $source_uuid, target: $target_uuid, relation: $relation})
+        MERGE (edge:Node {type: "edge", source: $source_uuid, target: $target_uuid, relation: $relation})
         ON CREATE SET edge += $props,
                       edge.name = src.name + '_' + $relation + '_' + tgt.name
         ON MATCH SET edge.updated_at = $now
@@ -1031,10 +1032,12 @@ class HCGClient:
                 "now": now,
             },
         )
-        # If MERGE matched an existing edge, return its UUID instead
-        if result and result[0].get("uuid"):
-            return str(result[0]["uuid"])
-        return eid
+        if not result or not result[0].get("uuid"):
+            raise ValueError(
+                f"Could not create edge between {source_uuid} and {target_uuid}. "
+                "One or both nodes may not exist."
+            )
+        return str(result[0]["uuid"])
 
     def ensure_indexes(self) -> None:
         """Create Neo4j indexes for common query patterns.

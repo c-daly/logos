@@ -13,6 +13,7 @@ See Project LOGOS spec: Section 4.1 (Core Ontology and Data Model)
 """
 
 from logos_hcg.client import HCGClient
+from logos_hcg.edge import Edge
 from logos_hcg.models import (
     Abstraction,
     Association,
@@ -52,6 +53,7 @@ __all__ = [
     "Concept",
     "State",
     "Process",
+    "Edge",
     # Capability catalog (logos#284)
     "Capability",
     "ExecutorType",
