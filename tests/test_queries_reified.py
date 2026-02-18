@@ -1,4 +1,5 @@
 """Integration tests for reified edge queries. Requires Neo4j."""
+
 import pytest
 
 from logos_hcg.client import HCGClient

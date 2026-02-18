@@ -1,4 +1,5 @@
 """Tests for seeder with reified IS_A edges. Requires Neo4j."""
+
 import pytest
 
 from logos_hcg.client import HCGClient

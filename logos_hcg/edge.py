@@ -3,6 +3,7 @@
 Edges are nodes in Neo4j connected to source and target via :FROM/:TO
 structural relationships. This is the ONLY edge representation in the graph.
 """
+
 from typing import Any
 from uuid import uuid4
 

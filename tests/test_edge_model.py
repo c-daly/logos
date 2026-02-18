@@ -1,4 +1,5 @@
 """Tests for the reified Edge model."""
+
 from logos_hcg.edge import Edge
 
 

@@ -1,4 +1,5 @@
 """Integration tests for reified edge creation. Requires Neo4j."""
+
 import inspect
 
 import pytest
