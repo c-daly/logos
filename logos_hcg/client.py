@@ -1046,10 +1046,10 @@ class HCGClient:
         - Index on Node.relation (used in edge node queries)
         """
         indexes = [
-            "CREATE CONSTRAINT node_uuid_unique IF NOT EXISTS FOR (n:Node) REQUIRE n.uuid IS UNIQUE",
-            "CREATE INDEX node_type_idx IF NOT EXISTS FOR (n:Node) ON (n.type)",
-            "CREATE INDEX node_name_idx IF NOT EXISTS FOR (n:Node) ON (n.name)",
-            "CREATE INDEX node_relation_idx IF NOT EXISTS FOR (n:Node) ON (n.relation)",
+            "CREATE CONSTRAINT logos_node_uuid IF NOT EXISTS FOR (n:Node) REQUIRE n.uuid IS UNIQUE",
+            "CREATE INDEX logos_node_type IF NOT EXISTS FOR (n:Node) ON (n.type)",
+            "CREATE INDEX logos_node_name IF NOT EXISTS FOR (n:Node) ON (n.name)",
+            "CREATE INDEX logos_node_relation IF NOT EXISTS FOR (n:Node) ON (n.relation)",
         ]
         for query in indexes:
             try:
