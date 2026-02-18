@@ -38,7 +38,7 @@ from logos_hcg.models import (
 )
 from logos_hcg.planner import GoalUnachievableError, HCGPlanner, PlanningError
 from logos_hcg.queries import HCGQueries
-from logos_hcg.seeder import ANCESTORS, HCGSeeder
+from logos_hcg.seeder import TYPE_PARENTS, HCGSeeder
 from logos_hcg.sync import HCGMilvusSync, MilvusSyncError
 
 __all__ = [
@@ -78,7 +78,7 @@ __all__ = [
     "GoalUnachievableError",
     # Seeder
     "HCGSeeder",
-    "ANCESTORS",
+    "TYPE_PARENTS",
 ]
 
 __version__ = "0.1.0"

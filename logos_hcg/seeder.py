@@ -26,43 +26,43 @@ logger = logging.getLogger(__name__)
 # Type hierarchy
 # ---------------------------------------------------------------------------
 
-# Complete ancestor chains for every type used across LOGOS repos.
-# Keys are type names; values are ordered ancestor lists (immediate parent
-# first, bootstrap root last).
-ANCESTORS: dict[str, list[str]] = {
+# Immediate parent for every type used across LOGOS repos.
+# The full ancestor chain is reconstructed at query time by traversing
+# IS_A edge nodes rather than being stored on each node.
+TYPE_PARENTS: dict[str, str] = {
     # --- thing sub-tree ---
-    "entity": ["thing"],
-    "physical_entity": ["entity", "thing"],
-    "agent": ["physical_entity", "entity", "thing"],
-    "object": ["physical_entity", "entity", "thing"],
-    "manipulator": ["physical_entity", "entity", "thing"],
-    "sensor": ["physical_entity", "entity", "thing"],
-    "spatial_entity": ["entity", "thing"],
-    "location": ["spatial_entity", "entity", "thing"],
-    "workspace": ["spatial_entity", "entity", "thing"],
-    "zone": ["spatial_entity", "entity", "thing"],
-    "process": ["entity", "thing"],
-    "action": ["process", "entity", "thing"],
-    "step": ["process", "entity", "thing"],
-    "imagined_process": ["process", "entity", "thing"],
-    "proposed_plan_step": ["process", "entity", "thing"],
-    "proposed_tool_call": ["process", "entity", "thing"],
-    "intention": ["entity", "thing"],
-    "goal": ["intention", "entity", "thing"],
-    "plan": ["intention", "entity", "thing"],
-    "hermes_proposal": ["intention", "entity", "thing"],
-    "abstraction": ["entity", "thing"],
-    "simulation": ["abstraction", "entity", "thing"],
-    "execution": ["abstraction", "entity", "thing"],
-    "data": ["entity", "thing"],
-    "media_sample": ["data", "entity", "thing"],
-    "capability": ["data", "entity", "thing"],
+    "entity": "thing",
+    "physical_entity": "entity",
+    "agent": "physical_entity",
+    "object": "physical_entity",
+    "manipulator": "physical_entity",
+    "sensor": "physical_entity",
+    "spatial_entity": "entity",
+    "location": "spatial_entity",
+    "workspace": "spatial_entity",
+    "zone": "spatial_entity",
+    "process": "entity",
+    "action": "process",
+    "step": "process",
+    "imagined_process": "process",
+    "proposed_plan_step": "process",
+    "proposed_tool_call": "process",
+    "intention": "entity",
+    "goal": "intention",
+    "plan": "intention",
+    "hermes_proposal": "intention",
+    "abstraction": "entity",
+    "simulation": "abstraction",
+    "execution": "abstraction",
+    "data": "entity",
+    "media_sample": "data",
+    "capability": "data",
     # --- concept sub-tree ---
-    "constraint": ["concept"],
+    "constraint": "concept",
     # --- cognition sub-tree ---
-    "state": ["cognition"],
-    "imagined_state": ["cognition"],
-    "proposed_imagined_state": ["cognition"],
+    "state": "cognition",
+    "imagined_state": "cognition",
+    "proposed_imagined_state": "cognition",
     # cwm_a, cwm_g, cwm_e, cwm, persona are bootstrap — listed below
 }
 
@@ -126,38 +126,72 @@ class HCGSeeder:
     # ------------------------------------------------------------------
 
     def seed_type_definitions(self) -> int:
-        """Create type-definition nodes for every type in ANCESTORS + EDGE_TYPES.
+        """Create type-definition nodes and IS_A edge nodes for the hierarchy.
 
-        Skips types already present in BOOTSTRAP_TYPES (created by
-        ``core_ontology.cypher``).
+        Each type gets a node and an IS_A reified edge to its immediate
+        parent.  Bootstrap types (already in ``core_ontology.cypher``) are
+        skipped for node creation but still get IS_A edges if the parent
+        exists.
 
         Returns:
             Number of type-definition nodes created.
         """
+        self.client.ensure_indexes()
+
         count = 0
 
-        for type_name, ancestors in ANCESTORS.items():
+        # Ensure bootstrap parent nodes exist so IS_A edges can reference them.
+        # Bootstrap nodes are normally created by core_ontology.cypher, but
+        # in test scenarios we create minimal stubs.
+        for bootstrap_name in ("thing", "concept", "cognition"):
+            self.client.add_node(
+                uuid=f"type_{bootstrap_name}",
+                name=bootstrap_name,
+                node_type="type_definition",
+            )
+
+        for type_name, parent_name in TYPE_PARENTS.items():
             if type_name in BOOTSTRAP_TYPES:
                 continue
-            parent_type = ancestors[0] if ancestors else "thing"
-            self.client.add_node(
+
+            # Create the type-definition node
+            node_uuid = self.client.add_node(
                 uuid=f"type_{type_name}",
                 name=type_name,
-                node_type=parent_type,
-                ancestors=ancestors,
-                is_type_definition=True,
+                node_type="type_definition",
+            )
+
+            # Create IS_A edge to the immediate parent
+            parent_uuid = f"type_{parent_name}"
+            self.client.add_edge(
+                source_uuid=node_uuid,
+                target_uuid=parent_uuid,
+                relation="IS_A",
             )
             count += 1
 
         for edge_name in EDGE_TYPES:
             if edge_name in BOOTSTRAP_TYPES:
                 continue
+
+            # Ensure the edge_type bootstrap node exists
             self.client.add_node(
+                uuid="type_edge_type",
+                name="edge_type",
+                node_type="type_definition",
+            )
+
+            node_uuid = self.client.add_node(
                 uuid=f"type_edge_{edge_name.lower()}",
                 name=edge_name,
                 node_type="edge_type",
-                ancestors=["edge_type"],
-                is_type_definition=True,
+            )
+
+            # IS_A -> edge_type
+            self.client.add_edge(
+                source_uuid=node_uuid,
+                target_uuid="type_edge_type",
+                relation="IS_A",
             )
             count += 1
 
@@ -187,20 +221,31 @@ class HCGSeeder:
             *,
             props: dict[str, Any] | None = None,
         ) -> str:
-            """Helper — create a node and record its uuid."""
+            """Helper -- create a node, record its uuid, add IS_A edge to type."""
             uuid = str(uuid4())
             self.client.add_node(
                 uuid=uuid,
                 name=name,
                 node_type=node_type,
-                ancestors=ANCESTORS.get(node_type, []),
                 properties=props,
+            )
+            # Create IS_A edge from instance to its type definition
+            type_def_uuid = f"type_{node_type}"
+            self.client.add_edge(
+                source_uuid=uuid,
+                target_uuid=type_def_uuid,
+                relation="IS_A",
             )
             ids[key] = uuid
             return uuid
 
         def _e(src: str, tgt: str, rel: str, **kw: Any) -> None:
-            self.client.add_relation(ids[src], ids[tgt], rel, properties=kw or None)
+            self.client.add_edge(
+                source_uuid=ids[src],
+                target_uuid=ids[tgt],
+                relation=rel,
+                properties=kw or None,
+            )
 
         # --- Workspace & zones ---
         _n(
