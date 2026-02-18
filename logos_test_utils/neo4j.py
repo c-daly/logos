@@ -41,7 +41,7 @@ def get_neo4j_config(
     default_uri = f"bolt://{service.host}:{service.port}"
     uri = get_env_value("NEO4J_URI", values, default_uri) or default_uri
     user = get_env_value("NEO4J_USER", values, "neo4j") or "neo4j"
-    password = get_env_value("NEO4J_PASSWORD", values, "neo4jtest") or "neo4jtest"
+    password = get_env_value("NEO4J_PASSWORD", values, "logosdev") or "logosdev"
     container = resolve_container_name(
         "NEO4J_CONTAINER",
         "logos-hcg-neo4j",

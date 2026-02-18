@@ -1003,7 +1003,16 @@ class HCGClient:
             "updated_at": now,
         }
         if properties:
-            reserved = {"uuid", "type", "relation", "source", "target", "bidirectional", "created_at", "updated_at"}
+            reserved = {
+                "uuid",
+                "type",
+                "relation",
+                "source",
+                "target",
+                "bidirectional",
+                "created_at",
+                "updated_at",
+            }
             props.update({k: v for k, v in properties.items() if k not in reserved})
 
         # MERGE on composite key (source + target + relation) for idempotency.
