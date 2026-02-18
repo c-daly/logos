@@ -11,7 +11,7 @@ import logging
 import re
 from collections.abc import Iterator
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -934,36 +934,20 @@ class HCGClient:
         name: str,
         node_type: str,
         uuid: str | None = None,
-        ancestors: list[str] | None = None,
-        is_type_definition: bool = False,
         properties: dict[str, Any] | None = None,
     ) -> str:
-        """
-        Create or merge a node in the graph.
+        """Create or merge a node in the graph.
 
-        Uses MERGE on uuid for idempotency.
-
-        Args:
-            name: Human-readable node name
-            node_type: Immediate type name
-            uuid: Node UUID (generated if not provided)
-            ancestors: Ancestor type chain
-            is_type_definition: Whether this is a type definition node
-            properties: Additional properties to set on the node
-
-        Returns:
-            The uuid of the created/merged node
+        Type hierarchy is expressed through IS_A edge nodes, not stored
+        as node properties. Use add_edge() with relation="IS_A" for hierarchy.
         """
         node_uuid = uuid or str(uuid4())
-        ancestors = ancestors or []
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(UTC).isoformat()
 
         props = {
             "uuid": node_uuid,
             "name": name,
             "type": node_type,
-            "is_type_definition": is_type_definition,
-            "ancestors": ancestors,
             "created_at": now,
             "updated_at": now,
         }
@@ -978,106 +962,97 @@ class HCGClient:
         self._execute_query(query, {"uuid": node_uuid, "props": props})
         return node_uuid
 
-    def add_typed_edge(
+    def add_edge(
         self,
         source_uuid: str,
         target_uuid: str,
         relation: str,
-        properties: dict[str, Any] | None = None,
-    ) -> None:
-        """
-        Create a typed relationship between two nodes.
-
-        Uses MERGE for idempotency. The relation name is validated to
-        prevent Cypher injection (Neo4j does not support parameterised
-        relationship types).
-
-        Args:
-            source_uuid: Source node UUID
-            target_uuid: Target node UUID
-            relation: Relationship type (must be alphanumeric/underscore)
-            properties: Optional properties to set on the relationship
-
-        Raises:
-            ValueError: If relation contains invalid characters
-        """
-        if not self._RELATION_RE.match(relation):
-            raise ValueError(
-                f"Invalid relation name '{relation}': "
-                "must be alphanumeric/underscore only"
-            )
-
-        if properties:
-            query = f"""
-            MATCH (a:Node {{uuid: $source_uuid}})
-            MATCH (b:Node {{uuid: $target_uuid}})
-            MERGE (a)-[r:{relation}]->(b)
-            SET r += $props
-            """
-            params: dict[str, Any] = {
-                "source_uuid": source_uuid,
-                "target_uuid": target_uuid,
-                "props": properties,
-            }
-        else:
-            query = f"""
-            MATCH (a:Node {{uuid: $source_uuid}})
-            MATCH (b:Node {{uuid: $target_uuid}})
-            MERGE (a)-[r:{relation}]->(b)
-            """
-            params = {
-                "source_uuid": source_uuid,
-                "target_uuid": target_uuid,
-            }
-
-        self._execute_query(query, params)
-
-    def add_relation(
-        self,
-        source_uuid: str,
-        target_uuid: str,
-        relation: str,
-        edge_id: str | None = None,
+        edge_uuid: str | None = None,
+        bidirectional: bool = False,
         properties: dict[str, Any] | None = None,
     ) -> str:
-        """
-        Create a :RELATION edge compatible with sophia's edge convention.
+        """Create a reified edge node with :FROM/:TO structural relationships.
 
-        Sophia stores all edges as ``-[:RELATION {id, relation_type}]->``
-        rather than using native Neo4j relationship types. This method
-        follows that convention so edges are visible through sophia's API.
+        The edge is stored as a node connected to source and target:
+            (source)<-[:FROM]-(edge_node)-[:TO]->(target)
+
+        These are the ONLY native Neo4j relationships in the graph.
 
         Args:
             source_uuid: Source node UUID
             target_uuid: Target node UUID
-            relation: Logical relation name (e.g. "ENABLES", "HAS_STEP")
-            edge_id: Edge identifier (generated if not provided)
-            properties: Optional extra properties
+            relation: Edge type (e.g., "IS_A", "CAUSES", "HAS_STATE")
+            edge_uuid: Edge node UUID (auto-generated if not provided)
+            bidirectional: Whether the relationship is bidirectional
+            properties: Additional properties on the edge node
 
         Returns:
-            The edge id.
+            The UUID of the created edge node
         """
-        eid = edge_id or f"e_{relation.lower()}_{str(uuid4())[:8]}"
-        props = dict(properties) if properties else {}
-        props["relation_type"] = relation
+        eid = edge_uuid or str(uuid4())
+        now = datetime.now(UTC).isoformat()
 
+        props = {
+            "uuid": eid,
+            "type": "edge",
+            "relation": relation,
+            "source": source_uuid,
+            "target": target_uuid,
+            "bidirectional": bidirectional,
+            "created_at": now,
+            "updated_at": now,
+        }
+        if properties:
+            props.update(properties)
+
+        # MERGE on composite key (source + target + relation) for idempotency.
+        # If the same structural relationship is proposed twice, update the
+        # existing edge's metadata rather than creating a duplicate.
+        # The edge name is set descriptively using source/target names for
+        # debugging and display — this requires fetching the node names.
         query = """
-        MATCH (a:Node {uuid: $source_uuid})
-        MATCH (b:Node {uuid: $target_uuid})
-        MERGE (a)-[r:RELATION {id: $edge_id}]->(b)
-        SET r += $props
-        RETURN r.id AS id
+        MATCH (src:Node {uuid: $source_uuid})
+        MATCH (tgt:Node {uuid: $target_uuid})
+        MERGE (edge:Node {source: $source_uuid, target: $target_uuid, relation: $relation})
+        ON CREATE SET edge += $props,
+                      edge.name = src.name + '_' + $relation + '_' + tgt.name
+        ON MATCH SET edge.updated_at = $now
+        MERGE (edge)-[:FROM]->(src)
+        MERGE (edge)-[:TO]->(tgt)
+        RETURN edge.uuid AS uuid
         """
-        self._execute_query(
-            query,
-            {
-                "source_uuid": source_uuid,
-                "target_uuid": target_uuid,
-                "edge_id": eid,
-                "props": props,
-            },
-        )
+        result = self._execute_query(query, {
+            "source_uuid": source_uuid,
+            "target_uuid": target_uuid,
+            "relation": relation,
+            "props": props,
+            "now": now,
+        })
+        # If MERGE matched an existing edge, return its UUID instead
+        if result and result[0].get("uuid"):
+            return result[0]["uuid"]
         return eid
+
+    def ensure_indexes(self) -> None:
+        """Create Neo4j indexes for common query patterns.
+
+        Indexes:
+        - Uniqueness constraint on Node.uuid
+        - Index on Node.type (used in most queries)
+        - Index on Node.name (used in lookups)
+        - Index on Node.relation (used in edge node queries)
+        """
+        indexes = [
+            "CREATE CONSTRAINT node_uuid_unique IF NOT EXISTS FOR (n:Node) REQUIRE n.uuid IS UNIQUE",
+            "CREATE INDEX node_type_idx IF NOT EXISTS FOR (n:Node) ON (n.type)",
+            "CREATE INDEX node_name_idx IF NOT EXISTS FOR (n:Node) ON (n.name)",
+            "CREATE INDEX node_relation_idx IF NOT EXISTS FOR (n:Node) ON (n.relation)",
+        ]
+        for query in indexes:
+            try:
+                self._execute_query(query, {})
+            except Exception as e:
+                logger.debug(f"Index creation (may already exist): {e}")
 
     def clear_all(self) -> None:
         """
