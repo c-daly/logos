@@ -20,10 +20,13 @@ def test_seed_creates_is_a_edge_nodes(client):
     seeder.seed_type_definitions()
 
     # Verify IS_A edge node exists between entity and thing
-    result = client._execute_read("""
+    result = client._execute_read(
+        """
         MATCH (child:Node {name: "entity"})<-[:FROM]-(e:Node {relation: "IS_A"})-[:TO]->(parent:Node {name: "thing"})
         RETURN e.uuid AS edge_uuid
-    """, {})
+    """,
+        {},
+    )
     assert len(result) > 0
 
 
@@ -32,9 +35,7 @@ def test_seed_no_native_is_a_relationships(client):
     seeder = HCGSeeder(client)
     seeder.seed_type_definitions()
 
-    result = client._execute_read(
-        "MATCH ()-[r:IS_A]->() RETURN count(r) AS count", {}
-    )
+    result = client._execute_read("MATCH ()-[r:IS_A]->() RETURN count(r) AS count", {})
     assert result[0]["count"] == 0
 
 
@@ -43,11 +44,14 @@ def test_seed_no_ancestors_property(client):
     seeder = HCGSeeder(client)
     seeder.seed_type_definitions()
 
-    result = client._execute_read("""
+    result = client._execute_read(
+        """
         MATCH (n:Node)
         WHERE n.ancestors IS NOT NULL
         RETURN count(n) AS count
-    """, {})
+    """,
+        {},
+    )
     assert result[0]["count"] == 0
 
 
@@ -58,8 +62,11 @@ def test_seed_demo_uses_add_edge(client):
     seeder.seed_demo_scenario()
 
     # Check that a PART_OF relationship is an edge node
-    result = client._execute_read("""
+    result = client._execute_read(
+        """
         MATCH (child:Node)<-[:FROM]-(e:Node {relation: "PART_OF"})-[:TO]->(parent:Node)
         RETURN count(e) AS count
-    """, {})
+    """,
+        {},
+    )
     assert result[0]["count"] > 0

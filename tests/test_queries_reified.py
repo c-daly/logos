@@ -1,5 +1,6 @@
 """Integration tests for reified edge queries. Requires Neo4j."""
 import pytest
+
 from logos_hcg.client import HCGClient
 from logos_hcg.queries import HCGQueries
 
@@ -16,9 +17,15 @@ def client():
 def seeded_graph(client):
     """Create a small type hierarchy + instances using reified edges."""
     # Type definitions
-    thing = client.add_node(name="thing", node_type="type_definition", uuid="type_thing")
-    entity = client.add_node(name="entity", node_type="type_definition", uuid="type_entity")
-    location = client.add_node(name="location", node_type="type_definition", uuid="type_location")
+    thing = client.add_node(
+        name="thing", node_type="type_definition", uuid="type_thing"
+    )
+    entity = client.add_node(
+        name="entity", node_type="type_definition", uuid="type_entity"
+    )
+    location = client.add_node(
+        name="location", node_type="type_definition", uuid="type_location"
+    )
 
     # IS_A hierarchy: location -> entity -> thing
     client.add_edge(source_uuid=entity, target_uuid=thing, relation="IS_A")
@@ -33,12 +40,16 @@ def seeded_graph(client):
     # Knowledge edge
     client.add_edge(source_uuid=paris, target_uuid=france, relation="LOCATED_IN")
 
-    return {"paris": paris, "france": france, "entity": entity,
-            "location": location, "thing": thing}
+    return {
+        "paris": paris,
+        "france": france,
+        "entity": entity,
+        "location": location,
+        "thing": thing,
+    }
 
 
 class TestRelationshipQueries:
-
     def test_get_outgoing_edges(self, client, seeded_graph):
         query = HCGQueries.get_outgoing_edges()
         result = client._execute_read(query, {"uuid": seeded_graph["paris"]})
@@ -56,7 +67,6 @@ class TestRelationshipQueries:
 
 
 class TestTypeHierarchy:
-
     def test_find_type_definitions(self, client, seeded_graph):
         query = HCGQueries.find_type_definitions()
         result = client._execute_read(query, {})
@@ -85,9 +95,7 @@ class TestEdgeNodeTraversal:
     def test_get_entity_type(self, client, seeded_graph):
         """get_entity_type should traverse IS_A via edge nodes."""
         query = HCGQueries.get_entity_type()
-        result = client._execute_read(
-            query, {"entity_uuid": seeded_graph["paris"]}
-        )
+        result = client._execute_read(query, {"entity_uuid": seeded_graph["paris"]})
         assert len(result) >= 1
         # Paris IS_A location
         target_names = [dict(r["c"])["name"] for r in result]
@@ -122,14 +130,13 @@ class TestEdgeNodeTraversal:
         """get_entity_states should traverse HAS_STATE via edge nodes."""
         state1 = client.add_node(name="hot", node_type="state", uuid="state_hot")
         client.add_edge(
-            source_uuid=seeded_graph["paris"], target_uuid=state1,
+            source_uuid=seeded_graph["paris"],
+            target_uuid=state1,
             relation="HAS_STATE",
         )
 
         query = HCGQueries.get_entity_states()
-        result = client._execute_read(
-            query, {"entity_uuid": seeded_graph["paris"]}
-        )
+        result = client._execute_read(query, {"entity_uuid": seeded_graph["paris"]})
         assert len(result) == 1
         state_name = dict(result[0]["s"])["name"]
         assert state_name == "hot"
@@ -160,7 +167,9 @@ class TestEdgeNodeTraversal:
         """find_capability_for_process should traverse USES_CAPABILITY via edge nodes."""
         proc = client.add_node(name="pick_up", node_type="process", uuid="proc_pick")
         cap = client.add_node(
-            name="gripper", node_type="capability", uuid="cap_grip",
+            name="gripper",
+            node_type="capability",
+            uuid="cap_grip",
             properties={"executor_type": "talos"},
         )
         client.add_edge(source_uuid=proc, target_uuid=cap, relation="USES_CAPABILITY")
@@ -174,18 +183,21 @@ class TestEdgeNodeTraversal:
         """check_state_satisfied should traverse HAS_STATE via edge nodes."""
         entity = client.add_node(name="cup", node_type="entity", uuid="cup_1")
         state = client.add_node(
-            name="full", node_type="state", uuid="state_full",
+            name="full",
+            node_type="state",
+            uuid="state_full",
             properties={"is_empty": False},
         )
         client.add_edge(source_uuid=entity, target_uuid=state, relation="HAS_STATE")
 
         query = HCGQueries.check_state_satisfied()
         result = client._execute_read(
-            query, {
+            query,
+            {
                 "entity_uuid": "cup_1",
                 "property_key": "is_empty",
                 "property_value": False,
-            }
+            },
         )
         assert len(result) == 1
         assert result[0]["satisfied"] is True
@@ -238,6 +250,6 @@ class TestAncestorPropertyRemoved:
 
     def test_no_is_type_definition_property(self):
         for name, q in self._get_all_query_strings():
-            assert "is_type_definition" not in q, (
-                f"{name} still references is_type_definition"
-            )
+            assert (
+                "is_type_definition" not in q
+            ), f"{name} still references is_type_definition"

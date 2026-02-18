@@ -15,17 +15,19 @@ def client():
 
 
 class TestAddEdge:
-
     def test_creates_edge_node(self, client):
         src = client.add_node(name="Paris", node_type="entity")
         tgt = client.add_node(name="France", node_type="entity")
         edge_id = client.add_edge(
-            source_uuid=src, target_uuid=tgt, relation="LOCATED_IN",
+            source_uuid=src,
+            target_uuid=tgt,
+            relation="LOCATED_IN",
         )
         assert edge_id
         # Verify edge node exists
         result = client._execute_read(
-            "MATCH (e:Node {uuid: $uuid}) RETURN e", {"uuid": edge_id},
+            "MATCH (e:Node {uuid: $uuid}) RETURN e",
+            {"uuid": edge_id},
         )
         assert len(result) == 1
         edge_props = dict(result[0]["e"])
@@ -38,7 +40,9 @@ class TestAddEdge:
         src = client.add_node(name="A", node_type="entity")
         tgt = client.add_node(name="B", node_type="entity")
         edge_id = client.add_edge(
-            source_uuid=src, target_uuid=tgt, relation="CAUSES",
+            source_uuid=src,
+            target_uuid=tgt,
+            relation="CAUSES",
         )
         result = client._execute_read(
             """
@@ -55,7 +59,9 @@ class TestAddEdge:
         src = client.add_node(name="A", node_type="entity")
         tgt = client.add_node(name="B", node_type="entity")
         edge_id = client.add_edge(
-            source_uuid=src, target_uuid=tgt, relation="REQUIRES",
+            source_uuid=src,
+            target_uuid=tgt,
+            relation="REQUIRES",
             properties={"confidence": 0.85},
         )
         result = client._execute_read(
@@ -68,7 +74,9 @@ class TestAddEdge:
         src = client.add_node(name="A", node_type="entity")
         tgt = client.add_node(name="B", node_type="entity")
         edge_id = client.add_edge(
-            source_uuid=src, target_uuid=tgt, relation="RELATED_TO",
+            source_uuid=src,
+            target_uuid=tgt,
+            relation="RELATED_TO",
             bidirectional=True,
         )
         result = client._execute_read(
@@ -82,10 +90,14 @@ class TestAddEdge:
         src = client.add_node(name="Paris", node_type="entity")
         tgt = client.add_node(name="France", node_type="entity")
         edge1 = client.add_edge(
-            source_uuid=src, target_uuid=tgt, relation="LOCATED_IN",
+            source_uuid=src,
+            target_uuid=tgt,
+            relation="LOCATED_IN",
         )
         edge2 = client.add_edge(
-            source_uuid=src, target_uuid=tgt, relation="LOCATED_IN",
+            source_uuid=src,
+            target_uuid=tgt,
+            relation="LOCATED_IN",
         )
         assert edge1 == edge2  # same edge node returned
         # Verify only one edge node exists
@@ -101,7 +113,9 @@ class TestAddEdge:
         src = client.add_node(name="Paris", node_type="entity")
         tgt = client.add_node(name="France", node_type="entity")
         edge_id = client.add_edge(
-            source_uuid=src, target_uuid=tgt, relation="LOCATED_IN",
+            source_uuid=src,
+            target_uuid=tgt,
+            relation="LOCATED_IN",
         )
         result = client._execute_read(
             "MATCH (e:Node {uuid: $uuid}) RETURN e.name AS name",
@@ -114,7 +128,9 @@ class TestAddEdge:
         src = client.add_node(name="A", node_type="entity")
         tgt = client.add_node(name="B", node_type="entity")
         client.add_edge(
-            source_uuid=src, target_uuid=tgt, relation="CAUSES",
+            source_uuid=src,
+            target_uuid=tgt,
+            relation="CAUSES",
         )
         # Check no native CAUSES relationship exists
         result = client._execute_read(
@@ -125,7 +141,6 @@ class TestAddEdge:
 
 
 class TestAddNodeClean:
-
     def test_add_node_no_ancestors_param(self, client):
         """add_node() should not accept 'ancestors' — hierarchy is via IS_A edges."""
         sig = inspect.signature(client.add_node)
@@ -140,7 +155,8 @@ class TestAddNodeClean:
         uuid = client.add_node(name="Paris", node_type="location")
         assert uuid
         result = client._execute_read(
-            "MATCH (n:Node {uuid: $uuid}) RETURN n", {"uuid": uuid},
+            "MATCH (n:Node {uuid: $uuid}) RETURN n",
+            {"uuid": uuid},
         )
         assert len(result) == 1
         node = dict(result[0]["n"])

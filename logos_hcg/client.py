@@ -1021,13 +1021,16 @@ class HCGClient:
         MERGE (edge)-[:TO]->(tgt)
         RETURN edge.uuid AS uuid
         """
-        result = self._execute_query(query, {
-            "source_uuid": source_uuid,
-            "target_uuid": target_uuid,
-            "relation": relation,
-            "props": props,
-            "now": now,
-        })
+        result = self._execute_query(
+            query,
+            {
+                "source_uuid": source_uuid,
+                "target_uuid": target_uuid,
+                "relation": relation,
+                "props": props,
+                "now": now,
+            },
+        )
         # If MERGE matched an existing edge, return its UUID instead
         if result and result[0].get("uuid"):
             return result[0]["uuid"]
