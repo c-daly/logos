@@ -1033,7 +1033,7 @@ class HCGClient:
         )
         # If MERGE matched an existing edge, return its UUID instead
         if result and result[0].get("uuid"):
-            return result[0]["uuid"]
+            return str(result[0]["uuid"])
         return eid
 
     def ensure_indexes(self) -> None:
