@@ -192,4 +192,3 @@ docker compose -f infra/test_stack/docker-compose.test.yml down -v
 
 **"Service X won't start in CI"** — Check that the Docker image was rebuilt after `logos_config` changes. The base image version in `Dockerfile` must match the `logos-foundry` tag in `pyproject.toml`.
 
-**"Tests pass locally but fail in CI"** — Local dev uses shared ports (7687); CI uses offset ports (27687). Ensure tests read from `logos_config` or environment variables, not hardcoded values.

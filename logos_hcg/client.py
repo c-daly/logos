@@ -8,11 +8,12 @@ See Project LOGOS spec: Section 4.1 (Core Ontology and Data Model)
 """
 
 import logging
+import re
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import datetime
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from neo4j import Driver, GraphDatabase, Session
 from neo4j.exceptions import (
@@ -923,3 +924,163 @@ class HCGClient:
         except Exception as e:
             logger.error(f"Connection verification failed: {e}")
             return False
+
+    # ========== Write Operations ==========
+
+    _RELATION_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+
+    def add_node(
+        self,
+        name: str,
+        node_type: str,
+        uuid: str | None = None,
+        ancestors: list[str] | None = None,
+        is_type_definition: bool = False,
+        properties: dict[str, Any] | None = None,
+    ) -> str:
+        """
+        Create or merge a node in the graph.
+
+        Uses MERGE on uuid for idempotency.
+
+        Args:
+            name: Human-readable node name
+            node_type: Immediate type name
+            uuid: Node UUID (generated if not provided)
+            ancestors: Ancestor type chain
+            is_type_definition: Whether this is a type definition node
+            properties: Additional properties to set on the node
+
+        Returns:
+            The uuid of the created/merged node
+        """
+        node_uuid = uuid or str(uuid4())
+        ancestors = ancestors or []
+        now = datetime.utcnow().isoformat()
+
+        props = {
+            "uuid": node_uuid,
+            "name": name,
+            "type": node_type,
+            "is_type_definition": is_type_definition,
+            "ancestors": ancestors,
+            "created_at": now,
+            "updated_at": now,
+        }
+        if properties:
+            props.update(properties)
+
+        query = """
+        MERGE (n:Node {uuid: $uuid})
+        SET n += $props
+        RETURN n
+        """
+        self._execute_query(query, {"uuid": node_uuid, "props": props})
+        return node_uuid
+
+    def add_typed_edge(
+        self,
+        source_uuid: str,
+        target_uuid: str,
+        relation: str,
+        properties: dict[str, Any] | None = None,
+    ) -> None:
+        """
+        Create a typed relationship between two nodes.
+
+        Uses MERGE for idempotency. The relation name is validated to
+        prevent Cypher injection (Neo4j does not support parameterised
+        relationship types).
+
+        Args:
+            source_uuid: Source node UUID
+            target_uuid: Target node UUID
+            relation: Relationship type (must be alphanumeric/underscore)
+            properties: Optional properties to set on the relationship
+
+        Raises:
+            ValueError: If relation contains invalid characters
+        """
+        if not self._RELATION_RE.match(relation):
+            raise ValueError(
+                f"Invalid relation name '{relation}': "
+                "must be alphanumeric/underscore only"
+            )
+
+        if properties:
+            query = f"""
+            MATCH (a:Node {{uuid: $source_uuid}})
+            MATCH (b:Node {{uuid: $target_uuid}})
+            MERGE (a)-[r:{relation}]->(b)
+            SET r += $props
+            """
+            params: dict[str, Any] = {
+                "source_uuid": source_uuid,
+                "target_uuid": target_uuid,
+                "props": properties,
+            }
+        else:
+            query = f"""
+            MATCH (a:Node {{uuid: $source_uuid}})
+            MATCH (b:Node {{uuid: $target_uuid}})
+            MERGE (a)-[r:{relation}]->(b)
+            """
+            params = {
+                "source_uuid": source_uuid,
+                "target_uuid": target_uuid,
+            }
+
+        self._execute_query(query, params)
+
+    def add_relation(
+        self,
+        source_uuid: str,
+        target_uuid: str,
+        relation: str,
+        edge_id: str | None = None,
+        properties: dict[str, Any] | None = None,
+    ) -> str:
+        """
+        Create a :RELATION edge compatible with sophia's edge convention.
+
+        Sophia stores all edges as ``-[:RELATION {id, relation_type}]->``
+        rather than using native Neo4j relationship types. This method
+        follows that convention so edges are visible through sophia's API.
+
+        Args:
+            source_uuid: Source node UUID
+            target_uuid: Target node UUID
+            relation: Logical relation name (e.g. "ENABLES", "HAS_STEP")
+            edge_id: Edge identifier (generated if not provided)
+            properties: Optional extra properties
+
+        Returns:
+            The edge id.
+        """
+        eid = edge_id or f"e_{relation.lower()}_{str(uuid4())[:8]}"
+        props = dict(properties) if properties else {}
+        props["relation_type"] = relation
+
+        query = """
+        MATCH (a:Node {uuid: $source_uuid})
+        MATCH (b:Node {uuid: $target_uuid})
+        MERGE (a)-[r:RELATION {id: $edge_id}]->(b)
+        SET r += $props
+        RETURN r.id AS id
+        """
+        self._execute_query(query, {
+            "source_uuid": source_uuid,
+            "target_uuid": target_uuid,
+            "edge_id": eid,
+            "props": props,
+        })
+        return eid
+
+    def clear_all(self) -> None:
+        """
+        Delete all nodes and relationships from the database.
+
+        This is a destructive operation intended for test/seed scenarios.
+        """
+        logger.warning("Clearing all nodes and relationships from the database")
+        self._execute_query("MATCH (n) DETACH DELETE n")

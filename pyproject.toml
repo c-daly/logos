@@ -78,6 +78,7 @@ types-requests = "^2.31.0"
 logos-generate-issues = "logos_tools.generate_issues:main"
 logos-create-issues-by-epoch = "logos_tools.create_issues_by_epoch:main"
 render-test-stacks = "infra.scripts.render_test_stacks:main"
+logos-seed-hcg = "logos_hcg.seeder:main"
 
 [tool.pytest.ini_options]
 minversion = "7.0"

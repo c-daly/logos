@@ -89,3 +89,19 @@ def load_cypher(neo4j_config: Neo4jConfig):
         return load_cypher_file(path, config=neo4j_config, timeout=timeout)
 
     return _loader
+
+
+@pytest.fixture(scope="session")
+def hcg_seeder(neo4j_config: Neo4jConfig):
+    """Provide an HCGSeeder connected to the test Neo4j instance."""
+    from logos_hcg.client import HCGClient
+    from logos_hcg.seeder import HCGSeeder
+
+    client = HCGClient(
+        uri=neo4j_config.uri,
+        user=neo4j_config.user,
+        password=neo4j_config.password,
+    )
+    seeder = HCGSeeder(client)
+    yield seeder
+    client.close()
