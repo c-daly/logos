@@ -12,7 +12,7 @@ on:
         description: 'JSON array of Python versions for the matrix'
         required: false
         type: string
-        default: '["3.11"]'
+        default: '["3.12"]'
       python_package_manager:
         description: 'Dependency installer (pip or poetry)'
         required: false
@@ -72,7 +72,7 @@ on:
       coverage_python_version:
         description: 'Python version responsible for uploading coverage'
         type: string
-        default: '3.11'
+        default: '3.12'
       enable_node:
         description: 'Run the Node/Vite job'
         type: boolean
