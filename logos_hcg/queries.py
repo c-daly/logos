@@ -146,11 +146,52 @@ class HCGQueries:
 
     # ========== Entity Queries ==========
 
+    # Known subtypes for each top-level category, derived from TYPE_PARENTS.
+    ENTITY_TYPES = [
+        "thing",
+        "entity",
+        "physical_entity",
+        "agent",
+        "object",
+        "manipulator",
+        "sensor",
+        "spatial_entity",
+        "location",
+        "workspace",
+        "zone",
+        "process",
+        "action",
+        "step",
+        "imagined_process",
+        "proposed_plan_step",
+        "proposed_tool_call",
+        "intention",
+        "goal",
+        "plan",
+        "hermes_proposal",
+        "abstraction",
+        "simulation",
+        "execution",
+        "data",
+        "media_sample",
+        "capability",
+    ]
+    STATE_TYPES = ["state", "imagined_state", "proposed_imagined_state"]
+    PROCESS_TYPES = [
+        "process",
+        "action",
+        "step",
+        "imagined_process",
+        "proposed_plan_step",
+        "proposed_tool_call",
+    ]
+
     @staticmethod
     def find_entity_by_uuid() -> str:
         """
         Find an entity by its UUID.
-        Uses exact type match since ancestors are no longer stored as properties.
+        Matches nodes whose type is in the entity hierarchy (descendants of
+        'thing').
 
         Parameters:
         - uuid: Entity UUID (string format)
@@ -159,7 +200,7 @@ class HCGQueries:
         """
         return """
         MATCH (e:Node {uuid: $uuid})
-        WHERE e.type <> "edge"
+        WHERE e.type IN $entity_types
         RETURN e
         """
 
@@ -408,6 +449,8 @@ class HCGQueries:
     def find_state_by_uuid() -> str:
         """
         Find a state by its UUID.
+        Matches nodes whose type is in the state hierarchy (state and its
+        subtypes like imagined_state, proposed_imagined_state).
 
         Parameters:
         - uuid: State UUID (string format)
@@ -416,7 +459,7 @@ class HCGQueries:
         """
         return """
         MATCH (s:Node {uuid: $uuid})
-        WHERE s.type = "state"
+        WHERE s.type IN $state_types
         RETURN s
         """
 
@@ -460,6 +503,8 @@ class HCGQueries:
     def find_process_by_uuid() -> str:
         """
         Find a process by its UUID.
+        Matches nodes whose type is in the process hierarchy (process and its
+        subtypes like action, step, imagined_process, etc.).
 
         Parameters:
         - uuid: Process UUID (string format)
@@ -468,7 +513,7 @@ class HCGQueries:
         """
         return """
         MATCH (p:Node {uuid: $uuid})
-        WHERE p.type = "process"
+        WHERE p.type IN $process_types
         RETURN p
         """
 
@@ -668,12 +713,24 @@ class HCGQueries:
         Traverse causality chain forward from a state via reified edge nodes.
         Finds processes that REQUIRE the given state and their CAUSES effects.
 
+        Currently only single-hop traversal is implemented. Multi-hop
+        traversal (max_depth > 1) is not yet supported.
+
         Parameters:
         - state_uuid: Starting State UUID
-        - max_depth: Maximum traversal depth (passed as function arg, currently single-step)
+        - max_depth: Maximum traversal depth. Only ``1`` is currently
+          supported; passing a value > 1 raises ``NotImplementedError``.
 
         Returns: Processes and resulting states with depth
+
+        Raises:
+            NotImplementedError: If *max_depth* > 1.
         """
+        if max_depth > 1:
+            raise NotImplementedError(
+                f"Multi-hop causality traversal is not yet implemented (max_depth={max_depth}). "
+                "Only single-step (max_depth=1) is supported."
+            )
         # Single-step causality: state <-REQUIRES- process -CAUSES-> result
         # Each hop is through two edge nodes, so we do a single step for now.
         return """
@@ -690,12 +747,24 @@ class HCGQueries:
         Traverse causality chain backward from a state via reified edge nodes.
         Finds processes that CAUSE the given state and their REQUIRES preconditions.
 
+        Currently only single-hop traversal is implemented. Multi-hop
+        traversal (max_depth > 1) is not yet supported.
+
         Parameters:
         - state_uuid: Target State UUID
-        - max_depth: Maximum traversal depth (passed as function arg, currently single-step)
+        - max_depth: Maximum traversal depth. Only ``1`` is currently
+          supported; passing a value > 1 raises ``NotImplementedError``.
 
         Returns: Causing states and processes with depth
+
+        Raises:
+            NotImplementedError: If *max_depth* > 1.
         """
+        if max_depth > 1:
+            raise NotImplementedError(
+                f"Multi-hop causality traversal is not yet implemented (max_depth={max_depth}). "
+                "Only single-step (max_depth=1) is supported."
+            )
         return """
         MATCH (target:Node {uuid: $state_uuid})
         MATCH (target)<-[:TO]-(cause_edge:Node {type: "edge", relation: "CAUSES"})-[:FROM]->(p:Node)

@@ -263,7 +263,9 @@ class HCGClient:
         """
         query = HCGQueries.find_entity_by_uuid()
         uuid_str = self._normalize_uuid(uuid, "uuid")
-        records = self._execute_read(query, {"uuid": uuid_str})
+        records = self._execute_read(
+            query, {"uuid": uuid_str, "entity_types": HCGQueries.ENTITY_TYPES}
+        )
 
         if not records:
             return None
@@ -384,7 +386,9 @@ class HCGClient:
         """
         uuid_str = self._normalize_uuid(uuid, "uuid")
         query = HCGQueries.find_state_by_uuid()
-        records = self._execute_read(query, {"uuid": uuid_str})
+        records = self._execute_read(
+            query, {"uuid": uuid_str, "state_types": HCGQueries.STATE_TYPES}
+        )
 
         if not records:
             return None
@@ -439,7 +443,9 @@ class HCGClient:
         """
         uuid_str = self._normalize_uuid(uuid, "uuid")
         query = HCGQueries.find_process_by_uuid()
-        records = self._execute_read(query, {"uuid": uuid_str})
+        records = self._execute_read(
+            query, {"uuid": uuid_str, "process_types": HCGQueries.PROCESS_TYPES}
+        )
 
         if not records:
             return None
@@ -589,14 +595,17 @@ class HCGClient:
     def traverse_causality_forward(
         self,
         state_uuid: str | UUID,
-        max_depth: int = 10,
+        max_depth: int = 1,
     ) -> list[dict[str, Any]]:
         """
         Traverse causality chain forward from a state.
 
+        Only single-hop traversal (max_depth=1) is currently implemented.
+        Passing max_depth > 1 raises NotImplementedError.
+
         Args:
             state_uuid: Starting State UUID
-            max_depth: Maximum traversal depth
+            max_depth: Maximum traversal depth (only 1 is supported)
 
         Returns:
             List of dicts with 'process', 'state', and 'depth' keys
@@ -623,14 +632,17 @@ class HCGClient:
     def traverse_causality_backward(
         self,
         state_uuid: str | UUID,
-        max_depth: int = 10,
+        max_depth: int = 1,
     ) -> list[dict[str, Any]]:
         """
         Traverse causality chain backward from a state.
 
+        Only single-hop traversal (max_depth=1) is currently implemented.
+        Passing max_depth > 1 raises NotImplementedError.
+
         Args:
             state_uuid: Target State UUID
-            max_depth: Maximum traversal depth
+            max_depth: Maximum traversal depth (only 1 is supported)
 
         Returns:
             List of dicts with 'state', 'process', and 'depth' keys
@@ -1026,7 +1038,8 @@ class HCGClient:
         MERGE (edge:Node {type: "edge", source: $source_uuid, target: $target_uuid, relation: $relation})
         ON CREATE SET edge += $props,
                       edge.name = src.name + '_' + $relation + '_' + tgt.name
-        ON MATCH SET edge.updated_at = $now
+        ON MATCH SET edge.updated_at = $now,
+                     edge.bidirectional = $bidirectional
         MERGE (edge)-[:FROM]->(src)
         MERGE (edge)-[:TO]->(tgt)
         RETURN edge.uuid AS uuid
@@ -1038,6 +1051,7 @@ class HCGClient:
                 "target_uuid": target_uuid,
                 "relation": relation,
                 "props": props,
+                "bidirectional": bidirectional,
                 "now": now,
             },
         )

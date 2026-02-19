@@ -61,8 +61,8 @@ TYPE_PARENTS: dict[str, str] = {
     "constraint": "concept",
     # --- cognition sub-tree ---
     "state": "cognition",
-    "imagined_state": "cognition",
-    "proposed_imagined_state": "cognition",
+    "imagined_state": "state",
+    "proposed_imagined_state": "imagined_state",
     # cwm_a, cwm_g, cwm_e, cwm, persona are bootstrap — listed below
 }
 
