@@ -263,7 +263,7 @@ class HCGClient:
         """
         query = HCGQueries.find_entity_by_uuid()
         uuid_str = self._normalize_uuid(uuid, "uuid")
-        records = self._execute_read(query, {"uuid": uuid_str})
+        records = self._execute_read(query, {"uuid": uuid_str, "entity_types": HCGQueries.ENTITY_TYPES})
 
         if not records:
             return None
@@ -282,7 +282,7 @@ class HCGClient:
             List of Entity objects
         """
         query = HCGQueries.find_entity_by_name()
-        records = self._execute_read(query, {"name": name})
+        records = self._execute_read(query, {"name": name, "entity_types": HCGQueries.ENTITY_TYPES})
 
         entities = []
         for record in records:
@@ -303,7 +303,7 @@ class HCGClient:
             List of Entity objects
         """
         query = HCGQueries.find_all_entities()
-        records = self._execute_read(query, {"skip": skip, "limit": limit})
+        records = self._execute_read(query, {"skip": skip, "limit": limit, "entity_types": HCGQueries.ENTITY_TYPES})
 
         entities = []
         for record in records:
@@ -722,7 +722,7 @@ class HCGClient:
         """
         state_uuid_str = self._normalize_uuid(state_uuid, "state_uuid")
         query = HCGQueries.find_processes_causing_state()
-        records = self._execute_read(query, {"state_uuid": state_uuid_str})
+        records = self._execute_read(query, {"state_uuid": state_uuid_str, "process_types": HCGQueries.PROCESS_TYPES})
 
         processes = []
         for record in records:
@@ -746,7 +746,7 @@ class HCGClient:
         """
         query = HCGQueries.find_processes_by_effect_properties()
         records = self._execute_read(
-            query, {"property_key": property_key, "property_value": property_value}
+            query, {"property_key": property_key, "property_value": property_value, "process_types": HCGQueries.PROCESS_TYPES}
         )
 
         results = []
@@ -771,7 +771,7 @@ class HCGClient:
         """
         entity_uuid_str = self._normalize_uuid(entity_uuid, "entity_uuid")
         query = HCGQueries.find_processes_for_entity_state()
-        records = self._execute_read(query, {"entity_uuid": entity_uuid_str})
+        records = self._execute_read(query, {"entity_uuid": entity_uuid_str, "process_types": HCGQueries.PROCESS_TYPES})
 
         results = []
         for record in records:

@@ -199,7 +199,7 @@ class HCGQueries:
         """
         return """
         MATCH (e:Node {uuid: $uuid})
-        WHERE e.type <> "edge"
+        WHERE e.type IN $entity_types
         RETURN e
         """
 
@@ -215,7 +215,7 @@ class HCGQueries:
         """
         return """
         MATCH (e:Node)
-        WHERE e.type <> "edge"
+        WHERE e.type IN $entity_types
           AND toLower(e.name) CONTAINS toLower($name)
         RETURN e
         ORDER BY e.name
@@ -234,7 +234,7 @@ class HCGQueries:
         """
         return """
         MATCH (e:Node)
-        WHERE e.type <> "edge"
+        WHERE e.type IN $entity_types
         RETURN e
         ORDER BY e.name
         SKIP $skip
@@ -786,7 +786,7 @@ class HCGQueries:
         """
         return """
         MATCH (p:Node)<-[:FROM]-(edge:Node {type: "edge", relation: "CAUSES"})-[:TO]->(s:Node {uuid: $state_uuid})
-        WHERE p.type = "process"
+        WHERE p.type IN $process_types
         RETURN p
         """
 
@@ -803,7 +803,7 @@ class HCGQueries:
         """
         return """
         MATCH (p:Node)<-[:FROM]-(edge:Node {type: "edge", relation: "CAUSES"})-[:TO]->(s:Node)
-        WHERE p.type = "process"
+        WHERE p.type IN $process_types
           AND s[$property_key] = $property_value
         RETURN p, s
         """
@@ -821,7 +821,7 @@ class HCGQueries:
         return """
         MATCH (e:Node {uuid: $entity_uuid})<-[:FROM]-(:Node {type: "edge", relation: "HAS_STATE"})-[:TO]->(s:Node)
         MATCH (p:Node)<-[:FROM]-(:Node {type: "edge", relation: "CAUSES"})-[:TO]->(s)
-        WHERE p.type = "process"
+        WHERE p.type IN $process_types
         RETURN p, s
         """
 
