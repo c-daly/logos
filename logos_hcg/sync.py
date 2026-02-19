@@ -29,9 +29,10 @@ COLLECTION_NAMES = {
     "Concept": "hcg_concept_embeddings",
     "State": "hcg_state_embeddings",
     "Process": "hcg_process_embeddings",
+    "Edge": "hcg_edge_embeddings",
 }
 
-NodeType = Literal["Entity", "Concept", "State", "Process"]
+NodeType = Literal["Entity", "Concept", "State", "Process", "Edge"]
 
 
 class MilvusSyncError(Exception):
@@ -109,6 +110,74 @@ class HCGMilvusSync:
 
         except Exception as e:
             raise MilvusSyncError(f"Failed to connect to Milvus: {e}") from e
+
+    def ensure_collection(self, node_type: NodeType) -> None:
+        """Create collection with correct schema and L2 index if it doesn't exist."""
+        if not self._connected:
+            raise MilvusSyncError("Not connected to Milvus. Call connect() first.")
+
+        from pymilvus import CollectionSchema, DataType, FieldSchema
+
+        name = COLLECTION_NAMES[node_type]
+        if utility.has_collection(name, using=self.alias):
+            return
+
+        fields = [
+            FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
+            FieldSchema(name="uuid", dtype=DataType.VARCHAR, max_length=64),
+            FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR, dim=384),
+            FieldSchema(name="embedding_model", dtype=DataType.VARCHAR, max_length=128),
+            FieldSchema(name="last_sync", dtype=DataType.INT64),
+        ]
+        schema = CollectionSchema(fields, description=f"Embeddings for {node_type}")
+        collection = Collection(name=name, schema=schema, using=self.alias)
+
+        index_params = {
+            "index_type": "IVF_FLAT",
+            "metric_type": "L2",
+            "params": {"nlist": 128},
+        }
+        collection.create_index("embedding", index_params)
+        collection.load()
+        self._collections[node_type] = collection
+        logger.info(f"Created collection {name} with L2 IVF_FLAT index")
+
+    def search_similar(
+        self,
+        node_type: NodeType,
+        query_embedding: list[float],
+        top_k: int = 10,
+    ) -> list[dict]:
+        """Search for similar embeddings in a node type collection.
+
+        Args:
+            node_type: Which collection to search
+            query_embedding: Query vector (384-dim)
+            top_k: Number of results
+
+        Returns:
+            List of dicts with keys: uuid, score (L2 distance — lower is more similar)
+        """
+        collection = self._collections.get(node_type)
+        if not collection:
+            logger.warning(f"Collection for {node_type} not available")
+            return []
+
+        try:
+            results = collection.search(
+                data=[query_embedding],
+                anns_field="embedding",
+                param={"metric_type": "L2", "params": {"nprobe": 10}},
+                limit=top_k,
+                output_fields=["uuid"],
+            )
+            return [
+                {"uuid": hit.entity.get("uuid"), "score": hit.distance}
+                for hit in results[0]
+            ]
+        except Exception as e:
+            logger.error(f"Embedding search failed for {node_type}: {e}")
+            return []
 
     def disconnect(self) -> None:
         """Disconnect from Milvus."""

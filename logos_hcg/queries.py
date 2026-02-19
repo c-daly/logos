@@ -2,26 +2,26 @@
 Common Cypher queries for HCG graph operations.
 
 This module provides parameterized Cypher queries for:
-- Finding nodes by type or ancestry
-- Traversing type hierarchy via IS_A edges
-- Querying graph structure
+- Finding nodes by type
+- Traversing type hierarchy via reified IS_A edge nodes
+- Querying graph structure through :FROM/:TO structural relationships
 
 All queries use parameters to prevent injection attacks.
 See Project LOGOS spec: Section 4.1 for relationship types.
 
-FLEXIBLE ONTOLOGY:
-All nodes use the :Node label with these properties:
-- uuid: unique identifier
-- name: human-readable name
-- is_type_definition: boolean (true for types, false for instances)
-- type: immediate type name
-- ancestors: list of ancestor types up to bootstrap root
+REIFIED EDGE MODEL:
+All domain relationships are stored as edge nodes connected by
+:FROM and :TO structural relationships (the ONLY native Neo4j rels):
+
+    (source:Node)<-[:FROM]-(edge:Node {relation: "CAUSES"})-[:TO]->(target:Node)
+
+Edge nodes carry: uuid, name, type="edge", relation, source, target,
+bidirectional, created_at, updated_at.
 
 Query patterns:
 - Exact type: MATCH (n:Node {type: "my_type"})
-- Type definitions: MATCH (n:Node {is_type_definition: true})
-- All states: MATCH (n:Node) WHERE n.type = "state" OR "state" IN n.ancestors
-- Type hierarchy: MATCH (n)-[:IS_A*]->(t {name: "concept"})
+- Type hierarchy: traverse IS_A edge nodes via :FROM/:TO
+- Outgoing edges: MATCH (n)<-[:FROM]-(e:Node {type: "edge"})-[:TO]->(target)
 """
 
 
@@ -62,23 +62,6 @@ class HCGQueries:
         """
 
     @staticmethod
-    def find_nodes_by_ancestor() -> str:
-        """
-        Find nodes that have a given type in their ancestry.
-
-        Parameters:
-        - ancestor: Ancestor type name to search for
-
-        Returns: List of matching nodes
-        """
-        return """
-        MATCH (n:Node)
-        WHERE n.type = $ancestor OR $ancestor IN n.ancestors
-        RETURN n
-        ORDER BY n.name
-        """
-
-    @staticmethod
     def find_node_by_name() -> str:
         """
         Find nodes by name (case-insensitive partial match).
@@ -111,12 +94,103 @@ class HCGQueries:
         RETURN n
         """
 
-    # ========== Entity Queries (things) ==========
+    # ========== Edge Node Queries (new) ==========
+
+    @staticmethod
+    def get_outgoing_edges() -> str:
+        """
+        Get all outgoing edge nodes from a node via :FROM/:TO.
+
+        Parameters:
+        - uuid: Source node UUID
+
+        Returns: edge relation, target_uuid, target_name, and edge node
+        """
+        return """
+        MATCH (n:Node {uuid: $uuid})<-[:FROM]-(e:Node {type: "edge"})-[:TO]->(target:Node)
+        RETURN e.relation AS relation, target.uuid AS target_uuid,
+               target.name AS target_name, e
+        """
+
+    @staticmethod
+    def get_incoming_edges() -> str:
+        """
+        Get all incoming edge nodes to a node via :FROM/:TO.
+
+        Parameters:
+        - uuid: Target node UUID
+
+        Returns: edge relation, source_uuid, source_name, and edge node
+        """
+        return """
+        MATCH (source:Node)<-[:FROM]-(e:Node {type: "edge"})-[:TO]->(n:Node {uuid: $uuid})
+        RETURN e.relation AS relation, source.uuid AS source_uuid,
+               source.name AS source_name, e
+        """
+
+    @staticmethod
+    def get_edges_by_relation() -> str:
+        """
+        Get outgoing edges of a specific relation type from a node.
+
+        Parameters:
+        - uuid: Source node UUID
+        - relation: Relation type (e.g. "IS_A", "CAUSES")
+
+        Returns: target_uuid, target_name, and edge node
+        """
+        return """
+        MATCH (n:Node {uuid: $uuid})<-[:FROM]-(e:Node {type: "edge", relation: $relation})-[:TO]->(target:Node)
+        RETURN target.uuid AS target_uuid, target.name AS target_name, e
+        """
+
+    # ========== Entity Queries ==========
+
+    # Known subtypes for each top-level category, derived from TYPE_PARENTS.
+    ENTITY_TYPES = [
+        "thing",
+        "entity",
+        "physical_entity",
+        "agent",
+        "object",
+        "manipulator",
+        "sensor",
+        "spatial_entity",
+        "location",
+        "workspace",
+        "zone",
+        "process",
+        "action",
+        "step",
+        "imagined_process",
+        "proposed_plan_step",
+        "proposed_tool_call",
+        "intention",
+        "goal",
+        "plan",
+        "hermes_proposal",
+        "abstraction",
+        "simulation",
+        "execution",
+        "data",
+        "media_sample",
+        "capability",
+    ]
+    STATE_TYPES = ["state", "imagined_state", "proposed_imagined_state"]
+    PROCESS_TYPES = [
+        "process",
+        "action",
+        "step",
+        "imagined_process",
+        "proposed_plan_step",
+        "proposed_tool_call",
+    ]
 
     @staticmethod
     def find_entity_by_uuid() -> str:
         """
         Find an entity by its UUID.
+        Excludes edge nodes (those with type "edge").
 
         Parameters:
         - uuid: Entity UUID (string format)
@@ -125,7 +199,7 @@ class HCGQueries:
         """
         return """
         MATCH (e:Node {uuid: $uuid})
-        WHERE "thing" IN e.ancestors
+        WHERE e.type IN $entity_types
         RETURN e
         """
 
@@ -141,7 +215,7 @@ class HCGQueries:
         """
         return """
         MATCH (e:Node)
-        WHERE "thing" IN e.ancestors
+        WHERE e.type IN $entity_types
           AND toLower(e.name) CONTAINS toLower($name)
         RETURN e
         ORDER BY e.name
@@ -160,7 +234,7 @@ class HCGQueries:
         """
         return """
         MATCH (e:Node)
-        WHERE "thing" IN e.ancestors
+        WHERE e.type IN $entity_types
         RETURN e
         ORDER BY e.name
         SKIP $skip
@@ -181,7 +255,7 @@ class HCGQueries:
         """
         return """
         MATCH (c:Node {uuid: $uuid})
-        WHERE c.type = "concept" OR "concept" IN c.ancestors
+        WHERE c.type = "concept"
         RETURN c
         """
 
@@ -197,7 +271,7 @@ class HCGQueries:
         """
         return """
         MATCH (c:Node {name: $name})
-        WHERE c.type = "concept" OR "concept" IN c.ancestors
+        WHERE c.type = "concept"
         RETURN c
         """
 
@@ -210,12 +284,26 @@ class HCGQueries:
         """
         return """
         MATCH (c:Node)
-        WHERE c.type = "concept" OR "concept" IN c.ancestors
+        WHERE c.type = "concept"
         RETURN c
         ORDER BY c.name
         """
 
     # ========== Type Definition Queries ==========
+
+    @staticmethod
+    def find_type_definitions() -> str:
+        """
+        Find all type definition nodes.
+        Type definitions are nodes with type="type_definition".
+
+        Returns: List of type definition nodes with name and uuid.
+        """
+        return """
+        MATCH (t:Node {type: "type_definition"})
+        RETURN t.name AS name, t.uuid AS uuid, t
+        ORDER BY t.name
+        """
 
     @staticmethod
     def find_type_definition() -> str:
@@ -228,37 +316,130 @@ class HCGQueries:
         Returns: Type definition node
         """
         return """
-        MATCH (t:Node {is_type_definition: true, name: $name})
+        MATCH (t:Node {type: "type_definition", name: $name})
         RETURN t
-        """
-
-    @staticmethod
-    def find_all_type_definitions() -> str:
-        """
-        Find all type definitions.
-
-        Returns: List of type definition nodes
-        """
-        return """
-        MATCH (t:Node {is_type_definition: true})
-        RETURN t
-        ORDER BY t.name
         """
 
     @staticmethod
     def get_type_hierarchy() -> str:
         """
-        Get the type hierarchy for a type.
+        Get the type hierarchy for a type via reified IS_A edge nodes.
+        Traverses up to 5 levels of IS_A.
 
         Parameters:
         - type_name: Name of the type
 
-        Returns: Path through type hierarchy
+        Returns: Type node and its hierarchy
         """
         return """
         MATCH (t:Node {name: $type_name})
-        OPTIONAL MATCH path = (t)-[:IS_A*]->(parent:Node)
-        RETURN t, collect(nodes(path)) as hierarchy
+        OPTIONAL MATCH (t)<-[:FROM]-(e1:Node {type: "edge", relation: "IS_A"})-[:TO]->(p1:Node)
+        OPTIONAL MATCH (p1)<-[:FROM]-(e2:Node {type: "edge", relation: "IS_A"})-[:TO]->(p2:Node)
+        OPTIONAL MATCH (p2)<-[:FROM]-(e3:Node {type: "edge", relation: "IS_A"})-[:TO]->(p3:Node)
+        OPTIONAL MATCH (p3)<-[:FROM]-(e4:Node {type: "edge", relation: "IS_A"})-[:TO]->(p4:Node)
+        OPTIONAL MATCH (p4)<-[:FROM]-(e5:Node {type: "edge", relation: "IS_A"})-[:TO]->(p5:Node)
+        RETURN t, [p1, p2, p3, p4, p5] AS hierarchy
+        """
+
+    # ========== Type Hierarchy Queries (new) ==========
+
+    @staticmethod
+    def has_ancestor() -> str:
+        """
+        Check if a node has a given ancestor in its IS_A chain.
+        Checks up to 5 levels of IS_A traversal via reified edge nodes.
+
+        Parameters:
+        - uuid: Node UUID
+        - ancestor_name: Name of the ancestor to check for
+
+        Returns: Rows if ancestor found (empty if not)
+        """
+        return """
+        MATCH (n:Node {uuid: $uuid})
+        WHERE
+          EXISTS {
+            MATCH (n)<-[:FROM]-(e1:Node {type: "edge", relation: "IS_A"})-[:TO]->(a1:Node {name: $ancestor_name})
+          }
+          OR EXISTS {
+            MATCH (n)<-[:FROM]-(:Node {type: "edge", relation: "IS_A"})-[:TO]->(m1:Node)
+            MATCH (m1)<-[:FROM]-(e2:Node {type: "edge", relation: "IS_A"})-[:TO]->(a2:Node {name: $ancestor_name})
+          }
+          OR EXISTS {
+            MATCH (n)<-[:FROM]-(:Node {type: "edge", relation: "IS_A"})-[:TO]->(m1:Node)
+            MATCH (m1)<-[:FROM]-(:Node {type: "edge", relation: "IS_A"})-[:TO]->(m2:Node)
+            MATCH (m2)<-[:FROM]-(e3:Node {type: "edge", relation: "IS_A"})-[:TO]->(a3:Node {name: $ancestor_name})
+          }
+          OR EXISTS {
+            MATCH (n)<-[:FROM]-(:Node {type: "edge", relation: "IS_A"})-[:TO]->(m1:Node)
+            MATCH (m1)<-[:FROM]-(:Node {type: "edge", relation: "IS_A"})-[:TO]->(m2:Node)
+            MATCH (m2)<-[:FROM]-(:Node {type: "edge", relation: "IS_A"})-[:TO]->(m3:Node)
+            MATCH (m3)<-[:FROM]-(e4:Node {type: "edge", relation: "IS_A"})-[:TO]->(a4:Node {name: $ancestor_name})
+          }
+          OR EXISTS {
+            MATCH (n)<-[:FROM]-(:Node {type: "edge", relation: "IS_A"})-[:TO]->(m1:Node)
+            MATCH (m1)<-[:FROM]-(:Node {type: "edge", relation: "IS_A"})-[:TO]->(m2:Node)
+            MATCH (m2)<-[:FROM]-(:Node {type: "edge", relation: "IS_A"})-[:TO]->(m3:Node)
+            MATCH (m3)<-[:FROM]-(:Node {type: "edge", relation: "IS_A"})-[:TO]->(m4:Node)
+            MATCH (m4)<-[:FROM]-(e5:Node {type: "edge", relation: "IS_A"})-[:TO]->(a5:Node {name: $ancestor_name})
+          }
+        RETURN n
+        """
+
+    @staticmethod
+    def find_instances_of_type() -> str:
+        """
+        Find instances whose IS_A chain reaches a named type.
+        Searches up to 3 levels of IS_A depth using UNION.
+
+        Parameters:
+        - type_name: Name of the type to find instances of
+
+        Returns: uuid and name of matching instances
+        """
+        return """
+        MATCH (inst:Node)<-[:FROM]-(e:Node {type: "edge", relation: "IS_A"})-[:TO]->(t:Node {name: $type_name})
+        WHERE inst.type <> "edge"
+        RETURN inst.uuid AS uuid, inst.name AS name
+        UNION
+        MATCH (inst:Node)<-[:FROM]-(:Node {type: "edge", relation: "IS_A"})-[:TO]->(m1:Node)
+        MATCH (m1)<-[:FROM]-(:Node {type: "edge", relation: "IS_A"})-[:TO]->(t:Node {name: $type_name})
+        WHERE inst.type <> "edge"
+        RETURN inst.uuid AS uuid, inst.name AS name
+        UNION
+        MATCH (inst:Node)<-[:FROM]-(:Node {type: "edge", relation: "IS_A"})-[:TO]->(m1:Node)
+        MATCH (m1)<-[:FROM]-(:Node {type: "edge", relation: "IS_A"})-[:TO]->(m2:Node)
+        MATCH (m2)<-[:FROM]-(:Node {type: "edge", relation: "IS_A"})-[:TO]->(t:Node {name: $type_name})
+        WHERE inst.type <> "edge"
+        RETURN inst.uuid AS uuid, inst.name AS name
+        """
+
+    @staticmethod
+    def find_nodes_by_ancestor() -> str:
+        """
+        Find nodes that have a given type in their IS_A ancestry.
+        Uses reified edge traversal up to 3 levels.
+
+        Parameters:
+        - ancestor: Ancestor type name to search for
+
+        Returns: List of matching nodes
+        """
+        return """
+        MATCH (n:Node)<-[:FROM]-(e:Node {type: "edge", relation: "IS_A"})-[:TO]->(t:Node {name: $ancestor})
+        WHERE n.type <> "edge"
+        RETURN n
+        UNION
+        MATCH (n:Node)<-[:FROM]-(:Node {type: "edge", relation: "IS_A"})-[:TO]->(m1:Node)
+        MATCH (m1)<-[:FROM]-(:Node {type: "edge", relation: "IS_A"})-[:TO]->(t:Node {name: $ancestor})
+        WHERE n.type <> "edge"
+        RETURN n
+        UNION
+        MATCH (n:Node)<-[:FROM]-(:Node {type: "edge", relation: "IS_A"})-[:TO]->(m1:Node)
+        MATCH (m1)<-[:FROM]-(:Node {type: "edge", relation: "IS_A"})-[:TO]->(m2:Node)
+        MATCH (m2)<-[:FROM]-(:Node {type: "edge", relation: "IS_A"})-[:TO]->(t:Node {name: $ancestor})
+        WHERE n.type <> "edge"
+        RETURN n
         """
 
     # ========== State Queries ==========
@@ -267,6 +448,8 @@ class HCGQueries:
     def find_state_by_uuid() -> str:
         """
         Find a state by its UUID.
+        Matches nodes whose type is in the state hierarchy (state and its
+        subtypes like imagined_state, proposed_imagined_state).
 
         Parameters:
         - uuid: State UUID (string format)
@@ -275,7 +458,7 @@ class HCGQueries:
         """
         return """
         MATCH (s:Node {uuid: $uuid})
-        WHERE s.type = "state" OR "state" IN s.ancestors
+        WHERE s.type IN $state_types
         RETURN s
         """
 
@@ -292,7 +475,7 @@ class HCGQueries:
         """
         return """
         MATCH (s:Node)
-        WHERE (s.type = "state" OR "state" IN s.ancestors)
+        WHERE s.type = "state"
           AND s.timestamp >= datetime($start_time)
           AND s.timestamp <= datetime($end_time)
         RETURN s
@@ -308,7 +491,7 @@ class HCGQueries:
         """
         return """
         MATCH (s:Node)
-        WHERE s.type = "state" OR "state" IN s.ancestors
+        WHERE s.type = "state"
         RETURN s
         ORDER BY s.timestamp DESC
         """
@@ -319,6 +502,8 @@ class HCGQueries:
     def find_process_by_uuid() -> str:
         """
         Find a process by its UUID.
+        Matches nodes whose type is in the process hierarchy (process and its
+        subtypes like action, step, imagined_process, etc.).
 
         Parameters:
         - uuid: Process UUID (string format)
@@ -327,7 +512,7 @@ class HCGQueries:
         """
         return """
         MATCH (p:Node {uuid: $uuid})
-        WHERE p.type = "process" OR "process" IN p.ancestors
+        WHERE p.type IN $process_types
         RETURN p
         """
 
@@ -344,7 +529,7 @@ class HCGQueries:
         """
         return """
         MATCH (p:Node)
-        WHERE (p.type = "process" OR "process" IN p.ancestors)
+        WHERE p.type = "process"
           AND p.start_time >= datetime($start_time)
           AND p.start_time <= datetime($end_time)
         RETURN p
@@ -360,17 +545,17 @@ class HCGQueries:
         """
         return """
         MATCH (p:Node)
-        WHERE p.type = "process" OR "process" IN p.ancestors
+        WHERE p.type = "process"
         RETURN p
         ORDER BY p.start_time DESC
         """
 
-    # ========== Relationship Queries ==========
+    # ========== Relationship Queries (reified edge traversal) ==========
 
     @staticmethod
     def get_node_type() -> str:
         """
-        Get the type of a node via IS_A relationship.
+        Get the type of a node via IS_A edge node traversal.
 
         Parameters:
         - uuid: Node UUID (string format)
@@ -378,14 +563,14 @@ class HCGQueries:
         Returns: Type node that this node is an instance of
         """
         return """
-        MATCH (n:Node {uuid: $uuid})-[:IS_A]->(t:Node)
+        MATCH (n:Node {uuid: $uuid})<-[:FROM]-(e:Node {type: "edge", relation: "IS_A"})-[:TO]->(t:Node)
         RETURN t
         """
 
     @staticmethod
     def get_entity_type() -> str:
         """
-        Get the concept type of an entity via IS_A relationship.
+        Get the concept type of an entity via IS_A edge node traversal.
 
         Parameters:
         - entity_uuid: Entity UUID (string format)
@@ -393,14 +578,15 @@ class HCGQueries:
         Returns: Concept node (as 'c')
         """
         return """
-        MATCH (e:Node {uuid: $entity_uuid})-[:IS_A]->(c:Node)
+        MATCH (e:Node {uuid: $entity_uuid})<-[:FROM]-(edge:Node {type: "edge", relation: "IS_A"})-[:TO]->(c:Node)
         RETURN c
         """
 
     @staticmethod
     def get_entity_parts() -> str:
         """
-        Get all parts of an entity via PART_OF relationship.
+        Get all parts of an entity via PART_OF edge node traversal.
+        Parts are nodes that have a PART_OF edge pointing TO this entity.
 
         Parameters:
         - entity_uuid: Entity UUID (string format)
@@ -408,14 +594,15 @@ class HCGQueries:
         Returns: List of part Entity nodes
         """
         return """
-        MATCH (part:Node)-[:PART_OF]->(e:Node {uuid: $entity_uuid})
+        MATCH (part:Node)<-[:FROM]-(edge:Node {type: "edge", relation: "PART_OF"})-[:TO]->(e:Node {uuid: $entity_uuid})
         RETURN part
         """
 
     @staticmethod
     def get_entity_parent() -> str:
         """
-        Get the parent entity via PART_OF relationship.
+        Get the parent entity via PART_OF edge node traversal.
+        The parent is the target of the PART_OF edge from this entity.
 
         Parameters:
         - entity_uuid: Entity UUID (string format)
@@ -423,14 +610,14 @@ class HCGQueries:
         Returns: Parent Entity node (as 'whole')
         """
         return """
-        MATCH (e:Node {uuid: $entity_uuid})-[:PART_OF]->(whole:Node)
+        MATCH (e:Node {uuid: $entity_uuid})<-[:FROM]-(edge:Node {type: "edge", relation: "PART_OF"})-[:TO]->(whole:Node)
         RETURN whole
         """
 
     @staticmethod
     def get_entity_states() -> str:
         """
-        Get all states of an entity via HAS_STATE relationship.
+        Get all states of an entity via HAS_STATE edge node traversal.
 
         Parameters:
         - entity_uuid: Entity UUID (string format)
@@ -438,7 +625,7 @@ class HCGQueries:
         Returns: List of State nodes ordered by timestamp
         """
         return """
-        MATCH (e:Node {uuid: $entity_uuid})-[:HAS_STATE]->(s:Node)
+        MATCH (e:Node {uuid: $entity_uuid})<-[:FROM]-(edge:Node {type: "edge", relation: "HAS_STATE"})-[:TO]->(s:Node)
         RETURN s
         ORDER BY s.timestamp DESC
         """
@@ -446,7 +633,7 @@ class HCGQueries:
     @staticmethod
     def get_entity_current_state() -> str:
         """
-        Get the most recent state of an entity.
+        Get the most recent state of an entity via HAS_STATE edge node traversal.
 
         Parameters:
         - entity_uuid: Entity UUID (string format)
@@ -454,7 +641,7 @@ class HCGQueries:
         Returns: Most recent State node
         """
         return """
-        MATCH (e:Node {uuid: $entity_uuid})-[:HAS_STATE]->(s:Node)
+        MATCH (e:Node {uuid: $entity_uuid})<-[:FROM]-(edge:Node {type: "edge", relation: "HAS_STATE"})-[:TO]->(s:Node)
         RETURN s
         ORDER BY s.timestamp DESC
         LIMIT 1
@@ -463,7 +650,7 @@ class HCGQueries:
     @staticmethod
     def get_process_preconditions() -> str:
         """
-        Get states required by a process (REQUIRES relationship).
+        Get states required by a process via REQUIRES edge node traversal.
 
         Parameters:
         - process_uuid: Process UUID (string format)
@@ -471,14 +658,14 @@ class HCGQueries:
         Returns: List of State nodes that are preconditions
         """
         return """
-        MATCH (p:Node {uuid: $process_uuid})-[:REQUIRES]->(s:Node)
+        MATCH (p:Node {uuid: $process_uuid})<-[:FROM]-(edge:Node {type: "edge", relation: "REQUIRES"})-[:TO]->(s:Node)
         RETURN s
         """
 
     @staticmethod
     def get_process_effects() -> str:
         """
-        Get states caused by a process (CAUSES relationship).
+        Get states caused by a process via CAUSES edge node traversal.
 
         Parameters:
         - process_uuid: Process UUID (string format)
@@ -486,7 +673,7 @@ class HCGQueries:
         Returns: List of State nodes that are effects
         """
         return """
-        MATCH (p:Node {uuid: $process_uuid})-[:CAUSES]->(s:Node)
+        MATCH (p:Node {uuid: $process_uuid})<-[:FROM]-(edge:Node {type: "edge", relation: "CAUSES"})-[:TO]->(s:Node)
         RETURN s
         """
 
@@ -495,7 +682,7 @@ class HCGQueries:
     def get_process_causes() -> str:
         """Alias for get_process_effects()."""
         return """
-        MATCH (p:Node {uuid: $process_uuid})-[:CAUSES]->(s:Node)
+        MATCH (p:Node {uuid: $process_uuid})<-[:FROM]-(edge:Node {type: "edge", relation: "CAUSES"})-[:TO]->(s:Node)
         RETURN s
         """
 
@@ -503,7 +690,7 @@ class HCGQueries:
     def get_process_requirements() -> str:
         """Alias for get_process_preconditions()."""
         return """
-        MATCH (p:Node {uuid: $process_uuid})-[:REQUIRES]->(s:Node)
+        MATCH (p:Node {uuid: $process_uuid})<-[:FROM]-(edge:Node {type: "edge", relation: "REQUIRES"})-[:TO]->(s:Node)
         RETURN s
         """
 
@@ -511,7 +698,7 @@ class HCGQueries:
     def find_current_state_for_entity() -> str:
         """Alias for get_entity_current_state()."""
         return """
-        MATCH (e:Node {uuid: $entity_uuid})-[:HAS_STATE]->(s:Node)
+        MATCH (e:Node {uuid: $entity_uuid})<-[:FROM]-(edge:Node {type: "edge", relation: "HAS_STATE"})-[:TO]->(s:Node)
         RETURN s
         ORDER BY s.timestamp DESC
         LIMIT 1
@@ -520,40 +707,68 @@ class HCGQueries:
     # ========== Causality Traversal Queries ==========
 
     @staticmethod
-    def traverse_causality_forward(max_depth: int = 10) -> str:
+    def traverse_causality_forward(max_depth: int = 1) -> str:
         """
-        Traverse causality chain forward from a state.
+        Traverse causality chain forward from a state via reified edge nodes.
+        Finds processes that REQUIRE the given state and their CAUSES effects.
+
+        Currently only single-hop traversal is implemented. Multi-hop
+        traversal (max_depth > 1) is not yet supported.
 
         Parameters:
         - state_uuid: Starting State UUID
-        - max_depth: Maximum traversal depth (passed as function arg)
+        - max_depth: Maximum traversal depth. Only ``1`` is currently
+          supported; passing a value > 1 raises ``NotImplementedError``.
 
         Returns: Processes and resulting states with depth
+
+        Raises:
+            NotImplementedError: If *max_depth* > 1.
         """
-        return f"""
-        MATCH (start:Node {{uuid: $state_uuid}})
-        MATCH path = (start)<-[:REQUIRES]-(p:Node)-[:CAUSES]->(result:Node)
-        WHERE length(path) <= {max_depth * 2}
-        RETURN p, result, length(path)/2 as depth
+        if max_depth > 1:
+            raise NotImplementedError(
+                f"Multi-hop causality traversal is not yet implemented (max_depth={max_depth}). "
+                "Only single-step (max_depth=1) is supported."
+            )
+        # Single-step causality: state <-REQUIRES- process -CAUSES-> result
+        # Each hop is through two edge nodes, so we do a single step for now.
+        return """
+        MATCH (start:Node {uuid: $state_uuid})
+        MATCH (start)<-[:TO]-(req_edge:Node {type: "edge", relation: "REQUIRES"})-[:FROM]->(p:Node)
+        MATCH (p)<-[:FROM]-(cause_edge:Node {type: "edge", relation: "CAUSES"})-[:TO]->(result:Node)
+        RETURN p, result, 1 as depth
         ORDER BY depth
         """
 
     @staticmethod
-    def traverse_causality_backward(max_depth: int = 10) -> str:
+    def traverse_causality_backward(max_depth: int = 1) -> str:
         """
-        Traverse causality chain backward from a state.
+        Traverse causality chain backward from a state via reified edge nodes.
+        Finds processes that CAUSE the given state and their REQUIRES preconditions.
+
+        Currently only single-hop traversal is implemented. Multi-hop
+        traversal (max_depth > 1) is not yet supported.
 
         Parameters:
         - state_uuid: Target State UUID
-        - max_depth: Maximum traversal depth (passed as function arg)
+        - max_depth: Maximum traversal depth. Only ``1`` is currently
+          supported; passing a value > 1 raises ``NotImplementedError``.
 
         Returns: Causing states and processes with depth
+
+        Raises:
+            NotImplementedError: If *max_depth* > 1.
         """
-        return f"""
-        MATCH (target:Node {{uuid: $state_uuid}})
-        MATCH path = (cause:Node)<-[:REQUIRES]-(p:Node)-[:CAUSES]->(target)
-        WHERE length(path) <= {max_depth * 2}
-        RETURN cause, p, length(path)/2 as depth
+        if max_depth > 1:
+            raise NotImplementedError(
+                f"Multi-hop causality traversal is not yet implemented (max_depth={max_depth}). "
+                "Only single-step (max_depth=1) is supported."
+            )
+        return """
+        MATCH (target:Node {uuid: $state_uuid})
+        MATCH (target)<-[:TO]-(cause_edge:Node {type: "edge", relation: "CAUSES"})-[:FROM]->(p:Node)
+        MATCH (p)<-[:FROM]-(req_edge:Node {type: "edge", relation: "REQUIRES"})-[:TO]->(cause:Node)
+        RETURN cause, p, 1 as depth
         ORDER BY depth
         """
 
@@ -562,7 +777,7 @@ class HCGQueries:
     @staticmethod
     def find_processes_causing_state() -> str:
         """
-        Find all processes that CAUSE a specific state.
+        Find all processes that CAUSE a specific state via CAUSES edge nodes.
 
         Parameters:
         - state_uuid: Target State UUID
@@ -570,15 +785,15 @@ class HCGQueries:
         Returns: List of Process nodes that cause this state
         """
         return """
-        MATCH (p:Node)-[:CAUSES]->(s:Node {uuid: $state_uuid})
-        WHERE p.type = "process" OR "process" IN p.ancestors
+        MATCH (p:Node)<-[:FROM]-(edge:Node {type: "edge", relation: "CAUSES"})-[:TO]->(s:Node {uuid: $state_uuid})
+        WHERE p.type IN $process_types
         RETURN p
         """
 
     @staticmethod
     def find_processes_by_effect_properties() -> str:
         """
-        Find processes that cause states matching property criteria.
+        Find processes that cause states matching property criteria via CAUSES edge nodes.
 
         Parameters:
         - property_key: Name of the state property to match
@@ -587,8 +802,8 @@ class HCGQueries:
         Returns: Process and State nodes
         """
         return """
-        MATCH (p:Node)-[:CAUSES]->(s:Node)
-        WHERE (p.type = "process" OR "process" IN p.ancestors)
+        MATCH (p:Node)<-[:FROM]-(edge:Node {type: "edge", relation: "CAUSES"})-[:TO]->(s:Node)
+        WHERE p.type IN $process_types
           AND s[$property_key] = $property_value
         RETURN p, s
         """
@@ -596,7 +811,7 @@ class HCGQueries:
     @staticmethod
     def find_processes_for_entity_state() -> str:
         """
-        Find processes that cause states for a specific entity.
+        Find processes that cause states for a specific entity via reified edges.
 
         Parameters:
         - entity_uuid: Entity UUID
@@ -604,9 +819,9 @@ class HCGQueries:
         Returns: Process and State nodes
         """
         return """
-        MATCH (e:Node {uuid: $entity_uuid})-[:HAS_STATE]->(s:Node)
-        MATCH (p:Node)-[:CAUSES]->(s)
-        WHERE p.type = "process" OR "process" IN p.ancestors
+        MATCH (e:Node {uuid: $entity_uuid})<-[:FROM]-(:Node {type: "edge", relation: "HAS_STATE"})-[:TO]->(s:Node)
+        MATCH (p:Node)<-[:FROM]-(:Node {type: "edge", relation: "CAUSES"})-[:TO]->(s)
+        WHERE p.type IN $process_types
         RETURN p, s
         """
 
@@ -624,14 +839,14 @@ class HCGQueries:
         """
         return """
         MATCH (c:Node {uuid: $uuid})
-        WHERE c.type = "capability" OR "capability" IN c.ancestors
+        WHERE c.type = "capability"
         RETURN c
         """
 
     @staticmethod
     def find_capability_for_process() -> str:
         """
-        Find the capability that can execute a process.
+        Find the capability that can execute a process via USES_CAPABILITY edge node.
 
         Parameters:
         - process_uuid: Process UUID
@@ -640,14 +855,14 @@ class HCGQueries:
         """
         return """
         MATCH (p:Node {uuid: $process_uuid})
-        OPTIONAL MATCH (p)-[:USES_CAPABILITY]->(capability:Node)
+        OPTIONAL MATCH (p)<-[:FROM]-(edge:Node {type: "edge", relation: "USES_CAPABILITY"})-[:TO]->(capability:Node)
         RETURN capability
         """
 
     @staticmethod
     def check_state_satisfied() -> str:
         """
-        Check if a state with given properties exists for an entity.
+        Check if a state with given properties exists for an entity via HAS_STATE edge node.
 
         Parameters:
         - entity_uuid: Entity UUID
@@ -657,22 +872,27 @@ class HCGQueries:
         Returns: Boolean 'satisfied' indicating if matching state exists
         """
         return """
-        MATCH (e:Node {uuid: $entity_uuid})-[:HAS_STATE]->(s:Node)
+        MATCH (e:Node {uuid: $entity_uuid})<-[:FROM]-(:Node {type: "edge", relation: "HAS_STATE"})-[:TO]->(s:Node)
         WHERE s[$property_key] = $property_value
         RETURN count(s) > 0 as satisfied
         """
 
     # ========== Create Queries ==========
+    # Note: Type definitions and instances are now created via client.add_node()
+    # and linked via client.add_edge(). The old create_type_definition(),
+    # create_instance(), create_entity(), create_state(), create_process()
+    # queries are kept for backward compatibility but no longer set
+    # ancestors or is_type_definition properties.
 
     @staticmethod
     def create_type_definition() -> str:
         """
-        Create a new type definition.
+        Create a new type definition node.
+        Type hierarchy is expressed via IS_A edge nodes, not stored properties.
 
         Parameters:
         - uuid: Node UUID
         - name: Type name
-        - ancestors: List of ancestor type names
         - description: Optional description
 
         Returns: Created node
@@ -681,9 +901,7 @@ class HCGQueries:
         CREATE (t:Node {
             uuid: $uuid,
             name: $name,
-            is_type_definition: true,
-            type: $name,
-            ancestors: $ancestors,
+            type: "type_definition",
             description: $description
         })
         RETURN t
@@ -693,12 +911,12 @@ class HCGQueries:
     def create_instance() -> str:
         """
         Create a new instance of a type.
+        Type hierarchy is expressed via IS_A edge nodes, not stored properties.
 
         Parameters:
         - uuid: Node UUID
         - name: Instance name
         - type: Type name
-        - ancestors: List of ancestor type names
         - description: Optional description
 
         Returns: Created node
@@ -707,9 +925,7 @@ class HCGQueries:
         CREATE (n:Node {
             uuid: $uuid,
             name: $name,
-            is_type_definition: false,
             type: $type,
-            ancestors: $ancestors,
             description: $description
         })
         RETURN n
@@ -718,13 +934,12 @@ class HCGQueries:
     @staticmethod
     def create_entity() -> str:
         """
-        Create a new entity (instance of thing).
+        Create a new entity.
 
         Parameters:
         - uuid: Entity UUID
         - name: Entity name
         - type: Specific entity type (default "entity")
-        - ancestors: List of ancestor types
         - description: Optional description
 
         Returns: Created entity node
@@ -733,9 +948,7 @@ class HCGQueries:
         CREATE (e:Node {
             uuid: $uuid,
             name: $name,
-            is_type_definition: false,
             type: $type,
-            ancestors: $ancestors,
             description: $description,
             created_at: datetime()
         })
@@ -751,7 +964,6 @@ class HCGQueries:
         - uuid: State UUID
         - name: State name
         - type: Specific state type (default "state")
-        - ancestors: List of ancestor types
         - timestamp: Optional timestamp (defaults to now)
 
         Returns: Created state node
@@ -760,9 +972,7 @@ class HCGQueries:
         CREATE (s:Node {
             uuid: $uuid,
             name: $name,
-            is_type_definition: false,
             type: $type,
-            ancestors: $ancestors,
             timestamp: COALESCE($timestamp, datetime())
         })
         RETURN s
@@ -777,7 +987,6 @@ class HCGQueries:
         - uuid: Process UUID
         - name: Process name
         - type: Specific process type (default "process")
-        - ancestors: List of ancestor types
         - description: Optional description
         - duration_ms: Optional duration in milliseconds
 
@@ -787,9 +996,7 @@ class HCGQueries:
         CREATE (p:Node {
             uuid: $uuid,
             name: $name,
-            is_type_definition: false,
             type: $type,
-            ancestors: $ancestors,
             description: $description,
             start_time: datetime(),
             duration_ms: $duration_ms
@@ -806,7 +1013,6 @@ class HCGQueries:
         - uuid: State UUID (state_id format: cwm_<type>_<uuid>)
         - name: State name (typically auto-generated)
         - type: CWM type ("cwm_a", "cwm_g", or "cwm_e")
-        - ancestors: List of ancestor types (e.g., ["cwm", "cognition"])
         - timestamp: ISO timestamp
         - source: Origin subsystem (e.g., "planner", "jepa", "reflection")
         - confidence: Confidence score 0.0-1.0
@@ -823,9 +1029,7 @@ class HCGQueries:
         CREATE (s:Node {
             uuid: $uuid,
             name: $name,
-            is_type_definition: false,
             type: $type,
-            ancestors: $ancestors,
             timestamp: datetime($timestamp),
             source: $source,
             confidence: $confidence,
@@ -854,86 +1058,10 @@ class HCGQueries:
         return """
         MATCH (s:Node)
         WHERE s.type IN $types
-          AND (s.type = "cwm_a" OR s.type = "cwm_g" OR s.type = "cwm_e"
-               OR "cwm" IN s.ancestors)
           AND ($after_timestamp IS NULL OR s.timestamp > datetime($after_timestamp))
         RETURN s
         ORDER BY s.timestamp DESC
         LIMIT $limit
-        """
-
-    # ========== Link Queries ==========
-
-    @staticmethod
-    def link_is_a() -> str:
-        """
-        Create IS_A relationship between nodes.
-
-        Parameters:
-        - from_uuid: Source node UUID
-        - to_uuid: Target node UUID
-
-        Returns: Created relationship
-        """
-        return """
-        MATCH (from:Node {uuid: $from_uuid})
-        MATCH (to:Node {uuid: $to_uuid})
-        CREATE (from)-[r:IS_A]->(to)
-        RETURN r
-        """
-
-    @staticmethod
-    def link_has_state() -> str:
-        """
-        Create HAS_STATE relationship between entity and state.
-
-        Parameters:
-        - entity_uuid: Entity node UUID
-        - state_uuid: State node UUID
-
-        Returns: Created relationship
-        """
-        return """
-        MATCH (e:Node {uuid: $entity_uuid})
-        MATCH (s:Node {uuid: $state_uuid})
-        CREATE (e)-[r:HAS_STATE]->(s)
-        RETURN r
-        """
-
-    @staticmethod
-    def link_requires() -> str:
-        """
-        Create REQUIRES relationship between process and state.
-
-        Parameters:
-        - process_uuid: Process node UUID
-        - state_uuid: State node UUID
-
-        Returns: Created relationship
-        """
-        return """
-        MATCH (p:Node {uuid: $process_uuid})
-        MATCH (s:Node {uuid: $state_uuid})
-        CREATE (p)-[r:REQUIRES]->(s)
-        RETURN r
-        """
-
-    @staticmethod
-    def link_causes() -> str:
-        """
-        Create CAUSES relationship between process and state.
-
-        Parameters:
-        - process_uuid: Process node UUID
-        - state_uuid: State node UUID
-
-        Returns: Created relationship
-        """
-        return """
-        MATCH (p:Node {uuid: $process_uuid})
-        MATCH (s:Node {uuid: $state_uuid})
-        CREATE (p)-[r:CAUSES]->(s)
-        RETURN r
         """
 
     # ========== Update Queries ==========
@@ -1009,11 +1137,12 @@ class HCGQueries:
     @staticmethod
     def count_type_definitions() -> str:
         """
-        Count type definitions vs instances.
+        Count type definitions (nodes with type="type_definition") vs other nodes.
 
-        Returns: Counts by is_type_definition
+        Returns: Counts by type category
         """
         return """
         MATCH (n:Node)
-        RETURN n.is_type_definition as is_type_def, count(n) as count
+        RETURN CASE WHEN n.type = "type_definition" THEN true ELSE false END as is_type_def,
+               count(n) as count
         """

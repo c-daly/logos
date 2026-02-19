@@ -13,6 +13,7 @@ See Project LOGOS spec: Section 4.1 (Core Ontology and Data Model)
 """
 
 from logos_hcg.client import HCGClient
+from logos_hcg.edge import Edge
 from logos_hcg.models import (
     Abstraction,
     Association,
@@ -38,7 +39,7 @@ from logos_hcg.models import (
 )
 from logos_hcg.planner import GoalUnachievableError, HCGPlanner, PlanningError
 from logos_hcg.queries import HCGQueries
-from logos_hcg.seeder import ANCESTORS, HCGSeeder
+from logos_hcg.seeder import TYPE_PARENTS, HCGSeeder
 from logos_hcg.sync import HCGMilvusSync, MilvusSyncError
 
 __all__ = [
@@ -52,6 +53,7 @@ __all__ = [
     "Concept",
     "State",
     "Process",
+    "Edge",
     # Capability catalog (logos#284)
     "Capability",
     "ExecutorType",
@@ -78,7 +80,7 @@ __all__ = [
     "GoalUnachievableError",
     # Seeder
     "HCGSeeder",
-    "ANCESTORS",
+    "TYPE_PARENTS",
 ]
 
 __version__ = "0.1.0"

@@ -189,7 +189,7 @@ class HCGLoader:
         required_indexes = [
             "logos_node_type",
             "logos_node_name",
-            "logos_node_is_type_def",
+            "logos_node_relation",
         ]
 
         found = {}

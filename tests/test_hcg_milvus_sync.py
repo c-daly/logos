@@ -51,7 +51,7 @@ class TestHCGMilvusSync:
             port="19530",
         )
         assert sync._connected is True
-        assert len(sync._collections) == 4
+        assert len(sync._collections) == 5
 
     @patch("logos_hcg.sync.connections")
     def test_connect_failure(self, mock_connections):
@@ -401,7 +401,7 @@ class TestHCGMilvusSync:
         health = sync.health_check()
 
         assert health["connected"] is True
-        assert len(health["collections"]) == 4
+        assert len(health["collections"]) == 5
         # All collections should exist and be loaded
         for _node_type, status in health["collections"].items():
             assert status["exists"] is True

@@ -13,14 +13,14 @@ jobs:
   standard:
     uses: c-daly/logos/.github/workflows/reusable-standard-ci.yml@main
     with:
-      python_versions: '["3.11","3.12"]'
+      python_versions: '["3.12"]'
       python_package_manager: 'poetry'
       python_command_prefix: 'poetry run '
       poetry_install_args: '--with dev,test'
       python_lint_paths: '.'
       mypy_targets: '.'
       pytest_command: 'pytest -v --cov --cov-report=term-missing --cov-report=xml'
-      coverage_python_version: '3.11'
+      coverage_python_version: '3.12'
       upload_coverage: false
       docker_compose_file: 'tests/e2e/stack/logos/docker-compose.test.yml'
       docker_compose_wait_script: |

@@ -114,8 +114,8 @@ class TestOntologyLoading:
                 "logos_node_name" in i for i in indexes
             ), "Node name index missing"
             assert any(
-                "logos_node_is_type_def" in i for i in indexes
-            ), "Node is_type_definition index missing"
+                "logos_node_relation" in i for i in indexes
+            ), "Node relation index missing"
 
 
 class TestEntityCreation:

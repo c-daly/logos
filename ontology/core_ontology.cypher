@@ -10,7 +10,7 @@ FOR (n:Node) REQUIRE n.uuid IS UNIQUE;
 // === Indexes ===
 CREATE INDEX logos_node_type IF NOT EXISTS FOR (n:Node) ON (n.type);
 CREATE INDEX logos_node_name IF NOT EXISTS FOR (n:Node) ON (n.name);
-CREATE INDEX logos_node_is_type_def IF NOT EXISTS FOR (n:Node) ON (n.is_type_definition);
+CREATE INDEX logos_node_relation IF NOT EXISTS FOR (n:Node) ON (n.relation);
 CREATE INDEX logos_node_type_name IF NOT EXISTS FOR (n:Node) ON (n.type, n.name);
 
 // === Bootstrap: type_definition (self-referential) ===
