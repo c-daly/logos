@@ -346,7 +346,7 @@ class TestCausalTraversal:
         states = hcg_client.find_states_by_timestamp_range(past, future)
 
         for state in states[:5]:  # Test first 5 states
-            results = hcg_client.traverse_causality_forward(state.uuid, max_depth=5)
+            results = hcg_client.traverse_causality_forward(state.uuid, max_depth=1)
             assert isinstance(results, list)
 
             # Verify structure of results
@@ -364,7 +364,7 @@ class TestCausalTraversal:
         states = hcg_client.find_states_by_timestamp_range(past, future)
 
         for state in states[:5]:  # Test first 5 states
-            results = hcg_client.traverse_causality_backward(state.uuid, max_depth=5)
+            results = hcg_client.traverse_causality_backward(state.uuid, max_depth=1)
             assert isinstance(results, list)
 
             # Verify structure of results

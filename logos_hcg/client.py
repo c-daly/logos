@@ -263,9 +263,7 @@ class HCGClient:
         """
         query = HCGQueries.find_entity_by_uuid()
         uuid_str = self._normalize_uuid(uuid, "uuid")
-        records = self._execute_read(
-            query, {"uuid": uuid_str, "entity_types": HCGQueries.ENTITY_TYPES}
-        )
+        records = self._execute_read(query, {"uuid": uuid_str})
 
         if not records:
             return None

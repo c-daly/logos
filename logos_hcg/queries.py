@@ -190,8 +190,7 @@ class HCGQueries:
     def find_entity_by_uuid() -> str:
         """
         Find an entity by its UUID.
-        Matches nodes whose type is in the entity hierarchy (descendants of
-        'thing').
+        Excludes edge nodes (those with type "edge").
 
         Parameters:
         - uuid: Entity UUID (string format)
@@ -200,7 +199,7 @@ class HCGQueries:
         """
         return """
         MATCH (e:Node {uuid: $uuid})
-        WHERE e.type IN $entity_types
+        WHERE e.type <> "edge"
         RETURN e
         """
 
@@ -708,7 +707,7 @@ class HCGQueries:
     # ========== Causality Traversal Queries ==========
 
     @staticmethod
-    def traverse_causality_forward(max_depth: int = 10) -> str:
+    def traverse_causality_forward(max_depth: int = 1) -> str:
         """
         Traverse causality chain forward from a state via reified edge nodes.
         Finds processes that REQUIRE the given state and their CAUSES effects.
@@ -742,7 +741,7 @@ class HCGQueries:
         """
 
     @staticmethod
-    def traverse_causality_backward(max_depth: int = 10) -> str:
+    def traverse_causality_backward(max_depth: int = 1) -> str:
         """
         Traverse causality chain backward from a state via reified edge nodes.
         Finds processes that CAUSE the given state and their REQUIRES preconditions.
