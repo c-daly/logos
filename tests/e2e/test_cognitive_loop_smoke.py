@@ -423,10 +423,11 @@ class TestDirectSophiaProposal:
     PROPOSAL_ID = "smoke-test-direct-proposal"
     ENTITY_NAME = "Prometheus Laboratory"
     ENTITY_NAME_2 = "Athena Research Group"
-    # 384-dim zero vector — valid for MiniLM schema, won't match anything
-    ZERO_EMBEDDING = [0.0] * 384
+    # Embedding dimension from env (matches Milvus schema)
+    _EMBEDDING_DIM = int(os.getenv("LOGOS_EMBEDDING_DIM", "384"))
+    ZERO_EMBEDDING = [0.0] * _EMBEDDING_DIM
     # Slightly different vector for second entity (won't match first)
-    NEAR_ZERO_EMBEDDING = [0.001] * 384
+    NEAR_ZERO_EMBEDDING = [0.001] * _EMBEDDING_DIM
 
     @pytest.fixture(autouse=True, scope="class")
     def cleanup(self, neo4j_driver):
@@ -442,8 +443,9 @@ class TestDirectSophiaProposal:
                 # Also clean up edge nodes between these entities.
                 session.run(
                     "MATCH (e:Node) WHERE e.relation IS NOT NULL "
-                    "AND (e.source IS NOT NULL OR e.target IS NOT NULL) "
-                    "DETACH DELETE e"
+                    "AND (e.source IN $names OR e.target IN $names) "
+                    "DETACH DELETE e",
+                    names=[self.ENTITY_NAME, self.ENTITY_NAME_2],
                 )
 
         _clean()
@@ -467,7 +469,7 @@ class TestDirectSophiaProposal:
                     "type": "location",
                     "embedding": self.ZERO_EMBEDDING,
                     "embedding_id": "smoke-test-emb-001",
-                    "dimension": 384,
+                    "dimension": self._EMBEDDING_DIM,
                     "model": "all-MiniLM-L6-v2",
                     "properties": {},
                 },
@@ -476,7 +478,7 @@ class TestDirectSophiaProposal:
                     "type": "agent",
                     "embedding": self.NEAR_ZERO_EMBEDDING,
                     "embedding_id": "smoke-test-emb-003",
-                    "dimension": 384,
+                    "dimension": self._EMBEDDING_DIM,
                     "model": "all-MiniLM-L6-v2",
                     "properties": {},
                 },
@@ -498,7 +500,7 @@ class TestDirectSophiaProposal:
             "document_embedding": {
                 "embedding": self.ZERO_EMBEDDING,
                 "embedding_id": "smoke-test-doc-emb-001",
-                "dimension": 384,
+                "dimension": self._EMBEDDING_DIM,
                 "model": "all-MiniLM-L6-v2",
             },
             "metadata": {"test": True},
@@ -610,7 +612,7 @@ class TestDirectSophiaProposal:
                     # Same zero embedding — should match the stored one
                     "embedding": self.ZERO_EMBEDDING,
                     "embedding_id": "smoke-test-emb-002",
-                    "dimension": 384,
+                    "dimension": self._EMBEDDING_DIM,
                     "model": "all-MiniLM-L6-v2",
                     "properties": {},
                 },
@@ -618,7 +620,7 @@ class TestDirectSophiaProposal:
             "document_embedding": {
                 "embedding": self.ZERO_EMBEDDING,
                 "embedding_id": "smoke-test-doc-emb-002",
-                "dimension": 384,
+                "dimension": self._EMBEDDING_DIM,
                 "model": "all-MiniLM-L6-v2",
             },
             "metadata": {"test": True},

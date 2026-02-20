@@ -28,7 +28,12 @@ logger = logging.getLogger(__name__)
 
 def _get_embedding_dim() -> int:
     """Resolve embedding dimension lazily (env may not be loaded at import time)."""
-    return int(get_env_value("LOGOS_EMBEDDING_DIM", default="384") or "384")
+    raw = get_env_value("LOGOS_EMBEDDING_DIM", default="384") or "384"
+    try:
+        return int(raw)
+    except (ValueError, TypeError):
+        logger.warning("Invalid LOGOS_EMBEDDING_DIM=%r; defaulting to 384", raw)
+        return 384
 
 
 # Collection name mapping for HCG node types
