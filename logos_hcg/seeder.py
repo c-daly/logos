@@ -223,10 +223,23 @@ class HCGSeeder:
             "ws",
             "Assembly Lab",
             "location",
-            props={"description": "Main assembly workspace", "location_type": "workspace"},
+            props={
+                "description": "Main assembly workspace",
+                "location_type": "workspace",
+            },
         )
-        _n("zone_staging", "Staging Area", "location", props={"location_type": "zone", "zone_type": "staging"})
-        _n("zone_assembly", "Assembly Station", "location", props={"location_type": "zone", "zone_type": "assembly"})
+        _n(
+            "zone_staging",
+            "Staging Area",
+            "location",
+            props={"location_type": "zone", "zone_type": "staging"},
+        )
+        _n(
+            "zone_assembly",
+            "Assembly Station",
+            "location",
+            props={"location_type": "zone", "zone_type": "assembly"},
+        )
         _n(
             "zone_inspection",
             "Inspection Bay",
@@ -239,12 +252,21 @@ class HCGSeeder:
 
         # --- Agent + components ---
         _n("agent", "LOGOS-01", "agent", props={"description": "Primary robotic agent"})
-        _n("arm", "Panda Arm", "object", props={"model": "Franka Panda", "dof": 7, "object_type": "manipulator"})
+        _n(
+            "arm",
+            "Panda Arm",
+            "object",
+            props={"model": "Franka Panda", "dof": 7, "object_type": "manipulator"},
+        )
         _n(
             "cam",
             "Depth Camera",
             "object",
-            props={"model": "Intel RealSense D435", "sensor_type": "rgbd", "object_type": "sensor"},
+            props={
+                "model": "Intel RealSense D435",
+                "sensor_type": "rgbd",
+                "object_type": "sensor",
+            },
         )
         _e("arm", "agent", "PART_OF")
         _e("cam", "agent", "PART_OF")
@@ -388,7 +410,10 @@ class HCGSeeder:
             "is_empty_ws",
             "Empty workspace state",
             "state",
-            props={"description": "All objects in inspection bay", "derivation": "imagined"},
+            props={
+                "description": "All objects in inspection bay",
+                "derivation": "imagined",
+            },
         )
         _e("sim_clear", "ip_move_all", "HAS_STEP")
         _e("ip_move_all", "is_empty_ws", "CAUSES")
