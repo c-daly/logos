@@ -21,9 +21,9 @@ Default embedding dimension: 384 (suitable for sentence-transformers models like
 """
 
 import argparse
-import os
 import sys
 
+from logos_config import get_env_value
 from pymilvus import (
     Collection,
     CollectionSchema,
@@ -37,7 +37,7 @@ from pymilvus import (
 DEFAULT_HOST = "localhost"
 DEFAULT_PORT = "19530"
 DEFAULT_EMBEDDING_DIM = int(
-    os.environ.get("LOGOS_EMBEDDING_DIM", "384")
+    get_env_value("LOGOS_EMBEDDING_DIM", default="384") or "384"
 )  # Configurable; default suits sentence-transformers models
 DEFAULT_INDEX_TYPE = "IVF_FLAT"  # Simple and effective for development
 DEFAULT_METRIC_TYPE = "L2"  # Euclidean distance for semantic similarity

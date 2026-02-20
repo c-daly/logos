@@ -157,7 +157,7 @@ class TestCognitiveLoopSmoke:
                 "model": "gpt-4o-mini",
                 "max_tokens": 100,
             },
-            timeout=30,
+            timeout=90,
         )
 
         assert response.status_code == 200, (
