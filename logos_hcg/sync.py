@@ -15,6 +15,7 @@ See Project LOGOS spec: Section 4.2 (Vector Integration)
 """
 
 import logging
+import os
 from datetime import UTC, datetime
 from typing import Any, Literal, cast
 from uuid import UUID
@@ -22,6 +23,8 @@ from uuid import UUID
 from pymilvus import Collection, connections, utility
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_EMBEDDING_DIM = int(os.environ.get("LOGOS_EMBEDDING_DIM", "384"))
 
 # Collection name mapping for HCG node types
 COLLECTION_NAMES = {
@@ -125,7 +128,7 @@ class HCGMilvusSync:
         fields = [
             FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
             FieldSchema(name="uuid", dtype=DataType.VARCHAR, max_length=64),
-            FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR, dim=384),
+            FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR, dim=DEFAULT_EMBEDDING_DIM),
             FieldSchema(name="embedding_model", dtype=DataType.VARCHAR, max_length=128),
             FieldSchema(name="last_sync", dtype=DataType.INT64),
         ]
@@ -152,7 +155,7 @@ class HCGMilvusSync:
 
         Args:
             node_type: Which collection to search
-            query_embedding: Query vector (384-dim)
+            query_embedding: Query vector (dimension must match collection schema)
             top_k: Number of results
 
         Returns:

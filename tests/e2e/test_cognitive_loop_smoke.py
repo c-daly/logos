@@ -204,6 +204,40 @@ class TestCognitiveLoopSmoke:
             f"neo4j + milvus connected?"
         )
 
+    # -- Step 2b: Verify relation edges in Neo4j -------------------------
+
+    def test_02b_relations_stored_in_neo4j(self, neo4j_driver):
+        """Verify that at least one relation edge was created between entities."""
+        with neo4j_driver.session() as session:
+            # Edge nodes have a 'relation' property and connect via :FROM/:TO
+            result = session.run(
+                """
+                MATCH (edge:Node)
+                WHERE edge.relation IS NOT NULL
+                MATCH (edge)-[:FROM]->(src:Node)
+                MATCH (edge)-[:TO]->(tgt:Node)
+                WHERE src.name IN $names AND tgt.name IN $names
+                RETURN edge.relation AS relation,
+                       src.name AS source,
+                       tgt.name AS target,
+                       edge.uuid AS edge_uuid
+                """,
+                names=list(EXPECTED_ENTITIES),
+            )
+            edges = [dict(r) for r in result]
+
+        print(f"\nRelation edges found: {len(edges)}")
+        for e in edges:
+            print(f"  {e['source']} -[{e['relation']}]-> {e['target']}")
+
+        assert len(edges) > 0, (
+            f"No relation edges found between {EXPECTED_ENTITIES}. "
+            f"The relation extractor may not be producing edges, or "
+            f"Sophia's ProposalProcessor may not be storing them. "
+            f"Check Hermes logs for proposed_edges and Sophia logs for "
+            f"edge storage."
+        )
+
     # -- Step 3: Verify Milvus storage -----------------------------------
 
     def test_03_embeddings_stored_in_milvus(self, milvus_connection):
@@ -244,6 +278,34 @@ class TestCognitiveLoopSmoke:
             f"HCG collections exist but are empty. The proposal was likely "
             f"processed but embeddings were not stored. Check Sophia logs "
             f"for Milvus upsert errors."
+        )
+
+    # -- Step 3b: Verify edge embeddings in Milvus -----------------------
+
+    def test_03b_edge_embeddings_in_milvus(self, milvus_connection):
+        """Verify that edge embeddings were stored in the Edge collection."""
+        from pymilvus import Collection, utility
+
+        alias = milvus_connection
+        edge_collection_name = "hcg_edge_embeddings"
+
+        existing = utility.list_collections(using=alias)
+
+        if edge_collection_name not in existing:
+            pytest.skip(
+                f"Edge collection '{edge_collection_name}' does not exist yet. "
+                f"Sophia may not have created it on startup."
+            )
+
+        col = Collection(edge_collection_name, using=alias)
+        col.load()
+        count = col.num_entities
+        print(f"\nEdge embeddings in Milvus: {count}")
+
+        assert count > 0, (
+            f"Edge collection exists but is empty. Relation edges may have "
+            f"been stored in Neo4j but their embeddings were not persisted "
+            f"to Milvus. Check Sophia logs for edge embedding errors."
         )
 
     # -- Step 4: Verify context annotation on retrieval ------------------
@@ -362,17 +424,27 @@ class TestDirectSophiaProposal:
 
     PROPOSAL_ID = "smoke-test-direct-proposal"
     ENTITY_NAME = "Prometheus Laboratory"
+    ENTITY_NAME_2 = "Athena Research Group"
     # 384-dim zero vector — valid for MiniLM schema, won't match anything
     ZERO_EMBEDDING = [0.0] * 384
+    # Slightly different vector for second entity (won't match first)
+    NEAR_ZERO_EMBEDDING = [0.001] * 384
 
     @pytest.fixture(autouse=True, scope="class")
     def cleanup(self, neo4j_driver):
-        """Remove synthetic test nodes."""
+        """Remove synthetic test nodes and edge nodes."""
         def _clean():
             with neo4j_driver.session() as session:
+                for name in (self.ENTITY_NAME, self.ENTITY_NAME_2):
+                    session.run(
+                        "MATCH (n:Node) WHERE n.name = $name DETACH DELETE n",
+                        name=name,
+                    )
+                # Also clean up edge nodes between these entities.
                 session.run(
-                    "MATCH (n:Node) WHERE n.name = $name DETACH DELETE n",
-                    name=self.ENTITY_NAME,
+                    "MATCH (e:Node) WHERE e.relation IS NOT NULL "
+                    "AND (e.source IS NOT NULL OR e.target IS NOT NULL) "
+                    "DETACH DELETE e"
                 )
         _clean()
         yield
@@ -388,7 +460,9 @@ class TestDirectSophiaProposal:
             "model": "test",
             "generated_at": "2026-02-19T00:00:00Z",
             "confidence": 0.9,
-            "raw_text": f"{self.ENTITY_NAME} is a fictional research facility.",
+            "raw_text": (
+                f"{self.ENTITY_NAME} collaborates with {self.ENTITY_NAME_2}."
+            ),
             "proposed_nodes": [
                 {
                     "name": self.ENTITY_NAME,
@@ -398,6 +472,29 @@ class TestDirectSophiaProposal:
                     "dimension": 384,
                     "model": "all-MiniLM-L6-v2",
                     "properties": {},
+                },
+                {
+                    "name": self.ENTITY_NAME_2,
+                    "type": "agent",
+                    "embedding": self.NEAR_ZERO_EMBEDDING,
+                    "embedding_id": "smoke-test-emb-003",
+                    "dimension": 384,
+                    "model": "all-MiniLM-L6-v2",
+                    "properties": {},
+                },
+            ],
+            "proposed_edges": [
+                {
+                    "source_name": self.ENTITY_NAME,
+                    "target_name": self.ENTITY_NAME_2,
+                    "relation": "COLLABORATES_WITH",
+                    "confidence": 0.8,
+                    "bidirectional": True,
+                    "embedding": self.ZERO_EMBEDDING,
+                    "model": "all-MiniLM-L6-v2",
+                    "properties": {
+                        "raw_phrase": "collaborates with",
+                    },
                 },
             ],
             "document_embedding": {
@@ -430,32 +527,67 @@ class TestDirectSophiaProposal:
         stored = data.get("stored_node_ids", [])
         print(f"Stored node IDs: {stored}")
 
+        stored_edges = data.get("stored_edge_ids", [])
+        print(f"Stored edge IDs: {stored_edges}")
+
         # relevant_context may or may not have entries
         context = data.get("relevant_context", [])
         print(f"Relevant context items: {len(context)}")
 
-    def test_02_synthetic_node_in_neo4j(self, neo4j_driver):
-        """Verify the synthetic node was stored in Neo4j."""
+    def test_02_synthetic_nodes_in_neo4j(self, neo4j_driver):
+        """Verify the synthetic nodes were stored in Neo4j."""
         time.sleep(1)  # Brief pause for async processing
 
+        for entity_name in (self.ENTITY_NAME, self.ENTITY_NAME_2):
+            with neo4j_driver.session() as session:
+                result = session.run(
+                    "MATCH (n:Node) WHERE n.name = $name "
+                    "RETURN n.name AS name, n.type AS type, n.uuid AS uuid, "
+                    "n.source AS source",
+                    name=entity_name,
+                )
+                record = result.single()
+
+            if record:
+                print(
+                    f"\nFound node: name={record['name']}, type={record['type']}, "
+                    f"uuid={record['uuid']}, source={record['source']}"
+                )
+                assert record["name"] == entity_name
+            else:
+                pytest.fail(
+                    f"Node '{entity_name}' not found in Neo4j after proposal "
+                    f"ingestion. ProposalProcessor may not be initialized — check "
+                    f"that Sophia started with Milvus available."
+                )
+
+    def test_02b_synthetic_edge_in_neo4j(self, neo4j_driver):
+        """Verify the synthetic edge was stored in Neo4j."""
         with neo4j_driver.session() as session:
             result = session.run(
-                "MATCH (n:Node) WHERE n.name = $name "
-                "RETURN n.name AS name, n.type AS type, n.uuid AS uuid, "
-                "n.source AS source",
-                name=self.ENTITY_NAME,
+                """
+                MATCH (edge:Node)
+                WHERE edge.relation = 'COLLABORATES_WITH'
+                MATCH (edge)-[:FROM]->(src:Node {name: $src})
+                MATCH (edge)-[:TO]->(tgt:Node {name: $tgt})
+                RETURN edge.uuid AS uuid, edge.relation AS relation,
+                       src.name AS source, tgt.name AS target
+                """,
+                src=self.ENTITY_NAME,
+                tgt=self.ENTITY_NAME_2,
             )
             record = result.single()
 
         if record:
-            print(f"\nFound node: name={record['name']}, type={record['type']}, "
-                  f"uuid={record['uuid']}, source={record['source']}")
-            assert record["name"] == self.ENTITY_NAME
+            print(
+                f"\nFound edge: {record['source']} -[{record['relation']}]-> "
+                f"{record['target']} (uuid={record['uuid']})"
+            )
         else:
             pytest.fail(
-                f"Node '{self.ENTITY_NAME}' not found in Neo4j after proposal "
-                f"ingestion. ProposalProcessor may not be initialized — check "
-                f"that Sophia started with Milvus available."
+                f"Edge COLLABORATES_WITH not found between "
+                f"'{self.ENTITY_NAME}' and '{self.ENTITY_NAME_2}'. "
+                f"ProposalProcessor may not be processing proposed_edges."
             )
 
     def test_03_context_returned_for_similar_query(self):
