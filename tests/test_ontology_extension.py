@@ -33,12 +33,11 @@ def test_core_ontology_structure():
     assert "CREATE INDEX logos_node_name" in content, "Missing Node name index"
     assert "CREATE INDEX logos_node_relation" in content, "Missing Node relation index"
 
-    # Check for bootstrap types
+    # Check for bootstrap types (flat hierarchy: root + meta types)
     bootstrap_types = [
         "type_definition",
         "edge_type",
-        "thing",
-        "concept",
+        "root",
     ]
     for boot_type in bootstrap_types:
         assert boot_type in content, f"Missing bootstrap type: {boot_type}"

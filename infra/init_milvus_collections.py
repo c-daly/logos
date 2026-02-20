@@ -32,10 +32,17 @@ from pymilvus import (
     utility,
 )
 
+from logos_config import get_env_value
+
 # Default configuration
 DEFAULT_HOST = "localhost"
 DEFAULT_PORT = "19530"
-DEFAULT_EMBEDDING_DIM = 384  # Common dimension for sentence-transformers models
+try:
+    DEFAULT_EMBEDDING_DIM = int(
+        get_env_value("LOGOS_EMBEDDING_DIM", default="384") or "384"
+    )
+except (ValueError, TypeError):
+    DEFAULT_EMBEDDING_DIM = 384
 DEFAULT_INDEX_TYPE = "IVF_FLAT"  # Simple and effective for development
 DEFAULT_METRIC_TYPE = "L2"  # Euclidean distance for semantic similarity
 

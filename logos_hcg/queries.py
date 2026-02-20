@@ -146,45 +146,19 @@ class HCGQueries:
 
     # ========== Entity Queries ==========
 
-    # Known subtypes for each top-level category, derived from TYPE_PARENTS.
+    # Bootstrap leaf types — flat under root. No intermediate groupings.
     ENTITY_TYPES = [
-        "thing",
-        "entity",
-        "physical_entity",
-        "agent",
         "object",
-        "manipulator",
-        "sensor",
-        "spatial_entity",
         "location",
-        "workspace",
-        "zone",
-        "process",
-        "action",
-        "step",
-        "imagined_process",
-        "proposed_plan_step",
-        "proposed_tool_call",
-        "intention",
+        "agent",
         "goal",
         "plan",
-        "hermes_proposal",
-        "abstraction",
         "simulation",
         "execution",
-        "data",
         "media_sample",
-        "capability",
     ]
-    STATE_TYPES = ["state", "imagined_state", "proposed_imagined_state"]
-    PROCESS_TYPES = [
-        "process",
-        "action",
-        "step",
-        "imagined_process",
-        "proposed_plan_step",
-        "proposed_tool_call",
-    ]
+    STATE_TYPES = ["state"]
+    PROCESS_TYPES = ["process", "action"]
 
     @staticmethod
     def find_entity_by_uuid() -> str:
@@ -1009,17 +983,20 @@ class HCGQueries:
         """
         Create a new CWM state entry.
 
+        All CWM states are type "state" with a "cwm" tag and a
+        "subsystem:<name>" tag to distinguish A/G/E subsystems.
+
         Parameters:
         - uuid: State UUID (state_id format: cwm_<type>_<uuid>)
         - name: State name (typically auto-generated)
-        - type: CWM type ("cwm_a", "cwm_g", or "cwm_e")
+        - type: Always "state" (CWM states are state nodes)
         - timestamp: ISO timestamp
         - source: Origin subsystem (e.g., "planner", "jepa", "reflection")
         - confidence: Confidence score 0.0-1.0
         - status: Provenance status ("observed", "imagined", "reflected", "ephemeral")
         - payload: JSON string with type-specific data
         - links: JSON string with related entity references
-        - tags: List of free-form labels for filtering
+        - tags: List of free-form labels for filtering (includes "cwm", "subsystem:abstract" etc.)
         - embedding_id: Optional reference to Milvus embedding
         - embedding_type: Optional embedding model type
 
@@ -1048,8 +1025,12 @@ class HCGQueries:
         """
         Find CWM states with optional filters.
 
+        CWM states are type "state" with "cwm" in tags. The subsystem
+        tags filter is optional (e.g. ["subsystem:abstract", "subsystem:grounded"]).
+
         Parameters:
-        - types: List of CWM types to include (["cwm_a", "cwm_g", "cwm_e"])
+        - subsystem_tags: List of subsystem tags to include (e.g. ["subsystem:abstract"]).
+                         If empty/null, returns all CWM states.
         - after_timestamp: Optional ISO timestamp to filter after
         - limit: Max results to return
 
@@ -1057,7 +1038,10 @@ class HCGQueries:
         """
         return """
         MATCH (s:Node)
-        WHERE s.type IN $types
+        WHERE s.type = "state"
+          AND "cwm" IN s.tags
+          AND (size($subsystem_tags) = 0
+               OR ANY(t IN $subsystem_tags WHERE t IN s.tags))
           AND ($after_timestamp IS NULL OR s.timestamp > datetime($after_timestamp))
         RETURN s
         ORDER BY s.timestamp DESC

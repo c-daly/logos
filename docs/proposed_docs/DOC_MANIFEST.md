@@ -15,6 +15,9 @@ These are the authoritative references for cross-repo concerns. Every repo links
 | `CI_CD.md` | **NEW** | Reusable workflow, container publishing, how to debug CI. Currently undocumented |
 | `OBSERVABILITY.md` | **KEEP** | OTel setup, traces, metrics. Existing `observability/` content is decent |
 | `operations/PACKAGE_PUBLISHING.md` | **REWRITTEN** | Release checklist, version alignment, bump script, CI workflow versioning. Replaces stale original |
+| `CODE_QUALITY.md` | **NEW** | Testing strategy (consolidation, mutation testing, infra-by-default), dependency hygiene, CI resilience, review practices |
+| `TALOS_IMPROVEMENTS.md` | **NEW** | Bringing Talos from simulation scaffold to physics-backed HAL. ROS2/Gazebo/MuJoCo options, immediate repo hygiene tasks, phased integration plan |
+| `COGNITIVE_LOOP.md` | **NEW** | What the cognitive loop feature does and doesn't do. End-to-end flow, what works, what's stubbed, test gaps, expansion axes |
 
 ### To Delete from `logos/docs/`
 

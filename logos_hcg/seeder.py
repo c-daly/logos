@@ -23,47 +23,27 @@ from logos_hcg.client import HCGClient
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Type hierarchy
+# Type hierarchy — flat vocabulary under root
 # ---------------------------------------------------------------------------
 
-# Immediate parent for every type used across LOGOS repos.
-# The full ancestor chain is reconstructed at query time by traversing
-# IS_A edge nodes rather than being stored on each node.
+# All bootstrap types are direct children of ``root``.  No intermediate
+# groupings — sophia discovers hierarchy through graph analysis (community
+# detection, node similarity) and creates supertypes organically.
+#
+# Types describe *what something IS*, not where it came from.  Provenance
+# lives in ``source``/``derivation`` properties and graph connections.
 TYPE_PARENTS: dict[str, str] = {
-    # --- thing sub-tree ---
-    "entity": "thing",
-    "physical_entity": "entity",
-    "agent": "physical_entity",
-    "object": "physical_entity",
-    "manipulator": "physical_entity",
-    "sensor": "physical_entity",
-    "spatial_entity": "entity",
-    "location": "spatial_entity",
-    "workspace": "spatial_entity",
-    "zone": "spatial_entity",
-    "process": "entity",
-    "action": "process",
-    "step": "process",
-    "imagined_process": "process",
-    "proposed_plan_step": "process",
-    "proposed_tool_call": "process",
-    "intention": "entity",
-    "goal": "intention",
-    "plan": "intention",
-    "hermes_proposal": "intention",
-    "abstraction": "entity",
-    "simulation": "abstraction",
-    "execution": "abstraction",
-    "data": "entity",
-    "media_sample": "data",
-    "capability": "data",
-    # --- concept sub-tree ---
-    "constraint": "concept",
-    # --- cognition sub-tree ---
-    "state": "cognition",
-    "imagined_state": "state",
-    "proposed_imagined_state": "imagined_state",
-    # cwm_a, cwm_g, cwm_e, cwm, persona are bootstrap — listed below
+    "object": "root",
+    "location": "root",
+    "agent": "root",
+    "process": "root",
+    "action": "root",
+    "goal": "root",
+    "plan": "root",
+    "simulation": "root",
+    "execution": "root",
+    "state": "root",
+    "media_sample": "root",
 }
 
 # Edge type definitions to create as type-definition nodes.
@@ -88,14 +68,7 @@ EDGE_TYPES: list[str] = [
 # Types already created by core_ontology.cypher — skip to avoid duplicates.
 BOOTSTRAP_TYPES: set[str] = {
     "type_definition",
-    "thing",
-    "concept",
-    "cognition",
-    "cwm",
-    "cwm_a",
-    "cwm_g",
-    "cwm_e",
-    "persona",
+    "root",
     "edge_type",
     "IS_A",
     "COMPONENT_OF",
@@ -140,15 +113,13 @@ class HCGSeeder:
 
         count = 0
 
-        # Ensure bootstrap parent nodes exist so IS_A edges can reference them.
-        # Bootstrap nodes are normally created by core_ontology.cypher, but
-        # in test scenarios we create minimal stubs.
-        for bootstrap_name in ("thing", "concept", "cognition"):
-            self.client.add_node(
-                uuid=f"type_{bootstrap_name}",
-                name=bootstrap_name,
-                node_type="type_definition",
-            )
+        # Ensure the root parent node exists so IS_A edges can reference it.
+        # Normally created by core_ontology.cypher; in tests we create a stub.
+        self.client.add_node(
+            uuid="type_root",
+            name="root",
+            node_type="type_definition",
+        )
 
         for type_name, parent_name in TYPE_PARENTS.items():
             if type_name in BOOTSTRAP_TYPES:
@@ -247,20 +218,33 @@ class HCGSeeder:
                 properties=kw or None,
             )
 
-        # --- Workspace & zones ---
+        # --- Workspace & zones (modelled as locations) ---
         _n(
             "ws",
             "Assembly Lab",
-            "workspace",
-            props={"description": "Main assembly workspace"},
+            "location",
+            props={
+                "description": "Main assembly workspace",
+                "location_type": "workspace",
+            },
         )
-        _n("zone_staging", "Staging Area", "zone", props={"zone_type": "staging"})
-        _n("zone_assembly", "Assembly Station", "zone", props={"zone_type": "assembly"})
+        _n(
+            "zone_staging",
+            "Staging Area",
+            "location",
+            props={"location_type": "zone", "zone_type": "staging"},
+        )
+        _n(
+            "zone_assembly",
+            "Assembly Station",
+            "location",
+            props={"location_type": "zone", "zone_type": "assembly"},
+        )
         _n(
             "zone_inspection",
             "Inspection Bay",
-            "zone",
-            props={"zone_type": "inspection"},
+            "location",
+            props={"location_type": "zone", "zone_type": "inspection"},
         )
         _e("zone_staging", "ws", "PART_OF")
         _e("zone_assembly", "ws", "PART_OF")
@@ -268,12 +252,21 @@ class HCGSeeder:
 
         # --- Agent + components ---
         _n("agent", "LOGOS-01", "agent", props={"description": "Primary robotic agent"})
-        _n("arm", "Panda Arm", "manipulator", props={"model": "Franka Panda", "dof": 7})
+        _n(
+            "arm",
+            "Panda Arm",
+            "object",
+            props={"model": "Franka Panda", "dof": 7, "object_type": "manipulator"},
+        )
         _n(
             "cam",
             "Depth Camera",
-            "sensor",
-            props={"model": "Intel RealSense D435", "sensor_type": "rgbd"},
+            "object",
+            props={
+                "model": "Intel RealSense D435",
+                "sensor_type": "rgbd",
+                "object_type": "sensor",
+            },
         )
         _e("arm", "agent", "PART_OF")
         _e("cam", "agent", "PART_OF")
@@ -323,7 +316,7 @@ class HCGSeeder:
         ]
         prev_step = None
         for key, name, status in sort_steps:
-            _n(key, name, "step", props={"status": status, "order": int(key[-1])})
+            _n(key, name, "action", props={"status": status, "order": int(key[-1])})
             _e("plan_sort", key, "HAS_STEP")
             if prev_step:
                 _e(prev_step, key, "ENABLES")
@@ -374,7 +367,7 @@ class HCGSeeder:
         ]
         prev_step = None
         for key, name, status in stack_steps:
-            _n(key, name, "step", props={"status": status, "order": int(key[-1])})
+            _n(key, name, "action", props={"status": status, "order": int(key[-1])})
             _e("plan_stack_v2", key, "HAS_STEP")
             if prev_step:
                 _e(prev_step, key, "ENABLES")
@@ -410,14 +403,17 @@ class HCGSeeder:
         _n(
             "ip_move_all",
             "Move all to inspection",
-            "imagined_process",
-            props={"description": "Simulated batch move"},
+            "process",
+            props={"description": "Simulated batch move", "derivation": "imagined"},
         )
         _n(
             "is_empty_ws",
             "Empty workspace state",
-            "imagined_state",
-            props={"description": "All objects in inspection bay"},
+            "state",
+            props={
+                "description": "All objects in inspection bay",
+                "derivation": "imagined",
+            },
         )
         _e("sim_clear", "ip_move_all", "HAS_STEP")
         _e("ip_move_all", "is_empty_ws", "CAUSES")
@@ -429,14 +425,15 @@ class HCGSeeder:
         _e("cam", "zone_assembly", "OBSERVES")
         _e("cam", "zone_staging", "OBSERVES")
 
-        # Capability
+        # Capability (modelled as a process the agent can execute)
         _n(
             "cap_pick",
             "Pick-and-Place",
-            "capability",
+            "process",
             props={
                 "description": "Grasping and placing objects",
                 "executor_type": "manipulator",
+                "process_type": "capability",
             },
         )
         _e("arm", "cap_pick", "HAS_STATE")

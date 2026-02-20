@@ -21,7 +21,20 @@ from uuid import UUID
 
 from pymilvus import Collection, connections, utility
 
+from logos_config import get_env_value
+
 logger = logging.getLogger(__name__)
+
+
+def _get_embedding_dim() -> int:
+    """Resolve embedding dimension lazily (env may not be loaded at import time)."""
+    raw = get_env_value("LOGOS_EMBEDDING_DIM", default="384") or "384"
+    try:
+        return int(raw)
+    except (ValueError, TypeError):
+        logger.warning("Invalid LOGOS_EMBEDDING_DIM=%r; defaulting to 384", raw)
+        return 384
+
 
 # Collection name mapping for HCG node types
 COLLECTION_NAMES = {
@@ -125,7 +138,9 @@ class HCGMilvusSync:
         fields = [
             FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
             FieldSchema(name="uuid", dtype=DataType.VARCHAR, max_length=64),
-            FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR, dim=384),
+            FieldSchema(
+                name="embedding", dtype=DataType.FLOAT_VECTOR, dim=_get_embedding_dim()
+            ),
             FieldSchema(name="embedding_model", dtype=DataType.VARCHAR, max_length=128),
             FieldSchema(name="last_sync", dtype=DataType.INT64),
         ]
@@ -152,7 +167,7 @@ class HCGMilvusSync:
 
         Args:
             node_type: Which collection to search
-            query_embedding: Query vector (384-dim)
+            query_embedding: Query vector (dimension must match collection schema)
             top_k: Number of results
 
         Returns:
