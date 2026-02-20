@@ -133,6 +133,7 @@ Environment variables override defaults: `NEO4J_URI`, `NEO4J_BOLT_PORT`, `MILVUS
 - `POST /execute` — execute a plan
 - `POST /simulate` — run simulation
 - `POST /ingest` — ingest knowledge
+- `POST /ingest/hermes_proposal` — ingest entities and relations from Hermes
 - `GET /state` — current world model state
 - `GET /health` — health check
 
@@ -140,7 +141,7 @@ Environment variables override defaults: `NEO4J_URI`, `NEO4J_BOLT_PORT`, `MILVUS
 - `POST /stt` — speech to text
 - `POST /tts` — text to speech
 - `POST /embed` — generate embeddings
-- `POST /llm` — language model inference
+- `POST /llm` — language model inference (with cognitive loop: entity/relation extraction → Sophia context enrichment)
 - `GET /health` — health check
 
 **Apollo** (client API, port 27000):

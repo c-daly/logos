@@ -53,7 +53,8 @@ Line coverage measures what code was _executed_, not what was _verified_. A test
 | Module | Why |
 |--------|-----|
 | `sophia/hcg_client/client.py` | Complex Cypher generation, conditional logic in ON MATCH/CREATE, query_neighbors |
-| `sophia/ingestion/proposal_processor.py` | Collection routing, edge handling, source attribution |
+| `sophia/ingestion/proposal_processor.py` | Entity dedup, relation extraction edge processing, name-to-UUID resolution, experiment tracking |
+| `hermes/relation_extractor.py` | Verb-to-relation mapping, entity matching, confidence scoring |
 | `hermes/services/proposal_builder.py` | Context assembly for LLM — wrong field mappings are silent bugs |
 | `logos_hcg/` | Shared HCG primitives used by every service |
 

@@ -1,6 +1,6 @@
 # Cognitive Loop — What It Does and Doesn't Do
 
-An honest accounting of the cognitive loop feature shipped in logos PR #490, sophia PR #125, and hermes PR #82. This document was created to clear up confusion from the PR process about what was actually implemented.
+An honest accounting of the cognitive loop feature shipped in logos PRs #490/#491, sophia PRs #125/#127, and hermes PRs #82/#84. This document was created to clear up confusion from the PR process about what was actually implemented.
 
 ## The End-to-End Flow
 
@@ -16,8 +16,13 @@ Hermes POST /llm
     │     ├─ spaCy NER: extract named entities
     │     ├─ For each entity: generate 384-dim embedding (all-MiniLM-L6-v2)
     │     │   └─ Side effect: each embedding written to Milvus
-    │     └─ Generate document-level embedding of full text
-    │         └─ Side effect: written to Milvus
+    │     ├─ Generate document-level embedding of full text
+    │     │   └─ Side effect: written to Milvus
+    │     ├─ spaCy RelationExtractor: extract relations between entities
+    │     │   └─ Verb-to-relation mapping (e.g. “uses” → USES)
+    │     ├─ For each relation: generate edge embedding from phrase
+    │     │   └─ “Paris located in France” → 384-dim embedding
+    │     └─ Build proposed_edges list (source, target, relation, embedding)
     │
     ├─ 3. POST /ingest/hermes_proposal → Sophia
     │     │
@@ -29,6 +34,10 @@ Hermes POST /llm
     │     │   │   ├─ Match found → skip creation, add existing node to context
     │     │   │   └─ No match → MERGE node into Neo4j, store embedding in Milvus
     │     │   └─ Return stored_node_ids + relevant_context
+    │     ├─ For each proposed edge:
+    │     │   ├─ Resolve source/target names → UUIDs (with Neo4j fallback)
+    │     │   ├─ Create reified edge node in Neo4j
+    │     │   └─ Store edge embedding in Milvus "Edge" collection
     │     │
     │     └─ Side effect: enqueue FeedbackPayload to Redis
     │
@@ -54,6 +63,8 @@ Hermes POST /llm
 | `_build_context_message()` | Working | Formats Sophia's context into a system message, filters out provenance keys |
 | Context injection | Working | System message inserted at correct position (before last user turn) |
 | Graceful degradation | Working | If Sophia is down, no token configured, or any error occurs — LLM call proceeds without context |
+| `RelationExtractor` | Working | spaCy dependency parsing extracts verb-mediated relations between NER entities. Configurable via `RELATION_EXTRACTOR` env var |
+| `EmbeddingProvider` protocol | Working | Pluggable embedding generation. Default: SentenceTransformerProvider (all-MiniLM-L6-v2). Configurable via `EMBEDDING_PROVIDER` and `EMBEDDING_MODEL` env vars |
 
 ### Sophia Side
 
@@ -65,9 +76,11 @@ Hermes POST /llm
 | HCG Client `add_edge()` | Working | Reified edge pattern with `MERGE` on (source, target, relation) |
 | HCG Client `query_neighbors()` | Working | Bidirectional traversal through reified edges |
 | Milvus dedup (ENTITY_MATCH_THRESHOLD=0.5) | Working | L2 distance check, entities below threshold are skipped |
-| Context retrieval | Working | Searches 4 Milvus collections (Entity, Concept, State, Process), top 10 by L2 score |
+| Context retrieval | Working | Searches 5 Milvus collections (Entity, Concept, State, Process, Edge), top 10 by L2 score |
 | Feedback dispatch to Redis | Working | Enqueues FeedbackPayload via LPUSH, worker dequeues via BRPOP |
 | Feedback worker | Working | Retries with exponential backoff, max 5 attempts, dead-letter queue |
+| Edge processing | Working | Resolves entity names to UUIDs, creates reified edge nodes in Neo4j, stores edge embeddings in Milvus "Edge" collection |
+| Experiment tracking | Working | Creates experiment_run nodes with PRODUCED edges to track pipeline configuration and outputs |
 
 ### Logos Foundry Side
 
@@ -75,10 +88,11 @@ Hermes POST /llm
 |-----------|--------|--------|
 | HCG data models | Complete | Goal, Plan, PlanStep, Capability, Fact, Association, Rule, Provenance |
 | HCGPlanner | Complete | Backward-chaining planner over the graph, depth-limited, greedy |
-| Type hierarchy | Complete | hermes_proposal, proposed_plan_step, proposed_tool_call, proposed_imagined_state added |
-| HCGMilvusSync | Complete | 5 collections, L2 metric, IVF_FLAT index, upsert/search/delete |
+| Type hierarchy | Complete | CWM types (cwm_a, cwm_g, cwm_e), node types (entity, concept, state, process, location, object, action, goal) |
+| HCGMilvusSync | Complete | 5 collections including Edge, L2 metric, IVF_FLAT index, upsert/search/delete |
 | HCGSeeder | Complete | Full type hierarchy + demo scenario + persona diary |
 | SHACL validation | Complete | Validates uuid, name, is_type_definition, type, ancestors on all nodes |
+| Configurable embedding dim | Complete | `LOGOS_EMBEDDING_DIM` env var (default 384) with error-handling fallback |
 
 ## What Doesn't Work / Is Stubbed
 
@@ -91,10 +105,6 @@ The feedback worker in sophia does successfully POST to this endpoint, but the i
 ### Provider/model metadata — Always "unknown"
 
 `ProposalBuilder.build()` accepts `llm_provider` and `model` parameters, but `_get_sophia_context()` calls it without passing the actual provider/model from the LLM request. Every proposal arrives at Sophia with `llm_provider: "unknown"` and `model: "unknown"`.
-
-### No relationship proposals
-
-The proposal only carries `proposed_nodes`. The `HermesProposalRequest` schema has no field for proposed relationships/edges. Hermes extracts entities but never proposes how they relate to each other. All relationships in the graph must be created through other code paths (seeder, planner, direct API).
 
 ### No embedding deduplication in Hermes
 
@@ -168,7 +178,7 @@ The `docs/2026-02-13-cognitive-loop-task-queue.json` file lists tasks that PR #4
 
 2. **L2 threshold is a magic number.** `ENTITY_MATCH_THRESHOLD = 0.5` is hardcoded, undocumented, and untested. For 384-dim MiniLM embeddings, this is a reasonable guess, but it should be validated empirically. Too low = excessive dedup (legitimate new entities get skipped). Too high = no dedup (every mention creates a new node).
 
-3. **No relationship extraction.** The proposal only carries nodes. Hermes extracts "Paris" and "France" as entities but never proposes that Paris IS_IN France. Building graph structure requires either the planner, manual seeding, or a future relationship extraction step.
+3. **Basic relationship extraction.** Hermes now extracts verb-mediated relations via spaCy dependency parsing (e.g., "Paris is located in France" → LOCATED_IN edge). This covers simple subject-verb-object patterns but misses complex multi-hop relationships, implicit relations, and context-dependent semantics. LLM-based extraction would improve coverage.
 
 4. **Feedback goes nowhere.** The infrastructure is built (Redis queue, worker, retry logic, hermes endpoint) but the terminal destination is a log line. No learning, adaptation, or state update happens based on feedback.
 
@@ -178,7 +188,7 @@ The `docs/2026-02-13-cognitive-loop-task-queue.json` file lists tasks that PR #4
 
 The cognitive loop as shipped is the thinnest possible slice: extract entities → store in graph → retrieve as context → enrich LLM prompt. The main axes of expansion are:
 
-1. **Relationship extraction** — Propose edges between entities, not just nodes. This could use LLM-based extraction (ask the LLM to identify relationships) or rule-based patterns.
+1. **Relationship extraction** — ✅ Implemented. Hermes extracts verb-mediated relations via spaCy and proposes edges with embeddings. Sophia resolves names to UUIDs and stores edges in Neo4j + Milvus. Future work: LLM-based extraction for more complex relationships.
 
 2. **Feedback processing** — Make the `/feedback` endpoint actually do something: update confidence scores, deprecate nodes, adjust the dedup threshold, trigger re-embedding.
 
