@@ -60,7 +60,7 @@ QUERY_TEXT = "Tell me about the work happening at Nexus Robotics in Zurich."
 # ---------------------------------------------------------------------------
 def _services_available():
     """Check that Hermes and Sophia are both reachable."""
-    for name, url in [("Hermes", HERMES_URL), ("Sophia", SOPHIA_URL)]:
+    for _name, url in [("Hermes", HERMES_URL), ("Sophia", SOPHIA_URL)]:
         try:
             r = requests.get(f"{url}/health", timeout=3)
             if r.status_code != 200:
@@ -160,9 +160,9 @@ class TestCognitiveLoopSmoke:
             timeout=90,
         )
 
-        assert response.status_code == 200, (
-            f"Seed /llm call failed: {response.status_code} — {response.text}"
-        )
+        assert (
+            response.status_code == 200
+        ), f"Seed /llm call failed: {response.status_code} — {response.text}"
 
         data = response.json()
         assert "choices" in data, f"Response missing 'choices': {data}"
@@ -275,9 +275,9 @@ class TestCognitiveLoopSmoke:
             total_embeddings += count
 
         assert total_embeddings > 0, (
-            f"HCG collections exist but are empty. The proposal was likely "
-            f"processed but embeddings were not stored. Check Sophia logs "
-            f"for Milvus upsert errors."
+            "HCG collections exist but are empty. The proposal was likely "
+            "processed but embeddings were not stored. Check Sophia logs "
+            "for Milvus upsert errors."
         )
 
     # -- Step 3b: Verify edge embeddings in Milvus -----------------------
@@ -303,9 +303,9 @@ class TestCognitiveLoopSmoke:
         print(f"\nEdge embeddings in Milvus: {count}")
 
         assert count > 0, (
-            f"Edge collection exists but is empty. Relation edges may have "
-            f"been stored in Neo4j but their embeddings were not persisted "
-            f"to Milvus. Check Sophia logs for edge embedding errors."
+            "Edge collection exists but is empty. Relation edges may have "
+            "been stored in Neo4j but their embeddings were not persisted "
+            "to Milvus. Check Sophia logs for edge embedding errors."
         )
 
     # -- Step 4: Verify context annotation on retrieval ------------------
@@ -326,9 +326,9 @@ class TestCognitiveLoopSmoke:
             timeout=30,
         )
 
-        assert response.status_code == 200, (
-            f"Query /llm call failed: {response.status_code} — {response.text}"
-        )
+        assert (
+            response.status_code == 200
+        ), f"Query /llm call failed: {response.status_code} — {response.text}"
 
         data = response.json()
         echo_content = data["choices"][0]["message"]["content"]
@@ -350,9 +350,7 @@ class TestCognitiveLoopSmoke:
         )
 
         # Verify that at least one of our seeded entities appears in the context
-        found_in_context = [
-            name for name in EXPECTED_ENTITIES if name in echo_content
-        ]
+        found_in_context = [name for name in EXPECTED_ENTITIES if name in echo_content]
         print(f"Entities found in context annotation: {found_in_context}")
 
         assert len(found_in_context) > 0, (
@@ -385,9 +383,9 @@ class TestCognitiveLoopSmoke:
             timeout=30,
         )
 
-        assert response.status_code == 200, (
-            f"OpenAI /llm call failed: {response.status_code} — {response.text}"
-        )
+        assert (
+            response.status_code == 200
+        ), f"OpenAI /llm call failed: {response.status_code} — {response.text}"
 
         data = response.json()
         llm_text = data["choices"][0]["message"]["content"]
@@ -433,6 +431,7 @@ class TestDirectSophiaProposal:
     @pytest.fixture(autouse=True, scope="class")
     def cleanup(self, neo4j_driver):
         """Remove synthetic test nodes and edge nodes."""
+
         def _clean():
             with neo4j_driver.session() as session:
                 for name in (self.ENTITY_NAME, self.ENTITY_NAME_2):
@@ -446,6 +445,7 @@ class TestDirectSophiaProposal:
                     "AND (e.source IS NOT NULL OR e.target IS NOT NULL) "
                     "DETACH DELETE e"
                 )
+
         _clean()
         yield
         _clean()
@@ -460,9 +460,7 @@ class TestDirectSophiaProposal:
             "model": "test",
             "generated_at": "2026-02-19T00:00:00Z",
             "confidence": 0.9,
-            "raw_text": (
-                f"{self.ENTITY_NAME} collaborates with {self.ENTITY_NAME_2}."
-            ),
+            "raw_text": (f"{self.ENTITY_NAME} collaborates with {self.ENTITY_NAME_2}."),
             "proposed_nodes": [
                 {
                     "name": self.ENTITY_NAME,
@@ -632,9 +630,9 @@ class TestDirectSophiaProposal:
             timeout=15,
         )
 
-        assert response.status_code == 201, (
-            f"Dedup proposal failed: {response.status_code} — {response.text}"
-        )
+        assert (
+            response.status_code == 201
+        ), f"Dedup proposal failed: {response.status_code} — {response.text}"
 
         data = response.json()
         stored = data.get("stored_node_ids", [])
@@ -643,8 +641,10 @@ class TestDirectSophiaProposal:
         print(f"\nDedup check — stored_node_ids: {stored}")
         print(f"Dedup check — relevant_context ({len(context)} items):")
         for item in context:
-            print(f"  - {item.get('name', '?')} ({item.get('type', '?')}): "
-                  f"score={item.get('score', '?')}")
+            print(
+                f"  - {item.get('name', '?')} ({item.get('type', '?')}): "
+                f"score={item.get('score', '?')}"
+            )
 
         # The entity should have been deduped (L2 distance = 0 for identical
         # embeddings, well below the 0.5 threshold), so stored_node_ids

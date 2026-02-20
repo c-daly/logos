@@ -19,14 +19,17 @@ from datetime import UTC, datetime
 from typing import Any, Literal, cast
 from uuid import UUID
 
-from logos_config import get_env_value
 from pymilvus import Collection, connections, utility
 
+from logos_config import get_env_value
+
 logger = logging.getLogger(__name__)
+
 
 def _get_embedding_dim() -> int:
     """Resolve embedding dimension lazily (env may not be loaded at import time)."""
     return int(get_env_value("LOGOS_EMBEDDING_DIM", default="384") or "384")
+
 
 # Collection name mapping for HCG node types
 COLLECTION_NAMES = {
@@ -130,7 +133,9 @@ class HCGMilvusSync:
         fields = [
             FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
             FieldSchema(name="uuid", dtype=DataType.VARCHAR, max_length=64),
-            FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR, dim=_get_embedding_dim()),
+            FieldSchema(
+                name="embedding", dtype=DataType.FLOAT_VECTOR, dim=_get_embedding_dim()
+            ),
             FieldSchema(name="embedding_model", dtype=DataType.VARCHAR, max_length=128),
             FieldSchema(name="last_sync", dtype=DataType.INT64),
         ]

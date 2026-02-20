@@ -23,7 +23,6 @@ Default embedding dimension: 384 (suitable for sentence-transformers models like
 import argparse
 import sys
 
-from logos_config import get_env_value
 from pymilvus import (
     Collection,
     CollectionSchema,
@@ -32,6 +31,8 @@ from pymilvus import (
     connections,
     utility,
 )
+
+from logos_config import get_env_value
 
 # Default configuration
 DEFAULT_HOST = "localhost"
