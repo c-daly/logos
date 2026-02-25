@@ -198,9 +198,61 @@ class HCGSeeder:
         Returns:
             Number of centroids seeded.
         """
+        # Semantically distinct descriptions so centroids occupy different
+        # regions of embedding space.  Each description captures *what the
+        # type represents* rather than just its name.
+        type_descriptions: dict[str, str] = {
+            "object": (
+                "A physical thing that can be grasped, moved, or manipulated. "
+                "Examples: bolt, gear, cup, tool, box, sensor, bracket."
+            ),
+            "location": (
+                "A named place, workspace, or spatial region where objects "
+                "reside. Examples: table, shelf, bin, assembly station, tray."
+            ),
+            "reserved_agent": (
+                "An autonomous actor that perceives, decides, and acts. "
+                "The robot arm, a planner module, or Sophia itself."
+            ),
+            "reserved_process": (
+                "An ongoing activity or workflow with a lifecycle. "
+                "Assembly sequence, inspection routine, calibration procedure."
+            ),
+            "reserved_action": (
+                "A single discrete step: pick, place, move, grasp, release, "
+                "rotate, or inspect."
+            ),
+            "reserved_goal": (
+                "A desired future state the planner tries to achieve. "
+                "Object at target location, assembly complete, error resolved."
+            ),
+            "reserved_plan": (
+                "An ordered sequence of actions chosen to reach a goal. "
+                "Contains steps, preconditions, and expected outcomes."
+            ),
+            "reserved_simulation": (
+                "A mental rehearsal predicting what will happen if a plan "
+                "is executed. JEPA forward model evaluation."
+            ),
+            "reserved_execution": (
+                "A concrete run of a plan on real or simulated hardware. "
+                "Tracks progress, success, failure, and timing."
+            ),
+            "reserved_state": (
+                "A snapshot of the world model at a point in time. "
+                "Current positions, relationships, and beliefs."
+            ),
+            "reserved_media_sample": (
+                "A media artifact ingested for processing: image, audio "
+                "clip, video frame, or document."
+            ),
+        }
+
         count = 0
         for type_name in TYPE_PARENTS:
-            description = f"type definition for {type_name}"
+            description = type_descriptions.get(
+                type_name, f"type definition for {type_name}"
+            )
             embedding = embed_fn(description)
             milvus_sync.update_centroid(
                 type_uuid=f"type_{type_name}",
