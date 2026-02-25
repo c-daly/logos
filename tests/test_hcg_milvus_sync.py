@@ -423,7 +423,9 @@ class TestHCGMilvusSync:
         mock_collection.return_value = mock_coll
         sync = HCGMilvusSync()
         sync.connect()
-        result = sync.update_centroid(type_uuid="type_location", centroid=[0.1] * 384, model="all-MiniLM-L6-v2")
+        result = sync.update_centroid(
+            type_uuid="type_location", centroid=[0.1] * 384, model="all-MiniLM-L6-v2"
+        )
         assert result["embedding_id"] == "type_location"
 
     @patch("logos_hcg.sync.connections")

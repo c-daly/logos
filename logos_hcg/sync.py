@@ -210,13 +210,21 @@ class HCGMilvusSync:
             logger.error(f"Embedding search failed for {node_type}: {e}")
             return []
 
-    def update_centroid(self, type_uuid: str, centroid: list[float], model: str) -> dict[str, Any]:
+    def update_centroid(
+        self, type_uuid: str, centroid: list[float], model: str
+    ) -> dict[str, Any]:
         """Upsert a type centroid embedding in the TypeCentroid collection."""
-        return self.upsert_embedding(node_type="TypeCentroid", uuid=type_uuid, embedding=centroid, model=model)
+        return self.upsert_embedding(
+            node_type="TypeCentroid", uuid=type_uuid, embedding=centroid, model=model
+        )
 
-    def find_nearest_types(self, query_embedding: list[float], top_k: int = 3) -> list[dict]:
+    def find_nearest_types(
+        self, query_embedding: list[float], top_k: int = 3
+    ) -> list[dict]:
         """Find the nearest type centroids for a query embedding."""
-        return self.search_similar(node_type="TypeCentroid", query_embedding=query_embedding, top_k=top_k)
+        return self.search_similar(
+            node_type="TypeCentroid", query_embedding=query_embedding, top_k=top_k
+        )
 
     def disconnect(self) -> None:
         """Disconnect from Milvus."""
