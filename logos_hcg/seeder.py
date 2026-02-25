@@ -37,13 +37,13 @@ TYPE_PARENTS: dict[str, str] = {
     "object": "root",
     "location": "root",
     "agent": "root",
-    "process": "root",
+    "reserved_process": "root",  # Internal: Sophia plan execution. General "process" emerges via classifier.
     "action": "root",
     "goal": "root",
     "plan": "root",
     "simulation": "root",
     "execution": "root",
-    "state": "root",
+    "reserved_state": "root",  # Internal: Sophia CWM states. General "state" emerges via classifier.
     "media_sample": "root",
 }
 
