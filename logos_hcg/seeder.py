@@ -36,15 +36,15 @@ logger = logging.getLogger(__name__)
 TYPE_PARENTS: dict[str, str] = {
     "object": "root",
     "location": "root",
-    "agent": "root",
-    "reserved_process": "root",  # Internal: Sophia plan execution. General "process" emerges via classifier.
-    "action": "root",
-    "goal": "root",
-    "plan": "root",
-    "simulation": "root",
-    "execution": "root",
-    "reserved_state": "root",  # Internal: Sophia CWM states. General "state" emerges via classifier.
-    "media_sample": "root",
+    "reserved_agent": "root",      # Internal: Sophia as plan executor
+    "reserved_process": "root",    # Internal: Sophia plan execution
+    "reserved_action": "root",     # Internal: Sophia plan steps
+    "reserved_goal": "root",       # Internal: Sophia planner goals
+    "reserved_plan": "root",       # Internal: Sophia planner plans
+    "reserved_simulation": "root", # Internal: Sophia JEPA simulations
+    "reserved_execution": "root",  # Internal: Sophia execution runs
+    "reserved_state": "root",      # Internal: Sophia CWM states
+    "reserved_media_sample": "root",  # Internal: Sophia media ingestion
 }
 
 # Edge type definitions to create as type-definition nodes.
