@@ -36,14 +36,14 @@ logger = logging.getLogger(__name__)
 TYPE_PARENTS: dict[str, str] = {
     "object": "root",
     "location": "root",
-    "reserved_agent": "root",      # Internal: Sophia as plan executor
-    "reserved_process": "root",    # Internal: Sophia plan execution
-    "reserved_action": "root",     # Internal: Sophia plan steps
-    "reserved_goal": "root",       # Internal: Sophia planner goals
-    "reserved_plan": "root",       # Internal: Sophia planner plans
-    "reserved_simulation": "root", # Internal: Sophia JEPA simulations
+    "reserved_agent": "root",  # Internal: Sophia as plan executor
+    "reserved_process": "root",  # Internal: Sophia plan execution
+    "reserved_action": "root",  # Internal: Sophia plan steps
+    "reserved_goal": "root",  # Internal: Sophia planner goals
+    "reserved_plan": "root",  # Internal: Sophia planner plans
+    "reserved_simulation": "root",  # Internal: Sophia JEPA simulations
     "reserved_execution": "root",  # Internal: Sophia execution runs
-    "reserved_state": "root",      # Internal: Sophia CWM states
+    "reserved_state": "root",  # Internal: Sophia CWM states
     "reserved_media_sample": "root",  # Internal: Sophia media ingestion
 }
 
