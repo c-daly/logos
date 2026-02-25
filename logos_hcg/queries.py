@@ -147,18 +147,15 @@ class HCGQueries:
     # ========== Entity Queries ==========
 
     # Bootstrap leaf types — flat under root. No intermediate groupings.
+    # General knowledge types (classifier assigns these from embeddings):
     ENTITY_TYPES = [
         "object",
         "location",
-        "agent",
-        "goal",
-        "plan",
-        "simulation",
-        "execution",
-        "media_sample",
     ]
-    STATE_TYPES = ["state"]
-    PROCESS_TYPES = ["process", "action"]
+    # Reserved internal types (only Sophia subsystems assign these):
+    STATE_TYPES = ["reserved_state"]
+    PROCESS_TYPES = ["reserved_process", "reserved_action"]
+    AGENT_TYPES = ["reserved_agent"]
 
     @staticmethod
     def find_entity_by_uuid() -> str:
@@ -449,7 +446,7 @@ class HCGQueries:
         """
         return """
         MATCH (s:Node)
-        WHERE s.type = "state"
+        WHERE s.type = "reserved_state"
           AND s.timestamp >= datetime($start_time)
           AND s.timestamp <= datetime($end_time)
         RETURN s
@@ -465,7 +462,7 @@ class HCGQueries:
         """
         return """
         MATCH (s:Node)
-        WHERE s.type = "state"
+        WHERE s.type = "reserved_state"
         RETURN s
         ORDER BY s.timestamp DESC
         """
@@ -503,7 +500,7 @@ class HCGQueries:
         """
         return """
         MATCH (p:Node)
-        WHERE p.type = "process"
+        WHERE p.type = "reserved_process"
           AND p.start_time >= datetime($start_time)
           AND p.start_time <= datetime($end_time)
         RETURN p
@@ -519,7 +516,7 @@ class HCGQueries:
         """
         return """
         MATCH (p:Node)
-        WHERE p.type = "process"
+        WHERE p.type = "reserved_process"
         RETURN p
         ORDER BY p.start_time DESC
         """
@@ -937,7 +934,7 @@ class HCGQueries:
         Parameters:
         - uuid: State UUID
         - name: State name
-        - type: Specific state type (default "state")
+        - type: Specific state type (default "reserved_state")
         - timestamp: Optional timestamp (defaults to now)
 
         Returns: Created state node
@@ -960,7 +957,7 @@ class HCGQueries:
         Parameters:
         - uuid: Process UUID
         - name: Process name
-        - type: Specific process type (default "process")
+        - type: Specific process type (default "reserved_process")
         - description: Optional description
         - duration_ms: Optional duration in milliseconds
 
@@ -983,13 +980,13 @@ class HCGQueries:
         """
         Create a new CWM state entry.
 
-        All CWM states are type "state" with a "cwm" tag and a
+        All CWM states are type "reserved_state" with a "cwm" tag and a
         "subsystem:<name>" tag to distinguish A/G/E subsystems.
 
         Parameters:
         - uuid: State UUID (state_id format: cwm_<type>_<uuid>)
         - name: State name (typically auto-generated)
-        - type: Always "state" (CWM states are state nodes)
+        - type: Always "reserved_state" (CWM states are state nodes)
         - timestamp: ISO timestamp
         - source: Origin subsystem (e.g., "planner", "jepa", "reflection")
         - confidence: Confidence score 0.0-1.0
@@ -1025,7 +1022,7 @@ class HCGQueries:
         """
         Find CWM states with optional filters.
 
-        CWM states are type "state" with "cwm" in tags. The subsystem
+        CWM states are type "reserved_state" with "cwm" in tags. The subsystem
         tags filter is optional (e.g. ["subsystem:abstract", "subsystem:grounded"]).
 
         Parameters:
@@ -1038,7 +1035,7 @@ class HCGQueries:
         """
         return """
         MATCH (s:Node)
-        WHERE s.type = "state"
+        WHERE s.type = "reserved_state"
           AND "cwm" IN s.tags
           AND (size($subsystem_tags) = 0
                OR ANY(t IN $subsystem_tags WHERE t IN s.tags))

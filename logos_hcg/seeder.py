@@ -16,10 +16,13 @@ import json
 import logging
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 from logos_hcg.client import HCGClient
+
+if TYPE_CHECKING:
+    from logos_hcg.sync import HCGMilvusSync
 
 logger = logging.getLogger(__name__)
 
@@ -177,7 +180,7 @@ class HCGSeeder:
     def seed_type_centroids(
         self,
         embed_fn: Callable[[str], list[float]],
-        milvus_sync: Any,
+        milvus_sync: HCGMilvusSync,
         model: str = "all-MiniLM-L6-v2",
     ) -> int:
         """Seed type centroid embeddings from type descriptions.
