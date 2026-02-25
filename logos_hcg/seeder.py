@@ -291,7 +291,12 @@ class HCGSeeder:
         _e("zone_inspection", "ws", "PART_OF")
 
         # --- Agent + components ---
-        _n("agent", "LOGOS-01", "agent", props={"description": "Primary robotic agent"})
+        _n(
+            "agent",
+            "LOGOS-01",
+            "reserved_agent",
+            props={"description": "Primary robotic agent"},
+        )
         _n(
             "arm",
             "Panda Arm",
@@ -331,7 +336,7 @@ class HCGSeeder:
         _n(
             "goal_sort",
             "Sort Objects by Color",
-            "goal",
+            "reserved_goal",
             props={
                 "status": "completed",
                 "priority": 1,
@@ -342,7 +347,7 @@ class HCGSeeder:
         _n(
             "plan_sort",
             "Color Sort Plan",
-            "plan",
+            "reserved_plan",
             props={"status": "completed", "goal_id": ids["goal_sort"]},
         )
         _e("plan_sort", "goal_sort", "ACHIEVES")
@@ -356,7 +361,12 @@ class HCGSeeder:
         ]
         prev_step = None
         for key, name, status in sort_steps:
-            _n(key, name, "action", props={"status": status, "order": int(key[-1])})
+            _n(
+                key,
+                name,
+                "reserved_action",
+                props={"status": status, "order": int(key[-1])},
+            )
             _e("plan_sort", key, "HAS_STEP")
             if prev_step:
                 _e(prev_step, key, "ENABLES")
@@ -368,7 +378,7 @@ class HCGSeeder:
         _n(
             "goal_stack",
             "Assemble Cube Stack",
-            "goal",
+            "reserved_goal",
             props={
                 "status": "active",
                 "priority": 2,
@@ -380,7 +390,7 @@ class HCGSeeder:
         _n(
             "plan_stack_v1",
             "Stack Plan v1 (failed)",
-            "plan",
+            "reserved_plan",
             props={
                 "status": "failed",
                 "goal_id": ids["goal_stack"],
@@ -393,7 +403,7 @@ class HCGSeeder:
         _n(
             "plan_stack_v2",
             "Stack Plan v2",
-            "plan",
+            "reserved_plan",
             props={"status": "executing", "goal_id": ids["goal_stack"]},
         )
         _e("plan_stack_v2", "goal_stack", "ACHIEVES")
@@ -407,7 +417,12 @@ class HCGSeeder:
         ]
         prev_step = None
         for key, name, status in stack_steps:
-            _n(key, name, "action", props={"status": status, "order": int(key[-1])})
+            _n(
+                key,
+                name,
+                "reserved_action",
+                props={"status": status, "order": int(key[-1])},
+            )
             _e("plan_stack_v2", key, "HAS_STEP")
             if prev_step:
                 _e(prev_step, key, "ENABLES")
@@ -423,7 +438,7 @@ class HCGSeeder:
         _n(
             "goal_clear",
             "Clear Workspace",
-            "goal",
+            "reserved_goal",
             props={
                 "status": "pending",
                 "priority": 3,
@@ -434,7 +449,7 @@ class HCGSeeder:
         _n(
             "sim_clear",
             "Clearance Simulation",
-            "simulation",
+            "reserved_simulation",
             props={"description": "Simulated workspace clearance", "confidence": 0.78},
         )
         _e("sim_clear", "goal_clear", "GENERATES")
@@ -443,13 +458,13 @@ class HCGSeeder:
         _n(
             "ip_move_all",
             "Move all to inspection",
-            "process",
+            "reserved_process",
             props={"description": "Simulated batch move", "derivation": "imagined"},
         )
         _n(
             "is_empty_ws",
             "Empty workspace state",
-            "state",
+            "reserved_state",
             props={
                 "description": "All objects in inspection bay",
                 "derivation": "imagined",
@@ -469,7 +484,7 @@ class HCGSeeder:
         _n(
             "cap_pick",
             "Pick-and-Place",
-            "process",
+            "reserved_process",
             props={
                 "description": "Grasping and placing objects",
                 "executor_type": "manipulator",
