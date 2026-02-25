@@ -43,9 +43,10 @@ COLLECTION_NAMES = {
     "State": "hcg_state_embeddings",
     "Process": "hcg_process_embeddings",
     "Edge": "hcg_edge_embeddings",
+    "TypeCentroid": "hcg_type_centroids",
 }
 
-NodeType = Literal["Entity", "Concept", "State", "Process", "Edge"]
+NodeType = Literal["Entity", "Concept", "State", "Process", "Edge", "TypeCentroid"]
 
 
 class MilvusSyncError(Exception):

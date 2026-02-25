@@ -31,6 +31,11 @@ class TestHCGMilvusSync:
         assert COLLECTION_NAMES["State"] == "hcg_state_embeddings"
         assert COLLECTION_NAMES["Process"] == "hcg_process_embeddings"
 
+    def test_type_centroid_collection_in_names(self):
+        """Test that TypeCentroid collection is registered."""
+        assert "TypeCentroid" in COLLECTION_NAMES
+        assert COLLECTION_NAMES["TypeCentroid"] == "hcg_type_centroids"
+
     @patch("logos_hcg.sync.connections")
     @patch("logos_hcg.sync.utility")
     @patch("logos_hcg.sync.Collection")
@@ -52,7 +57,7 @@ class TestHCGMilvusSync:
             timeout=30.0,
         )
         assert sync._connected is True
-        assert len(sync._collections) == 5
+        assert len(sync._collections) == 6
 
     @patch("logos_hcg.sync.connections")
     def test_connect_failure(self, mock_connections):
@@ -402,7 +407,7 @@ class TestHCGMilvusSync:
         health = sync.health_check()
 
         assert health["connected"] is True
-        assert len(health["collections"]) == 5
+        assert len(health["collections"]) == 6
         # All collections should exist and be loaded
         for _node_type, status in health["collections"].items():
             assert status["exists"] is True
