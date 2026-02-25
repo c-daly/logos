@@ -2,7 +2,7 @@
 
 from unittest.mock import Mock
 
-from logos_hcg.seeder import HCGSeeder, TYPE_PARENTS
+from logos_hcg.seeder import TYPE_PARENTS, HCGSeeder
 
 
 class TestSeedTypeCentroids:
