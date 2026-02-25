@@ -49,6 +49,7 @@ class TestHCGMilvusSync:
             alias="default",
             host="localhost",
             port="19530",
+            timeout=30.0,
         )
         assert sync._connected is True
         assert len(sync._collections) == 5
