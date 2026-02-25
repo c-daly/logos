@@ -15,6 +15,7 @@ import argparse
 import json
 import logging
 from datetime import UTC, datetime, timedelta
+from collections.abc import Callable
 from typing import Any
 from uuid import uuid4
 
@@ -167,6 +168,45 @@ class HCGSeeder:
             count += 1
 
         logger.info("Seeded %d type definitions", count)
+        return count
+
+    # ------------------------------------------------------------------
+    # type centroid embeddings
+    # ------------------------------------------------------------------
+
+    def seed_type_centroids(
+        self,
+        embed_fn: Callable[[str], list[float]],
+        milvus_sync: Any,
+        model: str = "all-MiniLM-L6-v2",
+    ) -> int:
+        """Seed type centroid embeddings from type descriptions.
+
+        For each type in ``TYPE_PARENTS``, creates a description string,
+        embeds it via *embed_fn*, and upserts the centroid to Milvus.
+
+        Args:
+            embed_fn: Callable that takes a description string and returns
+                an embedding vector.
+            milvus_sync: An ``HCGMilvusSync`` instance (or compatible object)
+                with an ``update_centroid`` method.
+            model: Name of the embedding model used by *embed_fn*.
+
+        Returns:
+            Number of centroids seeded.
+        """
+        count = 0
+        for type_name in TYPE_PARENTS:
+            description = f"type definition for {type_name}"
+            embedding = embed_fn(description)
+            milvus_sync.update_centroid(
+                type_uuid=f"type_{type_name}",
+                centroid=embedding,
+                model=model,
+            )
+            count += 1
+
+        logger.info("Seeded %d type centroid embeddings", count)
         return count
 
     # ------------------------------------------------------------------
