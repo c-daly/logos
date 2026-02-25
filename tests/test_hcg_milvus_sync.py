@@ -414,6 +414,36 @@ class TestHCGMilvusSync:
             assert status["loaded"] is True
             assert status["count"] == 42
 
+    @patch("logos_hcg.sync.connections")
+    @patch("logos_hcg.sync.utility")
+    @patch("logos_hcg.sync.Collection")
+    def test_update_centroid_new(self, mock_collection, mock_utility, mock_connections):
+        mock_utility.has_collection.return_value = True
+        mock_coll = Mock()
+        mock_collection.return_value = mock_coll
+        sync = HCGMilvusSync()
+        sync.connect()
+        result = sync.update_centroid(type_uuid="type_location", centroid=[0.1] * 384, model="all-MiniLM-L6-v2")
+        assert result["embedding_id"] == "type_location"
+
+    @patch("logos_hcg.sync.connections")
+    @patch("logos_hcg.sync.utility")
+    @patch("logos_hcg.sync.Collection")
+    def test_find_nearest_type(self, mock_collection, mock_utility, mock_connections):
+        mock_utility.has_collection.return_value = True
+        mock_coll = Mock()
+        mock_hit = Mock()
+        mock_hit.entity.get.return_value = "type_location"
+        mock_hit.distance = 0.15
+        mock_coll.search.return_value = [[mock_hit]]
+        mock_collection.return_value = mock_coll
+        sync = HCGMilvusSync()
+        sync.connect()
+        results = sync.find_nearest_types(query_embedding=[0.1] * 384, top_k=3)
+        assert len(results) == 1
+        assert results[0]["uuid"] == "type_location"
+        assert results[0]["score"] == 0.15
+
     def test_health_check_not_connected(self):
         """Test health check when not connected."""
         sync = HCGMilvusSync()
