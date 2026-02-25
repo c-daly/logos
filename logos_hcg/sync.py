@@ -75,11 +75,14 @@ class HCGMilvusSync:
         )
     """
 
+    DEFAULT_TIMEOUT: float = 30.0
+
     def __init__(
         self,
         milvus_host: str = "localhost",
         milvus_port: str = "19530",
         alias: str = "default",
+        timeout: float | None = None,
     ):
         """
         Initialize sync manager with Milvus connection.
@@ -88,10 +91,12 @@ class HCGMilvusSync:
             milvus_host: Milvus server host
             milvus_port: Milvus server port
             alias: Connection alias for Milvus
+            timeout: Timeout in seconds for Milvus operations (default: 30s)
         """
         self.host = milvus_host
         self.port = milvus_port
         self.alias = alias
+        self.timeout = timeout if timeout is not None else self.DEFAULT_TIMEOUT
         self._connected = False
         self._collections: dict[str, Collection] = {}
 
@@ -107,6 +112,7 @@ class HCGMilvusSync:
                 alias=self.alias,
                 host=self.host,
                 port=self.port,
+                timeout=self.timeout,
             )
             self._connected = True
             logger.info(f"Connected to Milvus at {self.host}:{self.port}")
@@ -115,12 +121,21 @@ class HCGMilvusSync:
             for node_type, collection_name in COLLECTION_NAMES.items():
                 if utility.has_collection(collection_name, using=self.alias):
                     collection = Collection(name=collection_name, using=self.alias)
-                    collection.load()
+                    try:
+                        collection.load(timeout=self.timeout)
+                    except Exception as load_err:
+                        logger.warning(
+                            f"Failed to load collection {collection_name} "
+                            f"(timeout={self.timeout}s): {load_err}"
+                        )
+                        continue
                     self._collections[node_type] = collection
                     logger.debug(f"Loaded collection: {collection_name}")
                 else:
                     logger.warning(f"Collection not found: {collection_name}")
 
+        except MilvusSyncError:
+            raise
         except Exception as e:
             raise MilvusSyncError(f"Failed to connect to Milvus: {e}") from e
 
@@ -153,7 +168,7 @@ class HCGMilvusSync:
             "params": {"nlist": 128},
         }
         collection.create_index("embedding", index_params)
-        collection.load()
+        collection.load(timeout=self.timeout)
         self._collections[node_type] = collection
         logger.info(f"Created collection {name} with L2 IVF_FLAT index")
 
