@@ -37,7 +37,8 @@ packages = [
     { include = "logos_perception" },
     { include = "logos_sophia" },
     { include = "logos_test_utils" },
-    { include = "planner_stub" }
+    { include = "planner_stub" },
+    { include = "logos_experiment" }
 ]
 
 [tool.poetry.dependencies]
