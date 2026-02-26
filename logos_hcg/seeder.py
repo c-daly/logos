@@ -14,11 +14,15 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 from logos_hcg.client import HCGClient
+
+if TYPE_CHECKING:
+    from logos_hcg.sync import HCGMilvusSync
 
 logger = logging.getLogger(__name__)
 
@@ -35,15 +39,15 @@ logger = logging.getLogger(__name__)
 TYPE_PARENTS: dict[str, str] = {
     "object": "root",
     "location": "root",
-    "agent": "root",
-    "process": "root",
-    "action": "root",
-    "goal": "root",
-    "plan": "root",
-    "simulation": "root",
-    "execution": "root",
-    "state": "root",
-    "media_sample": "root",
+    "reserved_agent": "root",  # Internal: Sophia as plan executor
+    "reserved_process": "root",  # Internal: Sophia plan execution
+    "reserved_action": "root",  # Internal: Sophia plan steps
+    "reserved_goal": "root",  # Internal: Sophia planner goals
+    "reserved_plan": "root",  # Internal: Sophia planner plans
+    "reserved_simulation": "root",  # Internal: Sophia JEPA simulations
+    "reserved_execution": "root",  # Internal: Sophia execution runs
+    "reserved_state": "root",  # Internal: Sophia CWM states
+    "reserved_media_sample": "root",  # Internal: Sophia media ingestion
 }
 
 # Edge type definitions to create as type-definition nodes.
@@ -170,6 +174,97 @@ class HCGSeeder:
         return count
 
     # ------------------------------------------------------------------
+    # type centroid embeddings
+    # ------------------------------------------------------------------
+
+    def seed_type_centroids(
+        self,
+        embed_fn: Callable[[str], list[float]],
+        milvus_sync: HCGMilvusSync,
+        model: str = "all-MiniLM-L6-v2",
+    ) -> int:
+        """Seed type centroid embeddings from type descriptions.
+
+        For each type in ``TYPE_PARENTS``, creates a description string,
+        embeds it via *embed_fn*, and upserts the centroid to Milvus.
+
+        Args:
+            embed_fn: Callable that takes a description string and returns
+                an embedding vector.
+            milvus_sync: An ``HCGMilvusSync`` instance (or compatible object)
+                with an ``update_centroid`` method.
+            model: Name of the embedding model used by *embed_fn*.
+
+        Returns:
+            Number of centroids seeded.
+        """
+        # Semantically distinct descriptions so centroids occupy different
+        # regions of embedding space.  Each description captures *what the
+        # type represents* rather than just its name.
+        type_descriptions: dict[str, str] = {
+            "object": (
+                "A physical thing that can be grasped, moved, or manipulated. "
+                "Examples: bolt, gear, cup, tool, box, sensor, bracket."
+            ),
+            "location": (
+                "A named place, workspace, or spatial region where objects "
+                "reside. Examples: table, shelf, bin, assembly station, tray."
+            ),
+            "reserved_agent": (
+                "An autonomous actor that perceives, decides, and acts. "
+                "The robot arm, a planner module, or Sophia itself."
+            ),
+            "reserved_process": (
+                "An ongoing activity or workflow with a lifecycle. "
+                "Assembly sequence, inspection routine, calibration procedure."
+            ),
+            "reserved_action": (
+                "A single discrete step: pick, place, move, grasp, release, "
+                "rotate, or inspect."
+            ),
+            "reserved_goal": (
+                "A desired future state the planner tries to achieve. "
+                "Object at target location, assembly complete, error resolved."
+            ),
+            "reserved_plan": (
+                "An ordered sequence of actions chosen to reach a goal. "
+                "Contains steps, preconditions, and expected outcomes."
+            ),
+            "reserved_simulation": (
+                "A mental rehearsal predicting what will happen if a plan "
+                "is executed. JEPA forward model evaluation."
+            ),
+            "reserved_execution": (
+                "A concrete run of a plan on real or simulated hardware. "
+                "Tracks progress, success, failure, and timing."
+            ),
+            "reserved_state": (
+                "A snapshot of the world model at a point in time. "
+                "Current positions, relationships, and beliefs."
+            ),
+            "reserved_media_sample": (
+                "A media artifact ingested for processing: image, audio "
+                "clip, video frame, or document."
+            ),
+        }
+
+        count = 0
+        for type_name in TYPE_PARENTS:
+            description = type_descriptions.get(
+                type_name, f"type definition for {type_name}"
+            )
+            embedding = embed_fn(description)
+            milvus_sync.update_centroid(
+                type_uuid=f"type_{type_name}",
+                centroid=embedding,
+                model=model,
+            )
+            count += 1
+
+        logger.info("Seeded %d type centroid embeddings", count)
+        return count
+
+    # ------------------------------------------------------------------
     # demo scenario
     # ------------------------------------------------------------------
 
@@ -251,7 +346,12 @@ class HCGSeeder:
         _e("zone_inspection", "ws", "PART_OF")
 
         # --- Agent + components ---
-        _n("agent", "LOGOS-01", "agent", props={"description": "Primary robotic agent"})
+        _n(
+            "agent",
+            "LOGOS-01",
+            "reserved_agent",
+            props={"description": "Primary robotic agent"},
+        )
         _n(
             "arm",
             "Panda Arm",
@@ -291,7 +391,7 @@ class HCGSeeder:
         _n(
             "goal_sort",
             "Sort Objects by Color",
-            "goal",
+            "reserved_goal",
             props={
                 "status": "completed",
                 "priority": 1,
@@ -302,7 +402,7 @@ class HCGSeeder:
         _n(
             "plan_sort",
             "Color Sort Plan",
-            "plan",
+            "reserved_plan",
             props={"status": "completed", "goal_id": ids["goal_sort"]},
         )
         _e("plan_sort", "goal_sort", "ACHIEVES")
@@ -316,7 +416,12 @@ class HCGSeeder:
         ]
         prev_step = None
         for key, name, status in sort_steps:
-            _n(key, name, "action", props={"status": status, "order": int(key[-1])})
+            _n(
+                key,
+                name,
+                "reserved_action",
+                props={"status": status, "order": int(key[-1])},
+            )
             _e("plan_sort", key, "HAS_STEP")
             if prev_step:
                 _e(prev_step, key, "ENABLES")
@@ -328,7 +433,7 @@ class HCGSeeder:
         _n(
             "goal_stack",
             "Assemble Cube Stack",
-            "goal",
+            "reserved_goal",
             props={
                 "status": "active",
                 "priority": 2,
@@ -340,7 +445,7 @@ class HCGSeeder:
         _n(
             "plan_stack_v1",
             "Stack Plan v1 (failed)",
-            "plan",
+            "reserved_plan",
             props={
                 "status": "failed",
                 "goal_id": ids["goal_stack"],
@@ -353,7 +458,7 @@ class HCGSeeder:
         _n(
             "plan_stack_v2",
             "Stack Plan v2",
-            "plan",
+            "reserved_plan",
             props={"status": "executing", "goal_id": ids["goal_stack"]},
         )
         _e("plan_stack_v2", "goal_stack", "ACHIEVES")
@@ -367,7 +472,12 @@ class HCGSeeder:
         ]
         prev_step = None
         for key, name, status in stack_steps:
-            _n(key, name, "action", props={"status": status, "order": int(key[-1])})
+            _n(
+                key,
+                name,
+                "reserved_action",
+                props={"status": status, "order": int(key[-1])},
+            )
             _e("plan_stack_v2", key, "HAS_STEP")
             if prev_step:
                 _e(prev_step, key, "ENABLES")
@@ -383,7 +493,7 @@ class HCGSeeder:
         _n(
             "goal_clear",
             "Clear Workspace",
-            "goal",
+            "reserved_goal",
             props={
                 "status": "pending",
                 "priority": 3,
@@ -394,7 +504,7 @@ class HCGSeeder:
         _n(
             "sim_clear",
             "Clearance Simulation",
-            "simulation",
+            "reserved_simulation",
             props={"description": "Simulated workspace clearance", "confidence": 0.78},
         )
         _e("sim_clear", "goal_clear", "GENERATES")
@@ -403,13 +513,13 @@ class HCGSeeder:
         _n(
             "ip_move_all",
             "Move all to inspection",
-            "process",
+            "reserved_process",
             props={"description": "Simulated batch move", "derivation": "imagined"},
         )
         _n(
             "is_empty_ws",
             "Empty workspace state",
-            "state",
+            "reserved_state",
             props={
                 "description": "All objects in inspection bay",
                 "derivation": "imagined",
@@ -429,7 +539,7 @@ class HCGSeeder:
         _n(
             "cap_pick",
             "Pick-and-Place",
-            "process",
+            "reserved_process",
             props={
                 "description": "Grasping and placing objects",
                 "executor_type": "manipulator",
