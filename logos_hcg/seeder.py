@@ -821,18 +821,22 @@ class HCGSeeder:
             entry_id = f"persona-{uuid4().hex[:12]}"
             ts = now - timedelta(minutes=len(entries) - i)
 
-            payload = json.dumps({"entry": {
-                "entry_id": entry_id,
-                "entry_type": entry_data["entry_type"],
-                "content": entry_data["content"],
-                "summary": entry_data["summary"],
-                "sentiment": entry_data["sentiment"],
-                "confidence": entry_data["confidence"],
-                "emotion_tags": entry_data["emotion_tags"],
-                "related_process_ids": entry_data["related_process_ids"],
-                "related_goal_ids": entry_data["related_goal_ids"],
-                "metadata": {},
-            }})
+            payload = json.dumps(
+                {
+                    "entry": {
+                        "entry_id": entry_id,
+                        "entry_type": entry_data["entry_type"],
+                        "content": entry_data["content"],
+                        "summary": entry_data["summary"],
+                        "sentiment": entry_data["sentiment"],
+                        "confidence": entry_data["confidence"],
+                        "emotion_tags": entry_data["emotion_tags"],
+                        "related_process_ids": entry_data["related_process_ids"],
+                        "related_goal_ids": entry_data["related_goal_ids"],
+                        "metadata": {},
+                    }
+                }
+            )
 
             self.client._execute_query(
                 query,
