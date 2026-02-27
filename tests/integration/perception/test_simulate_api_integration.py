@@ -67,20 +67,16 @@ def cleanup_simulations(neo4j_driver):
     yield
     # Clean up any ImaginedProcess and ImaginedState nodes created during tests
     with neo4j_driver.session() as session:
-        session.run(
-            """
+        session.run("""
             MATCH (s:ImaginedState)-[r]-()
             WHERE s.capability_id STARTS WITH 'test-'
             DELETE r, s
-            """
-        )
-        session.run(
-            """
+            """)
+        session.run("""
             MATCH (p:ImaginedProcess)
             WHERE p.capability_id STARTS WITH 'test-'
             DELETE p
-            """
-        )
+            """)
 
 
 class TestSimulateAPIIntegration:

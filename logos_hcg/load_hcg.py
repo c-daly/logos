@@ -233,13 +233,11 @@ class HCGLoader:
         logger.info("Verifying nodes...")
 
         with self.driver.session() as session:
-            result = session.run(
-                """
+            result = session.run("""
                 MATCH (n:Node)
                 RETURN n.type as type, n.is_type_definition as is_type_def, count(n) as count
                 ORDER BY type
-            """
-            )
+            """)
             counts = {}
             for record in result:
                 type_name = record["type"]

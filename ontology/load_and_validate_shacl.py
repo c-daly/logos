@@ -72,15 +72,13 @@ class Neo4jSHACLValidator:
                     print("✓ n10s graph configuration already exists")
                 else:
                     # Create new configuration
-                    session.run(
-                        """
+                    session.run("""
                         CALL n10s.graphconfig.init({
                             handleVocabUris: 'IGNORE',
                             handleMultival: 'ARRAY',
                             handleRDFTypes: 'LABELS'
                         })
-                        """
-                    )
+                        """)
                     print("✓ n10s graph configuration initialized")
 
                 return True
@@ -210,13 +208,11 @@ class Neo4jSHACLValidator:
         with self.driver.session() as session:
             try:
                 # Run SHACL validation
-                result = session.run(
-                    """
+                result = session.run("""
                     CALL n10s.validation.shacl.validate()
                     YIELD focusNode, propertyShape, severity, resultMessage
                     RETURN focusNode, propertyShape, severity, resultMessage
-                    """
-                )
+                    """)
 
                 violations = list(result)
 

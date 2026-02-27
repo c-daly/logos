@@ -57,23 +57,19 @@ def cleanup_simulations(neo4j_driver):
     """Clean up test simulations after each test."""
     yield
     with neo4j_driver.session() as session:
-        session.run(
-            """
+        session.run("""
             MATCH (s:ImaginedState)
             WHERE s.uuid STARTS WITH 'test-' OR EXISTS {
                 MATCH (s)<-[:HAS_STATE]-(p:ImaginedProcess)
                 WHERE p.capability_id STARTS WITH 'test-'
             }
             DETACH DELETE s
-            """
-        )
-        session.run(
-            """
+            """)
+        session.run("""
             MATCH (p:ImaginedProcess)
             WHERE p.capability_id STARTS WITH 'test-'
             DETACH DELETE p
-            """
-        )
+            """)
 
 
 class TestSimulationServiceIntegration:
