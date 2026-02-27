@@ -681,10 +681,12 @@ class HCGSeeder:
     # ------------------------------------------------------------------
 
     def seed_persona_diary(self) -> list[str]:
-        """Create persona diary entries as :PersonaEntry nodes.
+        """Create persona diary entries as CWM-E state nodes.
 
-        Apollo queries ``MATCH (entry:PersonaEntry)`` so these use
-        that label directly.
+        Persona entries are stored as :Node with type="reserved_state" and
+        tags ["cwm", "subsystem:cwm_e"].  The entry data lives in the
+        JSON ``payload`` field under the ``entry`` key, which is the format
+        Sophia's ``_cwmstate_to_persona_entry`` expects.
 
         Returns:
             List of entry IDs created.
@@ -702,7 +704,7 @@ class HCGSeeder:
                     "station has a yellow sphere and white cube. A black prism "
                     "sits alone in the inspection bay."
                 ),
-                "summary": "Surveyed workspace — 6 objects across 3 zones",
+                "summary": "Surveyed workspace \u2014 6 objects across 3 zones",
                 "sentiment": "neutral",
                 "confidence": 0.92,
                 "emotion_tags": ["curiosity", "readiness"],
@@ -741,7 +743,7 @@ class HCGSeeder:
             {
                 "entry_type": "reflection",
                 "content": (
-                    "Colour-sort plan completed successfully — all five steps "
+                    "Colour-sort plan completed successfully \u2014 all five steps "
                     "executed without error. Execution was 15%% faster than the "
                     "simulated estimate. My grasp accuracy seems to be improving."
                 ),
@@ -811,40 +813,46 @@ class HCGSeeder:
             },
         ]
 
+        from logos_hcg.queries import HCGQueries
+
+        query = HCGQueries.create_cwm_state()
+
         for i, entry_data in enumerate(entries):
             entry_id = f"persona-{uuid4().hex[:12]}"
             ts = now - timedelta(minutes=len(entries) - i)
 
-            query = """
-            CREATE (entry:PersonaEntry {
-                id: $id,
-                timestamp: datetime($timestamp),
-                entry_type: $entry_type,
-                content: $content,
-                summary: $summary,
-                sentiment: $sentiment,
-                confidence: $confidence,
-                related_process_ids: $related_process_ids,
-                related_goal_ids: $related_goal_ids,
-                emotion_tags: $emotion_tags,
-                metadata: $metadata
-            })
-            RETURN entry
-            """
+            payload = json.dumps(
+                {
+                    "entry": {
+                        "entry_id": entry_id,
+                        "entry_type": entry_data["entry_type"],
+                        "content": entry_data["content"],
+                        "summary": entry_data["summary"],
+                        "sentiment": entry_data["sentiment"],
+                        "confidence": entry_data["confidence"],
+                        "emotion_tags": entry_data["emotion_tags"],
+                        "related_process_ids": entry_data["related_process_ids"],
+                        "related_goal_ids": entry_data["related_goal_ids"],
+                        "metadata": {},
+                    }
+                }
+            )
+
             self.client._execute_query(
                 query,
                 {
-                    "id": entry_id,
+                    "uuid": entry_id,
+                    "name": f"cwm_e_{ts.strftime('%Y%m%d_%H%M%S')}",
+                    "type": "reserved_state",
                     "timestamp": ts.isoformat(),
-                    "entry_type": entry_data["entry_type"],
-                    "content": entry_data["content"],
-                    "summary": entry_data["summary"],
-                    "sentiment": entry_data["sentiment"],
+                    "source": "seeder",
                     "confidence": entry_data["confidence"],
-                    "related_process_ids": entry_data["related_process_ids"],
-                    "related_goal_ids": entry_data["related_goal_ids"],
-                    "emotion_tags": entry_data["emotion_tags"],
-                    "metadata": "{}",
+                    "status": "observed",
+                    "payload": payload,
+                    "links": "{}",
+                    "tags": ["cwm", "subsystem:cwm_e"],
+                    "embedding_id": None,
+                    "embedding_type": None,
                 },
             )
             entry_ids.append(entry_id)

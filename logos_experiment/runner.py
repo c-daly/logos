@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import Any
+
 import numpy as np
-from typing import Any, Callable
 
 from logos_experiment.agent import AgentDefinition
 from logos_experiment.config import ExperimentConfig
