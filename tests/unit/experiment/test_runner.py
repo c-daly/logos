@@ -1,5 +1,5 @@
-from logos_experiment.runner import ExperimentRunner
 from logos_experiment.config import ExperimentConfig, PipelineStep
+from logos_experiment.runner import ExperimentRunner
 
 
 class DoublerAgent:
