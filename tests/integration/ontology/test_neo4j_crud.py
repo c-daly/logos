@@ -645,11 +645,13 @@ class TestRelationshipTraversal:
         with neo4j_driver.session() as session:
             # Find robot arm and its type
             # UUID from test_data_pick_and_place.cypher: RobotArm01
-            result = session.run("""
+            result = session.run(
+                """
                 MATCH (e:Node {uuid: 'c551e7ad-c12a-40bc-8c29-3a721fa311cb'})-[:IS_A]->(t:Node)
                 WHERE t.is_type_definition = true
                 RETURN e.name AS entity_name, t.name AS type_name
-                """)
+                """
+            )
             record = result.single()
             assert record is not None
             assert record["entity_name"] == "RobotArm01"
@@ -660,14 +662,16 @@ class TestRelationshipTraversal:
         with neo4j_driver.session() as session:
             # Find robot arm's current state
             # UUID from test_data_pick_and_place.cypher: RobotArm01
-            result = session.run("""
+            result = session.run(
+                """
                 MATCH (e:Node {uuid: 'c551e7ad-c12a-40bc-8c29-3a721fa311cb'})
                       -[:HAS_STATE]->(s:Node)
                 WHERE s.type = 'state' OR 'state' IN s.ancestors
                 RETURN s.name AS state_name, s.timestamp AS timestamp
                 ORDER BY s.timestamp DESC
                 LIMIT 1
-                """)
+                """
+            )
             record = result.single()
             assert record is not None
             assert record["state_name"] == "ArmHomeState"
@@ -677,11 +681,13 @@ class TestRelationshipTraversal:
         with neo4j_driver.session() as session:
             # Find what process causes the block to be grasped
             # UUID from test_data_pick_and_place.cypher: RedBlockGraspedState
-            result = session.run("""
+            result = session.run(
+                """
                 MATCH (p:Node)-[:CAUSES]->(s:Node {uuid: 'f25e11ff-f33f-43a7-a4d8-a2839ec39976'})
                 WHERE p.type = 'process' OR 'process' IN p.ancestors
                 RETURN p.name AS process_name, s.name AS state_name
-                """)
+                """
+            )
             record = result.single()
             assert record is not None
             assert record["process_name"] == "GraspRedBlock"
@@ -692,13 +698,15 @@ class TestRelationshipTraversal:
         with neo4j_driver.session() as session:
             # Find the causal chain from initial home state to final states
             # UUID from test_data_pick_and_place.cypher: ArmHomeState (start of PRECEDES chain)
-            result = session.run("""
+            result = session.run(
+                """
                 MATCH path = (s1:Node {uuid: '1957c02d-a22a-483c-8ccb-cd04e7f03817'})
                              -[:PRECEDES*1..5]->(s2:Node)
                 RETURN s2.name AS final_state, length(path) AS chain_length
                 ORDER BY chain_length DESC
                 LIMIT 1
-                """)
+                """
+            )
             record = result.single()
             assert record is not None
             # Should find a state in the causal chain
@@ -709,12 +717,14 @@ class TestRelationshipTraversal:
         with neo4j_driver.session() as session:
             # Find parts of robot arm
             # UUID from test_data_pick_and_place.cypher: RobotArm01
-            result = session.run("""
+            result = session.run(
+                """
                 MATCH (part:Node)-[:PART_OF]->(whole:Node {uuid: 'c551e7ad-c12a-40bc-8c29-3a721fa311cb'})
                 WHERE 'thing' IN part.ancestors
                 RETURN part.name AS part_name
                 ORDER BY part.name
-                """)
+                """
+            )
             parts = [record["part_name"] for record in result]
 
             # Should include gripper and joints
@@ -757,12 +767,14 @@ class TestQueryOperations:
     def test_query_states_by_timestamp(self, neo4j_driver, loaded_test_data):
         """Test querying states by timestamp range."""
         with neo4j_driver.session() as session:
-            result = session.run("""
+            result = session.run(
+                """
                 MATCH (s:Node)
                 WHERE (s.type = 'state' OR 'state' IN s.ancestors)
                   AND s.timestamp IS NOT NULL
                 RETURN count(s) AS state_count
-                """)
+                """
+            )
             record = result.single()
             assert record is not None
             assert record["state_count"] > 0
@@ -770,12 +782,14 @@ class TestQueryOperations:
     def test_query_processes_by_start_time(self, neo4j_driver, loaded_test_data):
         """Test querying processes by start time."""
         with neo4j_driver.session() as session:
-            result = session.run("""
+            result = session.run(
+                """
                 MATCH (p:Node)
                 WHERE (p.type = 'process' OR 'process' IN p.ancestors)
                   AND p.start_time IS NOT NULL
                 RETURN count(p) AS process_count
-                """)
+                """
+            )
             record = result.single()
             assert record is not None
             assert record["process_count"] > 0
@@ -791,29 +805,35 @@ class TestQueryOperations:
             assert entity_count > 0
 
             # Count concepts (non-things)
-            result = session.run("""
+            result = session.run(
+                """
                 MATCH (c:Node)
                 WHERE 'concept' IN c.ancestors AND NOT 'thing' IN c.ancestors
                 RETURN count(c) AS count
-                """)
+                """
+            )
             concept_count = result.single()["count"]
             assert concept_count > 0
 
             # Count states
-            result = session.run("""
+            result = session.run(
+                """
                 MATCH (s:Node)
                 WHERE s.type = 'state' OR 'state' IN s.ancestors
                 RETURN count(s) AS count
-                """)
+                """
+            )
             state_count = result.single()["count"]
             assert state_count > 0
 
             # Count processes
-            result = session.run("""
+            result = session.run(
+                """
                 MATCH (p:Node)
                 WHERE p.type = 'process' OR 'process' IN p.ancestors
                 RETURN count(p) AS count
-                """)
+                """
+            )
             process_count = result.single()["count"]
             assert process_count > 0
 
@@ -821,11 +841,13 @@ class TestQueryOperations:
         """Test querying nodes by their type property."""
         with neo4j_driver.session() as session:
             # Query by exact type
-            result = session.run("""
+            result = session.run(
+                """
                 MATCH (n:Node {type: 'Manipulator'})
                 WHERE n.is_type_definition = false
                 RETURN n.name AS name
-                """)
+                """
+            )
             records = list(result)
             assert len(records) > 0
             assert any(r["name"] == "RobotArm01" for r in records)
@@ -834,18 +856,22 @@ class TestQueryOperations:
         """Test querying type definitions vs instances."""
         with neo4j_driver.session() as session:
             # Count type definitions
-            result = session.run("""
+            result = session.run(
+                """
                 MATCH (t:Node {is_type_definition: true})
                 RETURN count(t) AS type_count
-                """)
+                """
+            )
             type_count = result.single()["type_count"]
             assert type_count > 0
 
             # Count instances
-            result = session.run("""
+            result = session.run(
+                """
                 MATCH (i:Node {is_type_definition: false})
                 RETURN count(i) AS instance_count
-                """)
+                """
+            )
             instance_count = result.single()["instance_count"]
             assert instance_count > 0
 

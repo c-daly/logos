@@ -59,11 +59,13 @@ def _has_n10s(session):
 
 def _clear_instance_data(session):
     """Delete only user data, not SHACL shapes/config."""
-    session.run("""
+    session.run(
+        """
         MATCH (n)
         WHERE n:Node OR n.uuid IS NOT NULL
         DETACH DELETE n
-        """)
+        """
+    )
 
 
 def _ensure_shapes(session, procedures):

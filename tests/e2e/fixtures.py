@@ -192,14 +192,16 @@ def clean_neo4j() -> Generator[None, None, None]:
 
         with driver.session() as session:
             # Delete test nodes (those with test_ prefix in uuid or name)
-            session.run("""
+            session.run(
+                """
                 MATCH (n)
                 WHERE n.uuid STARTS WITH 'test_'
                    OR n.uuid STARTS WITH 'test-'
                    OR n.name STARTS WITH 'Test'
                    OR n.name STARTS WITH 'test_'
                 DETACH DELETE n
-                """)
+                """
+            )
 
         driver.close()
     except Exception:
@@ -212,14 +214,16 @@ def clean_neo4j() -> Generator[None, None, None]:
         driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 
         with driver.session() as session:
-            session.run("""
+            session.run(
+                """
                 MATCH (n)
                 WHERE n.uuid STARTS WITH 'test_'
                    OR n.uuid STARTS WITH 'test-'
                    OR n.name STARTS WITH 'Test'
                    OR n.name STARTS WITH 'test_'
                 DETACH DELETE n
-                """)
+                """
+            )
 
         driver.close()
     except Exception:
