@@ -4,101 +4,117 @@
 
 ## Recent Work
 
-### Cognitive Loop & Performance
-- sophia #131: batch and parallelize proposal processing pipeline (Feb 27)
-- sophia #128: reduce loop overhead and async proposal processing (Feb 23)
-- hermes #85: parallel pipeline, Redis context cache, OTel tracing (Feb 23)
-- apollo #161: reduce loop latency in HCG explorer (Feb 25)
-- logos #492: loop latency plan and numpy fix (Feb 21)
+### Cognitive Loop & Performance (Feb 18--28)
+- sophia #131: batch and parallelize proposal processing pipeline
+- sophia #128: reduce loop overhead and async proposal processing
+- hermes #85: parallel pipeline, Redis context cache, OTel tracing
+- apollo #161: reduce loop latency in HCG explorer
+- logos #492: loop latency plan and numpy fix
 
-### Edge Reification & Flexible Ontology
-- logos #490: edge reification and cognitive loop foundation (Feb 19)
-- sophia #125: align sophia with reified edge model and proposal processing (Feb 19)
-- sophia #127: process proposed edges from Hermes proposals (Feb 20)
-- sophia #129: type classification via embedding centroids (Feb 26)
-- sophia #130: CWM persistence type mismatch and reserved type filtering (Feb 26)
-- hermes #82: close the cognitive loop — proposal builder and context injection (Feb 19)
-- hermes #84: pluggable embedding provider and relation extraction (Feb 20)
-- hermes #86: naming endpoints and type classification deprecation (Feb 26)
-- logos #494: TypeCentroid collection, centroid methods, seeder, and reserved type prefixes (Feb 26)
-- logos #491: configurable embedding dim and relation smoke tests (Feb 20)
+### Edge Reification & Flexible Ontology (Feb 18--26)
+- logos #490: edge reification and cognitive loop foundation
+- sophia #125: align sophia with reified edge model and proposal processing
+- sophia #127: process proposed edges from Hermes proposals
+- sophia #129: type classification via embedding centroids
+- sophia #130: CWM persistence type mismatch and reserved type filtering
+- hermes #82: close the cognitive loop -- proposal builder and context injection
+- hermes #84: pluggable embedding provider and relation extraction
+- hermes #86: naming endpoints and type classification deprecation
+- logos #494: TypeCentroid collection, centroid methods, seeder, and reserved type prefixes
+- logos #491: configurable embedding dim and relation smoke tests
 
 ### Persona & CWM-E
 - logos #495: seed persona entries as CWM-E state nodes (Feb 27)
 
-### Observability
-- logos #486: OTel instrumentation, dashboards, and infra (Feb 16)
-- hermes #79: OpenTelemetry instrumentation for Hermes (Feb 16)
-- apollo #156: OpenTelemetry instrumentation for Apollo (Feb 16)
+### Observability (Feb 15--16)
+- logos #486: OTel instrumentation, dashboards, and infra
+- sophia #121: OpenTelemetry instrumentation for Sophia
+- hermes #79: OpenTelemetry instrumentation for Hermes
+- apollo #156: OpenTelemetry instrumentation for Apollo
 
-### Infrastructure & Standardization
-- logos #489: HCG write operations and seeder module (Feb 18)
-- logos #488: foundry version alignment check in reusable CI (Feb 17)
-- logos #493: fix Milvus collection.load() hanging Sophia startup (Feb 25)
-- hermes #87: bump logos-foundry to v0.6.0 (Feb 26)
+### Infrastructure & Standardization (Feb 9--26)
+- logos #489: HCG write operations and seeder module
+- logos #488: foundry version alignment check in reusable CI
+- logos #493: fix Milvus collection.load() hanging Sophia startup
+- hermes #87: bump logos-foundry to v0.6.0
 - All repos: bumped to logos-foundry v0.5.0 (Feb 19)
-- apollo #159: fix explorer re-render loop and type hierarchy visualization (Feb 17)
+- apollo #159: fix explorer re-render loop and type hierarchy visualization
+- logos #485: standardize pytest config and add dev scripts
+- logos #483: standardize e2e test ports via logos_config
+- logos #482: use env var for Neo4j password in test compose templates
+- logos #480: use shared dev password for Neo4j HCG stack
 
 ### Documentation
 - logos #487: proposed documentation refresh for LOGOS ecosystem (Feb 17)
 
+### Foundry Version
+- Current: **v0.6.0** (tagged). Hermes at v0.6.0; sophia, apollo, talos at v0.5.0.
+
 ## In Flight
 
-No open PRs across any repo.
+No open PRs across any repository. No issues labeled `status:in-progress`.
 
 ## Blocked
 
-- logos #464: Update M3 planning tests for flexible ontology — blocked on upstream ontology work
-- logos #463: Validate M4 demo end-to-end with flexible ontology — blocked on upstream ontology work
+| Issue | Title | Blocked On |
+|-------|-------|------------|
+| logos #464 | Update M3 planning tests for flexible ontology | Upstream ontology work (#460, #461) |
+| logos #463 | Validate M4 demo end-to-end with flexible ontology | Upstream ontology work (#460, #461) |
 
 ## Progress Against Vision Goals
 
-### 1. Complete the cognitive loop — IN PROGRESS, strong momentum
-The loop works end-to-end: Hermes extracts entities/relations, proposes edges, Sophia processes proposals into HCG, context enriches LLM responses. Recent work focused on performance (batching, parallelization, async processing, Redis caching). Next: feedback processing, multi-turn memory, context quality improvements.
+### 1. Complete the cognitive loop -- STRONG MOMENTUM
+The loop works end-to-end: Hermes extracts entities/relations, proposes edges, Sophia processes proposals into HCG, context enriches LLM responses. A major performance sprint landed (batching, parallelization, async processing, Redis caching). Type classification moved from Hermes to Sophia via embedding centroids, which is architecturally correct (the cognitive core owns type semantics, not the language service). **Next**: feedback processing, multi-turn memory, context quality improvements.
 
-### 2. Grounded perception via JEPA — IN PROGRESS, paused
-PoC exists in sophia (#76) with tests, docs, and backend integration. Last activity Dec 2025 — stale but substantial. No blockers; needs prioritization to resume.
+### 2. Grounded perception via JEPA -- PAUSED
+PoC exists in sophia (#76) with tests, docs, and backend integration. Last activity Dec 2025 -- stale but substantial. No blockers; needs prioritization to resume.
 
-### 3. Flexible ontology — IN PROGRESS, mostly done
-Core reified model landed (logos #490). Type classification via centroids working (sophia #129, logos #494). Hermes aligned (hermes #84, #86). Remaining: update stale downstream queries (#458, #460, #461, #462), capability catalog (#465), planning test updates (#464, blocked).
+### 3. Flexible ontology -- MOSTLY DONE
+Core reified model landed (logos #490). Type classification via centroids working (sophia #129, logos #494). Hermes aligned (hermes #84, #86). CWM-E persona entries seeded as state nodes (logos #495). **Remaining**: update stale downstream queries (#458, #460, #461, #462), implement capability catalog (#465), planning test updates (#464, blocked).
 
-### 4. Memory and learning — NOT STARTED
-Spec exists (logos #415). Prerequisite: testing sanity (#416) is largely complete. Sub-issues (#411-#414) defined but not started. Depends on CWM unification (#496).
+### 4. Memory and learning -- NOT STARTED
+Spec exists (logos #415). Sub-issues (#411--#414) defined but not started. Depends on CWM unification (#496) as prerequisite.
 
-### 5. CWM unification — NOT STARTED
+### 5. CWM unification -- NOT STARTED
 Ticket created (logos #496). logos_cwm_e and logos_persona use raw Cypher with stale ontology patterns. Need to become ontology-level type definitions consumed via HCG client. Prerequisite for memory work.
 
-### 6. Planning and execution — IN PROGRESS
+### 6. Planning and execution -- IN PROGRESS
 HCGPlanner exists with backward-chaining over REQUIRES/CAUSES edges. Planner stub (#403) still coexists with real implementation. Process node structure defined but needs maturation as Talos develops.
 
-### 7. Embodiment via Talos — IN PROGRESS, early stage
-Simulation scaffold exists. Last substantive work was standardization (talos #53-#55). Path to physics-backed simulation documented but not started. Depends on cognitive loop maturity.
+### 7. Embodiment via Talos -- EARLY STAGE
+Simulation scaffold exists. Last substantive work was standardization (talos #53--#55, Feb). Path to physics-backed simulation documented but not started. Depends on cognitive loop maturity.
 
-### 8. Observability — IN PROGRESS, good coverage
-OTel instrumentation landed across logos, hermes, apollo (#486, hermes #79, apollo #156). Remaining gaps: Apollo SDK integration (#340), Hermes/Sophia endpoint-level spans (#335, #338), testing & docs (#339, #342).
+### 8. Observability -- GOOD COVERAGE
+OTel instrumentation landed across all services (logos #486, sophia #121, hermes #79, apollo #156). **Remaining gaps**: Apollo SDK integration (#340), Hermes/Sophia endpoint-level spans (#335, #338), testing & docs (#339, #342), persistent telemetry storage (#312).
 
-### 9. Documentation — IN PROGRESS
-Proposed replacement docs exist in `docs/proposed_docs/`. Manifest (`DOC_MANIFEST.md`) defines the cleanup plan. Project tracking conventions (`PROJECT_TRACKING.md`) and vision (`VISION.md`) now in place. Remaining: execute manifest, per-repo cleanup.
+### 9. Documentation -- IN PROGRESS
+Proposed replacement docs exist in `docs/proposed_docs/`. Manifest (`DOC_MANIFEST.md`) defines the cleanup plan. Project tracking conventions (`PROJECT_TRACKING.md`) and vision (`VISION.md`) now in place. PM agent landed (logos #497). **Remaining**: execute manifest, per-repo cleanup, consolidation (#447).
 
-### 10. Testing and infrastructure — IN PROGRESS, good baseline
-Test suites pass across repos with real infrastructure. Foundry v0.5.0 aligned across all repos. CI reusable workflows tagged. Remaining: logos coverage improvement (#420), test conventions standardization, OpenAPI contract tests (#91).
+### 10. Testing and infrastructure -- GOOD BASELINE
+Test suites pass across repos with real infrastructure. Foundry v0.6.0 tagged with v0.5.0+ aligned across repos. CI reusable workflows tagged at ci/v1. **Remaining**: logos coverage improvement (#420), test conventions standardization, OpenAPI contract tests (#91), centralize test seeder (#481), centralize Redis infra (#469).
 
 ## Stale / Drift
 
 ### Stale Issues (>30 days since last activity)
-- sophia #101: Define session boundaries and ephemeral node lifecycle (last: Dec 31)
-- sophia #76: Implement JEPA PoC backend (last: Dec 6) — substantial work exists, needs review
+- sophia #101: Define session boundaries and ephemeral node lifecycle (last activity: Dec 31)
+- sophia #76: Implement JEPA PoC backend (last activity: Dec 6) -- substantial work exists, needs review or re-prioritization
 
 ### Unlinked PRs
-Most recent PRs merged without closing issues — expected during the rapid development sprint and reflects the ticket discipline gap that prompted the PM agent initiative. Going forward, PRs should reference issues per `docs/PROJECT_TRACKING.md`.
+Most recent PRs merged without closing issues. This is expected during the rapid development sprint and reflects the ticket discipline gap that prompted the PM agent initiative (logos #497). Going forward, PRs should reference issues per `docs/PROJECT_TRACKING.md`.
 
-## Issue Summary
+### Issues In-Progress With No Open PR
+None detected -- clean.
+
+### Foundry Version Drift
+Hermes is at logos-foundry v0.6.0; sophia, apollo, and talos remain at v0.5.0. This is expected short-term but should be reconciled.
+
+## Open Issue Summary
 
 | Repo | Open Issues |
 |------|-------------|
-| logos | 48 |
+| logos | 49 |
 | sophia | 4 |
 | hermes | 0 |
 | talos | 1 |
 | apollo | 3 |
-| **Total** | **56** |
+| **Total** | **57** |
