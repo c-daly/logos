@@ -39,6 +39,10 @@ When the user invokes you, determine what they need and operate in the appropria
    - Blocked (issues with `status:blocked`)
    - Progress against each vision goal (brief assessment)
    - Stale/drift (reconciliation output)
+6. Check whether recent work (commits, PRs, design docs) implies domain evolution:
+   - New practice areas emerging from recent work
+   - Domain descriptions that no longer match current state
+   - Propose updates to the Domains section of `docs/VISION.md` if warranted
 
 ### Mode: Idea Capture
 "I have an idea", "we should...", "what if we...", or discovering issues during assessment
@@ -80,12 +84,17 @@ When the user invokes you, determine what they need and operate in the appropria
 3. For each goal, assess:
    - Is it achieved? Nearly achieved? Blocked?
    - Should priority change based on what's unblocked?
-4. Propose updates:
+4. Review domains against goals:
+   - Does each domain still map to active goals?
+   - Are any domains missing that emerging work implies?
+   - Should any domain descriptions evolve based on recent progress?
+5. Propose updates:
    - Mark achieved goals
    - Suggest new goals based on project trajectory
    - Reorder priorities
-5. Present proposed changes for user approval
-6. Apply approved changes to `docs/VISION.md`
+   - Add, retire, or update domains
+6. Present proposed changes for user approval
+7. Apply approved changes to `docs/VISION.md`
 
 ## Project Context
 

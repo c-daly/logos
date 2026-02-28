@@ -10,6 +10,19 @@ Grounded understanding comes from JEPA (Joint Embedding Predictive Architecture)
 
 Planning is a core capability. The HCGPlanner performs backward-chaining over REQUIRES/CAUSES edges to produce executable plans, and Talos provides the embodiment layer — abstracting hardware (or simulated hardware) so that Sophia's plans can drive real-world interaction. The system is designed to be situated: perceiving, reasoning, planning, and acting in a physical environment.
 
+## Domains
+
+*Practice areas that organize work across the project. Updated from commits, PRs, and design docs. Reviewed against goals at regular intervals.*
+
+- **Cognition** — graph-native reasoning over HCG; the core of Sophia
+- **Language** — translation between human language and graph structures (Hermes)
+- **Perception** — grounded understanding via JEPA, sensory input processing (CWM-G)
+- **Planning** — backward-chaining over REQUIRES/CAUSES edges, Process nodes, plan execution
+- **Embodiment** — hardware abstraction, simulation, real-world actuation (Talos)
+- **Memory** — hierarchical storage, reflection, episodic learning
+- **Ontology** — type system, IS_A edges, reified model, graph-native schema
+- **Infrastructure** — shared tooling, CI/CD, observability, testing, developer experience
+
 ## Goals
 
 1. **Complete the cognitive loop** — in progress
