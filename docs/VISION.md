@@ -6,7 +6,7 @@ LOGOS is a non-linguistic cognitive architecture built on a core assertion: **te
 
 Sophia (the cognitive core) reasons over a knowledge graph (HCG) where nodes, edges, and traversals are the primitives of thought — not words. Language is handled by Hermes as an I/O utility: a translation layer between human language and graph structures, never the medium of reasoning itself.
 
-Grounded understanding comes from JEPA (Joint Embedding Predictive Architecture) models that learn physical/sensory representations without text. These form the Grounded working memory (CWM-G) — a layer of common sense that language models fundamentally cannot provide. The Abstract working memory (CWM-A) captures conceptual and relational knowledge. The Experiential working memory (CWM-E) tracks emotional and persona states. All three are aspects of the same graph, not separate systems.
+Grounded understanding comes from JEPA (Joint Embedding Predictive Architecture) models that learn physical/sensory representations without text. These form the Grounded working memory (CWM-G) — a layer of common sense that language models fundamentally cannot provide. The Abstract working memory (CWM-A) captures conceptual and relational knowledge. The Emotional working memory (CWM-E) tracks emotional and persona states. All three are aspects of the same graph, not separate systems.
 
 Planning is a core capability. The HCGPlanner performs backward-chaining over REQUIRES/CAUSES edges to produce executable plans, and Talos provides the embodiment layer — abstracting hardware (or simulated hardware) so that Sophia's plans can drive real-world interaction. The system is designed to be situated: perceiving, reasoning, planning, and acting in a physical environment.
 
@@ -25,7 +25,7 @@ Planning is a core capability. The HCGPlanner performs backward-chaining over RE
    Transform LOGOS from a stateless system into one that learns from experience. Hierarchical memory (ephemeral → short-term → long-term), event-driven reflection, selective diary entries, episodic learning. Spec exists (#415), prerequisites need completing.
 
 5. **CWM unification** — not started
-   CWM-A (abstract), CWM-G (grounded), and CWM-E (experiential) are semantically distinct aspects but all live on the same graph. The current module-level separation (separate packages, raw Cypher) needs to become ontology-level (type definitions, HCG client). The distinction is real; the implementation boundary is wrong (#496).
+   CWM-A (abstract), CWM-G (grounded), and CWM-E (emotional) are semantically distinct aspects but all live on the same graph. The current module-level separation (separate packages, raw Cypher) needs to become ontology-level (type definitions, HCG client). The distinction is real; the implementation boundary is wrong (#496).
 
 6. **Planning and execution** — in progress
    Sophia reasons in order to act — whether that's answering a user's question ("how do I get to LA by tomorrow?") or driving a robot arm from point A to point B. The HCGPlanner does backward-chaining over REQUIRES/CAUSES edges to produce executable plans represented as Process nodes. Planner stub still exists alongside the real implementation (#403). As Talos matures, plans connect to real-world actuation.
