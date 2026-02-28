@@ -13,6 +13,7 @@ body:
       label: Priority
       description: Task priority level
       options:
+        - priority:critical
         - priority:high
         - priority:medium
         - priority:low

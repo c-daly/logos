@@ -13,42 +13,43 @@ body:
       label: Priority
       description: Task priority level
       options:
+        - priority:critical
         - priority:high
         - priority:medium
         - priority:low
     validations:
       required: true
-  - type: dropdown
-    id: workstream
-    attributes:
-      label: Workstream
-      description: Associated workstream
-      options:
-        - Workstream B - Sophia Cognitive Core Prototype
-        - Other
-    validations:
-      required: false
   - type: textarea
-    id: description
+    id: context
     attributes:
-      label: Task Description
-      description: Detailed description of the task
-      placeholder: Describe what needs to be done
+      label: Context
+      description: What exists today, why this matters
+      placeholder: Describe the current state and motivation
     validations:
       required: true
   - type: textarea
-    id: dependencies
+    id: objective
     attributes:
-      label: Dependencies
-      description: Tasks or components this depends on
-      placeholder: List any dependencies
+      label: Objective
+      description: What "done" looks like
+      placeholder: Describe the desired end state
     validations:
-      required: false
+      required: true
   - type: textarea
     id: acceptance
     attributes:
       label: Acceptance Criteria
-      description: What defines completion of this task?
-      placeholder: List acceptance criteria
+      description: Specific, verifiable criteria for completion
+      placeholder: |
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Constraints, related issues, links to design docs
+      placeholder: Optional additional context
     validations:
       required: false

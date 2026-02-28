@@ -13,6 +13,7 @@ body:
       label: Priority
       description: Task priority level
       options:
+        - priority:critical
         - priority:high
         - priority:medium
         - priority:low
@@ -32,18 +33,26 @@ body:
     validations:
       required: false
   - type: textarea
-    id: description
+    id: context
     attributes:
-      label: Task Description
-      description: What documentation needs to be created or updated?
-      placeholder: Describe the documentation task
+      label: Context
+      description: What exists today, why this matters
+      placeholder: Describe the current state and motivation
     validations:
       required: true
   - type: textarea
-    id: target_audience
+    id: objective
     attributes:
-      label: Target Audience
-      description: Who is this documentation for?
-      placeholder: e.g., New developers, API users, contributors
+      label: Objective
+      description: What "done" looks like
+      placeholder: Describe the desired end state
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Constraints, related issues, links to design docs
+      placeholder: Optional additional context
     validations:
       required: false
