@@ -85,7 +85,7 @@ HCGPlanner exists with backward-chaining over REQUIRES/CAUSES edges. Planner stu
 Simulation scaffold exists. Last substantive work was standardization (talos #53--#55, Feb). Path to physics-backed simulation documented but not started. Depends on cognitive loop maturity.
 
 ### 8. Observability -- GOOD COVERAGE
-OTel instrumentation landed across all services (logos #486, sophia #121, hermes #79, apollo #156). **Remaining gaps**: Apollo SDK integration (#340), Hermes/Sophia endpoint-level spans (#335, #338), testing & docs (#339, #342), persistent telemetry storage (#312).
+OTel instrumentation landed across all services (logos #486, sophia #121, hermes #79, apollo #156). **Remaining gaps**: Apollo SDK integration (#340), Hermes/Sophia endpoint-level spans (#335, #338), testing & docs (#339, #342).
 
 ### 9. Documentation -- IN PROGRESS
 Proposed replacement docs exist in `docs/proposed_docs/`. Manifest (`DOC_MANIFEST.md`) defines the cleanup plan. Project tracking conventions (`PROJECT_TRACKING.md`) and vision (`VISION.md`) now in place. PM agent landed (logos #497). **Remaining**: execute manifest, per-repo cleanup, consolidation (#447).
@@ -112,9 +112,9 @@ Hermes is at logos-foundry v0.6.0; sophia, apollo, and talos remain at v0.5.0. T
 
 | Repo | Open Issues |
 |------|-------------|
-| logos | 49 |
-| sophia | 4 |
+| logos | 38 |
+| sophia | 3 |
 | hermes | 0 |
 | talos | 1 |
-| apollo | 3 |
-| **Total** | **57** |
+| apollo | 0 |
+| **Total** | **42** |
