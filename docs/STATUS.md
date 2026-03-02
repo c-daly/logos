@@ -73,10 +73,10 @@ PoC exists in sophia (#76) with tests, docs, and backend integration. Last activ
 Core reified model landed (logos #490). Type classification via centroids working (sophia #129, logos #494). Hermes aligned (hermes #84, #86). CWM-E persona entries seeded as state nodes (logos #495). **Remaining**: update stale downstream queries (#458, #460, #461, #462), implement capability catalog (#465), planning test updates (#464, blocked).
 
 ### 4. Memory and learning -- NOT STARTED
-Spec exists (logos #415). Sub-issues (#411--#414) defined but not started. Depends on CWM unification (#496) as prerequisite.
+Spec exists (logos #415). Sub-issues (#411--#414) defined but not started. Ready to begin -- the CWM types are functionally equivalent and do not need formal unification before memory work can proceed.
 
 ### 5. CWM unification -- NOT STARTED
-Ticket created (logos #496). logos_cwm_e and logos_persona use raw Cypher with stale ontology patterns. Need to become ontology-level type definitions consumed via HCG client. Prerequisite for memory work.
+Ticket created (logos #496). logos_cwm_e and logos_persona use raw Cypher with stale ontology patterns. Need to become ontology-level type definitions consumed via HCG client. Cleanup/hygiene task -- not a blocker for memory work.
 
 ### 6. Planning and execution -- IN PROGRESS
 HCGPlanner exists with backward-chaining over REQUIRES/CAUSES edges. Planner stub (#403) still coexists with real implementation. Process node structure defined but needs maturation as Talos develops.

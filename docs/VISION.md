@@ -22,6 +22,8 @@ Planning is a core capability. The HCGPlanner performs backward-chaining over RE
 - **Memory** — hierarchical storage, reflection, episodic learning
 - **Ontology** — type system, IS_A edges, reified model, graph-native schema
 - **Infrastructure** — shared tooling, CI/CD, observability, testing, developer experience
+- **Research** — exploratory experiments, PoCs, and learning architecture proposals that inform the core architecture
+- **Tooling** — developer workflow automation, agent orchestration, and productivity tools that support LOGOS development
 
 ## Goals
 
@@ -67,4 +69,4 @@ Planning is a core capability. The HCGPlanner performs backward-chaining over RE
 1. Cognitive loop expansion (feedback processing, multi-turn memory)
 2. Grounded perception via JEPA (CWM-G maturation)
 3. Flexible ontology cleanup (stale artifacts, downstream queries)
-4. CWM unification (prerequisite for memory work)
+4. CWM unification (cleanup — not blocking memory work)
