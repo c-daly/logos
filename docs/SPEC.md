@@ -1,707 +1,377 @@
-# LOGOS Specification
+# LOGOS Foundry Specification
 
-Single source of truth for the LOGOS cognitive architecture. Supersedes all prior phase-specific specs, architecture overviews, and ADRs.
+**Last updated:** 2026-03-02
 
-**Last updated**: 2026-03-02
-
----
-
-## 1. Vision and Philosophy
-
-Project LOGOS is a research initiative to build a **non-linguistic cognitive architecture** for autonomous agents. The system reasons in graph structures, not natural language. Language is a transport layer handled by external services.
-
-### Core Principles
-
-1. **Non-linguistic cognition first.** Internal reasoning occurs in abstract causal graph structures. Natural language never enters internal processing.
-2. **Language as interface.** Natural language is handled by Apollo (presentation) and Hermes (language services), not by Sophia's reasoning substrate.
-3. **Causal coherence.** All reasoning maintains explicit causal relationships and temporal ordering.
-4. **Validation by constraint.** Deterministic structural validation and future probabilistic validation layers guard every mutation of the Hybrid Cognitive Graph (HCG).
-5. **Capability-first deployment.** The same APIs work whether Talos is simulated, connected to a single manipulator, or orchestrating a fleet of drones.
-6. **Multi-layer causal world model.** LOGOS fuses commonsense structure (HCG), grounded imagination (JEPA-style predictive architecture), and reflective persona state so the agent reasons over symbolic, embodied, and experiential cause/effect.
-
-### System Goals
-
-1. Deliver a working prototype of the non-linguistic cognitive architecture.
-2. Demonstrate superior causal reasoning versus purely linguistic LLM agents.
-3. Establish reusable patterns for HCG-centric agent development.
-4. Provide an extensible platform for research teams to add capabilities or embodiments without rewriting Sophia or the HCG.
-5. Act as a **causal co-processor** for multimodal LLMs -- feeding them grounded context, validating outputs against the HCG, and augmenting their perception with world-model predictions.
+The Foundry (`logos` repo) is the shared foundation for the LOGOS ecosystem. It provides canonical API contracts, the core ontology, the Hybrid Causal Graph (HCG) client library, shared configuration, SDKs, observability, testing utilities, and infrastructure definitions. All downstream repos (sophia, hermes, apollo, talos) depend on the Foundry for contracts, data models, and shared tooling.
 
 ---
 
-## 2. Architecture
+## Table of Contents
 
-### 2.1 Components
-
-| Component | Purpose | Required? |
-|-----------|---------|-----------|
-| **Sophia** | Cognitive core -- planning, execution, world models | Yes |
-| **LOGOS (meta-repo)** | Ontology, contracts, infrastructure, SDKs | Yes |
-| **Neo4j** | Graph database for the HCG | Yes |
-| **Milvus** | Vector database for semantic search | Yes |
-| **Hermes** | Language processing, embeddings, LLM gateway | Optional |
-| **Apollo** | CLI and web UI | Optional |
-| **Talos** | Hardware abstraction, simulators | Optional |
-
-Sophia + LOGOS (Neo4j + Milvus) are the only mandatory components. All other subsystems are optional adapters that speak well-defined contracts.
-
-### 2.2 Data Flow
-
-```
-User --> Apollo --> Sophia <--> HCG (Neo4j + Milvus)
-          (UI)     (Brain)      (Knowledge)
-                      |
-                   Hermes (Language/Embeddings/LLM)
-                      |
-                   Talos (Hardware/Simulation)
-```
-
-1. User input arrives via Apollo (CLI, browser, kiosk, voice).
-2. Apollo calls Sophia's API (plan, execute, simulate).
-3. Sophia reads/writes the HCG (Neo4j + Milvus).
-4. Sophia calls Hermes for language, embedding, and LLM tasks.
-5. Sophia calls Talos to execute physical actions or simulate them.
-6. Results flow back to Apollo for display.
-
-### 2.3 Deployment Modes
-
-| Mode | Description | Required Components |
-|------|-------------|---------------------|
-| **Graph-only** | CLI/desk widget manipulating the HCG. No hardware. CWM-G operates over stored data or streamed media. | Apollo CLI, Sophia, LOGOS (Neo4j + Milvus) |
-| **Perception-only** | Browser/mobile streams video/images/audio. System predicts next frames, labels scenes, explains events into the HCG. No Talos. | Apollo/Hermes client, Sophia, LOGOS |
-| **Simulated embodied** | Talos executes deterministic simulators. | Apollo CLI, Sophia, LOGOS, Talos simulators |
-| **Physical embodied** | Talos connects to real robots/drones/IoT devices. | Apollo (any UI), Sophia, LOGOS, Talos drivers |
-| **Hybrid** | Mix of simulators and hardware, possibly multiple Apollo surfaces. | All of the above as needed |
-
-Documentation and acceptance tests describe configuration via feature flags/env vars, not hard-coded hardware references.
+1. [Shared Libraries](#1-shared-libraries)
+2. [API Contracts](#2-api-contracts)
+3. [Ontology and Data Model](#3-ontology-and-data-model)
+4. [HCG Data Model](#4-hcg-data-model)
+5. [Validation](#5-validation)
+6. [Infrastructure](#6-infrastructure)
+7. [Port Allocation](#7-port-allocation)
+8. [Testing](#8-testing)
+9. [Configuration](#9-configuration)
 
 ---
 
-## 3. Hybrid Cognitive Graph (HCG)
+## 1. Shared Libraries
 
-The HCG is the system's memory and knowledge store, combining a graph database for structural knowledge with a vector database for semantic retrieval.
+The Foundry provides the following Python packages, all importable by downstream repos.
 
-### 3.1 Graph Database: Neo4j
+### logos_config
 
-**Decision rationale (ADR-0001):** Neo4j was chosen over Amazon Neptune, PostgreSQL with recursive CTEs, and ArangoDB for its labeled property graph model, Cypher query language alignment with the HCG ontology, built-in uniqueness constraints, and neosemantics (n10s) plugin for validation integration. Requires version 5.13+ with APOC, GDS, and neosemantics plugins.
+Centralized configuration for all LOGOS repos. Provides:
 
-### 3.2 Vector Database: Milvus
+- **`env`** -- Environment variable resolution with priority: OS env > provided mapping > default. Loads `.env` files with caching.
+- **`ports`** -- Canonical port allocation via `RepoPorts` dataclass and `get_repo_ports(repo)` lookup. Supports env var overrides.
+- **`settings`** -- Pydantic `BaseSettings` models for Neo4j (`Neo4jConfig`), Milvus (`MilvusConfig`), OpenTelemetry (`OtelConfig`), and generic services (`ServiceConfig`).
+- **`health`** -- Unified `HealthResponse` and `DependencyStatus` schemas so all LOGOS services return consistent health-check responses.
 
-**Decision rationale (ADR-0002):** Milvus was chosen over Pinecone, Weaviate, FAISS, and Neo4j native vector indexes for its mature ANN performance, multiple index types (FLAT, IVF, HNSW), Docker deployment, and strong Python SDK (pymilvus). Requires version 2.3+.
+```python
+from logos_config import get_env_value, get_repo_ports, Neo4jConfig
+ports = get_repo_ports("sophia")  # RepoPorts(neo4j_http=7474, ..., api=47000)
+```
 
-### 3.3 Bidirectional Sync
+### logos_hcg
 
-Graph nodes that participate in semantic search store:
-- `embedding_id` (Milvus reference)
-- `embedding_model`
-- `last_sync`
+Client library for the Hybrid Causal Graph. The primary way all repos interact with Neo4j and Milvus. Provides:
 
-Embedding operations are synchronous: create/update/delete of a node triggers an immediate embedding update via Hermes.
+- **`HCGClient`** -- Connection-pooled Neo4j client with retry logic, type-safe CRUD for nodes and edges.
+- **`HCGQueries`** -- Parameterized Cypher query templates (find by UUID, find by type, traverse type hierarchy, query edges).
+- **`HCGMilvusSync`** -- Bidirectional sync between Neo4j nodes and Milvus vector embeddings (upsert, delete cascade, health checks).
+- **`HCGSeeder`** -- Seeds the type hierarchy and edge type definitions into a fresh graph. Usable as a library or CLI (`logos-seed-hcg`).
+- **`HCGPlanner`** -- Graph-based planner that creates Goal/Plan/PlanStep nodes in the HCG.
+- **`Edge`** -- Reified edge model. All domain relationships are stored as edge nodes connected via `:FROM`/`:TO` structural relationships.
+- **Node models** -- `Entity`, `Concept`, `State`, `Process`, `Capability`, `Fact`, `Association`, `Abstraction`, `Rule`, `Goal`, `Plan`, `PlanStep`, `Provenance`.
 
-### 3.4 Embedding Strategy
+### logos_test_utils
 
-**Decision rationale (ADR-0005):** Embeddings are generated statelessly via Hermes's `/embed_text` endpoint. Nodes are serialized to text descriptions (type, name, description, key relationships) before embedding. Default model is `all-MiniLM-L6-v2` (384d), configurable to `all-mpnet-base-v2`, multilingual models, or OpenAI embeddings. This approach keeps embedding generation simple and human-readable at the cost of some graph structure information loss.
+Shared testing infrastructure. Provides:
+
+- Container helpers (`is_container_running`, `wait_for_container_health`)
+- Neo4j helpers (`get_neo4j_driver`, `run_cypher_query`, `wait_for_neo4j`, `load_cypher_file`)
+- Milvus helpers (`get_milvus_config`, `is_milvus_running`, `wait_for_milvus`)
+- Structured logging setup (`HumanFormatter`, `StructuredFormatter`, `setup_logging`)
+- Environment and config resolution (`load_stack_env`, `resolve_service_config`)
+
+Neo4j and Milvus imports are lazy-loaded to keep the dependency footprint small for consumers that only need logging/config.
+
+### logos_observability
+
+OpenTelemetry instrumentation for all LOGOS services. Provides `setup_telemetry()`, `setup_metrics()`, `get_tracer()`, `get_meter()`, `get_logger()`, and `TelemetryExporter`.
+
+### logos_cwm_e
+
+Causal World Model -- Emotional/Social layer. A reflection job that analyzes persona entries and generates `EmotionState` tags for processes and entities. Used by planners and client surfaces to adjust behavior and tone. Provides `CWMEReflector` and a FastAPI app via `create_cwm_e_api()`.
+
+### logos_perception
+
+Media ingestion and imagination subsystem. Provides:
+
+- `MediaIngestService` -- Upload/stream media frames.
+- `JEPARunner` -- Interface for k-step rollout simulations (imagined future states).
+- Models: `MediaFrame`, `SimulationRequest`, `SimulationResult`, `ImaginedState`, `ImaginedProcess`.
+
+### logos_persona
+
+Persona diary module. Stores persona diary entries in the HCG for client surfaces to query when shaping interaction tone. Provides `PersonaDiary`, `PersonaEntry`, and `create_persona_api()`.
+
+### logos_sophia
+
+Sophia service API stubs. Provides `create_sophia_api()` (REST endpoints for `/plan`, `/state`, `/simulate`) and `SimulationService`. These are the Foundry-side API definitions; the full cognitive implementation lives in the sophia repo.
+
+### logos_experiment
+
+Experiment runner framework. Provides `ExperimentConfig`, `PipelineStep`, `AgentDefinition`, `StatefulAgent`, and `ExperimentRunner` for defining and executing arrange/act/assert experiment lifecycles with reproducible seeds.
+
+### logos_tools
+
+Utility scripts for project management -- issue generation, project tracking, and artifact validation.
+
+### sdk (Python)
+
+Auto-generated Python SDKs from the OpenAPI contracts:
+
+- `sdk/python/hermes/` -- `logos_hermes_sdk` package
+- `sdk/python/sophia/` -- `logos_sophia_sdk` package
+
+Generated via `scripts/generate-sdks.sh` using the OpenAPI Generator.
+
+### sdk-web (TypeScript)
+
+Auto-generated TypeScript SDKs from the OpenAPI contracts:
+
+- `sdk-web/hermes/` -- TypeScript client for Hermes
+- `sdk-web/sophia/` -- TypeScript client for Sophia
 
 ---
 
-## 4. Ontology and Data Model
+## 2. API Contracts
 
-### 4.1 Core Node Types
+The Foundry owns the canonical OpenAPI specifications for inter-service communication. All repos implement against these contracts (contract-first development).
 
-| Node Type | Purpose | Example |
-|-----------|---------|---------|
-| **Entity** | Concrete objects or agents | `RobotArm01`, `TaskBoard` |
-| **Concept** | Abstract categories | `Manipulator`, `Workspace`, `Container` |
-| **State** | Temporal snapshots of entity properties | Position, status at a given time |
-| **Process** | Causal transformations between states | `Grasp`, `Move`, `Release` |
+| Contract | File | Description |
+|----------|------|-------------|
+| Hermes | `contracts/hermes.openapi.yaml` | STT, TTS, NLP, embedding generation, LLM gateway. All endpoints are stateless. |
+| Sophia | `contracts/sophia.openapi.yaml` | Planner, world-model queries, imagination simulation. Backed by the HCG. |
+| Apollo | `contracts/apollo.openapi.yaml` | HCG query API for the thin UI client. Entity/state retrieval, health checks. |
 
-### 4.2 Core Relationships
-
-```
-(:Entity)-[:IS_A]->(:Concept)
-(:Entity)-[:HAS_STATE]->(:State)
-(:Entity)-[:LOCATED_AT]->(:Entity)
-(:Entity)-[:PART_OF]->(:Entity)
-(:Process)-[:CAUSES]->(:State)
-(:Process)-[:PRECEDES]->(:Process)
-(:Process)-[:USES_TOOL]->(:Entity)
-(:Concept)-[:IS_A]->(:Concept)       // concept hierarchy
-```
-
-Concepts encode affordances, safety rules, and symbolic constraints. Processes encode cause/effect templates (e.g., "grasp then move then release"). This knowledge is continuously refined by Sophia and grounds every plan before it reaches Talos.
-
-### 4.3 UUID Format
-
-All entity identifiers follow `<type>_<uuid>`:
-- `entity_abc123def456`
-- `concept_abc123def456`
-- `state_abc123def456`
-- `process_abc123def456`
-
-### 4.4 Ontology Files
-
-- `ontology/core_ontology.cypher` -- Entity, Concept, State, Process node schemas
-- `ontology/test_data_pick_and_place.cypher` -- Reference data for demos
-
-### 4.5 Validation Framework
-
-**Decision rationale (ADR-0003):** Structural validation uses a dual strategy -- pyshacl for fast, connectionless CI validation and Neo4j n10s for production integration. Chosen over JSON Schema (not graph-native), raw Cypher queries (database-dependent), and OWL (computationally expensive).
-
-**Level 1 -- Structural validation (current):** Deterministic constraints enforce UUID formats, cardinalities, datatypes, and relationship validity. Defined in `ontology/shacl_shapes.ttl`. pyshacl runs on every push/PR; n10s validation runs on-demand or weekly.
-
-**Level 2 -- Probabilistic validation (Phase 3+):** Learned validation to detect semantic drift, causal inconsistencies, and uncertainty. Will complement structural constraints with confidence-based reasoning derived from execution history and episodic learning.
-
-**Level 3 -- Neural validation (future):** Neural network-based learned validation for complex pattern detection.
+SDKs (Python and TypeScript) are auto-generated from these contracts and live under `sdk/` and `sdk-web/`.
 
 ---
 
-## 5. Sophia -- Cognitive Core
+## 3. Ontology and Data Model
 
-### 5.1 Subsystems
+The core ontology is defined in `ontology/core_ontology.cypher` and bootstrapped into Neo4j. It uses a **flexible ontology** design: a flat vocabulary where all leaf types are direct descendants of a root node, and hierarchy is discovered at runtime through graph analysis.
 
-1. **Orchestrator** -- Coordinates perception, planning, and execution loops. Keeps CWM layers synchronized.
-2. **CWM-A (Abstract)** -- Symbolic world model derived from the HCG. Source of truth for planning.
-3. **CWM-G (Grounded)** -- Physics/perception model tied to sensors, actuators, or simulation. Anchors symbols to reality.
-4. **CWM-E (Emotional)** -- Reflective model for confidence, trust, persona state. Provides sense of self.
-5. **Planner** -- Generates action/process graphs over HCG state using HTN decomposition.
-6. **Executor** -- Applies plans and monitors results via Talos.
+### Bootstrap Structure
 
-### 5.2 Causal World Model (CWM)
+The ontology bootstrap creates:
 
-All three CWM layers emit states wrapped in a **unified CWMState envelope**, ensuring all downstream consumers (Apollo, loggers, debuggers) process them uniformly.
+- **Constraints:** Unique `uuid` on all `Node` labels.
+- **Indexes:** On `type`, `name`, `relation`, and compound `(type, name)`.
+- **Meta-types:** `type_definition` (the type of all types) and `edge_type` (the type of all edge types).
+- **Bootstrap edge types:** `IS_A` (type inheritance) and `COMPONENT_OF` (structural composition).
+- **Root node:** The single root of the type hierarchy.
 
-#### CWMState Envelope
+### Node Structure
 
-```json
-{
-  "state_id": "cwm_<model>_<uuid>",
-  "model_type": "cwm-a | cwm-g | cwm-e",
-  "timestamp": "ISO-8601",
-  "status": "hypothetical | observed | validated | rejected",
-  "confidence": 0.0-1.0,
-  "source": "planner | jepa | perception | reflection | orchestrator",
-  "links": [
-    { "rel": "derived_from", "target_id": "uuid-of-parent-state" },
-    { "rel": "predicts", "target_id": "uuid-of-future-state" }
-  ],
-  "tags": ["capability:perception", "surface:browser"],
-  "data": { }
-}
+Every node in the graph carries:
+
+| Property | Description |
+|----------|-------------|
+| `uuid` | Unique identifier (string) |
+| `name` | Human-readable name |
+| `is_type_definition` | `true` for type nodes, `false` for instances |
+| `type` | Immediate type name |
+| `ancestors` | List of type names forming the inheritance chain to root |
+
+### Seeded Type Hierarchy
+
+The `HCGSeeder` creates additional type-definition nodes under root:
+
+- **Domain types:** `object`, `location`
+- **Reserved types:** `reserved_agent`, `reserved_process`, `reserved_action`, `reserved_goal`, `reserved_plan`, `reserved_simulation`, `reserved_execution`, `reserved_state`, `reserved_media_sample`
+
+### Edge Types
+
+All domain relationships are registered as type-definition nodes with `type: "edge_type"`:
+
+`IS_A`, `COMPONENT_OF`, `ENABLES`, `ACHIEVES`, `LOCATED_AT`, `EXECUTES`, `UPDATES`, `REQUIRES`, `CAUSES`, `PRODUCES`, `OBSERVES`, `HAS_STATE`, `PART_OF`, `HAS_STEP`, `GENERATES`, `CONTAINS`, `OCCUPIES`
+
+---
+
+## 4. HCG Data Model
+
+The **Hybrid Causal Graph** is the core data structure of LOGOS. It combines a labeled property graph (Neo4j) with a vector store (Milvus) to support both structured reasoning and semantic retrieval.
+
+### Neo4j: Structured Knowledge
+
+All data lives under a single `Node` label. Type is determined by the `type` property and the `ancestors` inheritance chain, not by Neo4j labels.
+
+**Reified edge model:** All domain relationships are stored as **edge nodes** connected to source and target via `:FROM` and `:TO` structural relationships. These are the only native Neo4j relationship types in the graph.
+
+```
+(source:Node)<-[:FROM]-(edge:Node {type: "edge", relation: "CAUSES"})-[:TO]->(target:Node)
 ```
 
-#### Status Lifecycle
+Edge nodes carry: `uuid`, `name`, `type="edge"`, `relation`, `source`, `target`, `bidirectional`, `created_at`, `updated_at`.
 
-| Status | Meaning |
+### Core Node Types
+
+| Type | Purpose | Key Properties |
+|------|---------|----------------|
+| Entity | Concrete instances in the world | `uuid`, `name`, `description`, spatial attrs (`width`, `height`, etc.), embedding metadata |
+| Concept | Abstract categories/types | `uuid`, `name`, `description`, embedding metadata |
+| State | Temporal snapshots of properties | `uuid`, `timestamp`, `position`, `orientation`, physical flags, embedding metadata |
+| Process | Actions that trigger state changes | `uuid`, `name`, `start_time`, `duration_ms`, embedding metadata |
+| Capability | Available actions an agent can perform | `uuid`, `name`, `executor_type` |
+| Fact | Grounded assertions with confidence | `uuid`, `content`, `status`, `confidence` |
+| Rule | Causal/definitional rules | `uuid`, `condition`, `consequence`, `rule_type` |
+| Goal | Planning targets | `uuid`, `description`, `status` |
+| Plan | Ordered sequences of steps | `uuid`, `goal_id`, `status` |
+| PlanStep | Individual actions within a plan | `uuid`, `action`, `sequence` |
+
+### Milvus: Semantic Retrieval
+
+Milvus stores vector embeddings for graph nodes, enabling similarity search. Each node type maps to a Milvus collection:
+
+| Node Type | Collection |
+|-----------|------------|
+| Entity | `hcg_entity_embeddings` |
+| Concept | `hcg_concept_embeddings` |
+| State | `hcg_state_embeddings` |
+| Process | `hcg_process_embeddings` |
+| Edge | `hcg_edge_embeddings` |
+| TypeCentroid | `hcg_type_centroids` |
+
+The `HCGMilvusSync` utility keeps Neo4j and Milvus in sync -- upserts, deletes, and consistency health checks. The default embedding dimension is 384 (configurable via `LOGOS_EMBEDDING_DIM`).
+
+### How They Work Together
+
+1. **Structured queries** (type hierarchy, causal chains, plan traversal) go through Neo4j via `HCGClient`/`HCGQueries`.
+2. **Semantic queries** (find similar concepts, nearest-neighbor retrieval) go through Milvus.
+3. **Sync** keeps both stores consistent: when a node is created/updated in Neo4j, its embedding is upserted to Milvus; when a node is deleted, its embedding is removed.
+
+---
+
+## 5. Validation
+
+Structural validation in the HCG is enforced through the **graph's own type system and topology**, not through an external schema language.
+
+### Type-Ancestry Constraints
+
+- Every node has a `type` and `ancestors` list tracing its lineage to root.
+- Type-definition nodes (`is_type_definition: true`) define the vocabulary. Instance nodes (`is_type_definition: false`) are typed against these definitions.
+- `IS_A` edges encode inheritance. `COMPONENT_OF` edges encode structural composition.
+- The seeder and client enforce that nodes reference valid types from the hierarchy.
+
+### Edge Constraints
+
+- Edge types are themselves type-definition nodes (with `type: "edge_type"`).
+- Creating an edge requires both source and target to exist and the relation to be a registered edge type.
+- The reified edge model means edge metadata (timestamps, provenance) is queryable like any other node.
+
+### Ontology Validation Script
+
+The `ontology/validate_ontology.py` script checks structural integrity of the loaded graph (e.g., orphaned nodes, missing type definitions, broken IS_A chains).
+
+---
+
+## 6. Infrastructure
+
+The Foundry provides Docker Compose files for the shared infrastructure that all repos depend on.
+
+### HCG Development Cluster
+
+**File:** `infra/docker-compose.hcg.dev.yml`
+
+Provisions:
+
+| Service | Image | Purpose |
+|---------|-------|---------|
+| `logos-hcg-neo4j` | `neo4j:5.11.0` | Graph database for the HCG |
+| `logos-hcg-milvus` | `milvusdb/milvus:v2.3.3` | Vector database for embeddings |
+
+Both services run on a shared `logos-hcg-dev-net` bridge network with health checks.
+
+### Per-Repo Test Stacks
+
+Each downstream repo has a test compose file under `infra/{repo}/docker-compose.test.yml` (for hermes, sophia, apollo, talos). These provision isolated Neo4j and Milvus instances for CI.
+
+### Observability Stack
+
+**File:** `docker-compose.otel.yml`
+
+Provisions OpenTelemetry collector, Grafana dashboards, and Tempo for distributed tracing. Dashboard definitions live in `infra/dashboards/`.
+
+### Useful Scripts
+
+| Script | Purpose |
 |--------|---------|
-| `hypothetical` | Generated by planner/simulator. Not yet verified. |
-| `observed` | Directly perceived from sensors (CWM-G). |
-| `validated` | Confirmed by structural validation or consensus. Promoted to CWM-A. |
-| `rejected` | Falsified by observation or validation failure. |
-
-Additional memory-tier statuses: `ephemeral`, `short_term`, `canonical`, `proposed`.
-
-#### CWM-A (Abstract)
-
-Symbolic entities, concepts, causal rules. Source of truth for planning. `data` payload contains normalized entity and relationship diffs (`entities`, `relations`, `violations`), plus structural validation status.
-
-Key node types: `Entity`, `Concept`, `State`, `Process`.
-
-#### CWM-G (Grounded)
-
-Sensor data, predicted states, physics properties. Anchors symbols to reality. `data` payload carries JEPA rollout metadata (`imagined`, `horizon_steps`, `frames`, `embeddings`, `assumptions`).
-
-Key node types: `PerceptionFrame`, `ImaginedState`, `ImaginedProcess`.
-
-CWM-G doubles as a short-horizon simulator. Sophia exposes `simulate(capability, context)` that rolls out JEPA-based predictions (or a Talos/Gazebo backend when available). This lets the agent "imagine" outcomes before updating the HCG. Imagined states are recorded with metadata so Apollo/Hermes can explain the reasoning.
-
-#### CWM-E (Emotional)
-
-Diary entries, emotional tags, reflections. Provides sense of self. `data` payload records persona attributes (`sentiment`, `confidence_delta`, `caution_delta`, `narrative`).
-
-Key node types: `PersonaEntry`, `EmotionState`.
-
-PersonaEntry nodes have an optional `trigger` field (e.g., `"error"`, `"user_request"`, `"self_model"`, `"meta"`) for categorizing reflections. EmotionState nodes carry sentiment, confidence, and caution tags linked to processes and entities. Planners read the latest emotion nodes to adjust strategy; interaction surfaces use them to shape persona tone.
-
-#### Ingestion and Promotion Flows
-
-**Perception Loop (CWM-G to CWM-A):**
-Raw data from Talos/Hermes is wrapped as CWMState (observed), encoded via JEPA to embeddings, matched against CWM-A Concepts in Milvus. High-confidence matches create/update States in CWM-A (validated).
-
-**Imagination Loop (CWM-A to CWM-G to CWM-A):**
-Planner proposes action (hypothetical) -> Sophia calls simulate() -> JEPA returns ImaginedState (hypothetical) -> structural validation checks constraints -> if valid, approve plan for execution.
-
-**Reflection Loop (CWM-A/G to CWM-E):**
-Significant events trigger reflection -> create PersonaEntry (CWM-E) linked to event -> update EmotionState (confidence, caution) -> influences future planner heuristics.
-
-#### Storage Rules
-
-- Persist every record as `(:CWMState {state_id, model_type, ...})` with model-specific label (e.g., `:CWM_A_STATE`).
-- Attach `(:CWMState)-[:DESCRIBES]->(:Process)` / `(:Entity)` edges using IDs in `links`.
-- Mirror the envelope in Milvus documents so embeddings/similarities can be queried uniformly.
-
-#### API/Logging Rules
-
-- `/state` returns `{"states": [<CWMState>], "cursor": ...}`.
-- `/plan` and `/simulate` responses append newly created CWMState records.
-- Structured logging + OpenTelemetry spans include `state_id`, `model_type`, and `status`.
-
-### 5.3 Planning
-
-**Decision rationale (ADR-0004):** HTN (Hierarchical Task Network) planning was chosen over STRIPS/PDDL, Monte Carlo Tree Search, and LLM-prompted planning. HTN provides hierarchical decomposition that matches human reasoning, encodes domain knowledge from the HCG, produces explainable plans, and supports incremental refinement. Established algorithms include SHOP2 and PANDA.
-
-**Architecture:**
-```
-HCG (Neo4j) -> Method Library (Cypher + Python) -> HTN Planner (recursive decomposition)
-  -> Abstract Plan -> Executor (grounds to Talos capabilities)
-```
-
-Plans are validated against both CWM-A (semantic correctness) and CWM-G (physical plausibility). The planner reads CWM-E emotion nodes to adjust strategy (e.g., avoid risky capabilities when caution is high).
-
-**Future extensions:** Hybrid HTN + LLM planning, learning from experience (episodic memory integration), probabilistic HTN, reactive replanning.
-
-### 5.4 Imagination and Simulation
-
-`/simulate` accepts `{ capability_id, context }` payloads. Context carries entity references, pointers to sensor frames, and optional Talos metadata. CWM-G (JEPA runner) performs k-step rollout and returns predicted states plus confidence. Results are stored as `(:ImaginedProcess)` / `(:ImaginedState)` nodes with `imagined:true`, linked to the triggering plan.
-
-Both a CPU-friendly runner (for Talos-free deployments) and hooks to swap in Talos/Gazebo simulators are provided.
+| `scripts/setup-local-dev.sh` | One-shot local development setup |
+| `scripts/start_services.sh` | Start the dev infrastructure |
+| `scripts/start_test_services.sh` | Start test infrastructure |
+| `scripts/test_unit.sh` | Run unit tests |
+| `scripts/test_integration.sh` | Run integration tests |
+| `scripts/test_e2e.sh` | Run end-to-end tests |
+| `scripts/generate-sdks.sh` | Regenerate Python/TypeScript SDKs from contracts |
+| `scripts/lint.sh` | Run ruff + formatting checks |
 
 ---
 
-## 6. Hermes -- Language and Embedding Utility
+## 7. Port Allocation
 
-Hermes is a stateless language service. It never writes to the HCG directly and can be swapped for alternative providers as long as contracts hold.
+All LOGOS repos share infrastructure (Neo4j, Milvus) on default ports. Each repo has a unique API port.
 
-### 6.1 Endpoints
+| Repo | API Port | Neo4j HTTP | Neo4j Bolt | Milvus gRPC | Milvus Metrics |
+|------|----------|------------|------------|-------------|----------------|
+| hermes | 17000 | 7474 | 7687 | 19530 | 9091 |
+| apollo | 27000 | 7474 | 7687 | 19530 | 9091 |
+| logos | 37000 | 7474 | 7687 | 19530 | 9091 |
+| sophia | 47000 | 7474 | 7687 | 19530 | 9091 |
+| talos | 57000 | 7474 | 7687 | 19530 | 9091 |
 
-| Endpoint | Function | Input | Output |
-|----------|----------|-------|--------|
-| `/stt` | Speech-to-text | Audio | Transcript |
-| `/tts` | Text-to-speech | Text | Audio |
-| `/simple_nlp` | NLP preprocessing | Text | Tokens/POS/NER |
-| `/embed_text` | Text embedding | Text | Vector + `embedding_id` |
-| `/llm` | LLM chat completion proxy | Prompt | Completion |
-| `/health` | Service health | -- | Milvus connectivity + model status |
+All ports are overridable via environment variables (`NEO4J_HTTP_PORT`, `NEO4J_BOLT_PORT`, `MILVUS_PORT`, `MILVUS_METRICS_PORT`, `API_PORT`).
 
-### 6.2 LLM Gateway
-
-**Decision rationale (ADR-0006, proposed):** Hermes exposes `/llm` with pluggable providers (OpenAI, Anthropic, local models) rather than Apollo calling LLMs directly. This preserves centralized telemetry, simplifies provider switching, and keeps Apollo thin. Hermes manages API keys, rate limits, and cost tracking.
-
-### 6.3 Model Configuration
-
-| Capability | Default Model | Config Var |
-|------------|---------------|------------|
-| Embeddings | `all-MiniLM-L6-v2` | `HERMES_EMBED_MODEL` |
-| NLP | spaCy pipeline | `HERMES_NLP_MODEL` |
-| STT | Whisper (small) | `HERMES_STT_MODEL` |
-| TTS | Torchaudio/Coqui | env vars |
-| LLM | Pluggable | env vars |
-
-All models are configurable via environment variables. Remote API proxying is supported via API key env vars.
-
-### 6.4 Graph Assist (Tentative -- Hermes/Sophia Integration)
-
-A proposed `/graph-assist` endpoint where Sophia requests semantic assistance from Hermes for:
-- **Entity resolution**: Disambiguating entities from context.
-- **Knowledge extraction**: Parsing media metadata into graph nodes/edges.
-- **Relationship inference**: Suggesting connections between unlinked entities.
-- **Query assistance**: Natural language to Cypher translation.
-- **Ontology extension**: Proposing new node types.
-
-Preferred approach: Hermes returns validated Cypher queries that Sophia executes against Neo4j, with confidence scores and reasoning. Security mitigations include query sandboxing, read-only mode, audit logging, and schema pinning.
+Use `logos_config.get_repo_ports("repo_name")` for programmatic access.
 
 ---
 
-## 7. Talos -- Capability Bus
+## 8. Testing
 
-Talos exposes a capability graph describing available actions (simulate pick/place, move drone waypoint, send notification, etc.). Implementations may be pure simulation, physical drivers, or hybrids. Deployments that do not require actuation may omit Talos entirely.
+See `docs/TESTING.md` for full testing standards.
 
-Every Talos capability invocation first runs through CWM-G to predict physics outcomes, then reconciles with the HCG for commonsense consistency.
-
----
-
-## 8. Apollo -- Presentation Layer
-
-Apollo represents any interaction surface calling Sophia's Goal/Plan/State APIs. Multiple Apollo clients can coexist.
-
-### 8.1 Surfaces
-
-- **CLI**: Goal/plan/execute/state commands. Refactored in Phase 2 to consume shared SDK.
-- **Browser app**: Vite + React + TypeScript. Chat panel (LLM-backed, persona-aware), graph viewer, diagnostics tabs, plan timelines.
-- **Future**: Kiosk, voice UIs, touchscreen.
-
-### 8.2 LLM Co-processor Pattern
-
-Apollo can embed a multimodal LLM that calls Sophia as a causal co-processor. LLM outputs are validated against the HCG, and Sophia feeds back grounded context, predicted frames, or structured explanations.
-
-### 8.3 Diagnostics and Explainability
-
-Every Apollo surface must expose diagnostics, visualizations, and explainability views: graph inspectors, plan timelines, causal traces, capability telemetry.
-
----
-
-## 9. Memory Architecture
-
-### 9.1 Hierarchical Memory (Phase 3)
-
-Sophia maintains knowledge across three tiers with distinct lifetimes and promotion policies. Information flows upward only when it demonstrates both **significance** (worth remembering) and **truth** (verified or high-confidence).
-
-| Tier | Scope | Lifetime | Storage | CWMState status |
-|------|-------|----------|---------|-----------------|
-| **Ephemeral** | Single session | Session end | In-memory | `ephemeral` |
-| **Short-term** | Multi-session | Configurable TTL (default 7 days) | Redis with TTL | `short_term` |
-| **Long-term** | Permanent | Indefinite | Neo4j + Milvus | `canonical` / `proposed` |
-
-### 9.2 Promotion Criteria
-
-#### Ephemeral to Short-term
-
-Triggers at session boundary or significant event:
-
-| Criterion | Description |
-|-----------|-------------|
-| **User signal** | User explicitly marked something important |
-| **Behavioral impact** | Changed how agent should act |
-| **Recurrence** | Same pattern observed multiple times in session |
-| **Novel fact** | New information not in HCG |
-| **Unresolved question** | Open curiosity that warrants follow-up |
-
-Automatic exclusions: individual chat messages, pending clarifications, intermediate reasoning steps, temporary UI state.
-
-#### Short-term to Long-term
-
-Triggers on reflection, validation pass, or explicit approval:
-
-| Criterion | Description |
-|-----------|-------------|
-| **Confidence threshold** | Belief confidence > 0.8 after multiple observations |
-| **Cross-session consistency** | Same pattern observed across multiple sessions |
-| **Causal verification** | Hypothesis validated by outcome |
-| **Source reliability** | Trusted source (user statement, verified system) |
-| **Human approval** | Critical facts reviewed by operator |
-
-Automatic exclusions: unverified hypotheses (confidence < 0.5), expired context, contradicted beliefs, trivia.
-
-### 9.3 Demotion and Decay
-
-- **Long-term to Short-term**: Deprecated facts, superseded knowledge, detected inconsistencies.
-- **Short-term to Ephemeral**: Failed validation, user contradiction, low confidence after timeout.
-- **Any tier to Garbage**: TTL expiration, explicit deletion, confidence < 0.1.
-
-Key principle: facts don't earn permanence just by existing. They must demonstrate relevance through use, corroboration, or explicit validation.
-
-### 9.4 Memory API (Phase 3)
-
-- `POST /api/memory/{tier}` -- Create entry at specified tier
-- `GET /api/memory/{tier}` -- Query entries (by type, time window, session, confidence)
-- `DELETE /api/memory/{tier}/{id}` -- Explicit deletion
-- `POST /api/memory/promote/{id}` -- Promote to next tier
-- `POST /api/memory/demote/{id}` -- Demote with reason
-
----
-
-## 10. Reflection and Persona
-
-### 10.1 Event-driven Reflection (Phase 3)
-
-Reflections are triggered by significant events, not periodic timers:
-
-| Trigger | Description |
-|---------|-------------|
-| `error` | Plan execution failures, validation errors, capability failures |
-| `user_request` | Explicit instructions to change behavior, tone, or approach |
-| `correction` | User corrects agent's understanding or actions |
-| `session_boundary` | Conversation start (load context) / end (consolidate learnings) |
-| `milestone` | Goal completion, significant progress, new capability |
-
-Reflection output includes emotional assessment (confidence, caution, sentiment) stored as EmotionState nodes.
-
-### 10.2 Selective Diary Entries (Phase 3)
-
-Replaces automatic per-turn observations with selective entries based on:
-- **Impact**: Does this change how the agent should behave?
-- **Reusability**: Will this context matter in future sessions?
-- **Learning value**: Is there a lesson or pattern to extract?
-- **User signal**: Did user explicitly indicate importance?
-
-Target: reduce diary entry volume by >70% compared to naive per-turn logging while preserving all critical information.
-
-### 10.3 Persona Storage
-
-PersonaEntry nodes stored in the HCG with timestamp, summary, sentiment, trigger, and related process references. Apollo/Hermes query them to drive persona tone.
-
----
-
-## 11. Episodic Learning (Phase 3)
-
-### 11.1 Episode Structure
-
-```
-Episode {
-  id, timestamp, goal, plan_id,
-  actions: [{ capability, params, result, confidence }],
-  outcome: { success, failure_reason, duration },
-  context: { user, environment, constraints },
-  reflections: [related PersonaEntry IDs],
-  learned: { patterns, adjustments, recommendations }
-}
-```
-
-### 11.2 Learning Flow
-
-1. Plan execution completes (success or failure).
-2. Create Episode record with full trace.
-3. Link to related PersonaEntry reflections.
-4. Index by goal type, capabilities, context.
-5. Future plans query similar episodes.
-6. Adjust confidence, strategy, capability selection.
-
-### 11.3 Capability Confidence
-
-Track per-capability success rates. Planner adjusts selection based on historical outcomes. Context-sensitive -- different strategies for different domains/users.
-
----
-
-## 12. Graph Maintenance
-
-### 12.1 Operations
-
-| Operation | Description | Trigger |
-|-----------|-------------|---------|
-| **Pruning** | Remove low-confidence or stale edges | Scheduled / budget-driven |
-| **Deduplication** | Merge nodes representing the same entity | On ingest / periodic scan |
-| **Inference** | Create implicit relationships from patterns | Reflection / curiosity |
-| **Consolidation** | Summarize dense subgraphs into higher-level nodes | Threshold-based |
-| **Orphan cleanup** | Remove disconnected nodes with no value | Scheduled |
-| **Confidence decay** | Reduce certainty of unverified old facts | Time-based |
-
-### 12.2 Deduplication
-
-Approach: embedding similarity + label fuzzy matching for candidate detection, Hermes verification, merge proposal via Cypher, conflict resolution (prefer newer data, higher confidence, or prompt user).
-
-### 12.3 Pruning Safeguards
-
-- Never prune user-created content without confirmation.
-- Archive before delete (soft delete with recovery window).
-- Pruning proposals reviewed if above threshold count.
-
----
-
-## 13. Curiosity Budget (Phase 4+)
-
-Sophia maintains a constrained resource allocation for self-directed exploration when not responding to user requests.
-
-### 13.1 Triggers
-
-| Trigger | Description |
-|---------|-------------|
-| Novel fact | Information that doesn't fit existing patterns |
-| Apparent contradiction | Two beliefs that seem incompatible |
-| Perplexing diary entry | Reflection with high uncertainty |
-| Interesting pattern | Recurring structure suggesting underlying connection |
-| Disconnected subgraphs | Nodes that seem related but lack explicit links |
-
-### 13.2 Budget Mechanics
-
-Budget is a scalar (0.0-1.0) with minimum threshold, recharge rate, and per-action spend cap. Increases when explorations are useful; decreases when they yield nothing. Resource limits: configurable API calls per hour (default 10), exploration time per session (default 5 min), single concurrent exploration, proposals only (no auto-commit).
-
-### 13.3 Feedback Loop
-
-Experience -> Reflection -> Curiosity -> Exploration -> New Knowledge -> Better Plans.
-
----
-
-## 14. API Contracts and Integration
-
-### 14.1 Contract-First Development
-
-All public APIs reside in `contracts/` (e.g., `hermes.openapi.yaml`, `sophia.openapi.yaml`). Implementation follows contracts, not the reverse. CI validates contracts via swagger-cli.
-
-### 14.2 Key APIs
-
-#### Sophia (port 47000)
-
-| Endpoint | Purpose |
-|----------|---------|
-| `POST /plan` | Generate a plan for a goal |
-| `POST /execute` | Execute a plan step |
-| `POST /simulate` | Predict outcomes without acting |
-| `POST /ingest` | Add media/knowledge to the HCG |
-| `GET /state` | Current cognitive state (CWMState envelope) |
-| `GET /history` | Execution history with optional CWM-E entries |
-| `GET /health` | Service health |
-
-#### Hermes (port 17000)
-
-| Endpoint | Purpose |
-|----------|---------|
-| `POST /stt` | Speech to text |
-| `POST /tts` | Text to speech |
-| `POST /embed_text` | Generate text embeddings |
-| `POST /simple_nlp` | NLP preprocessing |
-| `POST /llm` | LLM chat completion proxy |
-| `GET /health` | Service health |
-
-### 14.3 Port Allocation
-
-| Repo | API Port |
-|------|----------|
-| Hermes | 17000 |
-| Apollo | 27000 |
-| LOGOS | 37000 |
-| Sophia | 47000 |
-| Talos | 57000 |
-
-Infrastructure (Neo4j, Milvus) runs on default ports (7474/7687, 19530) shared across all repos.
-
-### 14.4 Versioning
-
-Semantic versioning (MAJOR.MINOR.PATCH). Breaking changes require a new major version. Components must support at least N-1. Contracts reference the Git tag/release that introduced them.
-
----
-
-## 15. Infrastructure
-
-### 15.1 Development Stack
-
-- Docker + Docker Compose
-- Neo4j 5.13+ with APOC, GDS, neosemantics plugins
-- Milvus 2.3+ (standalone)
-- Python 3.11+ (services/tooling)
-- Node.js 18+ (Apollo/site tooling)
-
-### 15.2 HCG Development Cluster
-
-`infra/docker-compose.hcg.dev.yml` provisions:
-- **Neo4j** on ports 7474 (HTTP) / 7687 (Bolt)
-- **Milvus** on ports 19530 (gRPC) / 9091 (metrics)
-- Shared bridge network `logos-hcg-dev-net`
-- Persistent volumes for data, logs, plugins
+### Running Tests
 
 ```bash
-docker compose -f infra/docker-compose.hcg.dev.yml up -d
+# Unit tests
+./scripts/test_unit.sh
+# or
+poetry run pytest tests/unit/
+
+# Integration tests (requires running infra)
+./scripts/test_integration.sh
+# or
+poetry run pytest tests/integration/
+
+# End-to-end
+./scripts/test_e2e.sh
+
+# Linting
+./scripts/lint.sh
+# or
+poetry run ruff check --fix . && poetry run ruff format .
 ```
 
-### 15.3 Service Stacks
+### Test Utilities
 
-- **Sophia**: Python 3.11, FastAPI, Neo4j driver, structural validation helpers.
-- **Hermes**: Python 3.11, FastAPI, SentenceTransformers, spaCy, Whisper, pymilvus.
-- **Apollo browser**: Vite + React + TypeScript, Tailwind.
-
-### 15.4 Production Considerations
-
-- High availability / replication
-- Backup and disaster recovery
-- Monitoring, tracing, and alerting (OpenTelemetry)
-- Access control, audit logging, secret management
-- Token-based authentication with read/write scope middleware
+The `logos_test_utils` package provides fixtures, container management, and database helpers. Integration tests that need Neo4j or Milvus should use the helpers from this package to wait for service readiness before running queries.
 
 ---
 
-## 16. Phase Roadmap and Status
+## 9. Configuration
 
-| Phase | Goal | Status |
-|-------|------|--------|
-| **Phase 1** | Formalize HCG and abstract pipeline | COMPLETE |
-| **Phase 2** | Perception, services, Apollo UX | In progress |
-| **Phase 3** | Learning and memory systems | Planned |
-| **Phase 4** | Operational autonomy and advanced reflection | Future |
-| **Phase 5** | Networked agents / swarm | Future |
+### Environment Variables
 
-### 16.1 Phase 1 -- HCG Foundation (COMPLETE)
+`logos_config` resolves configuration with the following priority:
 
-Verified 2025-11-19. Established the core infrastructure:
+1. **OS environment variable** (highest priority)
+2. **Provided env mapping** (e.g., from a loaded `.env` file)
+3. **Default value** (lowest priority)
 
-**Milestones (all verified):**
-- **P1-M1: Neo4j CRUD and Entity Management.** CRUD operations for Entity, Concept, State, Process nodes. UUID constraints, indexes, relationship management. 47 tests passing.
-- **P1-M2: Structural Validation.** Type-ancestry validation shapes loaded into Neo4j, validation catches invalid data with actionable error messages. Dual validation (pyshacl CI + n10s production).
-- **P1-M3: Planning and Causal Reasoning.** Multi-step planning with causal (CAUSES) and temporal (PRECEDES) relationships. Precondition checking, state transitions, process hierarchy.
-- **P1-M4: End-to-End Pick and Place.** Full Apollo -> Sophia -> Talos -> HCG pipeline executing a pick-and-place task. 22 integration tests passing.
+### Key Environment Variables
 
-**Key artifacts:** `infra/docker-compose.hcg.dev.yml`, `ontology/core_ontology.cypher`, `ontology/shacl_shapes.ttl`, `scripts/e2e_prototype.sh`, CI workflows with opt-in heavy tests (`RUN_NEO4J_SHACL=1`, `RUN_M4_E2E=1`).
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `NEO4J_HOST` | `localhost` | Neo4j hostname |
+| `NEO4J_HTTP_PORT` | `7474` | Neo4j HTTP API port |
+| `NEO4J_BOLT_PORT` | `7687` | Neo4j Bolt protocol port |
+| `NEO4J_PASSWORD` | `logosdev` | Neo4j password |
+| `MILVUS_HOST` | `localhost` | Milvus hostname |
+| `MILVUS_PORT` | `19530` | Milvus gRPC port |
+| `MILVUS_COLLECTION_NAME` | `embeddings` | Default Milvus collection |
+| `LOGOS_EMBEDDING_DIM` | `384` | Vector embedding dimension |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://localhost:4317` | OpenTelemetry collector endpoint |
+| `API_PORT` | *(per repo)* | Service API port |
 
-### 16.2 Phase 2 -- Perception and Apollo UX (In Progress)
+### Pydantic Settings Models
 
-Extends Phase 1 into a Talos-optional, perception-driven assistant with dual interfaces and LLM co-processor.
+Each config class (`Neo4jConfig`, `MilvusConfig`, `OtelConfig`, `ServiceConfig`) extends Pydantic `BaseSettings` with env-prefixed variable binding. Downstream repos can subclass these for repo-specific settings.
 
-**Milestones:**
-- **P2-M1: Services Online.** Sophia/Hermes FastAPI services with `/plan`, `/state`, `/simulate`, `/embed_text`, `/simple_nlp`, `/stt`, `/tts`. Docker Compose alongside Neo4j/Milvus.
-- **P2-M2: Apollo Dual Surface.** CLI refactored to shared SDK. Browser app MVP with chat, plan viewer, graph explorer, diagnostics.
-- **P2-M3: Perception and Imagination.** CWM-G handles Talos-free media streams. `/simulate` returns imagined states recorded in Neo4j. Milvus smoke tests in CI.
-- **P2-M4: Diagnostics and Persona.** CWM-E reflection infrastructure. EmotionState nodes produced. Observability stack, log export, demo capture.
+```python
+from logos_config import Neo4jConfig, MilvusConfig
 
-Phase 2 also establishes: unified CWMState contract across all APIs, basic PersonaEntry and EmotionState data models, rule-based emotion classifier (evolving toward learned models), and the multimodal LLM + LOGOS co-processor pattern.
+neo4j = Neo4jConfig(password="logosdev")
+print(neo4j.uri)       # bolt://localhost:7687
+print(neo4j.http_url)  # http://localhost:7474
 
-### 16.3 Phase 3 -- Learning and Memory Systems (Planned)
-
-Transforms LOGOS from a reactive system into one that learns from experience and develops a persistent personality.
-
-**Milestones:**
-- **P3-M1: Hierarchical Memory Infrastructure.** Three-tier memory (ephemeral/short-term/long-term) with Redis, promotion/demotion policies, session management.
-- **P3-M2: Event-driven Reflection.** Intelligent reflection triggers, LLM-powered introspection, EmotionState generation from significant events.
-- **P3-M3: Selective Diary Entries.** Impact-based diary creation, >70% volume reduction, short-term memory as working context.
-- **P3-M4: Episodic Memory and Learning.** Episode storage and indexing, plan quality improvement from history, probabilistic validation (Level 2), capability confidence tracking.
-
-Estimated timeline: 8-12 weeks after Phase 2 completion.
-
-### 16.4 Phase 4 -- Operational Autonomy (Future)
-
-- Meta-reflection: aggregate analysis across diary entries for systemic pattern detection.
-- Personality evolution tracking.
-- Curiosity-driven exploration with resource budgets.
-- Continuous learning with safety gates, rollback, A/B testing, human-in-the-loop validation.
-- Deep planner integration with reflection-driven strategy adjustment.
-
-### 16.5 Phase 5 -- Networked Agents / Swarm (Future)
-
-- Coordinate multiple LOGOS instances.
-- Share HCG slices between agents.
-- Orchestrate Talos fleets or swarm-style deployments.
-- Selective knowledge transfer between instances.
-
----
-
-## 17. Verification and Testing
-
-### 17.1 Automated Gates
-
-CI workflows validate milestones on push/PR/schedule:
-- `m1-neo4j-crud`, `m2-shacl-validation`, `m3-planning`, `m4-end-to-end` (Phase 1)
-- `phase2-sophia-service`, `phase2-hermes-service`, `phase2-apollo-web`, `phase2-perception` (Phase 2)
-
-### 17.2 Opt-in Heavy Tests
-
-Tests requiring infrastructure are gated via env flags (`RUN_NEO4J_SHACL`, `RUN_M4_E2E`) or workflow inputs. Default CI stays fast.
-
-### 17.3 Test Strategy
-
-- Unit tests per component.
-- Integration tests via docker-compose.
-- Structural validation suites (pyshacl + n10s).
-- Performance tests (load, query latency) for HCG operations.
-- Evidence stored in `logs/p{N}-m{N}-verification/` directories.
-
-### 17.4 Stakeholder Demo
-
-1. Start infra via compose.
-2. Run fast tests: `pytest tests/integration -m "not slow"`.
-3. Drive Apollo CLI (`send`, `plans`, `execute`, `state`).
-4. Optionally enable heavy flows and review CI badges/logs.
-
----
-
-## 18. Security
-
-- Authentication/authorization for all service endpoints (token-based with read/write scopes).
-- Encryption for inter-service communication.
-- Input validation and schema enforcement for all APIs.
-- Audit logging for every HCG mutation.
-- No secrets in logs or PII exposure. Sanitize inputs.
-- Query sandboxing for Hermes-generated Cypher (Graph Assist).
-
----
-
-## 19. Governance
-
-- Every document refers to "available Talos capabilities" / "configured Apollo client" rather than specific hardware.
-- Issue templates avoid hardware assumptions; reference APIs, capabilities, and validation gates.
-- This file is the canonical specification. Phase-specific detail lives under `docs/phase{N}/`. Archival material under `docs/old/`.
+milvus = MilvusConfig()
+print(milvus.port)     # 19530
+```
