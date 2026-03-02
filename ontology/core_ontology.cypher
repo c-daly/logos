@@ -1,7 +1,7 @@
 // LOGOS Flexible Ontology - Core Bootstrap
-// Flat vocabulary: all leaf types are direct children of root.
-// Sophia discovers hierarchy through graph analysis (community detection,
-// node similarity) and creates supertypes organically.
+// Hierarchy: node → {entity, concept, cognition, reserved_node}
+// Domain types descend from entity or reserved_node.
+// Sophia can discover further hierarchy through graph analysis.
 // See docs/plans/2025-12-30-flexible-ontology-design.md for full specification.
 
 // === Constraints ===
@@ -56,17 +56,17 @@ WITH cof
 MATCH (et:Node {uuid: "99c56c6a-9666-566f-b12a-5e05c4b00dab"})
 MERGE (cof)-[:IS_A]->(et);
 
-// === Bootstrap: root ===
-// Single root type — all leaf types are direct children.
-// No intermediate groupings. Sophia discovers hierarchy organically.
-MERGE (r:Node {uuid: "a1234567-89ab-5cde-f012-3456789abcde"})
-SET r.name = "root",
-    r.is_type_definition = true,
-    r.type = "root",
-    r.ancestors = []
-WITH r
+// === Bootstrap: node (top-level type) ===
+// Intermediate types (entity, concept, cognition, reserved_node) and their
+// IS_A edges are created by the seeder using reified edge nodes.
+MERGE (n:Node {uuid: "a1234567-89ab-5cde-f012-3456789abcde"})
+SET n.name = "node",
+    n.is_type_definition = true,
+    n.type = "node",
+    n.ancestors = []
+WITH n
 MATCH (td:Node {uuid: "c8d4bdc0-a619-5328-a410-a5fce1cec3c5"})
-MERGE (r)-[:IS_A]->(td);
+MERGE (n)-[:IS_A]->(td);
 
 // === Node Structure ===
 // All nodes have:
@@ -74,7 +74,7 @@ MERGE (r)-[:IS_A]->(td);
 //   name: str                - Required, human-readable name
 //   is_type_definition: bool - Required, true for types, false for instances
 //   type: str                - Required, immediate type name
-//   ancestors: list[str]     - Required, inheritance chain to root
+//   ancestors: list[str]     - Required, inheritance chain to node
 
 // === Query Patterns ===
 // All type definitions:
@@ -86,14 +86,14 @@ MERGE (r)-[:IS_A]->(td);
 // All nodes of a type (flat — no subtypes to worry about):
 //   MATCH (n:Node {type: "state"})
 //
-// Type creation (sophia discovers and adds supertypes):
-//   MATCH (parent:Node {name: "root"})
+// Type creation:
+//   MATCH (parent:Node {name: "entity"})
 //   CREATE (t:Node {
 //     uuid: "type-my_new_type",
 //     name: "my_new_type",
 //     is_type_definition: true,
 //     type: "my_new_type",
-//     ancestors: ["root"]
+//     ancestors: ["entity", "node"]
 //   })-[:IS_A]->(parent)
 
 RETURN "LOGOS flexible ontology bootstrap complete";

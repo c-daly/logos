@@ -27,27 +27,33 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# Type hierarchy — flat vocabulary under root
+# Type hierarchy
 # ---------------------------------------------------------------------------
 
-# All bootstrap types are direct children of ``root``.  No intermediate
-# groupings — sophia discovers hierarchy through graph analysis (community
-# detection, node similarity) and creates supertypes organically.
+# Hierarchy: node → {entity, concept, cognition, reserved_node}
+# Domain types descend from entity; system-internal types from reserved_node.
 #
 # Types describe *what something IS*, not where it came from.  Provenance
 # lives in ``source``/``derivation`` properties and graph connections.
 TYPE_PARENTS: dict[str, str] = {
-    "object": "root",
-    "location": "root",
-    "reserved_agent": "root",  # Internal: Sophia as plan executor
-    "reserved_process": "root",  # Internal: Sophia plan execution
-    "reserved_action": "root",  # Internal: Sophia plan steps
-    "reserved_goal": "root",  # Internal: Sophia planner goals
-    "reserved_plan": "root",  # Internal: Sophia planner plans
-    "reserved_simulation": "root",  # Internal: Sophia JEPA simulations
-    "reserved_execution": "root",  # Internal: Sophia execution runs
-    "reserved_state": "root",  # Internal: Sophia CWM states
-    "reserved_media_sample": "root",  # Internal: Sophia media ingestion
+    # Intermediate types under node
+    "entity": "node",
+    "concept": "node",
+    "cognition": "node",
+    "reserved_node": "node",
+    # Domain types under entity
+    "object": "entity",
+    "location": "entity",
+    # System-internal types under reserved_node
+    "reserved_agent": "reserved_node",  # Internal: Sophia as plan executor
+    "reserved_process": "reserved_node",  # Internal: Sophia plan execution
+    "reserved_action": "reserved_node",  # Internal: Sophia plan steps
+    "reserved_goal": "reserved_node",  # Internal: Sophia planner goals
+    "reserved_plan": "reserved_node",  # Internal: Sophia planner plans
+    "reserved_simulation": "reserved_node",  # Internal: Sophia JEPA simulations
+    "reserved_execution": "reserved_node",  # Internal: Sophia execution runs
+    "reserved_state": "reserved_node",  # Internal: Sophia CWM states
+    "reserved_media_sample": "reserved_node",  # Internal: Sophia media ingestion
 }
 
 # Edge type definitions to create as type-definition nodes.
@@ -72,7 +78,7 @@ EDGE_TYPES: list[str] = [
 # Types already created by core_ontology.cypher — skip to avoid duplicates.
 BOOTSTRAP_TYPES: set[str] = {
     "type_definition",
-    "root",
+    "node",
     "edge_type",
     "IS_A",
     "COMPONENT_OF",
@@ -117,11 +123,11 @@ class HCGSeeder:
 
         count = 0
 
-        # Ensure the root parent node exists so IS_A edges can reference it.
+        # Ensure the node parent exists so IS_A edges can reference it.
         # Normally created by core_ontology.cypher; in tests we create a stub.
         self.client.add_node(
-            uuid="type_root",
-            name="root",
+            uuid="type_node",
+            name="node",
             node_type="type_definition",
         )
 

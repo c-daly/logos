@@ -923,7 +923,7 @@ class HCGClient:
             type_name = record.get("type", "")
             count = record.get("count", 0)
             # Map type names to expected keys (checking type or ancestors)
-            if type_name == "entity" or type_name in ("thing",):
+            if type_name == "entity":
                 counts["entity_count"] += count
             elif type_name == "concept":
                 counts["concept_count"] += count
@@ -932,9 +932,6 @@ class HCGClient:
             elif type_name == "process":
                 counts["process_count"] += count
             else:
-                # Check if it's a subtype by looking at common patterns
-                # Types that extend entity/thing go to entity_count
-                # Types that extend concept go to concept_count
                 pass  # Unknown types are not counted in the standard buckets
 
         return counts

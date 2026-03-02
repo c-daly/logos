@@ -75,7 +75,7 @@ def demo_basic_retrieval(client: HCGClient):
         print("  ✓ Found entity:")
         print_entity(entity)
     else:
-        print("  ✗ Entity not found (run load_hcg.py first)")
+        print("  ✗ Entity not found (run the seeder first)")
         return False
 
     # Retrieve by name
@@ -257,8 +257,8 @@ def main():
                 print("  ⚠ DEMONSTRATION INCOMPLETE")
                 print("=" * 70)
                 print("\n  Some entities or relationships are missing.")
-                print("  Run the loader first:")
-                print("    python -m logos_hcg.load_hcg")
+                print("  Run the seeder first:")
+                print("    python -m logos_hcg.seeder --clear")
                 print()
                 sys.exit(1)
 
