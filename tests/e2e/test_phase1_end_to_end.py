@@ -155,7 +155,7 @@ class TestM4OntologyLoading:
         """Verify bootstrap types are loaded (flexible ontology)."""
         returncode, stdout, stderr = run_cypher_query(
             "MATCH (n:Node {is_type_definition: true}) "
-            "WHERE n.type IN ['type_definition', 'entity', 'concept', 'edge_type'] "
+            "WHERE n.type IN ['type_definition', 'thing', 'concept', 'edge_type'] "
             "RETURN count(n) AS count;"
         )
         assert returncode == 0, f"Failed to query bootstrap types: {stderr}"
@@ -167,10 +167,10 @@ class TestM4TestDataLoading:
 
     def test_entities_loaded(self, loaded_test_data):
         """Verify test entities are present (flexible ontology)."""
-        # Check for instances that have 'entity' in their ancestry (all physical entities)
+        # Check for instances that have 'thing' in their ancestry (all physical entities)
         query = (
             "MATCH (e:Node) "
-            "WHERE 'entity' IN e.ancestors AND e.is_type_definition = false "
+            "WHERE 'thing' IN e.ancestors AND e.is_type_definition = false "
             "RETURN count(e) AS count;"
         )
         returncode, stdout, stderr = run_cypher_query(query)
@@ -347,7 +347,7 @@ class TestM4SimulatedWorkflow:
             e.name = 'RedBlock01',
             e.is_type_definition = false,
             e.type = 'entity',
-            e.ancestors = ['entity', 'node'],
+            e.ancestors = ['entity', 'thing'],
             e.description = 'Red cubic block',
             e.color = 'red',
             e.created_at = datetime()
@@ -356,7 +356,7 @@ class TestM4SimulatedWorkflow:
             bin.name = 'TargetBin01',
             bin.is_type_definition = false,
             bin.type = 'entity',
-            bin.ancestors = ['entity', 'node'],
+            bin.ancestors = ['entity', 'thing'],
             bin.description = 'Target container for placement',
             bin.created_at = datetime()
         RETURN e.uuid, e.name, bin.uuid, bin.name;

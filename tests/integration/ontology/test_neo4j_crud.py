@@ -133,7 +133,7 @@ class TestEntityCreation:
                     name: $name,
                     is_type_definition: false,
                     type: 'entity',
-                    ancestors: ['entity', 'node'],
+                    ancestors: ['entity', 'thing'],
                     created_at: datetime()
                 }) RETURN e
                 """,
@@ -162,7 +162,7 @@ class TestEntityCreation:
                     name: $name,
                     is_type_definition: false,
                     type: 'entity',
-                    ancestors: ['entity', 'node']
+                    ancestors: ['entity', 'thing']
                 })
                 """,
                 uuid=test_uuid,
@@ -178,7 +178,7 @@ class TestEntityCreation:
                         name: $name,
                         is_type_definition: false,
                         type: 'entity',
-                        ancestors: ['entity', 'node']
+                        ancestors: ['entity', 'thing']
                     })
                     """,
                     uuid=test_uuid,
@@ -421,7 +421,7 @@ class TestRelationshipCreation:
                     name: $e_name,
                     is_type_definition: false,
                     type: $type_name,
-                    ancestors: [$type_name, 'entity', 'node']
+                    ancestors: [$type_name, 'thing']
                 })
                 """,
                 e_uuid=entity_uuid,
@@ -436,7 +436,7 @@ class TestRelationshipCreation:
                     name: $t_name,
                     is_type_definition: true,
                     type: $t_name,
-                    ancestors: ['node']
+                    ancestors: ['thing']
                 })
                 """,
                 t_uuid=type_uuid,
@@ -479,7 +479,7 @@ class TestRelationshipCreation:
                     name: $e_name,
                     is_type_definition: false,
                     type: 'entity',
-                    ancestors: ['entity', 'node']
+                    ancestors: ['entity', 'thing']
                 })
                 """,
                 e_uuid=entity_uuid,
@@ -593,7 +593,7 @@ class TestRelationshipCreation:
                     name: $e_name,
                     is_type_definition: false,
                     type: 'entity',
-                    ancestors: ['entity', 'node']
+                    ancestors: ['entity', 'thing']
                 })
                 """,
                 e_uuid=part_uuid,
@@ -607,7 +607,7 @@ class TestRelationshipCreation:
                     name: $e_name,
                     is_type_definition: false,
                     type: 'entity',
-                    ancestors: ['entity', 'node']
+                    ancestors: ['entity', 'thing']
                 })
                 """,
                 e_uuid=whole_uuid,
@@ -720,7 +720,7 @@ class TestRelationshipTraversal:
             result = session.run(
                 """
                 MATCH (part:Node)-[:PART_OF]->(whole:Node {uuid: 'c551e7ad-c12a-40bc-8c29-3a721fa311cb'})
-                WHERE 'entity' IN part.ancestors
+                WHERE 'thing' IN part.ancestors
                 RETURN part.name AS part_name
                 ORDER BY part.name
                 """
@@ -754,7 +754,7 @@ class TestQueryOperations:
             result = session.run(
                 """
                 MATCH (e:Node {name: $name})
-                WHERE 'entity' IN e.ancestors
+                WHERE 'thing' IN e.ancestors
                 RETURN e.uuid AS uuid
                 """,
                 name="RobotArm01",
@@ -799,7 +799,7 @@ class TestQueryOperations:
         with neo4j_driver.session() as session:
             # Count entities (things)
             result = session.run(
-                "MATCH (e:Node) WHERE 'entity' IN e.ancestors RETURN count(e) AS count"
+                "MATCH (e:Node) WHERE 'thing' IN e.ancestors RETURN count(e) AS count"
             )
             entity_count = result.single()["count"]
             assert entity_count > 0
@@ -808,7 +808,7 @@ class TestQueryOperations:
             result = session.run(
                 """
                 MATCH (c:Node)
-                WHERE 'concept' IN c.ancestors AND NOT 'entity' IN c.ancestors
+                WHERE 'concept' IN c.ancestors AND NOT 'thing' IN c.ancestors
                 RETURN count(c) AS count
                 """
             )
