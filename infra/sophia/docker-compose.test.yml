@@ -9,6 +9,7 @@ volumes:
   sophia_test_milvus_etcd: {}
   sophia_test_milvus_minio: {}
   sophia_test_milvus: {}
+  sophia_test_redis_data: {}
 services:
   neo4j:
     container_name: sophia-test-neo4j
@@ -113,6 +114,23 @@ services:
       - http://localhost:9091/healthz
       interval: 30s
       timeout: 20s
+      retries: 3
+    networks:
+    - default
+  redis:
+    container_name: sophia-test-redis
+    image: redis:7-alpine
+    ports:
+    - 6379:6379
+    volumes:
+    - sophia_test_redis_data:/data
+    healthcheck:
+      test:
+      - CMD
+      - redis-cli
+      - ping
+      interval: 5s
+      timeout: 3s
       retries: 3
     networks:
     - default
