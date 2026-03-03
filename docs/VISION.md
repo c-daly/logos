@@ -52,7 +52,7 @@ Planning is a core capability. The HCGPlanner performs backward-chaining over RE
    OTel instrumentation exists across services via `logos_observability`. Gaps remain in Apollo SDK integration, Hermes/Sophia endpoint-level spans, and cross-service testing.
 
 9. **Documentation** — in progress
-   Proposed replacement docs exist in `docs/proposed_docs/`. Need to execute the manifest: move into place, archive stale docs, per-repo cleanup.
+   Documentation restructured: key docs promoted to top-level, stale content archived. Per-repo cleanup continues.
 
 10. **Testing and infrastructure** — in progress
     Test suites pass across repos with real infrastructure. Remaining: logos coverage improvement, standardized test conventions, OpenAPI contract tests for Hermes.

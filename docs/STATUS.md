@@ -88,7 +88,7 @@ Simulation scaffold exists. Last substantive work was standardization (talos #53
 OTel instrumentation landed across all services (logos #486, sophia #121, hermes #79, apollo #156). **Remaining gaps**: Apollo SDK integration (#340), Hermes/Sophia endpoint-level spans (#335, #338), testing & docs (#339, #342), persistent telemetry storage (#312).
 
 ### 9. Documentation -- IN PROGRESS
-Proposed replacement docs exist in `docs/proposed_docs/`. Manifest (`DOC_MANIFEST.md`) defines the cleanup plan. Project tracking conventions (`PROJECT_TRACKING.md`) and vision (`VISION.md`) now in place. PM agent landed (logos #497). **Remaining**: execute manifest, per-repo cleanup, consolidation (#447).
+Documentation restructured: proposed docs promoted to top-level, stale docs archived. Project tracking conventions (`PROJECT_TRACKING.md`) and vision (`VISION.md`) in place. PM agent landed (logos #497). **Remaining**: per-repo cleanup, consolidation (#447).
 
 ### 10. Testing and infrastructure -- GOOD BASELINE
 Test suites pass across repos with real infrastructure. Foundry v0.6.0 tagged with v0.5.0+ aligned across repos. CI reusable workflows tagged at ci/v1. **Remaining**: logos coverage improvement (#420), test conventions standardization, OpenAPI contract tests (#91), centralize test seeder (#481), centralize Redis infra (#469).

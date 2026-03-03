@@ -104,6 +104,6 @@ Knowledge graph construction from grounded video understanding. Demonstrates bui
 ## Conventions
 
 - Track new experiments with GitHub issues (label: `domain:research`)
-- Results relevant to academic papers should be flagged (see `LOGOS_Implementation_Spec.md` Appendix C for the 13 candidate papers)
+- Results relevant to academic papers should be flagged (see `docs/SPEC.md` for architecture details; candidate papers are tracked in the project wiki)
 - Experiment notebooks live in `logos/experiments/notebooks/` or `PoCs/`
 - Design docs for completed experiments are archived in `logos/docs/archive/plans/`

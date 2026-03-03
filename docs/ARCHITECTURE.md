@@ -122,7 +122,7 @@ Port allocation lives in `logos_config/ports.py`. Do not duplicate port values i
 poetry run python -c "from logos_config.ports import APOLLO_PORTS; print(APOLLO_PORTS)"
 ```
 
-> **Note:** `logos_config/README.md` currently shows offset ports without clarifying they are CI-only. This is tracked for cleanup in [DOC_MANIFEST.md](DOC_MANIFEST.md).
+> **Note:** `logos_config/README.md` currently shows offset ports without clarifying they are CI-only. This should be clarified in a future cleanup pass.
 
 Environment variables override defaults: `NEO4J_URI`, `NEO4J_BOLT_PORT`, `MILVUS_PORT`, etc.
 
