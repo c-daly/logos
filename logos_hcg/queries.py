@@ -146,7 +146,7 @@ class HCGQueries:
 
     # ========== Entity Queries ==========
 
-    # Bootstrap leaf types — flat under root. No intermediate groupings.
+    # Domain entity types under the 'entity' intermediate type:
     # General knowledge types (classifier assigns these from embeddings):
     ENTITY_TYPES = [
         "object",

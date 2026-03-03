@@ -78,7 +78,7 @@ def seed_pick_and_place_data(client: HCGClient) -> dict:
             name: 'entity',
             is_type_definition: true,
             type: 'entity',
-            ancestors: ['thing']
+            ancestors: ['node']
         })
         """,
         {"uuid": uuids["entity_type"]},
@@ -149,7 +149,7 @@ def seed_pick_and_place_data(client: HCGClient) -> dict:
                 name: $name,
                 is_type_definition: false,
                 type: 'entity',
-                ancestors: ['entity', 'thing'],
+                ancestors: ['entity', 'node'],
                 description: $desc,
                 created_at: datetime()
             })

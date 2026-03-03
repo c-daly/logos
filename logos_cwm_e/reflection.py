@@ -157,12 +157,12 @@ class CWMEReflector:
             entity_uuid: UUID of the Entity node
         """
         with self.driver.session() as session:
-            # Match using flexible ontology - entities have 'thing' in ancestors
+            # Match using flexible ontology - entities have 'entity' in ancestors
             query = """
             MATCH (es:Node {uuid: $emotion_uuid})
             WHERE es.type = 'emotion_state'
             MATCH (e:Node {uuid: $entity_uuid})
-            WHERE 'thing' IN e.ancestors
+            WHERE 'entity' IN e.ancestors
             MERGE (es)-[:TAGGED_ON]->(e)
             """
             session.run(query, emotion_uuid=emotion_uuid, entity_uuid=entity_uuid)
@@ -313,11 +313,11 @@ class CWMEReflector:
             List of EmotionState objects
         """
         with self.driver.session() as session:
-            # Match using flexible ontology - entities have 'thing' in ancestors
+            # Match using flexible ontology - entities have 'entity' in ancestors
             query = """
             MATCH (es:Node)-[:TAGGED_ON]->(e:Node {uuid: $entity_uuid})
             WHERE es.type = 'emotion_state'
-              AND 'thing' IN e.ancestors
+              AND 'entity' IN e.ancestors
             RETURN es
             ORDER BY es.timestamp DESC
             """
