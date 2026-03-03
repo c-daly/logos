@@ -147,7 +147,7 @@ def seed_pick_and_place_data(client: HCGClient) -> dict:
                 name: $name,
                 is_type_definition: false,
                 type: 'entity',
-                ancestors: ['entity', 'thing'],
+                #ancestors: ['entity', 'thing'],
                 description: $desc,
                 created_at: datetime()
             })
