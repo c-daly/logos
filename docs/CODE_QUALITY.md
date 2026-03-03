@@ -4,7 +4,7 @@ Measures being taken to improve and maintain code quality across the LOGOS ecosy
 
 ## 1. Documentation Overhaul
 
-The current documentation is scattered, stale, and often wrong (incorrect ports, phase-era references, duplicated content across repos). The `DOC_MANIFEST.md` in this directory defines the target state.
+The documentation has been restructured: key docs promoted to top-level, stale content archived, and ports/references corrected.
 
 **What's changing:**
 - Six new/rewritten ecosystem docs replace the existing sprawl (see manifest)

@@ -73,10 +73,10 @@ PoC exists in sophia (#76) with tests, docs, and backend integration. Last activ
 Core reified model landed (logos #490). Type classification via centroids working (sophia #129, logos #494). Hermes aligned (hermes #84, #86). CWM-E persona entries seeded as state nodes (logos #495). **Remaining**: update stale downstream queries (#458, #460, #461, #462), implement capability catalog (#465), planning test updates (#464, blocked).
 
 ### 4. Memory and learning -- NOT STARTED
-Spec exists (logos #415). Sub-issues (#411--#414) defined but not started. Depends on CWM unification (#496) as prerequisite.
+Spec exists (logos #415). Sub-issues (#411--#414) defined but not started. Ready to begin -- the CWM types are functionally equivalent and do not need formal unification before memory work can proceed.
 
 ### 5. CWM unification -- NOT STARTED
-Ticket created (logos #496). logos_cwm_e and logos_persona use raw Cypher with stale ontology patterns. Need to become ontology-level type definitions consumed via HCG client. Prerequisite for memory work.
+Ticket created (logos #496). logos_cwm_e and logos_persona use raw Cypher with stale ontology patterns. Need to become ontology-level type definitions consumed via HCG client. Cleanup/hygiene task -- not a blocker for memory work.
 
 ### 6. Planning and execution -- IN PROGRESS
 HCGPlanner exists with backward-chaining over REQUIRES/CAUSES edges. Planner stub (#403) still coexists with real implementation. Process node structure defined but needs maturation as Talos develops.
@@ -88,7 +88,7 @@ Simulation scaffold exists. Last substantive work was standardization (talos #53
 OTel instrumentation landed across all services (logos #486, sophia #121, hermes #79, apollo #156). **Remaining gaps**: Apollo SDK integration (#340), Hermes/Sophia endpoint-level spans (#335, #338), testing & docs (#339, #342).
 
 ### 9. Documentation -- IN PROGRESS
-Proposed replacement docs exist in `docs/proposed_docs/`. Manifest (`DOC_MANIFEST.md`) defines the cleanup plan. Project tracking conventions (`PROJECT_TRACKING.md`) and vision (`VISION.md`) now in place. PM agent landed (logos #497). **Remaining**: execute manifest, per-repo cleanup, consolidation (#447).
+Documentation restructured: proposed docs promoted to top-level, stale docs archived. Project tracking conventions (`PROJECT_TRACKING.md`) and vision (`VISION.md`) in place. PM agent landed (logos #497). **Remaining**: per-repo cleanup, consolidation (#447).
 
 ### 10. Testing and infrastructure -- GOOD BASELINE
 Test suites pass across repos with real infrastructure. Foundry v0.6.0 tagged with v0.5.0+ aligned across repos. CI reusable workflows tagged at ci/v1. **Remaining**: logos coverage improvement (#420), test conventions standardization, OpenAPI contract tests (#91), centralize test seeder (#481), centralize Redis infra (#469).

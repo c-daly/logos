@@ -131,7 +131,7 @@ check_foundry_alignment: true
 - Don't merge a downstream PR before verifying all related fixes are ready (e.g., torch compatibility)
 - Don't mix infrastructure changes (Python version) with library changes in the same release
 
-See `docs/operations/PACKAGE_PUBLISHING.md` for the full release checklist.
+See `docs/PACKAGE_PUBLISHING.md` for the full release checklist.
 
 ## Debugging CI Failures
 

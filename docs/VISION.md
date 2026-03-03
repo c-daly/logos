@@ -22,6 +22,8 @@ Planning is a core capability. The HCGPlanner performs backward-chaining over RE
 - **Memory** — hierarchical storage, reflection, episodic learning
 - **Ontology** — type system, IS_A edges, reified model, graph-native schema
 - **Infrastructure** — shared tooling, CI/CD, observability, testing, developer experience
+- **Research** — exploratory experiments, PoCs, and learning architecture proposals that inform the core architecture
+- **Tooling** — developer workflow automation, agent orchestration, and productivity tools that support LOGOS development
 
 ## Goals
 
@@ -50,7 +52,7 @@ Planning is a core capability. The HCGPlanner performs backward-chaining over RE
    OTel instrumentation exists across services via `logos_observability`. Gaps remain in Apollo SDK integration, Hermes/Sophia endpoint-level spans, and cross-service testing.
 
 9. **Documentation** — in progress
-   Proposed replacement docs exist in `docs/proposed_docs/`. Need to execute the manifest: move into place, archive stale docs, per-repo cleanup.
+   Documentation restructured: key docs promoted to top-level, stale content archived. Per-repo cleanup continues.
 
 10. **Testing and infrastructure** — in progress
     Test suites pass across repos with real infrastructure. Remaining: logos coverage improvement, standardized test conventions, OpenAPI contract tests for Hermes.
@@ -67,4 +69,4 @@ Planning is a core capability. The HCGPlanner performs backward-chaining over RE
 1. Cognitive loop expansion (feedback processing, multi-turn memory)
 2. Grounded perception via JEPA (CWM-G maturation)
 3. Flexible ontology cleanup (stale artifacts, downstream queries)
-4. CWM unification (prerequisite for memory work)
+4. CWM unification (cleanup — not blocking memory work)
