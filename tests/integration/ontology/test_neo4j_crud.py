@@ -144,7 +144,7 @@ class TestEntityCreation:
             assert entity is not None
             assert entity["e"]["uuid"] == test_uuid
             assert entity["e"]["type"] == "entity"
-            assert "thing" in entity["e"]["ancestors"]
+            assert "node" in entity["e"]["ancestors"]
 
             # Cleanup
             session.run("MATCH (e:Node {uuid: $uuid}) DELETE e", uuid=test_uuid)
