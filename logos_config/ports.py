@@ -4,17 +4,17 @@ Infrastructure services (Neo4j, Milvus) run on standard ports and are
 shared across repos. Each repo gets a unique API port.
 
 Port Table:
-Infrastructure ports (Neo4j, Milvus) use standard defaults — all repos
+Infrastructure ports (Neo4j, Milvus, Redis) use standard defaults — all repos
 share a single set of infrastructure services.  Only API ports are
 repo-specific.
 
-| Repo   | Neo4j HTTP | Neo4j Bolt | Milvus gRPC | Milvus Metrics | API   |
-|--------|------------|------------|-------------|----------------|-------|
-| hermes | 7474       | 7687       | 19530       | 9091           | 17000 |
-| apollo | 7474       | 7687       | 19530       | 9091           | 27000 |
-| logos  | 7474       | 7687       | 19530       | 9091           | 37000 |
-| sophia | 7474       | 7687       | 19530       | 9091           | 47000 |
-| talos  | 7474       | 7687       | 19530       | 9091           | 57000 |
+| Repo   | Neo4j HTTP | Neo4j Bolt | Milvus gRPC | Milvus Metrics | Redis | API   |
+|--------|------------|------------|-------------|----------------|-------|-------|
+| hermes | 7474       | 7687       | 19530       | 9091           | 6379  | 17000 |
+| apollo | 7474       | 7687       | 19530       | 9091           | 6379  | 27000 |
+| logos  | 7474       | 7687       | 19530       | 9091           | 6379  | 37000 |
+| sophia | 7474       | 7687       | 19530       | 9091           | 6379  | 47000 |
+| talos  | 7474       | 7687       | 19530       | 9091           | 6379  | 57000 |
 """
 
 from __future__ import annotations
@@ -31,15 +31,16 @@ class RepoPorts(NamedTuple):
     neo4j_bolt: int
     milvus_grpc: int
     milvus_metrics: int
+    redis: int
     api: int
 
 
 # Shared infra ports + repo-specific API ports
-HERMES_PORTS = RepoPorts(7474, 7687, 19530, 9091, 17000)
-APOLLO_PORTS = RepoPorts(7474, 7687, 19530, 9091, 27000)
-LOGOS_PORTS = RepoPorts(7474, 7687, 19530, 9091, 37000)
-SOPHIA_PORTS = RepoPorts(7474, 7687, 19530, 9091, 47000)
-TALOS_PORTS = RepoPorts(7474, 7687, 19530, 9091, 57000)
+HERMES_PORTS = RepoPorts(7474, 7687, 19530, 9091, 6379, 17000)
+APOLLO_PORTS = RepoPorts(7474, 7687, 19530, 9091, 6379, 27000)
+LOGOS_PORTS = RepoPorts(7474, 7687, 19530, 9091, 6379, 37000)
+SOPHIA_PORTS = RepoPorts(7474, 7687, 19530, 9091, 6379, 47000)
+TALOS_PORTS = RepoPorts(7474, 7687, 19530, 9091, 6379, 57000)
 
 _REPO_PORTS = {
     "hermes": HERMES_PORTS,
@@ -59,6 +60,7 @@ def get_repo_ports(
     Environment variables override defaults:
     - NEO4J_HTTP_PORT, NEO4J_BOLT_PORT
     - MILVUS_PORT, MILVUS_METRICS_PORT
+    - REDIS_PORT
     - API_PORT
 
     Args:
@@ -82,5 +84,6 @@ def get_repo_ports(
         neo4j_bolt=get_port("NEO4J_BOLT_PORT", defaults.neo4j_bolt),
         milvus_grpc=get_port("MILVUS_PORT", defaults.milvus_grpc),
         milvus_metrics=get_port("MILVUS_METRICS_PORT", defaults.milvus_metrics),
+        redis=get_port("REDIS_PORT", defaults.redis),
         api=get_port("API_PORT", defaults.api),
     )
