@@ -36,6 +36,7 @@ packages = [
   { include = "logos_cwm_e" },
   { include = "logos_perception" },
   { include = "logos_sophia" },
+  { include = "logos_events" },
   { include = "logos_test_utils" },
   { include = "planner_stub" },
 ]
