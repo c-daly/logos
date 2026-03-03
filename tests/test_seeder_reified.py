@@ -28,10 +28,10 @@ def test_seed_creates_is_a_edge_nodes(client):
     seeder = HCGSeeder(client)
     seeder.seed_type_definitions()
 
-    # Verify IS_A edge node exists between a leaf type and root
+    # Verify IS_A edge node exists between a leaf type and its parent
     result = client._execute_read(
         """
-        MATCH (child:Node {name: "object"})<-[:FROM]-(e:Node {relation: "IS_A"})-[:TO]->(parent:Node {name: "root"})
+        MATCH (child:Node {name: "object"})<-[:FROM]-(e:Node {relation: "IS_A"})-[:TO]->(parent:Node {name: "entity"})
         RETURN e.uuid AS edge_uuid
     """,
         {},

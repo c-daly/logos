@@ -70,15 +70,13 @@ def seed_pick_and_place_data(client: HCGClient) -> dict:
     }
 
     # First, create the type definitions we need
-    # Entity type (under thing)
     client._execute_query(
         """
         CREATE (t:Node {
             uuid: $uuid,
             name: 'entity',
             is_type_definition: true,
-            type: 'entity',
-            ancestors: ['thing']
+            type: 'entity'
         })
         """,
         {"uuid": uuids["entity_type"]},
@@ -149,7 +147,6 @@ def seed_pick_and_place_data(client: HCGClient) -> dict:
                 name: $name,
                 is_type_definition: false,
                 type: 'entity',
-                ancestors: ['entity', 'thing'],
                 description: $desc,
                 created_at: datetime()
             })

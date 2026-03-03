@@ -127,22 +127,6 @@ verify_indexes() {
     fi
 }
 
-# Function to verify concepts
-verify_concepts() {
-    print_info "Verifying concepts..."
-    
-    local concept_count=$(docker exec "${NEO4J_CONTAINER}" cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" \
-        "MATCH (c:Concept) RETURN count(c) AS count;" 2>/dev/null | tail -1 | tr -d '"')
-    
-    if [ "$concept_count" -ge 14 ]; then
-        print_info "✓ Found ${concept_count} concepts loaded"
-        return 0
-    else
-        print_warn "Expected at least 14 concepts, found ${concept_count}"
-        return 1
-    fi
-}
-
 # Main execution
 main() {
     echo ""
@@ -196,10 +180,6 @@ main() {
         verification_failed=1
     fi
     
-    if ! verify_concepts; then
-        verification_failed=1
-    fi
-    
     echo ""
     
     if [ $verification_failed -eq 0 ]; then
@@ -212,7 +192,7 @@ main() {
         print_info "  Password: ${NEO4J_PASSWORD}"
         echo ""
         print_info "Try running queries like:"
-        print_info '  MATCH (c:Concept) RETURN c.name ORDER BY c.name;'
+        print_info '  MATCH (n:Node {is_type_definition: true}) RETURN n.name ORDER BY n.name;'
         print_info '  SHOW CONSTRAINTS;'
         print_info '  SHOW INDEXES;'
         echo ""
