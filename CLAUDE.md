@@ -4,7 +4,7 @@
 
 The Foundry: canonical source of truth for LOGOS specifications, ontology, shared libraries, and infrastructure.
 
-All other repos depend on logos via the `logos-foundry` PyPI package.
+All other repos depend on logos via the `logos-foundry` package (published to GitHub Packages).
 
 ## Dependencies
 
@@ -41,7 +41,7 @@ bash scripts/generate-sdks.sh
 
 ## Package Catalog
 
-The Foundry exports these packages (all at repo root, published via `logos-foundry`):
+The Foundry exports these packages (all at repo root, published via `logos-foundry` on GitHub Packages):
 
 | Package | Purpose |
 |---------|---------|
