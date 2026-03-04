@@ -946,12 +946,16 @@ class HCGClient:
         Returns:
             List of dicts with keys ``uuid``, ``name``, ``properties``.
         """
-        query = (
-            "MATCH (n:Node {type: 'type_definition'}) "
-            "RETURN n.uuid AS uuid, n.name AS name, "
-            "n.properties AS properties"
-        )
-        return self._execute_read(query)
+        query = HCGQueries.find_type_definitions()
+        records = self._execute_read(query)
+        return [
+            {
+                "uuid": r["uuid"],
+                "name": r["name"],
+                "properties": dict(r["t"]) if r.get("t") else {},
+            }
+            for r in records
+        ]
 
     def verify_connection(self) -> bool:
         """
