@@ -17,6 +17,7 @@ try:
     r = redis.from_url("redis://localhost:6379/0")
     r.ping()
     REDIS_AVAILABLE = True
+    r.close()
 except Exception:
     pass
 

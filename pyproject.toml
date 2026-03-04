@@ -52,9 +52,9 @@ opentelemetry-sdk = "^1.20.0"
 opentelemetry-instrumentation-fastapi = "^0.41b0"
 opentelemetry-exporter-otlp-proto-grpc = "^1.20.0"
 opentelemetry-instrumentation-httpx = "^0.41b0"
+redis = ">=5.0.0"
 
 # Test utilities are available but optional (dev/test only)
-redis = ">=5.0.0"
 [tool.poetry.group.test.dependencies]
 rdflib = "^7.0.0"
 pyshacl = "^0.25.0"

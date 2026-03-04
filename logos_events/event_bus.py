@@ -27,7 +27,6 @@ class EventBus:
     def __init__(self, redis_config: RedisConfig) -> None:
         self._redis = redis.from_url(redis_config.url)
         self._pubsub = self._redis.pubsub()
-        self._callbacks: dict[str, Callable[[dict], None]] = {}
         self._running = False
 
     def publish(self, channel: str, event: dict) -> None:
@@ -49,7 +48,6 @@ class EventBus:
 
         The callback receives the parsed event dict (envelope).
         """
-        self._callbacks[channel] = callback
 
         def _handler(message: dict[str, Any]) -> None:
             try:
@@ -66,9 +64,8 @@ class EventBus:
         Call stop() from another thread to terminate.
         """
         self._running = True
-        for message in self._pubsub.listen():
-            if not self._running:
-                break
+        while self._running:
+            self._pubsub.get_message(ignore_subscribe_messages=True, timeout=1.0)
 
     def stop(self) -> None:
         """Signal the listen loop to stop."""
@@ -77,7 +74,11 @@ class EventBus:
 
     def close(self) -> None:
         """Close connections. Idempotent."""
-        self.stop()
+        self._running = False
+        try:
+            self._pubsub.unsubscribe()
+        except Exception:
+            pass
         try:
             self._pubsub.close()
         except Exception:
