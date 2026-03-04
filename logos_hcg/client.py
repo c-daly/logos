@@ -936,6 +936,23 @@ class HCGClient:
 
         return counts
 
+    def get_all_type_definitions(self) -> list[dict[str, Any]]:
+        """
+        Return all type_definition nodes from the knowledge graph.
+
+        Each record contains ``uuid``, ``name``, and ``properties`` as stored
+        on the ``Node`` with ``type='type_definition'``.
+
+        Returns:
+            List of dicts with keys ``uuid``, ``name``, ``properties``.
+        """
+        query = (
+            "MATCH (n:Node {type: 'type_definition'}) "
+            "RETURN n.uuid AS uuid, n.name AS name, "
+            "n.properties AS properties"
+        )
+        return self._execute_read(query)
+
     def verify_connection(self) -> bool:
         """
         Verify that the connection to Neo4j is working.
