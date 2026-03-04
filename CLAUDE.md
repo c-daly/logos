@@ -2,7 +2,7 @@
 
 ## What This Is
 
-The Foundry: canonical source of truth for LOGOS specifications, ontology, shared libraries, and infrastructure. Version 0.6.0.
+The Foundry: canonical source of truth for LOGOS specifications, ontology, shared libraries, and infrastructure.
 
 All other repos depend on logos via the `logos-foundry` PyPI package.
 
@@ -53,7 +53,7 @@ The Foundry exports these packages (all at repo root, published via `logos-found
 | `logos_cwm_e` | Emotional CWM: `CWMEReflector`, `EmotionState`, FastAPI router |
 | `logos_sophia` | Sophia API helpers: `create_sophia_api`, `SimulationService` |
 | `logos_perception` | Media ingestion: `MediaIngestService`, `JEPARunner`, `JEPAConfig` |
-| `logos_test_utils` | Test helpers: Neo4j/Milvus fixtures, container health, env loading (32+ exports) |
+| `logos_test_utils` | Test helpers: Neo4j/Milvus fixtures, container health, env loading |
 | `logos_tools` | Infrastructure utilities: issue generation, project tracking |
 
 **Not packaged** (directory exists but not in pyproject.toml):
@@ -113,15 +113,12 @@ logos/
 
 ## CI Workflows
 
-19 workflows in `.github/workflows/`:
+Reusable workflows in `.github/workflows/` (consumed by all downstream repos):
+- `reusable-standard-ci.yml` — standard lint/test/build pipeline
+- `reusable-pr-checks.yml` — issue linkage and branch naming checks
+- `reusable-publish.yml` — package publishing
 
-| Category | Workflows |
-|----------|-----------|
-| **Reusable** (downstream repos consume these) | `reusable-standard-ci.yml`, `reusable-pr-checks.yml`, `reusable-publish.yml` |
-| **Phase gates** | `m1-neo4j-crud`, `m2-shacl-validation`, `m3-planning`, `m4-end-to-end` |
-| **Publishing** | `publish-package`, `publish-api-docs`, `regenerate-sdks`, `sdk-regen`, `sdk-tampering-test` |
-| **Triage & tracking** | `monthly-triage`, `weekly-progress`, `issue-sync` |
-| **Validation** | `validate-artifacts`, `shacl-neo4j-validation`, `fetch-by-digest` |
+Additional workflows cover phase gates, SDK generation, publishing, triage, and validation. Check `.github/workflows/` for the full list.
 
 ---
 
@@ -129,7 +126,6 @@ logos/
 
 - **Ruff** for linting, **black** for formatting (both enforced via pre-commit)
 - `sdk/` and `sdk-web/` are auto-generated — never edit manually
-- Test markers: `unit`, `integration`, `e2e`, `slow`
 - Tests needing Neo4j/Milvus go in `tests/integration/`, not `tests/unit/`
 - `planner_stub/` is a PoC, not production code
 - When bumping foundry version, run `scripts/bump-downstream.sh` to update all repos
@@ -139,14 +135,11 @@ logos/
 ## Docs
 
 Detailed documentation in `docs/`:
-
-| Directory | Content |
-|-----------|---------|
-| `architecture/` | System architecture, phase specs (1-3), ADRs (6 decisions) |
-| `operations/` | Testing, port reference, publishing, CI, demos |
-| `observability/` | OTEL infrastructure setup |
-| `plans/` | Design docs and implementation plans |
-| `evidence/` | Phase gate evidence |
+- `architecture/` — system architecture, phase specs, ADRs
+- `operations/` — testing, port reference, publishing, CI, demos
+- `observability/` — OTEL infrastructure setup
+- `plans/` — design docs and implementation plans
+- `evidence/` — phase gate evidence
 
 Key files: `GIT_PROJECT_STANDARDS.md`, `TESTING_STANDARDS.md`, `LOCAL_DEVELOPMENT.md`
 
