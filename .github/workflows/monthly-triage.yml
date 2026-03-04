@@ -1,0 +1,113 @@
+name: Monthly Triage Summary
+
+on:
+  schedule:
+    - cron: '0 9 1 * *'
+  workflow_dispatch:
+
+permissions:
+  issues: read
+  pull-requests: read
+
+jobs:
+  triage-summary:
+    name: Generate triage summary
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const repos = ['logos', 'sophia', 'hermes', 'talos', 'apollo'];
+            const owner = 'c-daly';
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+            let summary = '# Monthly Triage Summary\n\n';
+            summary += `Generated: ${new Date().toISOString().split('T')[0]}\n\n`;
+
+            // Stale issues (not updated in 30+ days)
+            let staleContent = '';
+            for (const repo of repos) {
+              try {
+                const issues = await github.paginate(github.rest.issues.listForRepo, {
+                  owner,
+                  repo,
+                  state: 'open',
+                  sort: 'updated',
+                  direction: 'asc',
+                  per_page: 100,
+                });
+                const stale = issues
+                  .filter(i => !i.pull_request && new Date(i.updated_at) < thirtyDaysAgo);
+                if (stale.length > 0) {
+                  staleContent += `### ${repo} (${stale.length})\n`;
+                  for (const issue of stale) {
+                    staleContent += `- #${issue.number}: \`${issue.title}\` (last updated: ${issue.updated_at.split('T')[0]})\n`;
+                  }
+                  staleContent += '\n';
+                }
+              } catch (e) {
+                staleContent += `### ${repo}\n- Error fetching issues: \`${e.message}\`\n\n`;
+              }
+            }
+            if (staleContent) {
+              summary += '## Stale Issues (no update in 30+ days)\n\n' + staleContent;
+            }
+
+            // Blocked issues
+            let blockedContent = '';
+            for (const repo of repos) {
+              try {
+                const issues = await github.paginate(github.rest.issues.listForRepo, {
+                  owner,
+                  repo,
+                  state: 'open',
+                  labels: 'blocked',
+                  per_page: 100,
+                });
+                const blocked = issues.filter(i => !i.pull_request);
+                if (blocked.length > 0) {
+                  blockedContent += `### ${repo} (${blocked.length})\n`;
+                  for (const issue of blocked) {
+                    blockedContent += `- #${issue.number}: \`${issue.title}\`\n`;
+                  }
+                  blockedContent += '\n';
+                }
+              } catch (e) {
+                blockedContent += `### ${repo}\n- Error fetching issues: \`${e.message}\`\n\n`;
+              }
+            }
+            if (blockedContent) {
+              summary += '## Blocked Issues\n\n' + blockedContent;
+            }
+
+            // Open PRs across all repos
+            let prContent = '';
+            for (const repo of repos) {
+              try {
+                const prs = await github.paginate(github.rest.pulls.list, {
+                  owner,
+                  repo,
+                  state: 'open',
+                  per_page: 100,
+                });
+                if (prs.length > 0) {
+                  prContent += `### ${repo} (${prs.length})\n`;
+                  for (const pr of prs) {
+                    const age = Math.floor((Date.now() - new Date(pr.created_at)) / 86400000);
+                    prContent += `- #${pr.number}: \`${pr.title}\` (${age}d old)\n`;
+                  }
+                  prContent += '\n';
+                }
+              } catch (e) {
+                prContent += `### ${repo}\n- Error fetching PRs: \`${e.message}\`\n\n`;
+              }
+            }
+            if (prContent) {
+              summary += '## Open Pull Requests\n\n' + prContent;
+            }
+
+            core.summary.addRaw(summary);
+            await core.summary.write();
+            console.log(summary);

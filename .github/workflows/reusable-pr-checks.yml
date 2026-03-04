@@ -1,0 +1,73 @@
+name: Reusable PR Checks
+
+on:
+  workflow_call:
+    inputs:
+      require_issue_linkage:
+        description: 'Fail the check if no issue linkage is found (default: warn only)'
+        required: false
+        type: boolean
+        default: false
+      require_branch_naming:
+        description: 'Fail the check if branch name does not follow convention (default: warn only)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  check-issue-linkage:
+    name: Check issue linkage
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR body for issue references
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request?.body || '';
+            const pattern = /(closes|fixes|resolves|see)\s+#\d+/i;
+            const hasLinkage = pattern.test(body);
+
+            if (!hasLinkage) {
+              const message = 'No issue linkage found in PR body. Please reference an issue using Closes #N, Fixes #N, Resolves #N, or See #N.';
+              if (${{ inputs.require_issue_linkage }}) {
+                core.setFailed(message);
+              } else {
+                core.warning(message);
+              }
+            } else {
+              core.info('Issue linkage found in PR body.');
+            }
+
+  check-branch-naming:
+    name: Check branch naming convention
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch name
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const branch = context.payload.pull_request?.head?.ref || '';
+            // Skip validation for bot-generated branches
+            const botPrefixes = ['dependabot/', 'renovate/', 'github-actions/'];
+            if (botPrefixes.some(p => branch.startsWith(p))) {
+              core.info(`Branch '${branch}' is bot-generated — skipping naming check.`);
+              return;
+            }
+
+            const types = 'feat|fix|chore|refactor|docs|test|ci';
+            const repos = 'logos|sophia|hermes|talos|apollo';
+            const withTicket = new RegExp(`^(${types})/(${repos})\\d+-[a-z0-9][a-z0-9-]+$`);
+            const withoutTicket = new RegExp(`^(${types})/[a-z0-9][a-z0-9-]+$`);
+            const fail = ${{ inputs.require_branch_naming }};
+
+            if (withTicket.test(branch)) {
+              core.info(`Branch '${branch}' follows naming convention with ticket reference.`);
+            } else if (withoutTicket.test(branch)) {
+              const msg = `Branch '${branch}' has no ticket reference. Prefer <type>/<repo><ticket>-<description> (e.g., feat/logos42-add-validation).`;
+              fail ? core.setFailed(msg) : core.warning(msg);
+            } else {
+              const msg = `Branch '${branch}' does not follow naming convention. Expected: <type>/<repo><ticket>-<description>. See docs/GIT_PROJECT_STANDARDS.md.`;
+              fail ? core.setFailed(msg) : core.warning(msg);
+            }
