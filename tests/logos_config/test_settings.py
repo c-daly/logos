@@ -8,7 +8,7 @@ from unittest import mock
 import pytest
 from pydantic import ValidationError
 
-from logos_config.settings import MilvusConfig, Neo4jConfig, ServiceConfig
+from logos_config.settings import MilvusConfig, Neo4jConfig, RedisConfig, ServiceConfig
 
 
 class TestNeo4jConfig:
@@ -154,3 +154,59 @@ class TestServiceConfig:
             assert config.host == "custom-host"
             assert config.port == 9000
             assert config.api_key == "secret-key"
+
+
+class TestRedisConfig:
+    """Tests for RedisConfig."""
+
+    def test_default_values(self) -> None:
+        """Default values are set correctly."""
+        for var in ["REDIS_HOST", "REDIS_PORT", "REDIS_DB", "REDIS_PASSWORD"]:
+            os.environ.pop(var, None)
+
+        config = RedisConfig()
+        assert config.host == "localhost"
+        assert config.port == 6379
+        assert config.db == 0
+        assert config.password is None
+
+    def test_url_property(self) -> None:
+        """URL property returns correct redis:// connection string."""
+        for var in ["REDIS_HOST", "REDIS_PORT", "REDIS_DB", "REDIS_PASSWORD"]:
+            os.environ.pop(var, None)
+
+        config = RedisConfig()
+        assert config.url == "redis://localhost:6379/0"
+
+        config = RedisConfig(host="redis-server", port=6380, db=2)
+        assert config.url == "redis://redis-server:6380/2"
+
+    def test_url_with_password(self) -> None:
+        """URL property includes password when set."""
+        for var in ["REDIS_HOST", "REDIS_PORT", "REDIS_DB", "REDIS_PASSWORD"]:
+            os.environ.pop(var, None)
+
+        config = RedisConfig(password="secret")
+        assert config.url == "redis://:secret@localhost:6379/0"
+
+    def test_password_from_env(self) -> None:
+        """Password can be set via environment variable."""
+        with mock.patch.dict(
+            os.environ,
+            {"REDIS_PASSWORD": "envpass"},
+        ):
+            config = RedisConfig()
+            assert config.password == "envpass"
+            assert config.url == "redis://:envpass@localhost:6379/0"
+
+    def test_env_var_override(self) -> None:
+        """Environment variables override defaults."""
+        with mock.patch.dict(
+            os.environ,
+            {"REDIS_HOST": "redis-prod", "REDIS_PORT": "6380", "REDIS_DB": "3"},
+        ):
+            config = RedisConfig()
+            assert config.host == "redis-prod"
+            assert config.port == 6380
+            assert config.db == 3
+            assert config.url == "redis://redis-prod:6380/3"

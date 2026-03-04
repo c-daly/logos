@@ -111,3 +111,24 @@ class OtelConfig(BaseSettings):
 
     exporter_otlp_endpoint: str = Field(default="http://localhost:4317")
     console_export: bool = Field(default=False)
+
+
+class RedisConfig(BaseSettings):
+    """Redis connection configuration.
+
+    Env vars: REDIS_HOST, REDIS_PORT, REDIS_DB, REDIS_PASSWORD
+    """
+
+    model_config = SettingsConfigDict(env_prefix="REDIS_")
+
+    host: str = Field(default="localhost")
+    port: int = Field(default=6379)
+    db: int = Field(default=0)
+    password: str | None = Field(default=None)
+
+    @property
+    def url(self) -> str:
+        """Return the redis:// connection URL."""
+        if self.password:
+            return f"redis://:{self.password}@{self.host}:{self.port}/{self.db}"
+        return f"redis://{self.host}:{self.port}/{self.db}"

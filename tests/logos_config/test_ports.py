@@ -23,12 +23,13 @@ class TestRepoPorts:
 
     def test_is_named_tuple(self) -> None:
         """RepoPorts is a NamedTuple with correct fields."""
-        ports = RepoPorts(1, 2, 3, 4, 5)
+        ports = RepoPorts(1, 2, 3, 4, 5, 6)
         assert ports.neo4j_http == 1
         assert ports.neo4j_bolt == 2
         assert ports.milvus_grpc == 3
         assert ports.milvus_metrics == 4
-        assert ports.api == 5
+        assert ports.redis == 5
+        assert ports.api == 6
 
 
 class TestPortConsistency:
@@ -47,6 +48,7 @@ class TestPortConsistency:
             assert ports.neo4j_bolt == 7687
             assert ports.milvus_grpc == 19530
             assert ports.milvus_metrics == 9091
+            assert ports.redis == 6379
 
     def test_all_repos_have_unique_api_ports(self) -> None:
         """Each repo should have a unique API port."""
@@ -73,6 +75,7 @@ class TestGetRepoPorts:
             "NEO4J_BOLT_PORT",
             "MILVUS_PORT",
             "MILVUS_METRICS_PORT",
+            "REDIS_PORT",
             "API_PORT",
         ]:
             os.environ.pop(var, None)
@@ -87,6 +90,7 @@ class TestGetRepoPorts:
             "NEO4J_BOLT_PORT",
             "MILVUS_PORT",
             "MILVUS_METRICS_PORT",
+            "REDIS_PORT",
             "API_PORT",
         ]:
             os.environ.pop(var, None)
@@ -101,6 +105,7 @@ class TestGetRepoPorts:
             "NEO4J_BOLT_PORT",
             "MILVUS_PORT",
             "MILVUS_METRICS_PORT",
+            "REDIS_PORT",
             "API_PORT",
         ]:
             os.environ.pop(var, None)
@@ -115,6 +120,7 @@ class TestGetRepoPorts:
             "NEO4J_BOLT_PORT",
             "MILVUS_PORT",
             "MILVUS_METRICS_PORT",
+            "REDIS_PORT",
             "API_PORT",
         ]:
             os.environ.pop(var, None)
@@ -129,6 +135,7 @@ class TestGetRepoPorts:
             "NEO4J_BOLT_PORT",
             "MILVUS_PORT",
             "MILVUS_METRICS_PORT",
+            "REDIS_PORT",
             "API_PORT",
         ]:
             os.environ.pop(var, None)
@@ -143,6 +150,7 @@ class TestGetRepoPorts:
             "NEO4J_BOLT_PORT",
             "MILVUS_PORT",
             "MILVUS_METRICS_PORT",
+            "REDIS_PORT",
             "API_PORT",
         ]:
             os.environ.pop(var, None)
@@ -183,20 +191,20 @@ class TestPrecomputedPorts:
 
     def test_hermes_ports(self) -> None:
         """HERMES_PORTS uses shared infra ports with repo-specific API port."""
-        assert HERMES_PORTS == RepoPorts(7474, 7687, 19530, 9091, 17000)
+        assert HERMES_PORTS == RepoPorts(7474, 7687, 19530, 9091, 6379, 17000)
 
     def test_apollo_ports(self) -> None:
         """APOLLO_PORTS uses shared infra ports with repo-specific API port."""
-        assert APOLLO_PORTS == RepoPorts(7474, 7687, 19530, 9091, 27000)
+        assert APOLLO_PORTS == RepoPorts(7474, 7687, 19530, 9091, 6379, 27000)
 
     def test_logos_ports(self) -> None:
         """LOGOS_PORTS uses shared infra ports with repo-specific API port."""
-        assert LOGOS_PORTS == RepoPorts(7474, 7687, 19530, 9091, 37000)
+        assert LOGOS_PORTS == RepoPorts(7474, 7687, 19530, 9091, 6379, 37000)
 
     def test_sophia_ports(self) -> None:
         """SOPHIA_PORTS uses shared infra ports with repo-specific API port."""
-        assert SOPHIA_PORTS == RepoPorts(7474, 7687, 19530, 9091, 47000)
+        assert SOPHIA_PORTS == RepoPorts(7474, 7687, 19530, 9091, 6379, 47000)
 
     def test_talos_ports(self) -> None:
         """TALOS_PORTS uses shared infra ports with repo-specific API port."""
-        assert TALOS_PORTS == RepoPorts(7474, 7687, 19530, 9091, 57000)
+        assert TALOS_PORTS == RepoPorts(7474, 7687, 19530, 9091, 6379, 57000)
