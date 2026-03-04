@@ -33,3 +33,28 @@ jobs:
             } else {
               core.info('Issue linkage found in PR body.');
             }
+
+  check-branch-naming:
+    name: Check branch naming convention
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch name
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const branch = context.payload.pull_request?.head?.ref || '';
+            // Format: <type>/<repo><ticket>-<description> or <type>/<description>
+            // Examples: feat/logos42-add-validation, chore/update-deps
+            const types = 'feat|fix|chore|refactor|docs|test|ci';
+            const repos = 'logos|sophia|hermes|talos|apollo';
+            const withTicket = new RegExp(`^(${types})/(${repos})\\d+-[a-z0-9][a-z0-9-]+$`);
+            const withoutTicket = new RegExp(`^(${types})/[a-z0-9][a-z0-9-]+$`);
+
+            if (withTicket.test(branch)) {
+              core.info(`Branch '${branch}' follows naming convention with ticket reference.`);
+            } else if (withoutTicket.test(branch)) {
+              core.warning(`Branch '${branch}' follows type/description format but has no ticket reference. Prefer <type>/<repo><ticket>-<description> (e.g., feat/logos42-add-validation).`);
+            } else {
+              core.warning(`Branch '${branch}' does not follow naming convention. Expected: <type>/<repo><ticket>-<description> (e.g., feat/logos42-add-validation). See docs/GIT_PROJECT_STANDARDS.md.`);
+            }
