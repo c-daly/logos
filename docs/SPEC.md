@@ -1,6 +1,6 @@
 # LOGOS Foundry Specification
 
-**Last updated:** 2026-03-02
+**Last updated:** 2026-03-04
 
 The Foundry (`logos` repo) is the shared foundation for the LOGOS ecosystem. It provides canonical API contracts, the core ontology, the Hybrid Causal Graph (HCG) client library, shared configuration, SDKs, observability, testing utilities, and infrastructure definitions. All downstream repos (sophia, hermes, apollo, talos) depend on the Foundry for contracts, data models, and shared tooling.
 
@@ -30,11 +30,11 @@ Centralized configuration for all LOGOS repos. Provides:
 
 - **`env`** -- Environment variable resolution with priority: OS env > provided mapping > default. Loads `.env` files with caching.
 - **`ports`** -- Canonical port allocation via `RepoPorts` dataclass and `get_repo_ports(repo)` lookup. Supports env var overrides.
-- **`settings`** -- Pydantic `BaseSettings` models for Neo4j (`Neo4jConfig`), Milvus (`MilvusConfig`), OpenTelemetry (`OtelConfig`), and generic services (`ServiceConfig`).
+- **`settings`** -- Pydantic `BaseSettings` models for Neo4j (`Neo4jConfig`), Milvus (`MilvusConfig`), Redis (`RedisConfig`), OpenTelemetry (`OtelConfig`), and generic services (`ServiceConfig`).
 - **`health`** -- Unified `HealthResponse` and `DependencyStatus` schemas so all LOGOS services return consistent health-check responses.
 
 ```python
-from logos_config import get_env_value, get_repo_ports, Neo4jConfig
+from logos_config import get_env_value, get_repo_ports, Neo4jConfig, RedisConfig
 ports = get_repo_ports("sophia")  # RepoPorts(neo4j_http=7474, ..., api=47000)
 ```
 
@@ -93,6 +93,21 @@ Experiment runner framework. Provides `ExperimentConfig`, `PipelineStep`, `Agent
 ### logos_tools
 
 Utility scripts for project management -- issue generation, project tracking, and artifact validation.
+
+### logos_events
+
+Redis pub/sub event bus for inter-service communication. Provides:
+
+- **`EventBus`** -- Wrapper around `redis-py` for publishing and subscribing to channels. Publishes events in a standard envelope format (`event_type`, `source`, `timestamp`, `payload`). Supports blocking listener loops with graceful shutdown.
+
+```python
+from logos_events import EventBus
+from logos_config import RedisConfig
+
+bus = EventBus(RedisConfig())
+bus.publish("sophia.plan", {"event_type": "plan_created", "source": "sophia", "payload": {...}})
+bus.subscribe("sophia.plan", callback=handle_event)
+```
 
 ### sdk (Python)
 
@@ -263,7 +278,7 @@ Both services run on a shared `logos-hcg-dev-net` bridge network with health che
 
 ### Per-Repo Test Stacks
 
-Each downstream repo has a test compose file under `infra/{repo}/docker-compose.test.yml` (for hermes, sophia, apollo, talos). These provision isolated Neo4j and Milvus instances for CI.
+Each downstream repo has a test compose file under `infra/{repo}/docker-compose.test.yml` (for hermes, sophia, apollo, talos). These are generated from templates and provision isolated Neo4j, Milvus, and Redis instances for CI.
 
 ### Observability Stack
 
@@ -288,17 +303,17 @@ Provisions OpenTelemetry collector, Grafana dashboards, and Tempo for distribute
 
 ## 7. Port Allocation
 
-All LOGOS repos share infrastructure (Neo4j, Milvus) on default ports. Each repo has a unique API port.
+All LOGOS repos share infrastructure (Neo4j, Milvus, Redis) on default ports. Each repo has a unique API port.
 
-| Repo | API Port | Neo4j HTTP | Neo4j Bolt | Milvus gRPC | Milvus Metrics |
-|------|----------|------------|------------|-------------|----------------|
-| hermes | 17000 | 7474 | 7687 | 19530 | 9091 |
-| apollo | 27000 | 7474 | 7687 | 19530 | 9091 |
-| logos | 37000 | 7474 | 7687 | 19530 | 9091 |
-| sophia | 47000 | 7474 | 7687 | 19530 | 9091 |
-| talos | 57000 | 7474 | 7687 | 19530 | 9091 |
+| Repo | API Port | Neo4j HTTP | Neo4j Bolt | Milvus gRPC | Milvus Metrics | Redis |
+|------|----------|------------|------------|-------------|----------------|-------|
+| hermes | 17000 | 7474 | 7687 | 19530 | 9091 | 6379 |
+| apollo | 27000 | 7474 | 7687 | 19530 | 9091 | 6379 |
+| logos | 37000 | 7474 | 7687 | 19530 | 9091 | 6379 |
+| sophia | 47000 | 7474 | 7687 | 19530 | 9091 | 6379 |
+| talos | 57000 | 7474 | 7687 | 19530 | 9091 | 6379 |
 
-All ports are overridable via environment variables (`NEO4J_HTTP_PORT`, `NEO4J_BOLT_PORT`, `MILVUS_PORT`, `MILVUS_METRICS_PORT`, `API_PORT`).
+All ports are overridable via environment variables (`NEO4J_HTTP_PORT`, `NEO4J_BOLT_PORT`, `MILVUS_PORT`, `MILVUS_METRICS_PORT`, `REDIS_PORT`, `API_PORT`).
 
 Use `logos_config.get_repo_ports("repo_name")` for programmatic access.
 
@@ -357,16 +372,20 @@ The `logos_test_utils` package provides fixtures, container management, and data
 | `MILVUS_HOST` | `localhost` | Milvus hostname |
 | `MILVUS_PORT` | `19530` | Milvus gRPC port |
 | `MILVUS_COLLECTION_NAME` | `embeddings` | Default Milvus collection |
+| `REDIS_HOST` | `localhost` | Redis hostname |
+| `REDIS_PORT` | `6379` | Redis port |
+| `REDIS_DB` | `0` | Redis database number |
+| `REDIS_PASSWORD` | *(none)* | Redis password (optional) |
 | `LOGOS_EMBEDDING_DIM` | `384` | Vector embedding dimension |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://localhost:4317` | OpenTelemetry collector endpoint |
 | `API_PORT` | *(per repo)* | Service API port |
 
 ### Pydantic Settings Models
 
-Each config class (`Neo4jConfig`, `MilvusConfig`, `OtelConfig`, `ServiceConfig`) extends Pydantic `BaseSettings` with env-prefixed variable binding. Downstream repos can subclass these for repo-specific settings.
+Each config class (`Neo4jConfig`, `MilvusConfig`, `RedisConfig`, `OtelConfig`, `ServiceConfig`) extends Pydantic `BaseSettings` with env-prefixed variable binding. Downstream repos can subclass these for repo-specific settings.
 
 ```python
-from logos_config import Neo4jConfig, MilvusConfig
+from logos_config import Neo4jConfig, MilvusConfig, RedisConfig
 
 neo4j = Neo4jConfig(password="logosdev")
 print(neo4j.uri)       # bolt://localhost:7687
@@ -374,4 +393,7 @@ print(neo4j.http_url)  # http://localhost:7474
 
 milvus = MilvusConfig()
 print(milvus.port)     # 19530
+
+redis = RedisConfig()
+print(redis.url)   # redis://localhost:6379/0
 ```
