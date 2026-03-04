@@ -20,9 +20,7 @@ try:
 except Exception:
     pass
 
-pytestmark = pytest.mark.skipif(
-    not REDIS_AVAILABLE, reason="Redis not available"
-)
+pytestmark = pytest.mark.skipif(not REDIS_AVAILABLE, reason="Redis not available")
 
 
 class TestEventBus:
@@ -53,11 +51,14 @@ class TestEventBus:
 
         # Publish from a separate connection
         pub_bus = EventBus(self.config)
-        pub_bus.publish("logos:test:ping", {
-            "event_type": "ping",
-            "source": "test",
-            "payload": {"value": 42},
-        })
+        pub_bus.publish(
+            "logos:test:ping",
+            {
+                "event_type": "ping",
+                "source": "test",
+                "payload": {"value": 42},
+            },
+        )
         pub_bus.close()
 
         # Wait for delivery
@@ -83,11 +84,14 @@ class TestEventBus:
         time.sleep(0.1)
 
         pub_bus = EventBus(self.config)
-        pub_bus.publish("logos:test:envelope", {
-            "event_type": "test_event",
-            "source": "sophia",
-            "payload": {},
-        })
+        pub_bus.publish(
+            "logos:test:envelope",
+            {
+                "event_type": "test_event",
+                "source": "sophia",
+                "payload": {},
+            },
+        )
         pub_bus.close()
 
         time.sleep(0.2)
