@@ -390,6 +390,21 @@ class TestUtilityOperations:
         # Should have at least some concepts from core ontology
         assert counts["concept_count"] > 0
 
+    def test_get_all_type_definitions(self, hcg_client):
+        """Test retrieving all type definition nodes."""
+        require_ontology_loaded(hcg_client)
+        type_defs = hcg_client.get_all_type_definitions()
+
+        assert isinstance(type_defs, list)
+        assert len(type_defs) > 0
+
+        # Each record should have uuid, name, and properties keys
+        for td in type_defs:
+            assert "uuid" in td, "type definition missing uuid"
+            assert "name" in td, "type definition missing name"
+            assert "properties" in td, "type definition missing properties"
+            assert isinstance(td["properties"], dict)
+
     def test_verify_connection(self, hcg_client):
         """Test connection verification."""
         assert hcg_client.verify_connection() is True
