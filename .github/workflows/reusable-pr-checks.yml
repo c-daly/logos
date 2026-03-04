@@ -1,0 +1,35 @@
+name: Reusable PR Checks
+
+on:
+  workflow_call:
+    inputs:
+      require_issue_linkage:
+        description: 'Fail the check if no issue linkage is found (default: warn only)'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  check-issue-linkage:
+    name: Check issue linkage
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR body for issue references
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request?.body || '';
+            const pattern = /(closes|fixes|resolves|see)\s+#\d+/i;
+            const hasLinkage = pattern.test(body);
+
+            if (!hasLinkage) {
+              const message = 'No issue linkage found in PR body. Please reference an issue using Closes #N, Fixes #N, Resolves #N, or See #N.';
+              if (${{ inputs.require_issue_linkage }}) {
+                core.setFailed(message);
+              } else {
+                core.warning(message);
+              }
+            } else {
+              core.info('Issue linkage found in PR body.');
+            }

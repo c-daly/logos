@@ -1,0 +1,105 @@
+name: Monthly Triage Summary
+
+on:
+  schedule:
+    - cron: '0 9 1 * *'
+  workflow_dispatch:
+
+permissions:
+  issues: read
+  pull-requests: read
+
+jobs:
+  triage-summary:
+    name: Generate triage summary
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const repos = ['logos', 'sophia', 'hermes', 'talos', 'apollo'];
+            const owner = 'c-daly';
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            const cutoff = thirtyDaysAgo.toISOString();
+
+            let summary = '# Monthly Triage Summary\n\n';
+            summary += `Generated: ${new Date().toISOString().split('T')[0]}\n\n`;
+
+            // Stale issues (not updated in 30+ days)
+            summary += '## Stale Issues (no update in 30+ days)\n\n';
+            for (const repo of repos) {
+              try {
+                const issues = await github.rest.issues.listForRepo({
+                  owner,
+                  repo,
+                  state: 'open',
+                  sort: 'updated',
+                  direction: 'asc',
+                  per_page: 100,
+                });
+                const stale = issues.data
+                  .filter(i => !i.pull_request && new Date(i.updated_at) < thirtyDaysAgo);
+                if (stale.length > 0) {
+                  summary += `### ${repo} (${stale.length})\n`;
+                  for (const issue of stale) {
+                    summary += `- #${issue.number}: ${issue.title} (last updated: ${issue.updated_at.split('T')[0]})\n`;
+                  }
+                  summary += '\n';
+                }
+              } catch (e) {
+                summary += `### ${repo}\n- Error fetching issues: ${e.message}\n\n`;
+              }
+            }
+
+            // Blocked issues
+            summary += '## Blocked Issues\n\n';
+            for (const repo of repos) {
+              try {
+                const issues = await github.rest.issues.listForRepo({
+                  owner,
+                  repo,
+                  state: 'open',
+                  labels: 'blocked',
+                  per_page: 100,
+                });
+                const blocked = issues.data.filter(i => !i.pull_request);
+                if (blocked.length > 0) {
+                  summary += `### ${repo} (${blocked.length})\n`;
+                  for (const issue of blocked) {
+                    summary += `- #${issue.number}: ${issue.title}\n`;
+                  }
+                  summary += '\n';
+                }
+              } catch (e) {
+                summary += `### ${repo}\n- Error fetching issues: ${e.message}\n\n`;
+              }
+            }
+
+            // Open PRs across all repos
+            summary += '## Open Pull Requests\n\n';
+            for (const repo of repos) {
+              try {
+                const prs = await github.rest.pulls.list({
+                  owner,
+                  repo,
+                  state: 'open',
+                  per_page: 100,
+                });
+                if (prs.data.length > 0) {
+                  summary += `### ${repo} (${prs.data.length})\n`;
+                  for (const pr of prs.data) {
+                    const age = Math.floor((Date.now() - new Date(pr.created_at)) / 86400000);
+                    summary += `- #${pr.number}: ${pr.title} (${age}d old)\n`;
+                  }
+                  summary += '\n';
+                }
+              } catch (e) {
+                summary += `### ${repo}\n- Error fetching PRs: ${e.message}\n\n`;
+              }
+            }
+
+            core.summary.addRaw(summary);
+            await core.summary.write();
+            console.log(summary);
