@@ -24,6 +24,7 @@ COPY logos_perception/ ./logos_perception/
 COPY logos_persona/ ./logos_persona/
 COPY logos_sophia/ ./logos_sophia/
 COPY logos_cwm_e/ ./logos_cwm_e/
+COPY logos_events/ ./logos_events/
 COPY logos_tools/ ./logos_tools/
 COPY planner_stub/ ./planner_stub/
 COPY utils/ ./utils/
