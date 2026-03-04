@@ -48,7 +48,7 @@ jobs:
                   summary += '\n';
                 }
               } catch (e) {
-                summary += `### ${repo}\n- Error fetching issues: ${e.message}\n\n`;
+                summary += `### ${repo}\n- Error fetching issues: \`${e.message}\`\n\n`;
               }
             }
 
@@ -72,7 +72,7 @@ jobs:
                   summary += '\n';
                 }
               } catch (e) {
-                summary += `### ${repo}\n- Error fetching issues: ${e.message}\n\n`;
+                summary += `### ${repo}\n- Error fetching issues: \`${e.message}\`\n\n`;
               }
             }
 
@@ -95,7 +95,7 @@ jobs:
                   summary += '\n';
                 }
               } catch (e) {
-                summary += `### ${repo}\n- Error fetching PRs: ${e.message}\n\n`;
+                summary += `### ${repo}\n- Error fetching PRs: \`${e.message}\`\n\n`;
               }
             }
 
