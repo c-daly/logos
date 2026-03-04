@@ -108,6 +108,9 @@ jobs:
               summary += '## Open Pull Requests\n\n' + prContent;
             }
 
+            if (!staleContent && !blockedContent && !prContent) {
+              summary += '_No stale, blocked, or open items found across all repositories._\n';
+            }
             core.summary.addRaw(summary);
             await core.summary.write();
             console.log(summary);
