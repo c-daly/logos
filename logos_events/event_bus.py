@@ -11,8 +11,9 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timezone
-from typing import Any, Callable
+from collections.abc import Callable
+from datetime import UTC, datetime
+from typing import Any
 
 import redis
 
@@ -38,7 +39,7 @@ class EventBus:
         envelope = {
             "event_type": event.get("event_type", "unknown"),
             "source": event.get("source", "unknown"),
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "payload": event.get("payload", {}),
         }
         self._redis.publish(channel, json.dumps(envelope))
