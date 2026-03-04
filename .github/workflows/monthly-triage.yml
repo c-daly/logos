@@ -27,7 +27,7 @@ jobs:
             summary += `Generated: ${new Date().toISOString().split('T')[0]}\n\n`;
 
             // Stale issues (not updated in 30+ days)
-            summary += '## Stale Issues (no update in 30+ days)\n\n';
+            let staleContent = '';
             for (const repo of repos) {
               try {
                 const issues = await github.paginate(github.rest.issues.listForRepo, {
@@ -41,19 +41,22 @@ jobs:
                 const stale = issues
                   .filter(i => !i.pull_request && new Date(i.updated_at) < thirtyDaysAgo);
                 if (stale.length > 0) {
-                  summary += `### ${repo} (${stale.length})\n`;
+                  staleContent += `### ${repo} (${stale.length})\n`;
                   for (const issue of stale) {
-                    summary += `- #${issue.number}: \`${issue.title}\` (last updated: ${issue.updated_at.split('T')[0]})\n`;
+                    staleContent += `- #${issue.number}: \`${issue.title}\` (last updated: ${issue.updated_at.split('T')[0]})\n`;
                   }
-                  summary += '\n';
+                  staleContent += '\n';
                 }
               } catch (e) {
-                summary += `### ${repo}\n- Error fetching issues: \`${e.message}\`\n\n`;
+                staleContent += `### ${repo}\n- Error fetching issues: \`${e.message}\`\n\n`;
               }
+            }
+            if (staleContent) {
+              summary += '## Stale Issues (no update in 30+ days)\n\n' + staleContent;
             }
 
             // Blocked issues
-            summary += '## Blocked Issues\n\n';
+            let blockedContent = '';
             for (const repo of repos) {
               try {
                 const issues = await github.paginate(github.rest.issues.listForRepo, {
@@ -65,19 +68,22 @@ jobs:
                 });
                 const blocked = issues.filter(i => !i.pull_request);
                 if (blocked.length > 0) {
-                  summary += `### ${repo} (${blocked.length})\n`;
+                  blockedContent += `### ${repo} (${blocked.length})\n`;
                   for (const issue of blocked) {
-                    summary += `- #${issue.number}: \`${issue.title}\`\n`;
+                    blockedContent += `- #${issue.number}: \`${issue.title}\`\n`;
                   }
-                  summary += '\n';
+                  blockedContent += '\n';
                 }
               } catch (e) {
-                summary += `### ${repo}\n- Error fetching issues: \`${e.message}\`\n\n`;
+                blockedContent += `### ${repo}\n- Error fetching issues: \`${e.message}\`\n\n`;
               }
+            }
+            if (blockedContent) {
+              summary += '## Blocked Issues\n\n' + blockedContent;
             }
 
             // Open PRs across all repos
-            summary += '## Open Pull Requests\n\n';
+            let prContent = '';
             for (const repo of repos) {
               try {
                 const prs = await github.paginate(github.rest.pulls.list, {
@@ -87,16 +93,19 @@ jobs:
                   per_page: 100,
                 });
                 if (prs.length > 0) {
-                  summary += `### ${repo} (${prs.length})\n`;
+                  prContent += `### ${repo} (${prs.length})\n`;
                   for (const pr of prs) {
                     const age = Math.floor((Date.now() - new Date(pr.created_at)) / 86400000);
-                    summary += `- #${pr.number}: \`${pr.title}\` (${age}d old)\n`;
+                    prContent += `- #${pr.number}: \`${pr.title}\` (${age}d old)\n`;
                   }
-                  summary += '\n';
+                  prContent += '\n';
                 }
               } catch (e) {
-                summary += `### ${repo}\n- Error fetching PRs: \`${e.message}\`\n\n`;
+                prContent += `### ${repo}\n- Error fetching PRs: \`${e.message}\`\n\n`;
               }
+            }
+            if (prContent) {
+              summary += '## Open Pull Requests\n\n' + prContent;
             }
 
             core.summary.addRaw(summary);

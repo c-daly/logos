@@ -75,6 +75,8 @@ docs/fix-readme-links
 - Use the PR template (auto-populated from `.github/PULL_REQUEST_TEMPLATE.md`)
 - PR title matches commit format: `<type>: <short summary>`
 - CI must pass before merge
+- Linting: `ruff check --fix .`
+- Formatting: `black .`
 
 ### Labels
 
@@ -83,3 +85,14 @@ docs/fix-readme-links
 | `deferred` | gray | Work postponed to a future milestone |
 | `needs-triage` | yellow | Needs prioritization and assignment |
 | `blocked` | red | Blocked by external dependency or decision |
+
+---
+
+## Toolchain
+
+| Tool | Purpose | Pre-commit hook | CI check |
+|------|---------|----------------|----------|
+| `ruff` | Linting | Yes (on commit) | Yes |
+| `black` | Formatting | Yes (on commit) | Yes |
+| `mypy` | Type checking | No | Yes |
+| `pytest` | Testing | Yes (on push) | Yes |

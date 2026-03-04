@@ -49,6 +49,13 @@ jobs:
         with:
           script: |
             const branch = context.payload.pull_request?.head?.ref || '';
+            // Skip validation for bot-generated branches
+            const botPrefixes = ['dependabot/', 'renovate/', 'github-actions/'];
+            if (botPrefixes.some(p => branch.startsWith(p))) {
+              core.info(`Branch '${branch}' is bot-generated — skipping naming check.`);
+              return;
+            }
+
             const types = 'feat|fix|chore|refactor|docs|test|ci';
             const repos = 'logos|sophia|hermes|talos|apollo';
             const withTicket = new RegExp(`^(${types})/(${repos})\\d+-[a-z0-9][a-z0-9-]+$`);
