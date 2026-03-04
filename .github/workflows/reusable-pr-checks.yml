@@ -8,6 +8,11 @@ on:
         required: false
         type: boolean
         default: false
+      require_branch_naming:
+        description: 'Fail the check if branch name does not follow convention (default: warn only)'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   check-issue-linkage:
@@ -44,17 +49,18 @@ jobs:
         with:
           script: |
             const branch = context.payload.pull_request?.head?.ref || '';
-            // Format: <type>/<repo><ticket>-<description> or <type>/<description>
-            // Examples: feat/logos42-add-validation, chore/update-deps
             const types = 'feat|fix|chore|refactor|docs|test|ci';
             const repos = 'logos|sophia|hermes|talos|apollo';
             const withTicket = new RegExp(`^(${types})/(${repos})\\d+-[a-z0-9][a-z0-9-]+$`);
             const withoutTicket = new RegExp(`^(${types})/[a-z0-9][a-z0-9-]+$`);
+            const fail = ${{ inputs.require_branch_naming }};
 
             if (withTicket.test(branch)) {
               core.info(`Branch '${branch}' follows naming convention with ticket reference.`);
             } else if (withoutTicket.test(branch)) {
-              core.warning(`Branch '${branch}' follows type/description format but has no ticket reference. Prefer <type>/<repo><ticket>-<description> (e.g., feat/logos42-add-validation).`);
+              const msg = `Branch '${branch}' has no ticket reference. Prefer <type>/<repo><ticket>-<description> (e.g., feat/logos42-add-validation).`;
+              fail ? core.setFailed(msg) : core.warning(msg);
             } else {
-              core.warning(`Branch '${branch}' does not follow naming convention. Expected: <type>/<repo><ticket>-<description> (e.g., feat/logos42-add-validation). See docs/GIT_PROJECT_STANDARDS.md.`);
+              const msg = `Branch '${branch}' does not follow naming convention. Expected: <type>/<repo><ticket>-<description>. See docs/GIT_PROJECT_STANDARDS.md.`;
+              fail ? core.setFailed(msg) : core.warning(msg);
             }
