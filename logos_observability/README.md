@@ -185,10 +185,10 @@ Environment variables for configuration:
 
 For distributed tracing with Grafana/Tempo:
 
-1. Start the observability stack:
+1. Start the observability stack (from [`logos-otel`](https://github.com/c-daly/logos-otel)):
    ```bash
-   cd infra
-   docker-compose -f docker-compose.otel.yml up -d
+   cd ~/.claude/infra/otel
+   ./start.sh
    ```
 
 2. Configure your service:
@@ -203,9 +203,9 @@ For distributed tracing with Grafana/Tempo:
    )
    ```
 
-3. Access Grafana dashboards at http://localhost:3001
+3. Access Grafana dashboards at http://localhost:3000
 
-See `infra/OTEL_SETUP.md` for complete documentation.
+See the [logos-otel README](https://github.com/c-daly/logos-otel) for complete documentation.
 
 ## See Also
 

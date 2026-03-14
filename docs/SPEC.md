@@ -282,9 +282,9 @@ Each downstream repo has a test compose file under `infra/{repo}/docker-compose.
 
 ### Observability Stack
 
-**File:** `docker-compose.otel.yml`
+**Repo:** [`c-daly/logos-otel`](https://github.com/c-daly/logos-otel) (cloned to `~/.claude/infra/otel/`)
 
-Provisions OpenTelemetry collector, Grafana dashboards, and Tempo for distributed tracing. Dashboard definitions live in `infra/dashboards/`.
+Full observability stack: OTel collector, Prometheus, Loki, Tempo, Grafana, plus custom exporters for Claude Code and agent-swarm metrics. See the repo README for setup.
 
 ### Useful Scripts
 
