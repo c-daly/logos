@@ -255,11 +255,11 @@ status_service() {
 cmd_start() {
     mkdir -p "$PID_DIR"
     
-    # Start OTel observability stack
-    local otel_compose="$LOGOS_ROOT/infra/docker-compose.otel.yml"
-    if [ -f "$otel_compose" ] && [ -z "${CI:-}" ]; then
-        log_info "Starting OTel observability stack..."
-        docker compose -f "$otel_compose" up -d 2>/dev/null &&             log_success "OTel stack started (Collector, Tempo, Grafana)" ||             log_warn "OTel stack failed to start (services will run without tracing)"
+    # OTel observability stack lives in ~/.claude/infra/otel (logos-otel repo)
+    local otel_dir="$HOME/.claude/infra/otel"
+    if [ -d "$otel_dir" ] && [ -z "${CI:-}" ]; then
+        log_info "Starting OTel observability stack from $otel_dir..."
+        docker compose -f "$otel_dir/docker-compose.yml" up -d 2>/dev/null &&             log_success "OTel stack started (Collector, Tempo, Loki, Prometheus, Grafana)" ||             log_warn "OTel stack failed to start (services will run without tracing)"
     fi
     
     log_info "Starting LOGOS services..."
@@ -293,11 +293,11 @@ cmd_stop() {
         stop_service "$service"
     done
     
-    # Stop OTel observability stack
-    local otel_compose="$LOGOS_ROOT/infra/docker-compose.otel.yml"
-    if [ -f "$otel_compose" ] && [ -z "${CI:-}" ]; then
+    # OTel observability stack lives in ~/.claude/infra/otel (logos-otel repo)
+    local otel_dir="$HOME/.claude/infra/otel"
+    if [ -d "$otel_dir" ] && [ -z "${CI:-}" ]; then
         log_info "Stopping OTel observability stack..."
-        docker compose -f "$otel_compose" down 2>/dev/null &&             log_success "OTel stack stopped" ||             log_warn "OTel stack stop failed"
+        docker compose -f "$otel_dir/docker-compose.yml" down 2>/dev/null &&             log_success "OTel stack stopped" ||             log_warn "OTel stack stop failed"
     fi
     
     log_success "All services stopped"
