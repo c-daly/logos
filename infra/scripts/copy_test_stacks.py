@@ -122,6 +122,11 @@ def main() -> int:
                 f"[skip ] {name}: source-only (creates configs, does not consume them)"
             )
             continue
+        if not (WORKSPACE_ROOT / name).is_dir():
+            print(
+                f"[skip ] {name}: not checked out at {WORKSPACE_ROOT / name} — skipping"
+            )
+            continue
         try:
             ok = copy_repo(name, repo_cfg, check_only=args.check)
         except RenderError as exc:
