@@ -76,10 +76,20 @@ def files_match(src: Path, dst: Path) -> bool:
 
 
 def copy_repo(name: str, repo_cfg: dict, *, check_only: bool) -> bool:
-    """Copy/verify one repo's stack files. Returns True if dest is in sync."""
+    """Copy/verify one repo's stack files.
+
+    Returns True if the destination already matched the source (nothing to
+    do); False if at least one file differed (and was copied, unless
+    ``check_only``). This lets the caller distinguish "in sync" from
+    "copied"/"stale" regardless of mode.
+    """
     src_dir = (TEST_STACK_DIR / repo_cfg["path"]).resolve()
     dest_dir = WORKSPACE_ROOT / name / DEST_SUBDIR
-    artifacts = [repo_cfg["compose_filename"], repo_cfg["env_filename"], "STACK_VERSION"]
+    artifacts = [
+        repo_cfg["compose_filename"],
+        repo_cfg["env_filename"],
+        "STACK_VERSION",
+    ]
 
     missing = [f for f in artifacts if not (src_dir / f).exists()]
     if missing:
@@ -88,16 +98,17 @@ def copy_repo(name: str, repo_cfg: dict, *, check_only: bool) -> bool:
             f"(run render_test_stacks.py first)"
         )
 
-    in_sync = True
+    already_in_sync = True
     for fname in artifacts:
         src = src_dir / fname
         dst = dest_dir / fname
-        if check_only:
-            in_sync = in_sync and files_match(src, dst)
-        elif not files_match(src, dst):
+        if files_match(src, dst):
+            continue
+        already_in_sync = False
+        if not check_only:
             dest_dir.mkdir(parents=True, exist_ok=True)
             shutil.copy2(src, dst)
-    return in_sync
+    return already_in_sync
 
 
 def main() -> int:
@@ -107,7 +118,9 @@ def main() -> int:
     all_ok = True
     for name, repo_cfg in resolved.items():
         if name in SOURCE_ONLY:
-            print(f"[skip ] {name}: source-only (creates configs, does not consume them)")
+            print(
+                f"[skip ] {name}: source-only (creates configs, does not consume them)"
+            )
             continue
         try:
             ok = copy_repo(name, repo_cfg, check_only=args.check)
@@ -120,7 +133,10 @@ def main() -> int:
         all_ok = all_ok and ok
 
     if args.check and not all_ok:
-        print("At least one destination is out of sync with the rendered source.", file=sys.stderr)
+        print(
+            "At least one destination is out of sync with the rendered source.",
+            file=sys.stderr,
+        )
         return 1
     return 0
 
