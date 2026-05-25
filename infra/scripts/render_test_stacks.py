@@ -160,8 +160,8 @@ def get_port_context(repo_name: str) -> dict[str, str]:
         "milvus_grpc_port": host(ports.milvus_grpc),
         "milvus_metrics_port": host(ports.milvus_metrics),
         "redis_port": str(ports.redis),
-        "minio_api_port": str(prefix * 1000 + 900),
-        "minio_console_port": str(prefix * 1000 + 901),
+        "minio_api_port": host(900),
+        "minio_console_port": host(901),
         "api_port": str(ports.api),
     }
 
