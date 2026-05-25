@@ -143,19 +143,25 @@ def get_port_context(repo_name: str) -> dict[str, str]:
         )
 
     ports = REPO_PORTS[repo_name]
-    # All ports share the same prefix (e.g., 17xxx for hermes)
-    # Extract prefix from api port (e.g., 17000 -> 17)
+    # Each repo's test stack publishes its containers on repo-OFFSET host ports
+    # so multiple stacks can run on one host (CI) without colliding, while the
+    # containers themselves keep standard ports. The offset is the repo's API
+    # prefix (17xxx hermes, 27xxx apollo, ...); the published host port is
+    # prefix * 1000 + (standard_port % 1000), e.g. apollo Neo4j bolt 7687 -> 27687.
+    # Redis is the exception: shared on its standard port (6379) for every repo.
     prefix = ports.api // 1000
-    minio_api_port = prefix * 1000 + 900  # e.g., 17900
-    minio_console_port = prefix * 1000 + 901  # e.g., 17901
+
+    def host(standard_port: int) -> str:
+        return str(prefix * 1000 + standard_port % 1000)
 
     return {
-        "neo4j_http_port": str(ports.neo4j_http),
-        "neo4j_bolt_port": str(ports.neo4j_bolt),
-        "milvus_grpc_port": str(ports.milvus_grpc),
-        "milvus_metrics_port": str(ports.milvus_metrics),
-        "minio_api_port": str(minio_api_port),
-        "minio_console_port": str(minio_console_port),
+        "neo4j_http_port": host(ports.neo4j_http),
+        "neo4j_bolt_port": host(ports.neo4j_bolt),
+        "milvus_grpc_port": host(ports.milvus_grpc),
+        "milvus_metrics_port": host(ports.milvus_metrics),
+        "redis_port": str(ports.redis),
+        "minio_api_port": str(prefix * 1000 + 900),
+        "minio_console_port": str(prefix * 1000 + 901),
         "api_port": str(ports.api),
     }
 

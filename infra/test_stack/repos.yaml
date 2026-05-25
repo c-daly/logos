@@ -3,12 +3,13 @@
 # Port values are sourced from logos_config.ports (single source of truth).
 # Do NOT hardcode ports here - they are injected by render_test_stacks.py.
 #
-# Port allocation standard: base_port + repo_offset
-#   hermes:  +10000
-#   apollo:  +20000
-#   logos:   +30000
-#   sophia:  +40000
-#   talos:   +50000
+# Port allocation: each repo's test stack publishes its containers on repo-OFFSET
+# host ports so multiple stacks can run on one host (CI) without colliding, while
+# the containers keep standard ports. The offset is the repo's API prefix, e.g.
+# apollo Neo4j bolt is published on 27687 -> container 7687. Redis is the one
+# exception (shared on 6379 for every repo). Host ports are injected by
+# render_test_stacks.py from logos_config.ports -- do NOT hardcode them here.
+#   hermes:  17xxx   apollo:  27xxx   logos:   37xxx   sophia:  47xxx   talos:  57xxx
 
 defaults:
   compose_filename: docker-compose.test.yml
@@ -48,6 +49,7 @@ repos:
       - milvus-etcd
       - milvus-minio
       - milvus
+      - redis
     env:
       NEO4J_URI: "bolt://neo4j:{neo4j_bolt_port}"
       MILVUS_HOST: milvus
@@ -64,6 +66,7 @@ repos:
       - milvus-etcd
       - milvus-minio
       - milvus
+      - redis
     env:
       NEO4J_URI: "bolt://neo4j:{neo4j_bolt_port}"
 
@@ -79,6 +82,7 @@ repos:
       - milvus-etcd
       - milvus-minio
       - milvus
+      - redis
     env:
       NEO4J_URI: "bolt://neo4j:{neo4j_bolt_port}"
 
@@ -93,6 +97,7 @@ repos:
       - milvus-etcd
       - milvus-minio
       - milvus
+      - redis
     env:
       NEO4J_URI: "bolt://neo4j:{neo4j_bolt_port}"
 
@@ -107,5 +112,6 @@ repos:
       - milvus-etcd
       - milvus-minio
       - milvus
+      - redis
     env:
       NEO4J_URI: "bolt://neo4j:{neo4j_bolt_port}"

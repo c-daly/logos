@@ -13,7 +13,7 @@ volumes:
 services:
   neo4j:
     container_name: talos-test-neo4j
-    image: neo4j:5.14.0
+    image: neo4j:5.11.0
     ports:
     - 57474:7474
     - 57687:7687

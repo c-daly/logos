@@ -13,7 +13,7 @@ volumes:
 services:
   neo4j:
     container_name: hermes-test-neo4j
-    image: neo4j:5.14.0
+    image: neo4j:5.11.0
     ports:
     - 17474:7474
     - 17687:7687

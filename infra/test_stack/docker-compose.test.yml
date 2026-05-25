@@ -13,12 +13,12 @@ volumes:
 services:
   neo4j:
     container_name: logos-test-neo4j
-    image: neo4j:5.14.0
+    image: neo4j:5.11.0
     ports:
     - 37474:7474
     - 37687:7687
     environment:
-    - NEO4J_AUTH=neo4j/neo4jtest
+    - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD:-logosdev}
     - NEO4J_PLUGINS=["apoc","n10s"]
     - NEO4JLABS_PLUGINS=["apoc","n10s"]
     - NEO4J_dbms_security_procedures_unrestricted=apoc.*,n10s.*
@@ -34,7 +34,7 @@ services:
       - -u
       - neo4j
       - -p
-      - neo4jtest
+      - ${NEO4J_PASSWORD:-logosdev}
       - RETURN 1
       interval: 10s
       timeout: 5s
