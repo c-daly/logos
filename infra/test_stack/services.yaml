@@ -11,7 +11,7 @@ services:
       - "{neo4j_http_port}:7474"
       - "{neo4j_bolt_port}:7687"
     environment:
-      - 'NEO4J_AUTH={neo4j_username}/{neo4j_password}'
+      - 'NEO4J_AUTH={neo4j_username}/${{NEO4J_PASSWORD:-logosdev}}'
       - 'NEO4J_PLUGINS=["apoc","n10s"]'
       - 'NEO4JLABS_PLUGINS=["apoc","n10s"]'
       - 'NEO4J_dbms_security_procedures_unrestricted=apoc.*,n10s.*'
@@ -21,7 +21,7 @@ services:
       - "{volume_prefix}_neo4j_data:/data"
       - "{volume_prefix}_neo4j_logs:/logs"
     healthcheck:
-      test: ["CMD", "cypher-shell", "-u", "{neo4j_username}", "-p", "{neo4j_password}", "RETURN 1"]
+      test: ["CMD", "cypher-shell", "-u", "{neo4j_username}", "-p", "${{NEO4J_PASSWORD:-logosdev}}", "RETURN 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -96,9 +96,25 @@ services:
     networks:
       - default
 
+  redis:
+    container_name: "{service_prefix}-redis"
+    image: redis:7-alpine
+    ports:
+      - "{redis_port}:6379"
+    volumes:
+      - "{volume_prefix}_redis_data:/data"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    networks:
+      - default
+
 volumes:
   "{volume_prefix}_neo4j_data": {}
   "{volume_prefix}_neo4j_logs": {}
   "{volume_prefix}_milvus_etcd": {}
   "{volume_prefix}_milvus_minio": {}
   "{volume_prefix}_milvus": {}
+  "{volume_prefix}_redis_data": {}
