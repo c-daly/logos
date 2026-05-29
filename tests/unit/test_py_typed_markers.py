@@ -36,17 +36,3 @@ def test_py_typed_marker_exists(package: str) -> None:
         f"Package '{package}' is missing py.typed marker. "
         f"Expected at: {py_typed_path}"
     )
-
-
-def test_all_packages_have_py_typed() -> None:
-    """Verify all packages have py.typed - summary test."""
-    missing = []
-    for package in PACKAGES:
-        py_typed_path = REPO_ROOT / package / "py.typed"
-        if not py_typed_path.exists():
-            missing.append(package)
-
-    assert not missing, (
-        f"The following packages are missing py.typed markers: {missing}. "
-        "This prevents mypy from recognizing the package as typed when installed."
-    )
