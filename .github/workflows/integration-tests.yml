@@ -1,0 +1,118 @@
+name: Integration Tests
+
+# De-vacuum guard (logos#529): the spine integration tests (Neo4j/Milvus
+# persistence, embedding writes) must actually execute against live services in
+# CI -- not silently skip. This workflow stands up the test stack, runs the
+# integration + infra suites, and FAILS if zero integration tests ran, so a
+# blanket-skip regression can never go green again.
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # Point the test helpers at the compose stack started below.
+  NEO4J_CONTAINER: logos-phase2-test-neo4j
+  MILVUS_CONTAINER: logos-phase2-test-milvus
+  NEO4J_URI: bolt://localhost:37687
+  NEO4J_USER: neo4j
+  NEO4J_PASSWORD: neo4jtest
+  MILVUS_HOST: localhost
+  MILVUS_PORT: "37530"
+
+jobs:
+  integration:
+    name: Spine integration tests (live Neo4j + Milvus)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Install dependencies
+        run: poetry install --with dev,test
+
+      - name: Start test stack (Neo4j + Milvus)
+        run: docker compose -f tests/e2e/stack/logos/docker-compose.test.yml up -d
+
+      - name: Wait for Neo4j
+        run: |
+          for i in $(seq 1 60); do
+            if docker exec logos-phase2-test-neo4j cypher-shell -u neo4j -p neo4jtest "RETURN 1" >/dev/null 2>&1; then
+              echo "Neo4j is ready"; break
+            fi
+            echo "Waiting for Neo4j... ($i)"; sleep 2
+          done
+          docker exec logos-phase2-test-neo4j cypher-shell -u neo4j -p neo4jtest "RETURN 1 AS ok"
+
+      - name: Wait for Milvus
+        run: |
+          for i in $(seq 1 90); do
+            if curl -sf http://localhost:37091/healthz >/dev/null 2>&1; then
+              echo "Milvus is ready"; break
+            fi
+            echo "Waiting for Milvus... ($i)"; sleep 2
+          done
+
+      - name: Initialize Milvus collections
+        run: |
+          poetry run python infra/init_milvus_collections.py \
+            --host "$MILVUS_HOST" --port "$MILVUS_PORT" \
+            || echo "Milvus init failed (may already exist)"
+
+      - name: Run integration + infra tests
+        id: run
+        run: |
+          set -o pipefail
+          # -p no:cacheprovider keeps runs reproducible; --no-header for cleaner logs.
+          poetry run pytest \
+            tests/integration tests/infra tests/e2e/test_phase1_end_to_end.py \
+            -v -ra --tb=short \
+            | tee pytest-integration.log
+
+      - name: Assert integration tests actually executed (de-vacuum guard)
+        if: always()
+        run: |
+          # Fail the build if EVERY integration test skipped -- that is the
+          # exact "vacuum" failure mode this issue (logos#529) closes: the
+          # stack is up but the suite protects nothing.
+          if [ ! -f pytest-integration.log ]; then
+            echo "::error::pytest log missing; integration tests did not run"
+            exit 1
+          fi
+          summary="$(grep -E '^=.* (passed|failed|skipped|error)' pytest-integration.log | tail -1)"
+          echo "pytest summary: ${summary:-<none>}"
+          if echo "$summary" | grep -qE '[0-9]+ passed'; then
+            echo "Integration tests executed (at least one passed)."
+          else
+            echo "::error::No integration tests passed against the live stack -- the spine suite is silently skipping. See logos#529."
+            exit 1
+          fi
+
+      - name: Upload pytest log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-pytest-log
+          path: pytest-integration.log
+          retention-days: 14
+
+      - name: Tear down test stack
+        if: always()
+        run: docker compose -f tests/e2e/stack/logos/docker-compose.test.yml down -v || true
