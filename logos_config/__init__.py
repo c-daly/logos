@@ -20,6 +20,11 @@ from logos_config.ports import (
     RepoPorts,
     get_repo_ports,
 )
+from logos_config.embedding import (
+    EmbeddingDimMismatch,
+    get_embedding_dim_override,
+    resolve_embedding_dim,
+)
 from logos_config.settings import (
     MilvusConfig,
     Neo4jConfig,
@@ -47,6 +52,10 @@ __all__ = [
     "OtelConfig",
     "RedisConfig",
     "ServiceConfig",
+    # embedding
+    "EmbeddingDimMismatch",
+    "get_embedding_dim_override",
+    "resolve_embedding_dim",
 ]
 
 __version__ = "0.1.0"
