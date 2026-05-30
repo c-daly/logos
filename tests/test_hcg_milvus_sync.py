@@ -121,8 +121,10 @@ class TestHCGMilvusSync:
             model=test_model,
         )
 
-        # Verify collection operations
-        mock_coll_instance.insert.assert_called_once()
+        # Verify collection operations: must be a true upsert (keyed on uuid),
+        # not insert() which would append a duplicate row on re-ingest.
+        mock_coll_instance.upsert.assert_called_once()
+        mock_coll_instance.insert.assert_not_called()
         mock_coll_instance.flush.assert_called_once()
 
         # Verify returned metadata
@@ -167,8 +169,9 @@ class TestHCGMilvusSync:
             embeddings=embeddings,
         )
 
-        # Verify batch operation
-        mock_coll_instance.insert.assert_called_once()
+        # Verify batch operation uses true upsert (keyed on uuid), not insert()
+        mock_coll_instance.upsert.assert_called_once()
+        mock_coll_instance.insert.assert_not_called()
         mock_coll_instance.flush.assert_called_once()
 
         # Verify metadata list
