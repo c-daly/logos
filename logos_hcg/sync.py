@@ -149,11 +149,37 @@ class HCGMilvusSync:
 
         name = COLLECTION_NAMES[node_type]
         if utility.has_collection(name, using=self.alias):
-            return
+            existing = Collection(name=name, using=self.alias)
+            primary = [
+                f for f in existing.schema.fields if getattr(f, "is_primary", False)
+            ]
+            if primary and primary[0].name == "uuid":
+                return
+            # A pre-existing collection on the old auto_id INT64 'id' primary key
+            # cannot be upserted by uuid (Milvus rejects upsert when auto_id=True),
+            # which would silently break update_centroid() and Edge upserts after
+            # upgrade. Data is regenerable, so drop and recreate with the uuid-PK
+            # schema below.
+            logger.warning(
+                "Collection %s has primary key %r, not 'uuid' -- dropping and "
+                "recreating with the uuid-PK schema.",
+                name,
+                primary[0].name if primary else None,
+            )
+            utility.drop_collection(name, using=self.alias)
 
+        # uuid is the primary key (auto_id=False) so that upsert() replaces an
+        # existing row keyed on the node UUID instead of appending a duplicate.
+        # Schema mirrors infra/init_milvus_collections.py so the write path and
+        # the read/classify/health paths agree on the collection layout.
         fields = [
-            FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
-            FieldSchema(name="uuid", dtype=DataType.VARCHAR, max_length=64),
+            FieldSchema(
+                name="uuid",
+                dtype=DataType.VARCHAR,
+                max_length=256,
+                is_primary=True,
+                auto_id=False,
+            ),
             FieldSchema(
                 name="embedding", dtype=DataType.FLOAT_VECTOR, dim=_get_embedding_dim()
             ),
@@ -301,18 +327,17 @@ class HCGMilvusSync:
         collection = self._get_collection(node_type)
 
         try:
-            # Prepare data for insertion
-            # Milvus uses upsert based on primary key (uuid)
+            # uuid is the primary key (auto_id=False), so upsert() replaces the
+            # existing row for this uuid rather than appending a duplicate.
             timestamp = int(datetime.now(UTC).timestamp())
             data = [
-                [uuid_str],  # uuid
+                [uuid_str],  # uuid (primary key)
                 [embedding],  # embedding
                 [model],  # embedding_model
                 [timestamp],  # last_sync
             ]
 
-            # Upsert to Milvus (replaces if exists)
-            collection.insert(data)
+            collection.upsert(data)
             collection.flush()
 
             logger.info(f"Upserted embedding for {node_type} {uuid_str}")
@@ -361,8 +386,9 @@ class HCGMilvusSync:
 
             data = [uuids, vectors, models, timestamps]
 
-            # Batch insert
-            collection.insert(data)
+            # uuid is the primary key, so upsert() replaces any existing rows for
+            # these uuids rather than appending duplicates.
+            collection.upsert(data)
             collection.flush()
 
             logger.info(f"Batch upserted {len(embeddings)} embeddings for {node_type}")
