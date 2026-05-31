@@ -53,6 +53,10 @@ jobs:
         export NEO4J_CONTAINER=logos-phase2-test-neo4j
         export MILVUS_HOST=localhost
         export MILVUS_PORT=37530
+        # Pre-create the hcg_* collections at a fixed dim; without this, init
+        # defers creation to the measured dim on first write (logos#542) and the
+        # infra suite's test_all_collections_exist fails.
+        export LOGOS_EMBEDDING_DIM=384
         echo "Initializing Milvus collections..."
         poetry run python infra/init_milvus_collections.py --host localhost --port 37530 || echo "Milvus init failed (may already exist)"
     secrets:
