@@ -30,6 +30,10 @@ class TestResolveEmbeddingDim:
         with pytest.raises(EmbeddingDimMismatch):
             resolve_embedding_dim(measured_dim=384, override=512)
 
+    def test_accepts_override_matching_measured(self) -> None:
+        """An override that agrees with the measured dim is accepted as-is."""
+        assert resolve_embedding_dim(measured_dim=1536, override=1536) == 1536
+
 
 class TestEmbeddingDimOverride:
     def test_none_when_unset(self, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -42,9 +46,7 @@ class TestEmbeddingDimOverride:
         monkeypatch.setenv("LOGOS_EMBEDDING_DIM", "1536")
         assert get_embedding_dim_override() == 1536
 
-    def test_invalid_override_fails_loud(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_invalid_override_fails_loud(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """A non-integer LOGOS_EMBEDDING_DIM fails loud, never a silent fallback."""
         monkeypatch.setenv("LOGOS_EMBEDDING_DIM", "not-a-number")
         with pytest.raises(EmbeddingDimMismatch):
