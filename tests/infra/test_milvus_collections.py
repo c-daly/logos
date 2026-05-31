@@ -9,10 +9,12 @@ configured via MILVUS_HOST and MILVUS_PORT environment variables.
 If Milvus is not available, tests will be skipped.
 """
 
-import os
+import time
 
 import pytest
 from pymilvus import Collection, MilvusException, connections, utility
+
+from logos_test_utils.milvus import get_milvus_config, is_milvus_available
 
 # Expected collections per Section 4.1 (Core Ontology)
 EXPECTED_COLLECTIONS = [
@@ -25,29 +27,20 @@ EXPECTED_COLLECTIONS = [
 # Expected schema fields
 EXPECTED_FIELDS = ["uuid", "embedding", "embedding_model", "last_sync"]
 
-# Test configuration - can be overridden with environment variables
-MILVUS_HOST = os.getenv("MILVUS_HOST", "localhost")
-MILVUS_PORT = os.getenv("MILVUS_PORT", "19530")
+# Resolve host/port from the central config (honours MILVUS_HOST / MILVUS_PORT
+# env overrides and the repo's default ports) instead of a hardcoded 19530,
+# so the suite targets whichever stack is actually configured.
+_MILVUS_CONFIG = get_milvus_config()
+MILVUS_HOST = _MILVUS_CONFIG.host
+MILVUS_PORT = str(_MILVUS_CONFIG.port)
 
 
-def _check_milvus_available():
-    """Check if Milvus is available for testing."""
-    try:
-        connections.connect(
-            alias="test_connection",
-            host=MILVUS_HOST,
-            port=MILVUS_PORT,
-        )
-        connections.disconnect("test_connection")
-        return True
-    except Exception:
-        return False
-
-
-# Skip all tests in this module if Milvus is not available
+# Skip all tests in this module if Milvus is not reachable. Gate on a real
+# gRPC connection rather than a Docker container name so the tests run against
+# CI compose, the shared stack, or a remote Milvus.
 pytestmark = pytest.mark.skipif(
-    not _check_milvus_available(),
-    reason=f"Milvus is not available on {MILVUS_HOST}:{MILVUS_PORT}",
+    not is_milvus_available(_MILVUS_CONFIG),
+    reason=f"Milvus is not reachable on {MILVUS_HOST}:{MILVUS_PORT}",
 )
 
 
@@ -186,7 +179,6 @@ class TestMilvusIntegration:
 
     def test_insert_and_search(self, milvus_connection):
         """Test basic insert and search operations."""
-        import time
 
         collection_name = "hcg_entity_embeddings"
         if not utility.has_collection(collection_name):
@@ -243,3 +235,61 @@ class TestMilvusIntegration:
         # Clean up - delete the test entity
         collection.delete(f"uuid in ['{test_uuid}']")
         collection.flush()
+
+    def test_embedding_write_is_readable_by_uuid(self, milvus_connection):
+        """Signal check: a written embedding must be retrievable by its uuid.
+
+        This is the keystone regression guard for the c-daly/sophia#146 class
+        of bug -- an embedding write that is silently swallowed (caught and
+        dropped) or never flushed. Unlike ``num_entities > 0`` (collection
+        wide), this asserts the *specific* row we just wrote is present, so a
+        no-op/swallowed write fails the test instead of passing on pre-existing
+        rows.
+        """
+
+        collection_name = "hcg_entity_embeddings"
+        if not utility.has_collection(collection_name):
+            pytest.skip(f"Collection {collection_name} not initialized")
+
+        collection = Collection(name=collection_name)
+        try:
+            collection.load(_async=False, _refresh=False)
+        except Exception as e:
+            pytest.skip(f"Could not load collection: {e}")
+
+        embedding_dim = None
+        for field in collection.schema.fields:
+            if field.name == "embedding":
+                embedding_dim = field.params["dim"]
+                break
+        assert embedding_dim is not None, "Could not determine embedding dimension"
+
+        test_uuid = f"signal-check-{int(time.time() * 1000)}"
+        test_embedding = [0.42] * embedding_dim
+        try:
+            collection.insert(
+                [
+                    [test_uuid],
+                    [test_embedding],
+                    ["signal-check-model"],
+                    [int(time.time())],
+                ]
+            )
+            # A flush is what actually persists the segment. A swallowed write
+            # (insert never reached, or exception caught and dropped upstream)
+            # leaves nothing to read back below.
+            collection.flush()
+
+            rows = collection.query(
+                expr=f"uuid in ['{test_uuid}']",
+                output_fields=["uuid", "embedding_model"],
+            )
+            assert len(rows) == 1, (
+                f"Embedding write for {test_uuid} was not persisted/readable "
+                f"(got {len(rows)} rows). This is the swallowed-write regression."
+            )
+            assert rows[0]["uuid"] == test_uuid
+            assert rows[0]["embedding_model"] == "signal-check-model"
+        finally:
+            collection.delete(f"uuid in ['{test_uuid}']")
+            collection.flush()

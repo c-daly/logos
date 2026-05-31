@@ -26,20 +26,25 @@ from uuid import uuid4
 import pytest
 from neo4j.exceptions import ClientError
 
-from logos_test_utils.docker import is_container_running
 from logos_test_utils.env import get_repo_root
 from logos_test_utils.neo4j import (
     get_neo4j_config,
     get_neo4j_driver,
+    is_neo4j_available,
     load_cypher_file,
 )
 
 NEO4J_CONFIG = get_neo4j_config()
 REPO_ROOT = get_repo_root()
 
-if not is_container_running(NEO4J_CONFIG.container):
+# Gate on actual Bolt reachability, not on a local Docker container name.
+# This lets the test run wherever Neo4j is reachable -- CI compose, the shared
+# test stack, or a remote instance -- instead of silently skipping when no
+# local container matches NEO4J_CONTAINER.
+if not is_neo4j_available(NEO4J_CONFIG):
     pytest.skip(
-        "Neo4j container not running. Start with: ./tests/e2e/run_e2e.sh up",
+        f"Neo4j not reachable at {NEO4J_CONFIG.uri}. "
+        "Start the stack with: ./tests/e2e/run_e2e.sh up",
         allow_module_level=True,
     )
 
