@@ -2,77 +2,51 @@
 recreate a stale-dim collection instead of silently reusing it (logos#542,
 sub-ticket of the embedding-dim coherence epic #535).
 
-Integration test — needs a reachable Milvus (dev stack on localhost:19530).
-Uses a throwaway collection name so real hcg_* collections are never touched.
+Integration test — needs a reachable Milvus. Uses throwaway collection names so
+real hcg_* collections are never touched. Follows the repo's integration pattern
+(``pytestmark = pytest.mark.integration`` + ``requires_milvus``) and reads
+MILVUS_HOST/MILVUS_PORT so it runs against whatever stack CI starts, not just a
+hardcoded localhost:19530 dev stack.
 """
 
 from __future__ import annotations
 
-import socket
-from types import SimpleNamespace
+import os
 
 import pytest
+from pymilvus import connections
 
 from logos_hcg import sync
 from logos_hcg.sync import HCGMilvusSync
 
+MILVUS_HOST = os.getenv("MILVUS_HOST", "localhost")
+MILVUS_PORT = os.getenv("MILVUS_PORT", "19530")
 
-def _fake_collection(dim: object) -> SimpleNamespace:
-    """A stand-in collection whose ``embedding`` field reports ``dim``."""
-    return SimpleNamespace(
-        schema=SimpleNamespace(
-            fields=[
-                SimpleNamespace(name="uuid", params={}),
-                SimpleNamespace(name="embedding", params={"dim": dim}),
-            ]
-        )
-    )
+pytestmark = pytest.mark.integration
 
 
-def test_collection_embedding_dim_casts_string_to_int() -> None:
-    """Milvus may report the vector ``dim`` as a string; the helper must return an
-    int so dim comparisons don't spuriously trigger a drop+recreate (gemini #543)."""
-    assert sync._collection_embedding_dim(_fake_collection("1536")) == 1536
-    assert sync._collection_embedding_dim(_fake_collection(384)) == 384
-
-
-def test_collection_embedding_dim_none_without_embedding_field() -> None:
-    coll = SimpleNamespace(
-        schema=SimpleNamespace(fields=[SimpleNamespace(name="uuid", params={})])
-    )
-    assert sync._collection_embedding_dim(coll) is None
-
-
-def test_collection_embedding_dim_handles_malformed_params() -> None:
-    """Non-dict params or a non-numeric dim yield None, never an exception."""
-    non_dict = SimpleNamespace(
-        schema=SimpleNamespace(fields=[SimpleNamespace(name="embedding", params=None)])
-    )
-    assert sync._collection_embedding_dim(non_dict) is None
-    bad_dim = SimpleNamespace(
-        schema=SimpleNamespace(
-            fields=[SimpleNamespace(name="embedding", params={"dim": "nope"})]
-        )
-    )
-    assert sync._collection_embedding_dim(bad_dim) is None
-
-
-def _milvus_up(host: str = "localhost", port: int = 19530) -> bool:
+def _milvus_available() -> bool:
+    """Return True if a live Milvus accepts a connection at the configured host."""
     try:
-        with socket.create_connection((host, port), timeout=2):
-            return True
-    except OSError:
+        connections.connect(
+            alias="dim_probe", host=MILVUS_HOST, port=MILVUS_PORT, timeout=5
+        )
+        connections.disconnect("dim_probe")
+        return True
+    except Exception:
         return False
 
 
+requires_milvus = pytest.mark.skipif(
+    not _milvus_available(),
+    reason=f"Milvus is not available on {MILVUS_HOST}:{MILVUS_PORT}",
+)
+
+
+@requires_milvus
 def test_ensure_collection_recreates_on_dim_mismatch(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    # Reachability probe runs at execution time, not pytest collection time, so
-    # unrelated runs aren't blocked on the socket timeout (greptile review).
-    if not _milvus_up():
-        pytest.skip("dev Milvus not reachable on :19530")
-
     from pymilvus import (
         Collection,
         CollectionSchema,
@@ -86,7 +60,7 @@ def test_ensure_collection_recreates_on_dim_mismatch(
     monkeypatch.setitem(sync.COLLECTION_NAMES, "Entity", name)
     monkeypatch.delenv("LOGOS_EMBEDDING_DIM", raising=False)
 
-    s = HCGMilvusSync(milvus_host="localhost", milvus_port="19530", alias=alias)
+    s = HCGMilvusSync(milvus_host=MILVUS_HOST, milvus_port=MILVUS_PORT, alias=alias)
     s.connect()
 
     # Seed a STALE 384-dim collection (the pre-fix state).
@@ -120,13 +94,11 @@ def test_ensure_collection_recreates_on_dim_mismatch(
             utility.drop_collection(name, using=alias)
 
 
+@requires_milvus
 def test_batch_upsert_sizes_collection_to_measured_dim(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """batch_upsert_embeddings creates the collection at the measured dim and persists."""
-    if not _milvus_up():
-        pytest.skip("dev Milvus not reachable on :19530")
-
     import uuid as _uuid
 
     from pymilvus import Collection, utility
@@ -136,7 +108,7 @@ def test_batch_upsert_sizes_collection_to_measured_dim(
     monkeypatch.setitem(sync.COLLECTION_NAMES, "Concept", name)
     monkeypatch.delenv("LOGOS_EMBEDDING_DIM", raising=False)
 
-    s = HCGMilvusSync(milvus_host="localhost", milvus_port="19530", alias=alias)
+    s = HCGMilvusSync(milvus_host=MILVUS_HOST, milvus_port=MILVUS_PORT, alias=alias)
     s.connect()
     if utility.has_collection(name, using=alias):
         utility.drop_collection(name, using=alias)

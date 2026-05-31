@@ -40,11 +40,12 @@ from logos_config import get_embedding_dim_override
 DEFAULT_HOST = "localhost"
 DEFAULT_PORT = "19530"
 # Embedding dimension: there is intentionally NO hardcoded default (logos#542).
-# When LOGOS_EMBEDDING_DIM is unset this is None and the embedding collections are
+# The LOGOS_EMBEDDING_DIM override is resolved lazily in main() -- NOT at import
+# time -- so an invalid value fails loud only when the script actually runs,
+# without breaking `--help` or import. When unset, the embedding collections are
 # left to be created lazily at the *measured* dimension on first write
 # (HCGMilvusSync self-corrects); set LOGOS_EMBEDDING_DIM (or --embedding-dim) to
 # pre-create them here.
-EMBEDDING_DIM_OVERRIDE = get_embedding_dim_override()
 DEFAULT_INDEX_TYPE = "IVF_FLAT"  # Simple and effective for development
 DEFAULT_METRIC_TYPE = "L2"  # Euclidean distance for semantic similarity
 
@@ -254,7 +255,7 @@ def main():
     parser.add_argument(
         "--embedding-dim",
         type=int,
-        default=EMBEDDING_DIM_OVERRIDE,
+        default=None,
         help="Embedding dimension. Defaults to LOGOS_EMBEDDING_DIM if set; if "
         "neither is provided, embedding collections are left to be created "
         "lazily at the measured dimension on first write (logos#542).",
@@ -271,6 +272,12 @@ def main():
     )
 
     args = parser.parse_args()
+
+    # Resolve the LOGOS_EMBEDDING_DIM override lazily (not at import time): an
+    # invalid value raises EmbeddingDimMismatch here with a clear message rather
+    # than breaking import/--help.
+    if args.embedding_dim is None:
+        args.embedding_dim = get_embedding_dim_override()
 
     print("=== LOGOS Milvus Collection Initialization ===")
     print(f"Connecting to Milvus at {args.host}:{args.port}...")

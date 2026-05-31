@@ -164,7 +164,7 @@ class TestHCGMilvusSync:
         sync.connect()
         sync.ensure_collection = (
             Mock()
-        )  # collection-sizing covered in test_hcg_milvus_dim.py
+        )  # collection-sizing covered in tests/integration/test_hcg_milvus_dim.py
 
         # Upsert embedding
         test_uuid = str(uuid4())
@@ -216,7 +216,7 @@ class TestHCGMilvusSync:
         sync.connect()
         sync.ensure_collection = (
             Mock()
-        )  # collection-sizing covered in test_hcg_milvus_dim.py
+        )  # collection-sizing covered in tests/integration/test_hcg_milvus_dim.py
 
         # Batch upsert
         embeddings = [
@@ -488,7 +488,7 @@ class TestHCGMilvusSync:
         sync.connect()
         sync.ensure_collection = (
             Mock()
-        )  # collection-sizing covered in test_hcg_milvus_dim.py
+        )  # collection-sizing covered in tests/integration/test_hcg_milvus_dim.py
         result = sync.update_centroid(
             type_uuid="type_location", centroid=[0.1] * 384, model="all-MiniLM-L6-v2"
         )

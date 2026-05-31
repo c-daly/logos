@@ -34,6 +34,14 @@ class TestResolveEmbeddingDim:
         """An override that agrees with the measured dim is accepted as-is."""
         assert resolve_embedding_dim(measured_dim=1536, override=1536) == 1536
 
+    @pytest.mark.parametrize("bad_dim", [0, -1])
+    def test_rejects_non_positive_measured_dim(self, bad_dim: int) -> None:
+        """A zero/empty measured dim must fail loud, never propagate to
+        ensure_collection where it would drop a live collection it can't recreate
+        (catastrophic data loss; gemini critical review on #545)."""
+        with pytest.raises(ValueError):
+            resolve_embedding_dim(measured_dim=bad_dim)
+
 
 class TestEmbeddingDimOverride:
     def test_none_when_unset(self, monkeypatch: pytest.MonkeyPatch) -> None:

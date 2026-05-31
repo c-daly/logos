@@ -21,6 +21,8 @@ from uuid import UUID
 
 from pymilvus import Collection, connections, utility
 
+from logos_config import get_embedding_dim_override, resolve_embedding_dim
+
 logger = logging.getLogger(__name__)
 
 
@@ -156,6 +158,16 @@ class HCGMilvusSync:
         """
         if not self._connected:
             raise MilvusSyncError("Not connected to Milvus. Call connect() first.")
+
+        # Defense-in-depth: never let a non-positive dim reach the drop+recreate
+        # path below. resolve_embedding_dim already guards this at the call site,
+        # but a 0/negative dim here would drop an existing collection and then
+        # fail to recreate it (FLOAT_VECTOR rejects dim<=0) -- data loss.
+        if dim <= 0:
+            raise MilvusSyncError(
+                f"refusing to ensure collection for {node_type!r} with "
+                f"non-positive dim={dim} (would drop the existing collection)."
+            )
 
         from pymilvus import CollectionSchema, DataType, FieldSchema
 
@@ -350,8 +362,6 @@ class HCGMilvusSync:
         """
         uuid_str = str(uuid)
 
-        from logos_config import get_embedding_dim_override, resolve_embedding_dim
-
         self.ensure_collection(
             node_type,
             resolve_embedding_dim(len(embedding), get_embedding_dim_override()),
@@ -405,8 +415,6 @@ class HCGMilvusSync:
         """
         if not embeddings:
             return []
-
-        from logos_config import get_embedding_dim_override, resolve_embedding_dim
 
         # Size the collection to the *measured* embedding dim, recreating it if a
         # stale-dim collection exists (logos#542) instead of failing the insert.

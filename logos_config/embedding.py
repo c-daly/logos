@@ -29,9 +29,18 @@ def resolve_embedding_dim(measured_dim: int, override: int | None = None) -> int
         The authoritative dimension (always the measured value).
 
     Raises:
+        ValueError: if ``measured_dim`` is not a positive integer. A zero/empty
+            measured dim would otherwise propagate to ``ensure_collection`` and
+            drop an existing (non-zero-dim) collection it then can't recreate —
+            catastrophic data loss — so we fail loud here instead.
         EmbeddingDimMismatch: if ``override`` is set and disagrees with
             ``measured_dim`` (the provider did not deliver the requested size).
     """
+    if measured_dim <= 0:
+        raise ValueError(
+            f"measured embedding dimension must be a positive integer, got "
+            f"{measured_dim} — the provider returned an empty/invalid embedding."
+        )
     if override is not None and override != measured_dim:
         raise EmbeddingDimMismatch(
             f"LOGOS_EMBEDDING_DIM={override} but the embedding provider produced "
