@@ -21,8 +21,6 @@ from uuid import UUID
 
 from pymilvus import Collection, connections, utility
 
-from logos_config import get_env_value
-
 logger = logging.getLogger(__name__)
 
 
