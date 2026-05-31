@@ -69,6 +69,9 @@ jobs:
             fi
             echo "Waiting for Milvus... ($i)"; sleep 2
           done
+          # Hard-fail if Milvus never became healthy (mirrors the Neo4j wait), so a
+          # never-ready Milvus surfaces here instead of later as a misleading vacuum.
+          curl -sf http://localhost:37091/healthz >/dev/null
 
       - name: Initialize Milvus collections
         run: |
@@ -98,10 +101,14 @@ jobs:
           fi
           summary="$(grep -E '^=.* (passed|failed|skipped|error)' pytest-integration.log | tail -1)"
           echo "pytest summary: ${summary:-<none>}"
-          if echo "$summary" | grep -qE '[0-9]+ passed'; then
-            echo "Integration tests executed (at least one passed)."
+          # The suite counts as executed if anything passed OR failed; only an
+          # all-skipped run (zero passed, zero failed) is the vacuum failure mode.
+          # A genuine test failure surfaces via the pytest step's own exit code --
+          # this guard must not mislabel "tests ran and failed" as "silently skipping".
+          if echo "$summary" | grep -qE '[1-9][0-9]* (passed|failed)'; then
+            echo "Integration tests executed against the live stack."
           else
-            echo "::error::No integration tests passed against the live stack -- the spine suite is silently skipping. See logos#529."
+            echo "::error::No integration tests executed (0 passed, 0 failed) -- the spine suite is silently skipping. See logos#529."
             exit 1
           fi
 

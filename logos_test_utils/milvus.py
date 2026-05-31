@@ -67,7 +67,9 @@ def is_milvus_running(config: MilvusConfig | None = None) -> bool:
     return is_container_running(cfg.container)
 
 
-def is_milvus_available(config: MilvusConfig | None = None) -> bool:
+def is_milvus_available(
+    config: MilvusConfig | None = None, timeout: float = 2.0
+) -> bool:
     """Quick connectivity probe for Milvus.
 
     Unlike :func:`is_milvus_running`, which introspects a local Docker
@@ -84,7 +86,11 @@ def is_milvus_available(config: MilvusConfig | None = None) -> bool:
 
     alias = "logos_test_utils_probe"
     try:
-        connections.connect(alias=alias, host=cfg.host, port=str(cfg.port))
+        # Bounded so an unreachable/black-holed Milvus fails the probe fast
+        # instead of blocking test collection for pymilvus's ~20-30s default.
+        connections.connect(
+            alias=alias, host=cfg.host, port=str(cfg.port), timeout=timeout
+        )
     except Exception:
         return False
     else:

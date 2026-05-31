@@ -9,6 +9,8 @@ configured via MILVUS_HOST and MILVUS_PORT environment variables.
 If Milvus is not available, tests will be skipped.
 """
 
+import time
+
 import pytest
 from pymilvus import Collection, MilvusException, connections, utility
 
@@ -177,7 +179,6 @@ class TestMilvusIntegration:
 
     def test_insert_and_search(self, milvus_connection):
         """Test basic insert and search operations."""
-        import time
 
         collection_name = "hcg_entity_embeddings"
         if not utility.has_collection(collection_name):
@@ -245,7 +246,6 @@ class TestMilvusIntegration:
         no-op/swallowed write fails the test instead of passing on pre-existing
         rows.
         """
-        import time
 
         collection_name = "hcg_entity_embeddings"
         if not utility.has_collection(collection_name):
