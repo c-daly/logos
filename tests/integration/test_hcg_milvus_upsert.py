@@ -25,6 +25,12 @@ from logos_hcg.sync import HCGMilvusSync
 MILVUS_HOST = os.getenv("MILVUS_HOST", "localhost")
 MILVUS_PORT = os.getenv("MILVUS_PORT", "19530")
 
+# Embedding dim for these upsert tests. ensure_collection() now requires an
+# explicit dim (logos#542): callers resolve it from the measured embedding
+# rather than a removed module-level _get_embedding_dim(). 384 matches the
+# historical default these tests previously read from LOGOS_EMBEDDING_DIM.
+_TEST_EMBEDDING_DIM = 384
+
 pytestmark = pytest.mark.integration
 
 
@@ -81,11 +87,11 @@ def test_reingest_same_uuid_yields_single_row(upsert_collection_name):
     This is the core AC for #528: the old insert()-only path appended a second
     row on re-ingest; a true upsert keyed on uuid replaces it.
     """
-    dim = sync_module._get_embedding_dim()
+    dim = _TEST_EMBEDDING_DIM
     node_uuid = str(uuid_module.uuid4())
 
     with HCGMilvusSync(milvus_host=MILVUS_HOST, milvus_port=MILVUS_PORT) as sync:
-        sync.ensure_collection("Entity")
+        sync.ensure_collection("Entity", _TEST_EMBEDDING_DIM)
 
         # First ingest.
         sync.upsert_embedding(
@@ -121,12 +127,12 @@ def test_reingest_same_uuid_yields_single_row(upsert_collection_name):
 @requires_milvus
 def test_batch_reingest_same_uuids_yields_single_rows(upsert_collection_name):
     """Batch re-ingest of the same uuids must not accumulate duplicate rows."""
-    dim = sync_module._get_embedding_dim()
+    dim = _TEST_EMBEDDING_DIM
     uuid_a = str(uuid_module.uuid4())
     uuid_b = str(uuid_module.uuid4())
 
     with HCGMilvusSync(milvus_host=MILVUS_HOST, milvus_port=MILVUS_PORT) as sync:
-        sync.ensure_collection("Entity")
+        sync.ensure_collection("Entity", _TEST_EMBEDDING_DIM)
 
         batch_v1 = [
             {"uuid": uuid_a, "embedding": [0.1] * dim, "model": "m1"},
@@ -163,7 +169,7 @@ def test_ensure_collection_uses_uuid_primary_key(upsert_collection_name):
     read/health path's expected ``uuid``-keyed layout.
     """
     with HCGMilvusSync(milvus_host=MILVUS_HOST, milvus_port=MILVUS_PORT) as sync:
-        sync.ensure_collection("Entity")
+        sync.ensure_collection("Entity", _TEST_EMBEDDING_DIM)
         collection = sync._get_collection("Entity")
 
         schema = collection.schema

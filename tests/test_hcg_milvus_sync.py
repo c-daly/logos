@@ -56,11 +56,12 @@ class TestHCGMilvusSync:
         emb = Mock()
         emb.name = "embedding"
         emb.is_primary = False
+        emb.params = {"dim": 1536}
         existing = Mock()
         existing.schema.fields = [old_pk, emb]
         mock_collection.return_value = existing
 
-        sync.ensure_collection("Entity")
+        sync.ensure_collection("Entity", dim=1536)
 
         mock_utility.drop_collection.assert_called_once()
 
@@ -77,11 +78,15 @@ class TestHCGMilvusSync:
         uuid_pk = Mock()
         uuid_pk.name = "uuid"
         uuid_pk.is_primary = True
+        emb = Mock()
+        emb.name = "embedding"
+        emb.is_primary = False
+        emb.params = {"dim": 1536}
         existing = Mock()
-        existing.schema.fields = [uuid_pk]
+        existing.schema.fields = [uuid_pk, emb]
         mock_collection.return_value = existing
 
-        sync.ensure_collection("Entity")
+        sync.ensure_collection("Entity", dim=1536)
 
         mock_utility.drop_collection.assert_not_called()
 
@@ -157,6 +162,9 @@ class TestHCGMilvusSync:
 
         sync = HCGMilvusSync()
         sync.connect()
+        sync.ensure_collection = (
+            Mock()
+        )  # collection-sizing covered in tests/integration/test_hcg_milvus_dim.py
 
         # Upsert embedding
         test_uuid = str(uuid4())
@@ -206,6 +214,9 @@ class TestHCGMilvusSync:
 
         sync = HCGMilvusSync()
         sync.connect()
+        sync.ensure_collection = (
+            Mock()
+        )  # collection-sizing covered in tests/integration/test_hcg_milvus_dim.py
 
         # Batch upsert
         embeddings = [
@@ -475,6 +486,9 @@ class TestHCGMilvusSync:
         mock_collection.return_value = mock_coll
         sync = HCGMilvusSync()
         sync.connect()
+        sync.ensure_collection = (
+            Mock()
+        )  # collection-sizing covered in tests/integration/test_hcg_milvus_dim.py
         result = sync.update_centroid(
             type_uuid="type_location", centroid=[0.1] * 384, model="all-MiniLM-L6-v2"
         )

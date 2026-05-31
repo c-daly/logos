@@ -25,6 +25,11 @@ env:
   NEO4J_PASSWORD: neo4jtest
   MILVUS_HOST: localhost
   MILVUS_PORT: "37530"
+  # Pre-create the hcg_* embedding collections at a fixed dim so the infra suite
+  # (test_all_collections_exist) finds them. Without this, init defers creation
+  # to the measured dim on first write (logos#542) and the collections won't
+  # exist at infra-test time. 384 matches the upsert tests' _TEST_EMBEDDING_DIM.
+  LOGOS_EMBEDDING_DIM: "384"
 
 jobs:
   integration:
