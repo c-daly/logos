@@ -187,6 +187,12 @@ def init_all_collections(
         "hcg_concept_embeddings",
         "hcg_state_embeddings",
         "hcg_process_embeddings",
+        # Edge and TypeCentroid were previously only bootstrapped lazily by
+        # HCGMilvusSync.ensure_collection() (under the old auto_id schema), so on
+        # an upgraded deployment they kept the stale PK. Create them here too so
+        # the init path produces all six with the uuid-PK schema (logos#533 review).
+        "hcg_edge_embeddings",
+        "hcg_type_centroids",
     ]
 
     collections = {}
@@ -210,6 +216,8 @@ def verify_collections() -> bool:
         "hcg_concept_embeddings",
         "hcg_state_embeddings",
         "hcg_process_embeddings",
+        "hcg_edge_embeddings",
+        "hcg_type_centroids",
     ]
 
     all_valid = True
