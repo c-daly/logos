@@ -9,11 +9,38 @@ Uses a throwaway collection name so real hcg_* collections are never touched.
 from __future__ import annotations
 
 import socket
+from types import SimpleNamespace
 
 import pytest
 
 from logos_hcg import sync
 from logos_hcg.sync import HCGMilvusSync
+
+
+def _fake_collection(dim: object) -> SimpleNamespace:
+    """A stand-in collection whose ``embedding`` field reports ``dim``."""
+    return SimpleNamespace(
+        schema=SimpleNamespace(
+            fields=[
+                SimpleNamespace(name="uuid", params={}),
+                SimpleNamespace(name="embedding", params={"dim": dim}),
+            ]
+        )
+    )
+
+
+def test_collection_embedding_dim_casts_string_to_int() -> None:
+    """Milvus may report the vector ``dim`` as a string; the helper must return an
+    int so dim comparisons don't spuriously trigger a drop+recreate (gemini #543)."""
+    assert sync._collection_embedding_dim(_fake_collection("1536")) == 1536
+    assert sync._collection_embedding_dim(_fake_collection(384)) == 384
+
+
+def test_collection_embedding_dim_none_without_embedding_field() -> None:
+    coll = SimpleNamespace(
+        schema=SimpleNamespace(fields=[SimpleNamespace(name="uuid", params={})])
+    )
+    assert sync._collection_embedding_dim(coll) is None
 
 
 def _milvus_up(host: str = "localhost", port: int = 19530) -> bool:

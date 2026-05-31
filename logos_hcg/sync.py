@@ -29,7 +29,10 @@ def _collection_embedding_dim(collection: Any) -> int | None:
     for field in collection.schema.fields:
         if field.name == "embedding":
             params = getattr(field, "params", None) or {}
-            return params.get("dim")
+            dim = params.get("dim")
+            # Milvus may report ``dim`` as a string; cast so dim comparisons are
+            # numeric and don't spuriously trigger a drop+recreate.
+            return int(dim) if dim is not None else None
     return None
 
 
