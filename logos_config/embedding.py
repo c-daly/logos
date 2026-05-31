@@ -59,7 +59,7 @@ def get_embedding_dim_override() -> int | None:
     384-dim collection).
     """
     raw = get_env_value("LOGOS_EMBEDDING_DIM", default=None)
-    if raw is None or str(raw).strip() == "":
+    if raw is None or raw.strip() == "":
         return None
     try:
         return int(raw)
