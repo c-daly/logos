@@ -67,6 +67,41 @@ def is_milvus_running(config: MilvusConfig | None = None) -> bool:
     return is_container_running(cfg.container)
 
 
+def is_milvus_available(
+    config: MilvusConfig | None = None, timeout: float = 2.0
+) -> bool:
+    """Quick connectivity probe for Milvus.
+
+    Unlike :func:`is_milvus_running`, which introspects a local Docker
+    container by name, this opens a real gRPC connection. Tests should gate on
+    *reachability* of the service (which works in CI compose, the shared test
+    stack, or a remote Milvus) rather than on a specific local container name.
+    """
+
+    cfg = config or get_milvus_config()
+    try:
+        from pymilvus import connections
+    except ImportError:
+        return False
+
+    alias = "logos_test_utils_probe"
+    try:
+        # Bounded so an unreachable/black-holed Milvus fails the probe fast
+        # instead of blocking test collection for pymilvus's ~20-30s default.
+        connections.connect(
+            alias=alias, host=cfg.host, port=str(cfg.port), timeout=timeout
+        )
+    except Exception:
+        return False
+    else:
+        return True
+    finally:
+        try:
+            connections.disconnect(alias)
+        except Exception:
+            pass
+
+
 def wait_for_milvus(config: MilvusConfig | None = None, timeout: int = 90) -> None:
     cfg = config or get_milvus_config()
     wait_for_container_health(cfg.container, timeout=timeout)

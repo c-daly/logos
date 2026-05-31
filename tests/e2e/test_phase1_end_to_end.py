@@ -26,14 +26,15 @@ from pathlib import Path
 
 import pytest
 
-from logos_test_utils.docker import is_container_running
 from logos_test_utils.env import get_repo_root, load_stack_env
 from logos_test_utils.milvus import (
     get_milvus_config,
+    is_milvus_available,
     wait_for_milvus,
 )
 from logos_test_utils.neo4j import (
     get_neo4j_config,
+    is_neo4j_available,
     wait_for_neo4j,
 )
 from logos_test_utils.neo4j import (
@@ -43,13 +44,26 @@ from logos_test_utils.neo4j import (
     run_cypher_query as stack_run_cypher_query,
 )
 
-# Load config early to check container availability
+# Load config early to check service availability.
 _STACK_ENV = load_stack_env()
 _NEO4J_CONFIG = get_neo4j_config(_STACK_ENV)
+_MILVUS_CONFIG = get_milvus_config(_STACK_ENV)
 
-if not is_container_running(_NEO4J_CONFIG.container):
+# Gate on actual service reachability (Bolt + Milvus gRPC), not on local
+# Docker container names. This lets the spine E2E run in CI compose, the shared
+# test stack, or against a remote stack instead of silently skipping.
+if not is_neo4j_available(_NEO4J_CONFIG):
     pytest.skip(
-        "Phase 1 E2E tests require Neo4j container. Start with: ./tests/e2e/run_e2e.sh up",
+        f"Phase 1 E2E tests require Neo4j (unreachable at {_NEO4J_CONFIG.uri}). "
+        "Start with: ./tests/e2e/run_e2e.sh up",
+        allow_module_level=True,
+    )
+
+if not is_milvus_available(_MILVUS_CONFIG):
+    pytest.skip(
+        "Phase 1 E2E tests require Milvus "
+        f"(unreachable at {_MILVUS_CONFIG.host}:{_MILVUS_CONFIG.port}). "
+        "Start with: ./tests/e2e/run_e2e.sh up",
         allow_module_level=True,
     )
 
@@ -64,7 +78,7 @@ except ImportError:
 STACK_ENV = _STACK_ENV
 REPO_ROOT = get_repo_root(STACK_ENV)
 NEO4J_CONFIG = _NEO4J_CONFIG
-MILVUS_CONFIG = get_milvus_config(STACK_ENV)
+MILVUS_CONFIG = _MILVUS_CONFIG
 NEO4J_WAIT_TIMEOUT = int(os.getenv("NEO4J_WAIT_TIMEOUT", "120"))
 MILVUS_WAIT_TIMEOUT = int(os.getenv("MILVUS_WAIT_TIMEOUT", "60"))
 
