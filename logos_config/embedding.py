@@ -61,4 +61,10 @@ def get_embedding_dim_override() -> int | None:
     raw = get_env_value("LOGOS_EMBEDDING_DIM", default=None)
     if raw is None or str(raw).strip() == "":
         return None
-    return int(raw)
+    try:
+        return int(raw)
+    except (ValueError, TypeError) as exc:
+        raise EmbeddingDimMismatch(
+            f"LOGOS_EMBEDDING_DIM={raw!r} is not a valid integer — set it to an "
+            f"integer dimension or leave it unset to derive from the provider."
+        ) from exc

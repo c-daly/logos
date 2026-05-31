@@ -10,6 +10,11 @@ Modules:
     health: Unified health response schema
 """
 
+from logos_config.embedding import (
+    EmbeddingDimMismatch,
+    get_embedding_dim_override,
+    resolve_embedding_dim,
+)
 from logos_config.env import get_env_value, get_repo_root, load_env_file
 from logos_config.ports import (
     APOLLO_PORTS,
@@ -19,11 +24,6 @@ from logos_config.ports import (
     TALOS_PORTS,
     RepoPorts,
     get_repo_ports,
-)
-from logos_config.embedding import (
-    EmbeddingDimMismatch,
-    get_embedding_dim_override,
-    resolve_embedding_dim,
 )
 from logos_config.settings import (
     MilvusConfig,

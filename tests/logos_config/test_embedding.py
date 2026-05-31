@@ -41,3 +41,11 @@ class TestEmbeddingDimOverride:
         """An explicit LOGOS_EMBEDDING_DIM is read as an int override."""
         monkeypatch.setenv("LOGOS_EMBEDDING_DIM", "1536")
         assert get_embedding_dim_override() == 1536
+
+    def test_invalid_override_fails_loud(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """A non-integer LOGOS_EMBEDDING_DIM fails loud, never a silent fallback."""
+        monkeypatch.setenv("LOGOS_EMBEDDING_DIM", "not-a-number")
+        with pytest.raises(EmbeddingDimMismatch):
+            get_embedding_dim_override()
