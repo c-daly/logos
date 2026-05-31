@@ -17,7 +17,9 @@ Each collection stores:
 - embedding_model: Model used to generate the embedding
 - last_sync: Timestamp of last synchronization
 
-Default embedding dimension: 384 (suitable for sentence-transformers models like all-MiniLM-L6-v2)
+Embedding dimension is taken from LOGOS_EMBEDDING_DIM (or --embedding-dim); if
+neither is set, the embedding collections are created lazily at the *measured*
+dimension on first write (HCGMilvusSync self-corrects, logos#542).
 """
 
 import argparse
@@ -32,23 +34,23 @@ from pymilvus import (
     utility,
 )
 
-from logos_config import get_env_value
+from logos_config import get_embedding_dim_override
 
 # Default configuration
 DEFAULT_HOST = "localhost"
 DEFAULT_PORT = "19530"
-try:
-    DEFAULT_EMBEDDING_DIM = int(
-        get_env_value("LOGOS_EMBEDDING_DIM", default="384") or "384"
-    )
-except (ValueError, TypeError):
-    DEFAULT_EMBEDDING_DIM = 384
+# Embedding dimension: there is intentionally NO hardcoded default (logos#542).
+# When LOGOS_EMBEDDING_DIM is unset this is None and the embedding collections are
+# left to be created lazily at the *measured* dimension on first write
+# (HCGMilvusSync self-corrects); set LOGOS_EMBEDDING_DIM (or --embedding-dim) to
+# pre-create them here.
+EMBEDDING_DIM_OVERRIDE = get_embedding_dim_override()
 DEFAULT_INDEX_TYPE = "IVF_FLAT"  # Simple and effective for development
 DEFAULT_METRIC_TYPE = "L2"  # Euclidean distance for semantic similarity
 
 
 def create_collection_schema(
-    collection_name: str, embedding_dim: int = DEFAULT_EMBEDDING_DIM
+    collection_name: str, embedding_dim: int
 ) -> CollectionSchema:
     """
     Create a Milvus collection schema for HCG node embeddings.
@@ -121,7 +123,7 @@ def create_index(collection: Collection, index_type: str = DEFAULT_INDEX_TYPE) -
 
 def init_collection(
     collection_name: str,
-    embedding_dim: int = DEFAULT_EMBEDDING_DIM,
+    embedding_dim: int,
     force: bool = False,
 ) -> Collection:
     """
@@ -168,7 +170,7 @@ def init_collection(
 
 
 def init_all_collections(
-    embedding_dim: int = DEFAULT_EMBEDDING_DIM,
+    embedding_dim: int,
     force: bool = False,
 ) -> dict[str, Collection]:
     """
@@ -252,8 +254,10 @@ def main():
     parser.add_argument(
         "--embedding-dim",
         type=int,
-        default=DEFAULT_EMBEDDING_DIM,
-        help=f"Embedding dimension (default: {DEFAULT_EMBEDDING_DIM})",
+        default=EMBEDDING_DIM_OVERRIDE,
+        help="Embedding dimension. Defaults to LOGOS_EMBEDDING_DIM if set; if "
+        "neither is provided, embedding collections are left to be created "
+        "lazily at the measured dimension on first write (logos#542).",
     )
     parser.add_argument(
         "--force",
@@ -283,8 +287,16 @@ def main():
         if args.verify_only:
             # Just verify collections
             success = verify_collections()
+        elif args.embedding_dim is None:
+            # No explicit dim — defer to the self-correcting upsert path (logos#542).
+            print(
+                "\nℹ No LOGOS_EMBEDDING_DIM / --embedding-dim set — embedding "
+                "collections will be created lazily at the measured dimension on "
+                "first write (logos#542). Skipping pre-creation."
+            )
+            success = True
         else:
-            # Initialize collections
+            # Initialize collections at the explicit dimension
             collections = init_all_collections(
                 embedding_dim=args.embedding_dim,
                 force=args.force,

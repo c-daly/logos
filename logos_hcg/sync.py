@@ -21,19 +21,25 @@ from uuid import UUID
 
 from pymilvus import Collection, connections, utility
 
-from logos_config import get_env_value
-
 logger = logging.getLogger(__name__)
 
 
-def _get_embedding_dim() -> int:
-    """Resolve embedding dimension lazily (env may not be loaded at import time)."""
-    raw = get_env_value("LOGOS_EMBEDDING_DIM", default="384") or "384"
-    try:
-        return int(raw)
-    except (ValueError, TypeError):
-        logger.warning("Invalid LOGOS_EMBEDDING_DIM=%r; defaulting to 384", raw)
-        return 384
+def _collection_embedding_dim(collection: Any) -> int | None:
+    """Return the dim of a collection's ``embedding`` FLOAT_VECTOR field, or None."""
+    for field in collection.schema.fields:
+        if field.name == "embedding":
+            # Defensive: ``params`` may not be a dict, and Milvus can report
+            # ``dim`` as a string. Cast inside a guard so a malformed schema
+            # yields None rather than raising mid-write (gemini review).
+            params = getattr(field, "params", None)
+            if isinstance(params, dict):
+                dim = params.get("dim")
+                if dim is not None:
+                    try:
+                        return int(dim)
+                    except (ValueError, TypeError):
+                        pass
+    return None
 
 
 # Collection name mapping for HCG node types
@@ -140,12 +146,25 @@ class HCGMilvusSync:
         except Exception as e:
             raise MilvusSyncError(f"Failed to connect to Milvus: {e}") from e
 
-    def ensure_collection(self, node_type: NodeType) -> None:
-        """Create collection with correct schema and L2 index if it doesn't exist."""
+    def ensure_collection(self, node_type: NodeType, dim: int) -> None:
+        """Create/load the collection for ``node_type`` sized to ``dim``.
+
+        If a collection already exists with a *different* embedding dimension it
+        is dropped and recreated, so a stale-dim collection never silently
+        rejects writes (logos#542). ``dim`` is the measured embedding length,
+        resolved via ``logos_config.resolve_embedding_dim`` at the call site.
+        """
         if not self._connected:
             raise MilvusSyncError("Not connected to Milvus. Call connect() first.")
 
         from pymilvus import CollectionSchema, DataType, FieldSchema
+
+        # Fast path: already cached at the right dim — skip the Milvus round-trips
+        # (has_collection + Collection introspection) that would otherwise run on
+        # every upsert (gemini review on #543).
+        cached = self._collections.get(node_type)
+        if cached is not None and _collection_embedding_dim(cached) == dim:
+            return
 
         name = COLLECTION_NAMES[node_type]
         if utility.has_collection(name, using=self.alias):
@@ -153,18 +172,26 @@ class HCGMilvusSync:
             primary = [
                 f for f in existing.schema.fields if getattr(f, "is_primary", False)
             ]
-            if primary and primary[0].name == "uuid":
+            pk_ok = bool(primary) and primary[0].name == "uuid"
+            existing_dim = _collection_embedding_dim(existing)
+            if pk_ok and existing_dim == dim:
+                existing.load(timeout=self.timeout)
+                self._collections[node_type] = existing
                 return
-            # A pre-existing collection on the old auto_id INT64 'id' primary key
-            # cannot be upserted by uuid (Milvus rejects upsert when auto_id=True),
-            # which would silently break update_centroid() and Edge upserts after
-            # upgrade. Data is regenerable, so drop and recreate with the uuid-PK
-            # schema below.
+            # Recreate on a schema mismatch -- either the old auto_id INT64 'id'
+            # primary key (which Milvus refuses to upsert by uuid, logos#533) or a
+            # stale embedding dim (logos#542). The drop is intentional, not a
+            # data-loss bug: a wrong-PK or wrong-dim collection's vectors are
+            # unusable (384-dim rows can't be queried by a 1536-dim provider) and
+            # embeddings regenerate from Neo4j down to the type baseline, so a
+            # self-healing recreate is the desired behaviour.
             logger.warning(
-                "Collection %s has primary key %r, not 'uuid' -- dropping and "
-                "recreating with the uuid-PK schema.",
+                "Collection %s schema mismatch (pk=%r, dim=%s; want uuid/%s) -- "
+                "dropping and recreating.",
                 name,
                 primary[0].name if primary else None,
+                existing_dim,
+                dim,
             )
             utility.drop_collection(name, using=self.alias)
 
@@ -180,9 +207,7 @@ class HCGMilvusSync:
                 is_primary=True,
                 auto_id=False,
             ),
-            FieldSchema(
-                name="embedding", dtype=DataType.FLOAT_VECTOR, dim=_get_embedding_dim()
-            ),
+            FieldSchema(name="embedding", dtype=DataType.FLOAT_VECTOR, dim=dim),
             FieldSchema(name="embedding_model", dtype=DataType.VARCHAR, max_length=128),
             FieldSchema(name="last_sync", dtype=DataType.INT64),
         ]
@@ -324,6 +349,13 @@ class HCGMilvusSync:
             MilvusSyncError: If upsert fails
         """
         uuid_str = str(uuid)
+
+        from logos_config import get_embedding_dim_override, resolve_embedding_dim
+
+        self.ensure_collection(
+            node_type,
+            resolve_embedding_dim(len(embedding), get_embedding_dim_override()),
+        )
         collection = self._get_collection(node_type)
 
         try:
@@ -374,6 +406,15 @@ class HCGMilvusSync:
         if not embeddings:
             return []
 
+        from logos_config import get_embedding_dim_override, resolve_embedding_dim
+
+        # Size the collection to the *measured* embedding dim, recreating it if a
+        # stale-dim collection exists (logos#542) instead of failing the insert.
+        measured_dim = len(embeddings[0]["embedding"])
+        self.ensure_collection(
+            node_type,
+            resolve_embedding_dim(measured_dim, get_embedding_dim_override()),
+        )
         collection = self._get_collection(node_type)
 
         try:
