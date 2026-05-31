@@ -149,7 +149,24 @@ class HCGMilvusSync:
 
         name = COLLECTION_NAMES[node_type]
         if utility.has_collection(name, using=self.alias):
-            return
+            existing = Collection(name=name, using=self.alias)
+            primary = [
+                f for f in existing.schema.fields if getattr(f, "is_primary", False)
+            ]
+            if primary and primary[0].name == "uuid":
+                return
+            # A pre-existing collection on the old auto_id INT64 'id' primary key
+            # cannot be upserted by uuid (Milvus rejects upsert when auto_id=True),
+            # which would silently break update_centroid() and Edge upserts after
+            # upgrade. Data is regenerable, so drop and recreate with the uuid-PK
+            # schema below.
+            logger.warning(
+                "Collection %s has primary key %r, not 'uuid' -- dropping and "
+                "recreating with the uuid-PK schema.",
+                name,
+                primary[0].name if primary else None,
+            )
+            utility.drop_collection(name, using=self.alias)
 
         # uuid is the primary key (auto_id=False) so that upsert() replaces an
         # existing row keyed on the node UUID instead of appending a duplicate.

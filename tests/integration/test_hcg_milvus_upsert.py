@@ -31,7 +31,11 @@ pytestmark = pytest.mark.integration
 def _milvus_available() -> bool:
     """Return True if a live Milvus accepts a connection at the configured host."""
     try:
-        connections.connect(alias="ac528_probe", host=MILVUS_HOST, port=MILVUS_PORT)
+        # Bounded so a silently-unreachable Milvus fails the import-time probe
+        # fast instead of blocking pytest collection for pymilvus's ~30s default.
+        connections.connect(
+            alias="ac528_probe", host=MILVUS_HOST, port=MILVUS_PORT, timeout=5
+        )
         connections.disconnect("ac528_probe")
         return True
     except Exception:

@@ -39,6 +39,55 @@ class TestHCGMilvusSync:
     @patch("logos_hcg.sync.connections")
     @patch("logos_hcg.sync.utility")
     @patch("logos_hcg.sync.Collection")
+    def test_ensure_collection_recreates_on_old_pk_schema(
+        self, mock_collection, mock_utility, mock_connections
+    ):
+        """A pre-existing collection on the old auto_id 'id' PK is dropped+recreated.
+
+        Otherwise upsert() fails at runtime: Milvus rejects upsert on an
+        auto_id=True primary key (logos#533 review).
+        """
+        sync = HCGMilvusSync()
+        sync._connected = True
+        mock_utility.has_collection.return_value = True
+        old_pk = Mock()
+        old_pk.name = "id"
+        old_pk.is_primary = True
+        emb = Mock()
+        emb.name = "embedding"
+        emb.is_primary = False
+        existing = Mock()
+        existing.schema.fields = [old_pk, emb]
+        mock_collection.return_value = existing
+
+        sync.ensure_collection("Entity")
+
+        mock_utility.drop_collection.assert_called_once()
+
+    @patch("logos_hcg.sync.connections")
+    @patch("logos_hcg.sync.utility")
+    @patch("logos_hcg.sync.Collection")
+    def test_ensure_collection_keeps_matching_uuid_pk(
+        self, mock_collection, mock_utility, mock_connections
+    ):
+        """A collection already on the uuid PK is reused, not dropped."""
+        sync = HCGMilvusSync()
+        sync._connected = True
+        mock_utility.has_collection.return_value = True
+        uuid_pk = Mock()
+        uuid_pk.name = "uuid"
+        uuid_pk.is_primary = True
+        existing = Mock()
+        existing.schema.fields = [uuid_pk]
+        mock_collection.return_value = existing
+
+        sync.ensure_collection("Entity")
+
+        mock_utility.drop_collection.assert_not_called()
+
+    @patch("logos_hcg.sync.connections")
+    @patch("logos_hcg.sync.utility")
+    @patch("logos_hcg.sync.Collection")
     def test_connect_success(self, mock_collection, mock_utility, mock_connections):
         """Test successful connection to Milvus."""
         # Setup mocks
