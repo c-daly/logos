@@ -152,6 +152,13 @@ class HCGMilvusSync:
 
         from pymilvus import CollectionSchema, DataType, FieldSchema
 
+        # Fast path: already cached at the right dim — skip the Milvus round-trips
+        # (has_collection + Collection introspection) that would otherwise run on
+        # every upsert (gemini review on #543).
+        cached = self._collections.get(node_type)
+        if cached is not None and _collection_embedding_dim(cached) == dim:
+            return
+
         name = COLLECTION_NAMES[node_type]
         if utility.has_collection(name, using=self.alias):
             existing = Collection(name=name, using=self.alias)
