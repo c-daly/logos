@@ -43,6 +43,20 @@ def test_collection_embedding_dim_none_without_embedding_field() -> None:
     assert sync._collection_embedding_dim(coll) is None
 
 
+def test_collection_embedding_dim_handles_malformed_params() -> None:
+    """Non-dict params or a non-numeric dim yield None, never an exception."""
+    non_dict = SimpleNamespace(
+        schema=SimpleNamespace(fields=[SimpleNamespace(name="embedding", params=None)])
+    )
+    assert sync._collection_embedding_dim(non_dict) is None
+    bad_dim = SimpleNamespace(
+        schema=SimpleNamespace(
+            fields=[SimpleNamespace(name="embedding", params={"dim": "nope"})]
+        )
+    )
+    assert sync._collection_embedding_dim(bad_dim) is None
+
+
 def _milvus_up(host: str = "localhost", port: int = 19530) -> bool:
     try:
         with socket.create_connection((host, port), timeout=2):
@@ -51,10 +65,14 @@ def _milvus_up(host: str = "localhost", port: int = 19530) -> bool:
         return False
 
 
-@pytest.mark.skipif(not _milvus_up(), reason="dev Milvus not reachable on :19530")
 def test_ensure_collection_recreates_on_dim_mismatch(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    # Reachability probe runs at execution time, not pytest collection time, so
+    # unrelated runs aren't blocked on the socket timeout (greptile review).
+    if not _milvus_up():
+        pytest.skip("dev Milvus not reachable on :19530")
+
     from pymilvus import (
         Collection,
         CollectionSchema,
@@ -102,11 +120,13 @@ def test_ensure_collection_recreates_on_dim_mismatch(
             utility.drop_collection(name, using=alias)
 
 
-@pytest.mark.skipif(not _milvus_up(), reason="dev Milvus not reachable on :19530")
 def test_batch_upsert_sizes_collection_to_measured_dim(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """batch_upsert_embeddings creates the collection at the measured dim and persists."""
+    if not _milvus_up():
+        pytest.skip("dev Milvus not reachable on :19530")
+
     import uuid as _uuid
 
     from pymilvus import Collection, utility

@@ -28,11 +28,17 @@ def _collection_embedding_dim(collection: Any) -> int | None:
     """Return the dim of a collection's ``embedding`` FLOAT_VECTOR field, or None."""
     for field in collection.schema.fields:
         if field.name == "embedding":
-            params = getattr(field, "params", None) or {}
-            dim = params.get("dim")
-            # Milvus may report ``dim`` as a string; cast so dim comparisons are
-            # numeric and don't spuriously trigger a drop+recreate.
-            return int(dim) if dim is not None else None
+            # Defensive: ``params`` may not be a dict, and Milvus can report
+            # ``dim`` as a string. Cast inside a guard so a malformed schema
+            # yields None rather than raising mid-write (gemini review).
+            params = getattr(field, "params", None)
+            if isinstance(params, dict):
+                dim = params.get("dim")
+                if dim is not None:
+                    try:
+                        return int(dim)
+                    except (ValueError, TypeError):
+                        pass
     return None
 
 
