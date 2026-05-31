@@ -10,6 +10,11 @@ Modules:
     health: Unified health response schema
 """
 
+from logos_config.embedding import (
+    EmbeddingDimMismatch,
+    get_embedding_dim_override,
+    resolve_embedding_dim,
+)
 from logos_config.env import get_env_value, get_repo_root, load_env_file
 from logos_config.ports import (
     APOLLO_PORTS,
@@ -47,6 +52,10 @@ __all__ = [
     "OtelConfig",
     "RedisConfig",
     "ServiceConfig",
+    # embedding
+    "EmbeddingDimMismatch",
+    "get_embedding_dim_override",
+    "resolve_embedding_dim",
 ]
 
 __version__ = "0.1.0"
