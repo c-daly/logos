@@ -63,7 +63,7 @@ docs/fix-readme-links
 - First line under 72 characters
 - One logical change per commit
 - No emoji in commit messages
-- No attribution lines except `Co-Authored-By` when applicable
+- No attribution lines of any kind — no agent/tool attribution, no `Co-authored-by`
 
 ---
 
