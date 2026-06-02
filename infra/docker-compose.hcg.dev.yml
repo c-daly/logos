@@ -65,6 +65,30 @@ services:
       retries: 3
       start_period: 10s
 
+  redis:
+    image: redis:7-alpine
+    container_name: logos-hcg-redis
+    ports:
+      # Loopback only: services reach Redis via localhost:6379 and other
+      # containers via the docker-network name; Redis is unauthenticated and
+      # holds the proposal queue / EventBus topics, so don't expose it on all
+      # host interfaces.
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
+    # Append-only persistence so the proposal queue / context cache survive a
+    # container restart (the queue is drained by sophia's ProposalWorker).
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    networks:
+      - logos-hcg-dev-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
 networks:
   logos-hcg-dev-net:
     driver: bridge
@@ -74,3 +98,4 @@ volumes:
   neo4j-logs:
   neo4j-plugins:
   milvus-data:
+  redis-data:
