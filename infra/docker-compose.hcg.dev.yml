@@ -69,7 +69,11 @@ services:
     image: redis:7-alpine
     container_name: logos-hcg-redis
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      # Loopback only: services reach Redis via localhost:6379 and other
+      # containers via the docker-network name; Redis is unauthenticated and
+      # holds the proposal queue / EventBus topics, so don't expose it on all
+      # host interfaces.
+      - "127.0.0.1:${REDIS_PORT:-6379}:6379"
     # Append-only persistence so the proposal queue / context cache survive a
     # container restart (the queue is drained by sophia's ProposalWorker).
     command: ["redis-server", "--appendonly", "yes"]
