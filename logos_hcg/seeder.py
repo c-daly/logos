@@ -40,6 +40,7 @@ TYPE_PARENTS: dict[str, str] = {
     "entity": "node",
     "concept": "node",
     "cognition": "node",
+    "process": "node",
     "reserved_node": "node",
     # Domain types under entity
     "object": "entity",
@@ -215,6 +216,11 @@ class HCGSeeder:
             "location": (
                 "A named place, workspace, or spatial region where objects "
                 "reside. Examples: table, shelf, bin, assembly station, tray."
+            ),
+            "process": (
+                "A real-world process, event, or activity that unfolds over "
+                "time. Examples: photosynthesis, combustion, evaporation, "
+                "digestion, erosion, oxidation."
             ),
             "reserved_agent": (
                 "An autonomous actor that perceives, decides, and acts. "
