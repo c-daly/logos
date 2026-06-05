@@ -32,6 +32,7 @@ from logos_config.settings import (
     RedisConfig,
     ServiceConfig,
 )
+from logos_config.text import canonicalize
 
 __all__ = [
     # env
@@ -56,6 +57,8 @@ __all__ = [
     "EmbeddingDimMismatch",
     "get_embedding_dim_override",
     "resolve_embedding_dim",
+    # text
+    "canonicalize",
 ]
 
 __version__ = "0.1.0"

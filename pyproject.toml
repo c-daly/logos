@@ -55,6 +55,7 @@ opentelemetry-instrumentation-httpx = "^0.41b0"
 redis = ">=5.0.0"
 
 # Test utilities are available but optional (dev/test only)
+inflect = "^7.0.0"
 [tool.poetry.group.test.dependencies]
 rdflib = "^7.0.0"
 pyshacl = "^0.25.0"
