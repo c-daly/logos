@@ -225,10 +225,12 @@ class TestSeedTypeCentroids:
             model="all-MiniLM-L6-v2",
         )
 
-        # The curated reserved_agent description was embedded (rich, bare-keyed)...
-        assert any("autonomous actor" in d for d in seen)
-        # ...and no `_reserved_*` type fell back to the generic description.
-        assert not any(d.startswith("type definition for _reserved_") for d in seen)
+        # Curated descriptions for reserved types resolve via the bare alias
+        # (the `_` rename did not break the lookup) -- check two distinct ones.
+        assert any("autonomous actor" in d for d in seen)  # _reserved_agent
+        assert any("discrete step" in d for d in seen)  # _reserved_action
+        # (`_reserved_node`, the subtree root, has no curated description and
+        # legitimately uses the generic fallback -- that is not the bug here.)
 
     def test_seed_type_centroids_skips_when_definitions_missing(self):
         """Without seeded definitions, centroids are skipped, not orphaned."""
