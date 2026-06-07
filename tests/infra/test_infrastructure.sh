@@ -29,10 +29,10 @@ timeout 60 bash -c 'until docker exec logos-hcg-neo4j cypher-shell -u neo4j -p n
 echo "✓ Neo4j is ready"
 echo ""
 
-# Test 4: Load ontology
-echo "Test 4: Loading core ontology..."
-docker exec -i logos-hcg-neo4j cypher-shell -u neo4j -p neo4jtest < "${REPO_ROOT}/ontology/core_ontology.cypher" > /dev/null 2>&1
-echo "✓ Ontology loaded"
+# Test 4: Seed type skeleton
+echo "Test 4: Seeding type skeleton via HCG seeder..."
+logos-seed-hcg --ontology-only --uri "bolt://localhost:7687" --password neo4jtest > /dev/null 2>&1
+echo "✓ Type skeleton seeded"
 echo ""
 
 # Test 5: Verify constraints

@@ -110,7 +110,7 @@ jobs:
           cat ontology/test_data_pick_and_place.cypher | docker exec -i logos-phase2-test-neo4j cypher-shell -u neo4j -p neo4jtest || true
           
           echo "Verifying data loaded..."
-          docker exec logos-phase2-test-neo4j cypher-shell -u neo4j -p neo4jtest "MATCH (c:Concept) RETURN count(c) AS concepts;"
+          docker exec logos-phase2-test-neo4j cypher-shell -u neo4j -p neo4jtest "MATCH (n:Node) RETURN count(n) AS nodes;"
       
       - name: Run M4 integration tests
         id: m4_tests

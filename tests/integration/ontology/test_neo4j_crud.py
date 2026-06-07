@@ -2,7 +2,7 @@
 M1 Functional Test: Neo4j CRUD and Relationship Traversal
 
 Tests the M1 milestone requirements with FLEXIBLE ONTOLOGY:
-- Start docker-compose.hcg.dev.yml, load core_ontology.cypher and test_data_pick_and_place.cypher
+- Start docker-compose.hcg.dev.yml, seed the type skeleton via the HCG seeder and load test_data_pick_and_place.cypher
 - Create Entity/Concept/State/Process using :Node label with type/ancestors properties
 - Verify constraints and uniqueness
 - Create IS_A, HAS_STATE, CAUSES, PART_OF relationships
