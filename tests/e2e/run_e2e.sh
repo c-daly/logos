@@ -214,12 +214,12 @@ function show_logs() {
 function seed_data() {
     echo -e "${BLUE}Seeding test data...${NC}"
     
-    # Load ontology using the infra script
-    echo -e "${YELLOW}Loading ontology...${NC}"
-    NEO4J_CONTAINER="${NEO4J_CONTAINER}" \
-    NEO4J_USER=neo4j \
-    NEO4J_PASSWORD="${NEO4J_PASSWORD:-neo4jtest}" \
-    "${REPO_ROOT}/infra/load_ontology.sh"
+    # Seed ontology (HCG type skeleton) via the seeder CLI (logos#515)
+    echo -e "${YELLOW}Seeding ontology (type skeleton)...${NC}"
+    poetry run logos-seed-hcg --ontology-only \
+        --uri "${NEO4J_URI}" \
+        --user neo4j \
+        --password "${NEO4J_PASSWORD:-neo4jtest}"
     
     # Initialize Milvus collections
     echo -e "${YELLOW}Initializing Milvus collections...${NC}"

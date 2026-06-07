@@ -2,9 +2,10 @@
 Integration tests for HCG query utilities.
 
 Tests the HCG client library, connection pooling, and query operations
-against a Neo4j instance with the core ontology loaded.
+against a Neo4j instance seeded with the HCG type skeleton.
 
-Note: These tests require a running Neo4j instance with the core ontology loaded.
+Note: These tests require a running Neo4j instance seeded with the HCG type
+skeleton via ``logos-seed-hcg --ontology-only`` (HCGSeeder; see logos#515).
 They can be skipped if Neo4j is not available.
 """
 
@@ -122,7 +123,7 @@ class TestConceptQueries:
 
     def test_find_concept_by_name(self, hcg_client):
         """Test finding concept by exact name."""
-        # Try to find a known concept from core_ontology.cypher
+        # Try to find a known concept from the seeded HCG type skeleton
         concept = hcg_client.find_concept_by_name("Manipulator")
 
         if concept:
