@@ -31,7 +31,7 @@ echo ""
 
 # Test 4: Seed type skeleton
 echo "Test 4: Seeding type skeleton via HCG seeder..."
-logos-seed-hcg --ontology-only --uri "bolt://localhost:7687" --password neo4jtest > /dev/null 2>&1
+poetry run logos-seed-hcg --ontology-only --uri "bolt://localhost:7687" --password neo4jtest > /dev/null 2>&1
 echo "✓ Type skeleton seeded"
 echo ""
 
