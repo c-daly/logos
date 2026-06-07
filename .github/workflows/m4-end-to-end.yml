@@ -103,8 +103,8 @@ jobs:
       
       - name: Load ontology and test data
         run: |
-          echo "Loading core ontology..."
-          cat ontology/core_ontology.cypher | docker exec -i logos-phase2-test-neo4j cypher-shell -u neo4j -p neo4jtest || true
+          echo "Seeding type skeleton (logos-seed-hcg)..."
+          poetry run logos-seed-hcg --ontology-only --uri "${NEO4J_URI}" --user neo4j --password neo4jtest || true
           
           echo "Loading pick-and-place test data..."
           cat ontology/test_data_pick_and_place.cypher | docker exec -i logos-phase2-test-neo4j cypher-shell -u neo4j -p neo4jtest || true

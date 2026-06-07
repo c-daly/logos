@@ -46,16 +46,6 @@ jobs:
           timeout 60 bash -c 'until docker exec neo4j-validator cypher-shell -u neo4j -p neo4jtest "RETURN 1;" 2>/dev/null; do sleep 2; done'
           echo "Neo4j is ready"
       
-      - name: Validate core_ontology.cypher syntax
-        run: |
-          echo "Validating Cypher syntax for core_ontology.cypher..."
-          
-          # Execute the Cypher script to validate syntax
-          docker exec neo4j-validator cypher-shell -u neo4j -p neo4jtest \
-            -f /dev/stdin < ontology/core_ontology.cypher
-          
-          echo "✅ Cypher syntax validation passed"
-      
       - name: Cleanup
         if: always()
         run: |
@@ -174,7 +164,6 @@ jobs:
           echo "## ✅ All Validations Passed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Validated Artifacts:" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Cypher Ontology (ontology/core_ontology.cypher)" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ SHACL Shapes (ontology/shacl_shapes.ttl)" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ OpenAPI Contract (contracts/hermes.openapi.yaml)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY

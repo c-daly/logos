@@ -125,10 +125,10 @@ jobs:
       
       - name: Load core ontology
         run: |
-          echo "Loading core ontology into Neo4j..."
-          cat ontology/core_ontology.cypher | \
-            docker exec -i logos-phase2-test-neo4j \
-            cypher-shell -u neo4j -p neo4jtest
+          echo "Seeding type skeleton (logos-seed-hcg)..."
+          poetry run logos-seed-hcg --ontology-only \
+            --uri bolt://localhost:37687 \
+            --user neo4j --password neo4jtest
           echo "✓ Core ontology loaded"
       
       - name: Load SHACL shapes via n10s
