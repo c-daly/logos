@@ -115,10 +115,23 @@ def neo4j_connection():
 
 @pytest.fixture(scope="module")
 def loaded_ontology(neo4j_connection):
-    """Ensure core ontology is loaded."""
-    ontology_file = REPO_ROOT / "ontology" / "core_ontology.cypher"
-    returncode, stdout, stderr = load_cypher_file(ontology_file)
-    # It's OK if it was already loaded (may get errors about existing constraints)
+    """Ensure the seeded skeleton and indexes are present.
+
+    The legacy ``core_ontology.cypher`` bootstrap was retired (logos#515); the
+    HCG seeder is now the single source of the type skeleton and constraints.
+    """
+    from logos_hcg.client import HCGClient
+    from logos_hcg.seeder import HCGSeeder
+
+    client = HCGClient(
+        uri=NEO4J_CONFIG.uri,
+        user=NEO4J_CONFIG.user,
+        password=NEO4J_CONFIG.password,
+    )
+    try:
+        HCGSeeder(client).seed_type_definitions()
+    finally:
+        client.close()
     return True
 
 
@@ -164,16 +177,6 @@ class TestM4OntologyLoading:
         assert returncode == 0, f"Failed to query indexes: {stderr}"
         # Check if any indexes exist (may or may not have 'logos_' prefix)
         assert len(stdout.strip()) > 0, "Expected indexes to be present"
-
-    def test_bootstrap_types_loaded(self, loaded_ontology):
-        """Verify bootstrap types are loaded (flexible ontology)."""
-        returncode, stdout, stderr = run_cypher_query(
-            "MATCH (n:Node {is_type_definition: true}) "
-            "WHERE n.type IN ['type_definition', 'thing', 'concept', 'edge_type'] "
-            "RETURN count(n) AS count;"
-        )
-        assert returncode == 0, f"Failed to query bootstrap types: {stderr}"
-        assert "count" in stdout.lower(), "Expected bootstrap type count in output"
 
 
 class TestM4TestDataLoading:
