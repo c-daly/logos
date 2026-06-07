@@ -5,10 +5,11 @@ from unittest.mock import Mock
 
 from logos_hcg.seeder import TYPE_PARENTS, HCGSeeder
 
-# uuid4 string form, e.g. "f47ac10b-58cc-4372-a567-0e02b2c3d479".
-UUID4_RE = re.compile(
-    r"^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
-)
+# Version-agnostic UUID string form, e.g.
+# "f47ac10b-58cc-4372-a567-0e02b2c3d479". The seeder mints deterministic
+# ``uuid5`` ids for the skeleton; the assertion only enforces "real UUID,
+# never a ``type_`` slug", which uuid5 satisfies.
+UUID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 
 # The only names the seeder may ever create.
 SEED_NAMES = {"root", "node", "entity", "concept", "process", "cognition"}
@@ -81,8 +82,8 @@ class TestSeedTypeDefinitions:
         assert names == SEED_NAMES
         assert not (names & FORBIDDEN_SEED_NAMES)
 
-    def test_seed_uuids_are_uuid4_not_slugs(self):
-        """Every seeded node uuid is a real uuid4, never a ``type_`` slug."""
+    def test_seed_uuids_are_real_uuids_not_slugs(self):
+        """Every seeded node uuid is a real UUID, never a ``type_`` slug."""
         mock_client = Mock()
         seeder = HCGSeeder(client=mock_client)
 
@@ -92,7 +93,36 @@ class TestSeedTypeDefinitions:
         assert len(uuids) == 6
         for value in uuids:
             assert not value.startswith("type_")
-            assert UUID4_RE.match(value), value
+            assert UUID_RE.match(value), value
+
+    def test_seed_is_idempotent_deterministic_uuid5(self):
+        """Re-seeding mints the same six uuid5 ids (MERGE no-ops, no growth)."""
+        mock_client = Mock()
+        # Echo the uuid back so type_uuids holds the real ids (mirrors the
+        # real client, whose add_node MERGEs on uuid and returns it).
+        mock_client.add_node.side_effect = lambda **kwargs: kwargs["uuid"]
+        seeder = HCGSeeder(client=mock_client)
+
+        seeder.seed_type_definitions()
+        first = {
+            call.kwargs["name"]: call.kwargs["uuid"]
+            for call in mock_client.add_node.call_args_list
+        }
+
+        mock_client.add_node.reset_mock()
+        seeder.seed_type_definitions()
+        second = {
+            call.kwargs["name"]: call.kwargs["uuid"]
+            for call in mock_client.add_node.call_args_list
+        }
+
+        # uuid5 is deterministic: each name yields the identical uuid both runs.
+        assert first == second
+        assert set(first) == SEED_NAMES
+        # The MERGE key (uuid) is stable, so the union across both runs is
+        # exactly the six skeleton ids -- a second seed adds no new nodes.
+        assert set(first.values()) | set(second.values()) == set(first.values())
+        assert len(set(first.values())) == 6
 
 
 class TestSeedTypeCentroids:
@@ -101,7 +131,13 @@ class TestSeedTypeCentroids:
     def test_seed_type_centroids_calls_embed_and_update(self):
         """Test that seed_type_centroids embeds each type and updates centroids."""
         mock_client = Mock()
+        # Echo uuids back so type_uuids holds real skeleton ids after seeding.
+        mock_client.add_node.side_effect = lambda **kwargs: kwargs["uuid"]
         seeder = HCGSeeder(client=mock_client)
+
+        # Centroids reference the skeleton node uuids, so the type definitions
+        # must be seeded first; otherwise every centroid is skipped.
+        seeder.seed_type_definitions()
 
         mock_embed_fn = Mock(return_value=[0.1] * 384)
         mock_milvus_sync = Mock()
@@ -122,7 +158,25 @@ class TestSeedTypeCentroids:
         assert call_args.kwargs["centroid"] == [0.1] * 384
         assert call_args.kwargs["model"] == "all-MiniLM-L6-v2"
 
-        # type_uuid is now a real uuid4, never a fabricated ``type_`` slug.
+        # type_uuid is a real skeleton uuid, never a fabricated ``type_`` slug.
         type_uuid = call_args.kwargs["type_uuid"]
         assert not type_uuid.startswith("type_")
-        assert UUID4_RE.match(type_uuid), type_uuid
+        assert UUID_RE.match(type_uuid), type_uuid
+
+    def test_seed_type_centroids_skips_when_definitions_missing(self):
+        """Without seeded definitions, centroids are skipped, not orphaned."""
+        mock_client = Mock()
+        seeder = HCGSeeder(client=mock_client)
+
+        mock_embed_fn = Mock(return_value=[0.1] * 384)
+        mock_milvus_sync = Mock()
+
+        count = seeder.seed_type_centroids(
+            embed_fn=mock_embed_fn,
+            milvus_sync=mock_milvus_sync,
+            model="all-MiniLM-L6-v2",
+        )
+
+        # No type_uuids on hand -> every centroid skipped, none written.
+        assert count == 0
+        assert mock_milvus_sync.update_centroid.call_count == 0

@@ -17,7 +17,7 @@ import logging
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
-from uuid import uuid4
+from uuid import NAMESPACE_DNS, uuid4, uuid5
 
 from logos_hcg.client import HCGClient
 
@@ -37,8 +37,10 @@ logger = logging.getLogger(__name__)
 # parent of the four kinds, which are kinds *of* node.  ``cognition`` is seeded
 # and Sophia-exclusive: nothing else interacts with it for now.
 #
-# Types describe *what something IS*.  Every seeded node carries a real
-# ``uuid4`` identity; there is no fabricated ``type_<name>`` slug.
+# Types describe *what something IS*.  Every seeded node carries a real,
+# deterministic ``uuid5`` identity; there is no fabricated ``type_<name>`` slug.
+# Determinism makes re-seeding idempotent: the MERGE in ``add_node`` keys on
+# uuid, so identical uuids on a second run are no-ops rather than duplicates.
 TYPE_PARENTS: dict[str, str] = {
     "node": "root",
     "entity": "node",
@@ -95,11 +97,13 @@ class HCGSeeder:
             client.close()
             return
 
-        keys = list(client.scan_iter(match="logos:ontology:*"))
-        if keys:
-            client.delete(*keys)
-        logger.info("Cleared %d Redis ontology key(s)", len(keys))
-        client.close()
+        try:
+            keys = list(client.scan_iter(match="logos:ontology:*"))
+            if keys:
+                client.delete(*keys)
+            logger.info("Cleared %d Redis ontology key(s)", len(keys))
+        finally:
+            client.close()
 
     @staticmethod
     def _clear_milvus_collections() -> None:
@@ -140,8 +144,10 @@ class HCGSeeder:
             root <- node <- {entity, concept, process, cognition}
 
         ``root`` is the parentless terminus (created with no upward edge).
-        Every other node is created with a real ``uuid4`` identity and a single
-        reified IS_A edge to its immediate parent.  The name -> uuid mapping is
+        Every other node is created with a real, deterministic ``uuid5``
+        identity and a single reified IS_A edge to its immediate parent.  The
+        deterministic ids make re-seeding idempotent (MERGE keys on uuid, so a
+        second run is a no-op).  The name -> uuid mapping is
         retained on ``self.type_uuids`` so later seeding steps can reference the
         skeleton without fabricating ``type_<name>`` slugs.
 
@@ -154,8 +160,11 @@ class HCGSeeder:
         self.type_uuids = {}
 
         # ``root`` first (parentless terminus) so ``node`` can refer to it.
+        # Skeleton uuids are deterministic ``uuid5`` values so re-seeding a
+        # non-cleared graph MERGEs onto the same nodes (idempotent) instead of
+        # minting fresh ``uuid4`` duplicates.
         self.type_uuids["root"] = self.client.add_node(
-            uuid=str(uuid4()),
+            uuid=str(uuid5(NAMESPACE_DNS, "logos.hcg.type.root")),
             name="root",
             node_type="type_definition",
         )
@@ -163,7 +172,7 @@ class HCGSeeder:
 
         for type_name, parent_name in TYPE_PARENTS.items():
             node_uuid = self.client.add_node(
-                uuid=str(uuid4()),
+                uuid=str(uuid5(NAMESPACE_DNS, f"logos.hcg.type.{type_name}")),
                 name=type_name,
                 node_type="type_definition",
             )
@@ -262,12 +271,24 @@ class HCGSeeder:
 
         count = 0
         for type_name in TYPE_PARENTS:
+            # The centroid must reference the real type-definition node uuid.
+            # If the skeleton has not been seeded (no uuid on hand), skip this
+            # centroid rather than writing a fabricated uuid to Milvus that
+            # would match no Neo4j node (silent orphan).
+            type_uuid = self.type_uuids.get(type_name)
+            if type_uuid is None:
+                logger.warning(
+                    "Skipping centroid for type %r: no type-definition uuid "
+                    "(run seed_type_definitions first)",
+                    type_name,
+                )
+                continue
             description = type_descriptions.get(
                 type_name, f"type definition for {type_name}"
             )
             embedding = embed_fn(description)
             milvus_sync.update_centroid(
-                type_uuid=self.type_uuids.get(type_name, str(uuid4())),
+                type_uuid=type_uuid,
                 centroid=embedding,
                 model=model,
             )
