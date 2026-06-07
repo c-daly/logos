@@ -18,18 +18,19 @@ SEED_NAMES = {
     "entity",
     "concept",
     "process",
-    "cognition",
-    # System-reserved scaffolding -- seeded, untouched by the content engine.
-    "reserved_node",
-    "reserved_agent",
-    "reserved_process",
-    "reserved_action",
-    "reserved_goal",
-    "reserved_plan",
-    "reserved_simulation",
-    "reserved_execution",
-    "reserved_state",
-    "reserved_media_sample",
+    "_cognition",
+    # System-reserved scaffolding -- seeded, untouched. Leading `_` = reserved
+    # namespace (content names may never start with `_`).
+    "_reserved_node",
+    "_reserved_agent",
+    "_reserved_process",
+    "_reserved_action",
+    "_reserved_goal",
+    "_reserved_plan",
+    "_reserved_simulation",
+    "_reserved_execution",
+    "_reserved_state",
+    "_reserved_media_sample",
 }
 
 # Names that must never be seeded (logos#515 design lock). object/location
@@ -67,17 +68,17 @@ class TestSeedTypeDefinitions:
             "entity": "node",
             "concept": "node",
             "process": "node",
-            "cognition": "node",
-            "reserved_node": "node",
-            "reserved_agent": "reserved_node",
-            "reserved_process": "reserved_node",
-            "reserved_action": "reserved_node",
-            "reserved_goal": "reserved_node",
-            "reserved_plan": "reserved_node",
-            "reserved_simulation": "reserved_node",
-            "reserved_execution": "reserved_node",
-            "reserved_state": "reserved_node",
-            "reserved_media_sample": "reserved_node",
+            "_cognition": "node",
+            "_reserved_node": "node",
+            "_reserved_agent": "_reserved_node",
+            "_reserved_process": "_reserved_node",
+            "_reserved_action": "_reserved_node",
+            "_reserved_goal": "_reserved_node",
+            "_reserved_plan": "_reserved_node",
+            "_reserved_simulation": "_reserved_node",
+            "_reserved_execution": "_reserved_node",
+            "_reserved_state": "_reserved_node",
+            "_reserved_media_sample": "_reserved_node",
         }
 
     def test_seed_creates_sixteen_nodes_and_fifteen_edges(self):
@@ -143,6 +144,23 @@ class TestSeedTypeDefinitions:
         # exactly the sixteen skeleton ids -- a second seed adds no new nodes.
         assert set(first.values()) | set(second.values()) == set(first.values())
         assert len(set(first.values())) == 16
+
+    def test_bare_name_aliases_resolve_to_reserved_nodes(self):
+        """Bare (non-`_`) names resolve to the same node as their `_`-prefixed
+        canonical, so reserved-referencing code (demo/plan/persona) stays valid
+        without churn. The alias is a lookup convenience -- no extra node."""
+        mock_client = Mock()
+        mock_client.add_node.side_effect = lambda **kwargs: kwargs["uuid"]
+        seeder = HCGSeeder(client=mock_client)
+
+        seeder.seed_type_definitions()
+
+        for name in ("_cognition", "_reserved_node", "_reserved_agent"):
+            assert seeder.type_uuids[name] == seeder.type_uuids[name[1:]]
+        # Only the canonical `_`-prefixed nodes are actually created.
+        created = {c.kwargs["name"] for c in mock_client.add_node.call_args_list}
+        assert "_reserved_agent" in created
+        assert "reserved_agent" not in created
 
 
 class TestSeedTypeCentroids:
