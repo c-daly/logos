@@ -30,11 +30,13 @@ logger = logging.getLogger(__name__)
 # Type hierarchy
 # ---------------------------------------------------------------------------
 
-# Seeded skeleton (final): root <- node <- {entity, concept, process, cognition,
-# reserved_node <- 9 reserved_*}. Content realms (entity/concept/process) drain;
-# cognition + the reserved_* subtree are seeded system scaffolding, untouched by
-# the content engine. object/location are NOT seeded (they emerge); relation
-# vocabulary is NOT seeded (only IS_A is used for now).
+# Seeded skeleton (final): root <- node <- {entity, concept, process, _cognition,
+# _reserved_node <- 9 _reserved_*}. Content realms (entity/concept/process) drain;
+# _cognition + the _reserved_* subtree are seeded system scaffolding, untouched
+# by the content engine -- the leading `_` marks the reserved namespace (content
+# names may never start with `_`). root/node stay bare (navigation starts at
+# node's children; root may host non-node branches someday). object/location are
+# NOT seeded (they emerge); relation vocabulary is NOT seeded (only IS_A for now).
 #
 # ``root`` is the parentless terminus -- it exists only to give ``node`` a
 # place to refer to, and nothing is ever placed under it.  ``node`` is the
@@ -51,20 +53,22 @@ TYPE_PARENTS: dict[str, str] = {
     "entity": "node",
     "concept": "node",
     "process": "node",
-    # Sophia's tree -- seeded, untouched by the content engine.
-    "cognition": "node",
-    # System-reserved scaffolding -- seeded, untouched; reserved_node first so
+    # Sophia's tree -- seeded, untouched. The leading `_` marks the reserved
+    # namespace: content names may never start with `_`, so content and system
+    # types can never collide and the content parent-menu filters by one rule.
+    "_cognition": "node",
+    # System-reserved scaffolding -- seeded, untouched; `_reserved_node` first so
     # its children resolve their parent in this insertion order.
-    "reserved_node": "node",
-    "reserved_agent": "reserved_node",
-    "reserved_process": "reserved_node",
-    "reserved_action": "reserved_node",
-    "reserved_goal": "reserved_node",
-    "reserved_plan": "reserved_node",
-    "reserved_simulation": "reserved_node",
-    "reserved_execution": "reserved_node",
-    "reserved_state": "reserved_node",
-    "reserved_media_sample": "reserved_node",
+    "_reserved_node": "node",
+    "_reserved_agent": "_reserved_node",
+    "_reserved_process": "_reserved_node",
+    "_reserved_action": "_reserved_node",
+    "_reserved_goal": "_reserved_node",
+    "_reserved_plan": "_reserved_node",
+    "_reserved_simulation": "_reserved_node",
+    "_reserved_execution": "_reserved_node",
+    "_reserved_state": "_reserved_node",
+    "_reserved_media_sample": "_reserved_node",
 }
 
 
@@ -195,6 +199,13 @@ class HCGSeeder:
                 node_type="type_definition",
             )
             self.type_uuids[type_name] = node_uuid
+            # Reserved-namespace alias: the bare (non-`_`) name resolves to the
+            # same node, so references predating the `_` prefix (demo / plan /
+            # persona seeding) stay valid without churn. The canonical node name
+            # keeps the `_`, so the content catalog still filters it by that one
+            # rule -- the alias is only an in-memory lookup convenience.
+            if type_name.startswith("_"):
+                self.type_uuids[type_name[1:]] = node_uuid
 
             # Reified IS_A edge to the immediate parent.
             self.client.add_edge(
@@ -301,8 +312,14 @@ class HCGSeeder:
                     type_name,
                 )
                 continue
+            # Descriptions are keyed by the bare (alias) name; reserved/system
+            # types live _-prefixed in TYPE_PARENTS, so strip the leading
+            # underscore for the lookup -- consistent with the bare-name alias.
+            # Without this the `_reserved_*` types fall back to a generic
+            # description and seed degraded centroids (review #556).
+            desc_key = type_name[1:] if type_name.startswith("_") else type_name
             description = type_descriptions.get(
-                type_name, f"type definition for {type_name}"
+                desc_key, f"type definition for {type_name}"
             )
             embedding = embed_fn(description)
             milvus_sync.update_centroid(
