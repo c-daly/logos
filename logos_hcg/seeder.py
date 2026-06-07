@@ -312,8 +312,14 @@ class HCGSeeder:
                     type_name,
                 )
                 continue
+            # Descriptions are keyed by the bare (alias) name; reserved/system
+            # types live _-prefixed in TYPE_PARENTS, so strip the leading
+            # underscore for the lookup -- consistent with the bare-name alias.
+            # Without this the `_reserved_*` types fall back to a generic
+            # description and seed degraded centroids (review #556).
+            desc_key = type_name[1:] if type_name.startswith("_") else type_name
             description = type_descriptions.get(
-                type_name, f"type definition for {type_name}"
+                desc_key, f"type definition for {type_name}"
             )
             embedding = embed_fn(description)
             milvus_sync.update_centroid(

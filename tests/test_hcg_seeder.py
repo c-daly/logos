@@ -201,6 +201,35 @@ class TestSeedTypeCentroids:
         assert not type_uuid.startswith("type_")
         assert UUID_RE.match(type_uuid), type_uuid
 
+    def test_seed_type_centroids_reserved_types_use_rich_descriptions(self):
+        """The `_reserved_*` types must embed their curated (bare-keyed)
+        descriptions, not the generic fallback -- the `_` rename must not break
+        the description lookup (review #556)."""
+        mock_client = Mock()
+        mock_client.add_node.side_effect = lambda **kwargs: kwargs["uuid"]
+        seeder = HCGSeeder(client=mock_client)
+        seeder.seed_type_definitions()
+
+        seen: list[str] = []
+
+        def embed_fn(desc):
+            seen.append(desc)
+            return [0.1] * 384
+
+        mock_milvus_sync = Mock()
+        mock_milvus_sync.update_centroid.return_value = {"embedding_id": "x"}
+
+        seeder.seed_type_centroids(
+            embed_fn=embed_fn,
+            milvus_sync=mock_milvus_sync,
+            model="all-MiniLM-L6-v2",
+        )
+
+        # The curated reserved_agent description was embedded (rich, bare-keyed)...
+        assert any("autonomous actor" in d for d in seen)
+        # ...and no `_reserved_*` type fell back to the generic description.
+        assert not any(d.startswith("type definition for _reserved_") for d in seen)
+
     def test_seed_type_centroids_skips_when_definitions_missing(self):
         """Without seeded definitions, centroids are skipped, not orphaned."""
         mock_client = Mock()
