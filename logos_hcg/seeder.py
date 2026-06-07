@@ -30,59 +30,21 @@ logger = logging.getLogger(__name__)
 # Type hierarchy
 # ---------------------------------------------------------------------------
 
-# Hierarchy: node → {entity, concept, cognition, reserved_node}
-# Domain types descend from entity; system-internal types from reserved_node.
+# Seeded skeleton (final): root <- node <- {entity, concept, process, cognition}.
 #
-# Types describe *what something IS*, not where it came from.  Provenance
-# lives in ``source``/``derivation`` properties and graph connections.
+# ``root`` is the parentless terminus -- it exists only to give ``node`` a
+# place to refer to, and nothing is ever placed under it.  ``node`` is the
+# parent of the four kinds, which are kinds *of* node.  ``cognition`` is seeded
+# and Sophia-exclusive: nothing else interacts with it for now.
+#
+# Types describe *what something IS*.  Every seeded node carries a real
+# ``uuid4`` identity; there is no fabricated ``type_<name>`` slug.
 TYPE_PARENTS: dict[str, str] = {
-    # Intermediate types under node
+    "node": "root",
     "entity": "node",
     "concept": "node",
-    "cognition": "node",
     "process": "node",
-    "reserved_node": "node",
-    # Domain types under entity
-    "object": "entity",
-    "location": "entity",
-    # System-internal types under reserved_node
-    "reserved_agent": "reserved_node",  # Internal: Sophia as plan executor
-    "reserved_process": "reserved_node",  # Internal: Sophia plan execution
-    "reserved_action": "reserved_node",  # Internal: Sophia plan steps
-    "reserved_goal": "reserved_node",  # Internal: Sophia planner goals
-    "reserved_plan": "reserved_node",  # Internal: Sophia planner plans
-    "reserved_simulation": "reserved_node",  # Internal: Sophia JEPA simulations
-    "reserved_execution": "reserved_node",  # Internal: Sophia execution runs
-    "reserved_state": "reserved_node",  # Internal: Sophia CWM states
-    "reserved_media_sample": "reserved_node",  # Internal: Sophia media ingestion
-}
-
-# Edge type definitions to create as type-definition nodes.
-EDGE_TYPES: list[str] = [
-    "ENABLES",
-    "ACHIEVES",
-    "LOCATED_AT",
-    "EXECUTES",
-    "UPDATES",
-    "REQUIRES",
-    "CAUSES",
-    "PRODUCES",
-    "OBSERVES",
-    "HAS_STATE",
-    "PART_OF",
-    "HAS_STEP",
-    "GENERATES",
-    "CONTAINS",
-    "OCCUPIES",
-]
-
-# Types already created by core_ontology.cypher — skip to avoid duplicates.
-BOOTSTRAP_TYPES: set[str] = {
-    "type_definition",
-    "node",
-    "edge_type",
-    "IS_A",
-    "COMPONENT_OF",
+    "cognition": "node",
 }
 
 
@@ -96,83 +58,121 @@ class HCGSeeder:
 
     def __init__(self, client: HCGClient) -> None:
         self.client = client
+        # Name -> uuid map for the seeded skeleton, populated by
+        # ``seed_type_definitions`` and consumed by later seeding steps.
+        self.type_uuids: dict[str, str] = {}
 
     # ------------------------------------------------------------------
     # clear
     # ------------------------------------------------------------------
 
     def clear(self) -> None:
-        """Remove all data from the graph."""
+        """Remove all seeded data from every store.
+
+        Wipes the Neo4j graph and, where reachable, the Redis ontology keys
+        (``logos:ontology:*``) and the Milvus ``hcg_*`` collections, so a fresh
+        seed starts from a clean slate across the whole stack (logos#554).
+
+        A store that is unreachable is skipped with a warning; a store that is
+        reachable but fails to clear raises, so partial wipes are never silent.
+        """
         self.client.clear_all()
+        self._clear_redis_ontology()
+        self._clear_milvus_collections()
+
+    @staticmethod
+    def _clear_redis_ontology() -> None:
+        """Delete the ``logos:ontology:*`` keys from Redis when reachable."""
+        import redis
+
+        from logos_config import RedisConfig
+
+        client = redis.from_url(RedisConfig().url)
+        try:
+            client.ping()
+        except Exception as exc:
+            logger.warning("Skipping Redis ontology clear (unreachable): %s", exc)
+            client.close()
+            return
+
+        keys = list(client.scan_iter(match="logos:ontology:*"))
+        if keys:
+            client.delete(*keys)
+        logger.info("Cleared %d Redis ontology key(s)", len(keys))
+        client.close()
+
+    @staticmethod
+    def _clear_milvus_collections() -> None:
+        """Drop every ``hcg_*`` Milvus collection when Milvus is reachable."""
+        from pymilvus import connections, utility
+
+        from logos_config import MilvusConfig
+
+        cfg = MilvusConfig()
+        alias = "hcg_seeder_clear"
+        try:
+            connections.connect(alias=alias, host=cfg.host, port=str(cfg.port))
+        except Exception as exc:
+            logger.warning("Skipping Milvus clear (unreachable): %s", exc)
+            return
+
+        try:
+            names = [
+                name
+                for name in utility.list_collections(using=alias)
+                if name.startswith("hcg_")
+            ]
+            for name in names:
+                utility.drop_collection(name, using=alias)
+            logger.info("Dropped %d Milvus hcg_* collection(s)", len(names))
+        finally:
+            connections.disconnect(alias)
 
     # ------------------------------------------------------------------
     # type definitions
     # ------------------------------------------------------------------
 
     def seed_type_definitions(self) -> int:
-        """Create type-definition nodes and IS_A edge nodes for the hierarchy.
+        """Create the seeded skeleton: six type-definition nodes + IS_A edges.
 
-        Each type gets a node and an IS_A reified edge to its immediate
-        parent.  Bootstrap types (already in ``core_ontology.cypher``) are
-        skipped for node creation but still get IS_A edges if the parent
-        exists.
+        The skeleton is exactly::
+
+            root <- node <- {entity, concept, process, cognition}
+
+        ``root`` is the parentless terminus (created with no upward edge).
+        Every other node is created with a real ``uuid4`` identity and a single
+        reified IS_A edge to its immediate parent.  The name -> uuid mapping is
+        retained on ``self.type_uuids`` so later seeding steps can reference the
+        skeleton without fabricating ``type_<name>`` slugs.
 
         Returns:
-            Number of type-definition nodes created.
+            Number of type-definition nodes created (6 on an empty store).
         """
         self.client.ensure_indexes()
 
-        count = 0
+        # Reset the name -> uuid map for this seeding run.
+        self.type_uuids = {}
 
-        # Ensure the node parent exists so IS_A edges can reference it.
-        # Normally created by core_ontology.cypher; in tests we create a stub.
-        self.client.add_node(
-            uuid="type_node",
-            name="node",
+        # ``root`` first (parentless terminus) so ``node`` can refer to it.
+        self.type_uuids["root"] = self.client.add_node(
+            uuid=str(uuid4()),
+            name="root",
             node_type="type_definition",
         )
+        count = 1
 
         for type_name, parent_name in TYPE_PARENTS.items():
-            if type_name in BOOTSTRAP_TYPES:
-                continue
-
-            # Create the type-definition node
             node_uuid = self.client.add_node(
-                uuid=f"type_{type_name}",
+                uuid=str(uuid4()),
                 name=type_name,
                 node_type="type_definition",
             )
+            self.type_uuids[type_name] = node_uuid
 
-            # Create IS_A edge to the immediate parent
-            parent_uuid = f"type_{parent_name}"
+            # Reified IS_A edge to the immediate parent.
             self.client.add_edge(
                 source_uuid=node_uuid,
-                target_uuid=parent_uuid,
-                relation="IS_A",
-            )
-            count += 1
-
-        # Ensure the edge_type bootstrap node exists (once, before the loop)
-        self.client.add_node(
-            uuid="type_edge_type",
-            name="edge_type",
-            node_type="type_definition",
-        )
-
-        for edge_name in EDGE_TYPES:
-            if edge_name in BOOTSTRAP_TYPES:
-                continue
-
-            node_uuid = self.client.add_node(
-                uuid=f"type_edge_{edge_name.lower()}",
-                name=edge_name,
-                node_type="edge_type",
-            )
-
-            # IS_A -> edge_type
-            self.client.add_edge(
-                source_uuid=node_uuid,
-                target_uuid="type_edge_type",
+                target_uuid=self.type_uuids[parent_name],
                 relation="IS_A",
             )
             count += 1
@@ -267,7 +267,7 @@ class HCGSeeder:
             )
             embedding = embed_fn(description)
             milvus_sync.update_centroid(
-                type_uuid=f"type_{type_name}",
+                type_uuid=self.type_uuids.get(type_name, str(uuid4())),
                 centroid=embedding,
                 model=model,
             )
@@ -307,13 +307,15 @@ class HCGSeeder:
                 node_type=node_type,
                 properties=props,
             )
-            # Create IS_A edge from instance to its type definition
-            type_def_uuid = f"type_{node_type}"
-            self.client.add_edge(
-                source_uuid=uuid,
-                target_uuid=type_def_uuid,
-                relation="IS_A",
-            )
+            # Link the instance to its type definition with a reified IS_A
+            # edge, but only when that type is part of the seeded skeleton.
+            type_def_uuid = self.type_uuids.get(node_type)
+            if type_def_uuid is not None:
+                self.client.add_edge(
+                    source_uuid=uuid,
+                    target_uuid=type_def_uuid,
+                    relation="IS_A",
+                )
             ids[key] = uuid
             return uuid
 
