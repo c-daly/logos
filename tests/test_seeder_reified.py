@@ -28,15 +28,90 @@ def test_seed_creates_is_a_edge_nodes(client):
     seeder = HCGSeeder(client)
     seeder.seed_type_definitions()
 
-    # Verify IS_A edge node exists between a leaf type and its parent
+    # entity IS_A node (a kind under node)
     result = client._execute_read(
         """
-        MATCH (child:Node {name: "object"})<-[:FROM]-(e:Node {relation: "IS_A"})-[:TO]->(parent:Node {name: "entity"})
+        MATCH (child:Node {name: "entity"})<-[:FROM]-(e:Node {relation: "IS_A"})-[:TO]->(parent:Node {name: "node"})
         RETURN e.uuid AS edge_uuid
     """,
         {},
     )
     assert len(result) > 0
+
+    # node IS_A root (node sits directly beneath the parentless terminus)
+    result = client._execute_read(
+        """
+        MATCH (child:Node {name: "node"})<-[:FROM]-(e:Node {relation: "IS_A"})-[:TO]->(parent:Node {name: "root"})
+        RETURN e.uuid AS edge_uuid
+    """,
+        {},
+    )
+    assert len(result) > 0
+
+
+def test_seed_creates_exactly_the_six_node_skeleton(client):
+    """Seeding an empty store yields exactly the sixteen-node skeleton."""
+    seeder = HCGSeeder(client)
+    count = seeder.seed_type_definitions()
+
+    assert count == 16
+
+    names = client._execute_read(
+        """
+        MATCH (n:Node {type: "type_definition"})
+        RETURN n.name AS name
+    """,
+        {},
+    )
+    assert {row["name"] for row in names} == {
+        "root",
+        "node",
+        "entity",
+        "concept",
+        "process",
+        "cognition",
+        "reserved_node",
+        "reserved_agent",
+        "reserved_process",
+        "reserved_action",
+        "reserved_goal",
+        "reserved_plan",
+        "reserved_simulation",
+        "reserved_execution",
+        "reserved_state",
+        "reserved_media_sample",
+    }
+
+    # root is the parentless terminus: it is never the child of an IS_A edge.
+    root_parent = client._execute_read(
+        """
+        MATCH (root:Node {name: "root"})<-[:FROM]-(e:Node {relation: "IS_A"})
+        RETURN count(e) AS count
+    """,
+        {},
+    )
+    assert root_parent[0]["count"] == 0
+
+    # Exactly fifteen reified IS_A assertions wire the skeleton together.
+    edges = client._execute_read(
+        """
+        MATCH (e:Node {relation: "IS_A"})
+        RETURN count(e) AS count
+    """,
+        {},
+    )
+    assert edges[0]["count"] == 15
+
+    # No seeded uuid may match the retired type_ slug pattern.
+    slugs = client._execute_read(
+        """
+        MATCH (n:Node {type: "type_definition"})
+        WHERE n.uuid STARTS WITH "type_"
+        RETURN count(n) AS count
+    """,
+        {},
+    )
+    assert slugs[0]["count"] == 0
 
 
 def test_seed_no_native_is_a_relationships(client):

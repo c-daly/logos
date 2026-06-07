@@ -2,7 +2,7 @@
 M1 Functional Test: Neo4j CRUD and Relationship Traversal
 
 Tests the M1 milestone requirements with FLEXIBLE ONTOLOGY:
-- Start docker-compose.hcg.dev.yml, load core_ontology.cypher and test_data_pick_and_place.cypher
+- Start docker-compose.hcg.dev.yml, seed the type skeleton via the HCG seeder and load test_data_pick_and_place.cypher
 - Create Entity/Concept/State/Process using :Node label with type/ancestors properties
 - Verify constraints and uniqueness
 - Create IS_A, HAS_STATE, CAUSES, PART_OF relationships
@@ -60,16 +60,27 @@ def neo4j_driver():
 
 @pytest.fixture(scope="module")
 def loaded_ontology(neo4j_driver):
-    """Load core ontology into Neo4j before tests."""
-    ontology_path = REPO_ROOT / "ontology" / "core_ontology.cypher"
+    """Seed the type skeleton into Neo4j before tests.
+
+    Replaces the retired ``core_ontology.cypher`` bootstrap (logos#515) with the
+    HCG seeder, which is now the single source of the type skeleton.
+    """
+    from logos_hcg.client import HCGClient
+    from logos_hcg.seeder import HCGSeeder
 
     # First, clean the database
     with neo4j_driver.session() as session:
         session.run("MATCH (n) DETACH DELETE n")
 
-    result = load_cypher_file(ontology_path, config=NEO4J_CONFIG, timeout=120)
-    if result.returncode != 0:
-        pytest.fail(f"Failed to load ontology: {result.stderr}")
+    client = HCGClient(
+        uri=NEO4J_CONFIG.uri,
+        user=NEO4J_CONFIG.user,
+        password=NEO4J_CONFIG.password,
+    )
+    try:
+        HCGSeeder(client).seed_type_definitions()
+    finally:
+        client.close()
     return True
 
 

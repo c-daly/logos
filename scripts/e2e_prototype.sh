@@ -130,12 +130,13 @@ load_ontology() {
     
     cd "${REPO_ROOT}"
     
-    print_info "Loading core ontology..."
-    if docker exec -i "${NEO4J_CONTAINER}" cypher-shell -u "${NEO4J_USER}" -p "${NEO4J_PASSWORD}" \
-        < ontology/core_ontology.cypher > "${LOG_DIR}/ontology_load.log" 2>&1; then
-        print_success "Core ontology loaded"
+    print_info "Seeding type skeleton (logos-seed-hcg)..."
+    if poetry run logos-seed-hcg --ontology-only --uri "${NEO4J_URI}" \
+        --user "${NEO4J_USER}" --password "${NEO4J_PASSWORD}" \
+        > "${LOG_DIR}/ontology_load.log" 2>&1; then
+        print_success "Type skeleton seeded"
     else
-        print_warn "Ontology may have been loaded previously (this is OK)"
+        print_warn "Skeleton may have been seeded previously (this is OK)"
     fi
     
     print_info "Verifying constraints..."

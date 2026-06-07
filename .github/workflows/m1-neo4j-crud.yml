@@ -62,12 +62,6 @@ jobs:
           echo "Waiting for APOC plugin to download..."
           sleep 15
 
-      - name: Load core ontology into Neo4j
-        run: |
-          echo "Seeding Neo4j with core ontology..."
-          ./infra/load_ontology.sh
-          echo "✓ Core ontology loaded"
-      
       - name: Wait for Neo4j to be ready
         run: |
           echo "Waiting for Neo4j to be ready..."
@@ -75,6 +69,12 @@ jobs:
           echo "✓ Neo4j is ready"
           # Give Neo4j extra time to finish loading plugins
           sleep 10
+      
+      - name: Seed core ontology into Neo4j
+        run: |
+          echo "Seeding Neo4j with core ontology (HCGSeeder)..."
+          poetry run logos-seed-hcg --ontology-only --uri "$NEO4J_URI" --user "$NEO4J_USER" --password "$NEO4J_PASSWORD"
+          echo "✓ Core ontology loaded"
       
       - name: Verify Neo4j is accessible
         run: |

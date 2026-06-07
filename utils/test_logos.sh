@@ -88,8 +88,11 @@ start_stack
 if [[ -n "${LOGOS_SKIP_ONTOLOGY_LOAD:-}" ]]; then
   echo "[logos:test] Skipping ontology load (LOGOS_SKIP_ONTOLOGY_LOAD set)."
 else
-  echo "[logos:test] Loading core ontology into Neo4j..."
-  ./infra/load_ontology.sh
+  echo "[logos:test] Seeding core ontology (HCG type skeleton) into Neo4j..."
+  poetry run logos-seed-hcg --ontology-only \
+    --uri "bolt://localhost:${NEO4J_BOLT_PORT:-7687}" \
+    --user neo4j \
+    --password "${NEO4J_PASSWORD:-logosdev}"
 fi
 
 ./infra/init_milvus.sh
