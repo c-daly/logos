@@ -50,11 +50,11 @@ def test_seed_creates_is_a_edge_nodes(client):
 
 
 def test_seed_creates_exactly_the_six_node_skeleton(client):
-    """Seeding an empty store yields exactly the six-node skeleton."""
+    """Seeding an empty store yields exactly the sixteen-node skeleton."""
     seeder = HCGSeeder(client)
     count = seeder.seed_type_definitions()
 
-    assert count == 6
+    assert count == 16
 
     names = client._execute_read(
         """
@@ -70,6 +70,16 @@ def test_seed_creates_exactly_the_six_node_skeleton(client):
         "concept",
         "process",
         "cognition",
+        "reserved_node",
+        "reserved_agent",
+        "reserved_process",
+        "reserved_action",
+        "reserved_goal",
+        "reserved_plan",
+        "reserved_simulation",
+        "reserved_execution",
+        "reserved_state",
+        "reserved_media_sample",
     }
 
     # root is the parentless terminus: it is never the child of an IS_A edge.
@@ -82,7 +92,7 @@ def test_seed_creates_exactly_the_six_node_skeleton(client):
     )
     assert root_parent[0]["count"] == 0
 
-    # Exactly five reified IS_A assertions wire the skeleton together.
+    # Exactly fifteen reified IS_A assertions wire the skeleton together.
     edges = client._execute_read(
         """
         MATCH (e:Node {relation: "IS_A"})
@@ -90,7 +100,7 @@ def test_seed_creates_exactly_the_six_node_skeleton(client):
     """,
         {},
     )
-    assert edges[0]["count"] == 5
+    assert edges[0]["count"] == 15
 
     # No seeded uuid may match the retired type_ slug pattern.
     slugs = client._execute_read(

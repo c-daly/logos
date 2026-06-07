@@ -12,23 +12,33 @@ from logos_hcg.seeder import TYPE_PARENTS, HCGSeeder
 UUID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 
 # The only names the seeder may ever create.
-SEED_NAMES = {"root", "node", "entity", "concept", "process", "cognition"}
+SEED_NAMES = {
+    "root",
+    "node",
+    "entity",
+    "concept",
+    "process",
+    "cognition",
+    # System-reserved scaffolding -- seeded, untouched by the content engine.
+    "reserved_node",
+    "reserved_agent",
+    "reserved_process",
+    "reserved_action",
+    "reserved_goal",
+    "reserved_plan",
+    "reserved_simulation",
+    "reserved_execution",
+    "reserved_state",
+    "reserved_media_sample",
+}
 
-# Names that must never be seeded as vocabulary nodes (logos#515 design lock).
+# Names that must never be seeded (logos#515 design lock). object/location
+# EMERGE as content types; the relation-vocabulary nodes are not seeded
+# (only IS_A is used for now); reserved_* are SEEDED scaffolding, not cruft.
 FORBIDDEN_SEED_NAMES = {
     "object",
     "location",
     "edge_type",
-    "reserved_action",
-    "reserved_agent",
-    "reserved_execution",
-    "reserved_goal",
-    "reserved_media_sample",
-    "reserved_node",
-    "reserved_plan",
-    "reserved_process",
-    "reserved_simulation",
-    "reserved_state",
     "ENABLES",
     "ACHIEVES",
     "LOCATED_AT",
@@ -51,25 +61,35 @@ class TestSeedTypeDefinitions:
     """Test suite for the seeded skeleton produced by seed_type_definitions."""
 
     def test_type_parents_is_the_locked_skeleton(self):
-        """TYPE_PARENTS is exactly the five reified IS_A edges of the skeleton."""
+        """TYPE_PARENTS is exactly the fifteen reified IS_A edges of the skeleton."""
         assert TYPE_PARENTS == {
             "node": "root",
             "entity": "node",
             "concept": "node",
             "process": "node",
             "cognition": "node",
+            "reserved_node": "node",
+            "reserved_agent": "reserved_node",
+            "reserved_process": "reserved_node",
+            "reserved_action": "reserved_node",
+            "reserved_goal": "reserved_node",
+            "reserved_plan": "reserved_node",
+            "reserved_simulation": "reserved_node",
+            "reserved_execution": "reserved_node",
+            "reserved_state": "reserved_node",
+            "reserved_media_sample": "reserved_node",
         }
 
-    def test_seed_creates_six_nodes_and_five_edges(self):
-        """An empty store yields exactly 6 nodes and 5 IS_A assertions."""
+    def test_seed_creates_sixteen_nodes_and_fifteen_edges(self):
+        """An empty store yields exactly 16 nodes and 15 IS_A assertions."""
         mock_client = Mock()
         seeder = HCGSeeder(client=mock_client)
 
         count = seeder.seed_type_definitions()
 
-        assert count == 6
-        assert mock_client.add_node.call_count == 6
-        assert mock_client.add_edge.call_count == 5
+        assert count == 16
+        assert mock_client.add_node.call_count == 16
+        assert mock_client.add_edge.call_count == 15
 
     def test_seed_names_are_exactly_the_skeleton(self):
         """Seeder names are exactly the skeleton and never a forbidden name."""
@@ -90,13 +110,13 @@ class TestSeedTypeDefinitions:
         seeder.seed_type_definitions()
 
         uuids = [call.kwargs["uuid"] for call in mock_client.add_node.call_args_list]
-        assert len(uuids) == 6
+        assert len(uuids) == 16
         for value in uuids:
             assert not value.startswith("type_")
             assert UUID_RE.match(value), value
 
     def test_seed_is_idempotent_deterministic_uuid5(self):
-        """Re-seeding mints the same six uuid5 ids (MERGE no-ops, no growth)."""
+        """Re-seeding mints the same sixteen uuid5 ids (MERGE no-ops, no growth)."""
         mock_client = Mock()
         # Echo the uuid back so type_uuids holds the real ids (mirrors the
         # real client, whose add_node MERGEs on uuid and returns it).
@@ -120,9 +140,9 @@ class TestSeedTypeDefinitions:
         assert first == second
         assert set(first) == SEED_NAMES
         # The MERGE key (uuid) is stable, so the union across both runs is
-        # exactly the six skeleton ids -- a second seed adds no new nodes.
+        # exactly the sixteen skeleton ids -- a second seed adds no new nodes.
         assert set(first.values()) | set(second.values()) == set(first.values())
-        assert len(set(first.values())) == 6
+        assert len(set(first.values())) == 16
 
 
 class TestSeedTypeCentroids:

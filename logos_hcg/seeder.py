@@ -30,7 +30,11 @@ logger = logging.getLogger(__name__)
 # Type hierarchy
 # ---------------------------------------------------------------------------
 
-# Seeded skeleton (final): root <- node <- {entity, concept, process, cognition}.
+# Seeded skeleton (final): root <- node <- {entity, concept, process, cognition,
+# reserved_node <- 9 reserved_*}. Content realms (entity/concept/process) drain;
+# cognition + the reserved_* subtree are seeded system scaffolding, untouched by
+# the content engine. object/location are NOT seeded (they emerge); relation
+# vocabulary is NOT seeded (only IS_A is used for now).
 #
 # ``root`` is the parentless terminus -- it exists only to give ``node`` a
 # place to refer to, and nothing is ever placed under it.  ``node`` is the
@@ -43,10 +47,24 @@ logger = logging.getLogger(__name__)
 # uuid, so identical uuids on a second run are no-ops rather than duplicates.
 TYPE_PARENTS: dict[str, str] = {
     "node": "root",
+    # Content realms (drainage pools).
     "entity": "node",
     "concept": "node",
     "process": "node",
+    # Sophia's tree -- seeded, untouched by the content engine.
     "cognition": "node",
+    # System-reserved scaffolding -- seeded, untouched; reserved_node first so
+    # its children resolve their parent in this insertion order.
+    "reserved_node": "node",
+    "reserved_agent": "reserved_node",
+    "reserved_process": "reserved_node",
+    "reserved_action": "reserved_node",
+    "reserved_goal": "reserved_node",
+    "reserved_plan": "reserved_node",
+    "reserved_simulation": "reserved_node",
+    "reserved_execution": "reserved_node",
+    "reserved_state": "reserved_node",
+    "reserved_media_sample": "reserved_node",
 }
 
 
