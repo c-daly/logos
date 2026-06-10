@@ -121,19 +121,54 @@ jobs:
         run: |
           npm install -g @apidevtools/swagger-cli
       
-      - name: Validate hermes.openapi.yaml
+      - name: Validate OpenAPI contracts (syntax)
         run: |
-          echo "Validating OpenAPI 3.1.0 specification for hermes.openapi.yaml..."
-          
-          swagger-cli validate contracts/hermes.openapi.yaml
-          
-          echo "✅ OpenAPI validation passed"
-      
-      - name: Bundle OpenAPI specification
+          for contract in contracts/*.openapi.yaml; do
+            echo "Validating $contract ..."
+            swagger-cli validate "$contract"
+          done
+          echo "OpenAPI syntax validation passed"
+
+      - name: Check contracts match service snapshots (drift gate)
+        # Fidelity check, NOT just syntax: each contracts/<svc>.openapi.yaml must
+        # equal the service's published openapi.yaml (generated from app.openapi()
+        # and gated by that service's conformance test). Catches a contract that
+        # drifted from the live service - e.g. hand-edited, or a route added to
+        # the service but never synced. swagger-cli validate above only proves the
+        # contract is well-formed, not that it matches reality.
+        #
+        # Services without a published openapi.yaml yet are skipped (warning), so
+        # this is safe to merge before sophia/apollo are wired. Requires
+        # CONTRACTS_SYNC_TOKEN (contents:read on the service repos).
+        env:
+          GH_TOKEN: ${{ secrets.CONTRACTS_SYNC_TOKEN }}
         run: |
-          echo "Bundling OpenAPI specification..."
-          swagger-cli bundle contracts/hermes.openapi.yaml --outfile /tmp/hermes.bundled.yaml --type yaml
-          echo "✅ OpenAPI bundle created successfully"
+          set -euo pipefail
+          services="hermes:c-daly/hermes sophia:c-daly/sophia apollo:c-daly/apollo"
+          drift=0
+          for entry in $services; do
+            svc="${entry%%:*}"; repo="${entry##*:}"
+            contract="contracts/$svc.openapi.yaml"
+            if [ ! -f "$contract" ]; then
+              echo "::notice::$contract not present - skipping"
+              continue
+            fi
+            if ! gh api "repos/$repo/contents/openapi.yaml?ref=main" \
+                   -H "Accept: application/vnd.github.raw" > "/tmp/$svc.served.yaml" 2>/dev/null; then
+              echo "::warning::$repo has no openapi.yaml on main yet - skipping $svc"
+              continue
+            fi
+            if diff -u "$contract" "/tmp/$svc.served.yaml" > "/tmp/$svc.diff"; then
+              echo "$svc: contract matches the live service"
+            else
+              echo "::error::$contract is out of sync with the $svc service."
+              echo "Contracts are not hand-maintained; they sync from each service's"
+              echo "openapi.yaml (run 'make openapi' in $repo, land it, then sync-contracts.yml)."
+              cat "/tmp/$svc.diff"
+              drift=1
+            fi
+          done
+          exit $drift
 
   summary:
     name: Validation Summary
