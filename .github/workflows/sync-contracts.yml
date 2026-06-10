@@ -1,0 +1,82 @@
+name: Sync service OpenAPI contracts
+
+# Pull each service's server-generated OpenAPI snapshot (openapi.yaml, produced
+# by that repo's `make openapi` and gated by its conformance test) into
+# contracts/, so the canonical contracts always track the live servers rather
+# than being hand-maintained (see logos#558).
+#
+# On change this opens a PR; merging it triggers regenerate-sdks.yml and the API
+# docs workflow, which already consume contracts/. This closes the loop:
+#
+#   service app.openapi()  ──make openapi──►  <service>/openapi.yaml
+#         │ (gated by the service's conformance test)
+#         ▼ (this workflow)
+#   logos contracts/<svc>.openapi.yaml  ──►  SDKs + API docs
+#
+# Prerequisite: each service repo commits a root-level openapi.yaml.
+#   - hermes: wired (chore/openapi-conformance-gate)
+#   - sophia, apollo: follow-ups (same pattern)
+#
+# Auth: reading openapi.yaml from sibling (private) repos needs a token with
+# read access to them. Set the CONTRACTS_SYNC_TOKEN secret to a fine-grained PAT
+# (contents:read on c-daly/hermes, c-daly/sophia, c-daly/apollo). The built-in
+# GITHUB_TOKEN cannot read other repositories.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # weekly, Monday 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout logos
+        uses: actions/checkout@v4
+
+      - name: Pull service OpenAPI snapshots into contracts/
+        env:
+          GH_TOKEN: ${{ secrets.CONTRACTS_SYNC_TOKEN }}
+        run: |
+          set -euo pipefail
+          services="hermes:c-daly/hermes sophia:c-daly/sophia apollo:c-daly/apollo"
+          for entry in $services; do
+            svc="${entry%%:*}"; repo="${entry##*:}"
+            echo "::group::$svc ($repo)"
+            if gh api "repos/$repo/contents/openapi.yaml?ref=main" \
+                 -H "Accept: application/vnd.github.raw" \
+                 > "contracts/$svc.openapi.yaml.new" 2>/dev/null; then
+              mv "contracts/$svc.openapi.yaml.new" "contracts/$svc.openapi.yaml"
+              echo "updated contracts/$svc.openapi.yaml"
+            else
+              rm -f "contracts/$svc.openapi.yaml.new"
+              echo "::warning::$repo has no openapi.yaml on main yet — skipping"
+            fi
+            echo "::endgroup::"
+          done
+
+      - name: Validate contracts
+        run: |
+          npm install -g @apidevtools/swagger-cli
+          for c in contracts/*.openapi.yaml; do
+            echo "validating $c"
+            swagger-cli validate "$c"
+          done
+
+      - name: Open PR if contracts changed
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: chore/sync-openapi-contracts
+          delete-branch: true
+          title: "chore: sync OpenAPI contracts from services"
+          commit-message: "chore: sync OpenAPI contracts from service snapshots"
+          body: |
+            Automated sync of server-generated OpenAPI snapshots into `contracts/`.
+
+            Each service's `openapi.yaml` is produced by its `make openapi` and
+            gated by its conformance test, so this reflects the live API surface.
+            Merging triggers `regenerate-sdks.yml` and the API docs workflow.
