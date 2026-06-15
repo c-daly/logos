@@ -950,7 +950,7 @@ class HCGClient:
         records = self._execute_read(query)
         result = []
         for r in records:
-            props = dict(r["t"]) if r.get("t") else {}
+            props = self._parse_node_to_dict(r.get("t"))
             # member_count is the positional in-degree (how many nodes IS_A this
             # type), computed by the query over the IS_A subgraph -- expose it on
             # properties so callers (e.g. the Redis type snapshot) read the live
