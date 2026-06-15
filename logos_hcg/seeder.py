@@ -90,19 +90,26 @@ class HCGSeeder:
     # clear
     # ------------------------------------------------------------------
 
-    def clear(self) -> None:
-        """Remove all seeded data from every store.
+    def clear(self, drop_collections: bool = False) -> None:
+        """Remove all seeded data; preserve the Milvus collections by default.
 
         Wipes the Neo4j graph and, where reachable, the Redis ontology keys
-        (``logos:ontology:*``) and the Milvus ``hcg_*`` collections, so a fresh
-        seed starts from a clean slate across the whole stack (logos#554).
+        (``logos:ontology:*``). The Milvus ``hcg_*`` collections are PRESERVED
+        (kept created, indexed and loaded) so a routine reseed stays seamless --
+        dropping them leaves them unloaded after the lazy re-create on next
+        ingest, which surfaces as "collection not loaded" search failures
+        (logos#559, a #515 regression). Pass ``drop_collections=True`` ONLY when
+        the embedding type/dimension changes and the collections must be rebuilt
+        (or use ``init_milvus_collections.py --force``, which also re-indexes and
+        re-loads them).
 
         A store that is unreachable is skipped with a warning; a store that is
         reachable but fails to clear raises, so partial wipes are never silent.
         """
         self.client.clear_all()
         self._clear_redis_ontology()
-        self._clear_milvus_collections()
+        if drop_collections:
+            self._clear_milvus_collections()
 
     @staticmethod
     def _clear_redis_ontology() -> None:
@@ -989,6 +996,13 @@ def main(argv: list[str] | None = None) -> None:
         action="store_true",
         help="Only seed type definitions (no demo data or persona entries)",
     )
+    parser.add_argument(
+        "--drop-collections",
+        action="store_true",
+        help="Also DROP the Milvus hcg_* collections during --clear. Use only "
+        "when the embedding type/dimension changed; a routine reseed should "
+        "preserve them (kept loaded) so it stays seamless (logos#559).",
+    )
     args = parser.parse_args(argv)
 
     logging.basicConfig(
@@ -1000,7 +1014,7 @@ def main(argv: list[str] | None = None) -> None:
     try:
         seeder = HCGSeeder(client)
         if args.clear:
-            seeder.clear()
+            seeder.clear(drop_collections=args.drop_collections)
         if args.ontology_only:
             seeder.seed_type_definitions()
         else:
