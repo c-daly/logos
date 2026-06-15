@@ -948,14 +948,16 @@ class HCGClient:
         """
         query = HCGQueries.find_type_definitions()
         records = self._execute_read(query)
-        return [
-            {
-                "uuid": r["uuid"],
-                "name": r["name"],
-                "properties": dict(r["t"]) if r.get("t") else {},
-            }
-            for r in records
-        ]
+        result = []
+        for r in records:
+            props = dict(r["t"]) if r.get("t") else {}
+            # member_count is the positional in-degree (how many nodes IS_A this
+            # type), computed by the query over the IS_A subgraph -- expose it on
+            # properties so callers (e.g. the Redis type snapshot) read the live
+            # count rather than a stale stored prop.
+            props["member_count"] = r.get("member_count", 0)
+            result.append({"uuid": r["uuid"], "name": r["name"], "properties": props})
+        return result
 
     def verify_connection(self) -> bool:
         """

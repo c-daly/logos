@@ -265,14 +265,24 @@ class HCGQueries:
     @staticmethod
     def find_type_definitions() -> str:
         """
-        Find all type definition nodes.
-        Type definitions are nodes with type="type_definition".
+        Find all types, positionally, over the IS_A subgraph.
 
-        Returns: List of type definition nodes with name and uuid.
+        A type is any node that something IS_A's -- i.e. it has an incoming
+        reified IS_A edge (an edge-node ``{relation:"IS_A"}`` whose ``:TO`` points
+        at it). This structural definition replaces the stored
+        ``type="type_definition"`` label, so it also surfaces content-node types
+        (e.g. ``engine`` once ``turbofan IS_A engine`` exists), not just minted/
+        seeded ones. The query is anchored on the IS_A edge-nodes (uses the
+        ``Node.relation`` index) and touches ONLY the IS_A subgraph; ``member_count``
+        is the in-degree (how many nodes IS_A this type).
+
+        Returns: each type's name, uuid, node (``t``), and member_count.
         """
         return """
-        MATCH (t:Node {type: "type_definition"})
-        RETURN t.name AS name, t.uuid AS uuid, t
+        MATCH (:Node {relation: "IS_A"})-[:TO]->(t:Node)
+        WHERE t.relation IS NULL
+        WITH t, count(*) AS member_count
+        RETURN t.name AS name, t.uuid AS uuid, t, member_count
         ORDER BY t.name
         """
 
