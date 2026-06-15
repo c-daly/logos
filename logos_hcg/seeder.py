@@ -1004,6 +1004,8 @@ def main(argv: list[str] | None = None) -> None:
         "preserve them (kept loaded) so it stays seamless (logos#559).",
     )
     args = parser.parse_args(argv)
+    if args.drop_collections and not args.clear:
+        parser.error("--drop-collections requires --clear")
 
     logging.basicConfig(
         level=logging.INFO,
