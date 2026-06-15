@@ -24,6 +24,8 @@ Query patterns:
 - Outgoing edges: MATCH (n)<-[:FROM]-(e:Node {type: "edge"})-[:TO]->(target)
 """
 
+import warnings
+
 
 class HCGQueries:
     """Collection of common Cypher queries for HCG operations."""
@@ -265,30 +267,62 @@ class HCGQueries:
     @staticmethod
     def find_type_definitions() -> str:
         """
-        Find all type definition nodes.
-        Type definitions are nodes with type="type_definition".
+        Find all types, positionally, over the IS_A subgraph.
 
-        Returns: List of type definition nodes with name and uuid.
+        A type is any node that something IS_A's -- i.e. it has an incoming
+        reified IS_A edge (an edge-node ``{relation:"IS_A"}`` whose ``:TO`` points
+        at it). This structural definition replaces the stored
+        ``type="type_definition"`` label, so it also surfaces content-node types
+        (e.g. ``engine`` once ``turbofan IS_A engine`` exists), not just minted/
+        seeded ones. The query is anchored on the IS_A edge-nodes (uses the
+        ``Node.relation`` index) and touches ONLY the IS_A subgraph; ``member_count``
+        is the in-degree (how many nodes IS_A this type).
+
+        Returns: each type's name, uuid, node (``t``), and member_count.
         """
         return """
-        MATCH (t:Node {type: "type_definition"})
-        RETURN t.name AS name, t.uuid AS uuid, t
+        MATCH (:Node {relation: "IS_A"})-[:TO]->(t:Node)
+        WHERE t.relation IS NULL
+        WITH t, count(*) AS member_count
+        RETURN t.name AS name, t.uuid AS uuid, t, member_count
         ORDER BY t.name
         """
 
     @staticmethod
     def find_type_definition() -> str:
         """
-        Find a type definition by name.
+        .. deprecated::
+            Resolve a type by uuid, or via ``find_type_definitions()`` / the
+            name->uuid type snapshot. Names are NOT unique in the HCG (e.g.
+            duplicate ``cognition``/``concept`` nodes exist), so a singular
+            by-name type lookup is inherently ambiguous -- this can return
+            MORE THAN ONE node for a single name, which a caller expecting a
+            single type definition cannot use safely.
+
+        Find a type by name, positionally. Kept consistent with
+        ``find_type_definitions()`` (positional over the IS_A subgraph) so that
+        a caller ignoring the deprecation at least does not silently miss
+        positionally-discovered types like ``engine`` the way the old
+        ``{type:"type_definition"}`` filter would have. ``DISTINCT`` collapses
+        the duplicate rows a node accrues from its multiple incoming IS_A edges.
 
         Parameters:
         - name: Type name
 
-        Returns: Type definition node
+        Returns: the type node(s) named ``name``.
         """
+        warnings.warn(
+            "HCGQueries.find_type_definition (singular, by-name) is "
+            "deprecated: names are not unique in the HCG, so by-name type "
+            "resolution is ambiguous. Resolve by uuid, or via "
+            "find_type_definitions()/the type snapshot.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return """
-        MATCH (t:Node {type: "type_definition", name: $name})
-        RETURN t
+        MATCH (:Node {relation: "IS_A"})-[:TO]->(t:Node {name: $name})
+        WHERE t.relation IS NULL
+        RETURN DISTINCT t
         """
 
     @staticmethod
