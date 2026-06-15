@@ -24,6 +24,8 @@ Query patterns:
 - Outgoing edges: MATCH (n)<-[:FROM]-(e:Node {type: "edge"})-[:TO]->(target)
 """
 
+import warnings
+
 
 class HCGQueries:
     """Collection of common Cypher queries for HCG operations."""
@@ -289,21 +291,34 @@ class HCGQueries:
     @staticmethod
     def find_type_definition() -> str:
         """
-        Find a type by name, positionally.
+        .. deprecated::
+            Resolve a type by uuid, or via ``find_type_definitions()`` / the
+            name->uuid type snapshot. Names are NOT unique in the HCG (e.g.
+            duplicate ``cognition``/``concept`` nodes exist), so a singular
+            by-name type lookup is inherently ambiguous -- this can return
+            MORE THAN ONE node for a single name, which a caller expecting a
+            single type definition cannot use safely.
 
-        Consistent with find_type_definitions(): a type is any node that
-        something IS_A's. Resolving by name therefore matches a node named
-        ``$name`` that has an incoming reified IS_A edge -- so it can find
-        positionally-discovered types like ``engine``, not just label-stamped
-        ones. (The old ``{type:"type_definition"}`` filter would silently miss
-        every type the plural query now surfaces.)
+        Find a type by name, positionally. Kept consistent with
+        ``find_type_definitions()`` (positional over the IS_A subgraph) so that
+        a caller ignoring the deprecation at least does not silently miss
+        positionally-discovered types like ``engine`` the way the old
+        ``{type:"type_definition"}`` filter would have. ``DISTINCT`` collapses
+        the duplicate rows a node accrues from its multiple incoming IS_A edges.
 
         Parameters:
         - name: Type name
 
-        Returns: the type node(s) named ``name``. DISTINCT collapses the
-        duplicate rows a node accrues from its multiple incoming IS_A edges.
+        Returns: the type node(s) named ``name``.
         """
+        warnings.warn(
+            "HCGQueries.find_type_definition (singular, by-name) is "
+            "deprecated: names are not unique in the HCG, so by-name type "
+            "resolution is ambiguous. Resolve by uuid, or via "
+            "find_type_definitions()/the type snapshot.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return """
         MATCH (:Node {relation: "IS_A"})-[:TO]->(t:Node {name: $name})
         WHERE t.relation IS NULL

@@ -1,5 +1,7 @@
 """Integration tests for reified edge queries. Requires Neo4j."""
 
+import warnings
+
 import pytest
 
 from logos_hcg.client import HCGClient
@@ -240,7 +242,13 @@ class TestAncestorPropertyRemoved:
             method = getattr(HCGQueries, name)
             if callable(method):
                 try:
-                    q = method()
+                    # Some methods (e.g. the deprecated singular
+                    # find_type_definition) emit a DeprecationWarning when
+                    # called; inspecting their query strings shouldn't trip on
+                    # that under warnings-as-error.
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore", DeprecationWarning)
+                        q = method()
                     if isinstance(q, str):
                         queries.append((name, q))
                 except TypeError:
