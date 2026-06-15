@@ -289,16 +289,25 @@ class HCGQueries:
     @staticmethod
     def find_type_definition() -> str:
         """
-        Find a type definition by name.
+        Find a type by name, positionally.
+
+        Consistent with find_type_definitions(): a type is any node that
+        something IS_A's. Resolving by name therefore matches a node named
+        ``$name`` that has an incoming reified IS_A edge -- so it can find
+        positionally-discovered types like ``engine``, not just label-stamped
+        ones. (The old ``{type:"type_definition"}`` filter would silently miss
+        every type the plural query now surfaces.)
 
         Parameters:
         - name: Type name
 
-        Returns: Type definition node
+        Returns: the type node(s) named ``name``. DISTINCT collapses the
+        duplicate rows a node accrues from its multiple incoming IS_A edges.
         """
         return """
-        MATCH (t:Node {type: "type_definition", name: $name})
-        RETURN t
+        MATCH (:Node {relation: "IS_A"})-[:TO]->(t:Node {name: $name})
+        WHERE t.relation IS NULL
+        RETURN DISTINCT t
         """
 
     @staticmethod
